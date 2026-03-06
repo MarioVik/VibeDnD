@@ -1,0 +1,1454 @@
+[
+  {
+    "name": "Acolyte",
+    "source": "Player's Handbook",
+    "description": "You devoted yourself to service in a temple, either nestled in a town or secluded in a sacred grove. There you performed rites in honor of a god or pantheon. You served under a priest and studied religion. Thanks to your priest's instruction and your own devotion, you also learned how to channel a modicum of divine power in service to your place of worship and the people who prayed there.",
+    "ability_scores": [
+      "Intelligence",
+      "Wisdom",
+      "Charisma"
+    ],
+    "feat": "Magic Initiate (Cleric)",
+    "skill_proficiencies": [
+      "Insight",
+      "Religion"
+    ],
+    "tool_proficiency": "Calligrapher's Supplies",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Calligrapher’s Supplies, Book (prayers), Holy Symbol, Parchment (10 sheets), Robe, 8 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Artisan",
+    "source": "Player's Handbook",
+    "description": "You began mopping floors and scrubbing counters in an artisan’s workshop for a few coppers per day as soon as you were strong enough to carry a bucket. When you were old enough to apprentice, you learned to create basic crafts of your own, as well as how to sweet-talk the occasional demanding customer. Your trade has also given you a keen eye for detail.",
+    "ability_scores": [
+      "Strength",
+      "Dexterity",
+      "Intelligence"
+    ],
+    "feat": "Crafter",
+    "skill_proficiencies": [
+      "Investigation",
+      "Persuasion"
+    ],
+    "tool_proficiency": "Choose one kind of",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Artisan's Tools (same as above), 2 Pouches, Traveler’s Clothes, 32 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Charlatan",
+    "source": "Player's Handbook",
+    "description": "Once you were old enough to order an ale, you soon had a favorite stool in every tavern within ten miles of where you were born. As you traveled the circuit from public house to watering hole, you learned to prey on unfortunates who were in the market for a comforting lie or two—perhaps a sham potion or forged ancestry records.",
+    "ability_scores": [
+      "Dexterity",
+      "Constitution",
+      "Charisma"
+    ],
+    "feat": "Skilled",
+    "skill_proficiencies": [
+      "Deception",
+      "Sleight of Hand"
+    ],
+    "tool_proficiency": "Forgery Kit",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Forgery Kit, Costume, Fine Clothes, 15 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Criminal",
+    "source": "Player's Handbook",
+    "description": "You eked out a living in dark alleyways, cutting purses or burgling shops. Perhaps you were part of a small gang of like-minded wrongdoers who looked out for each other. Or maybe you were a lone wolf, fending for yourself against the local thieves' guild and more fearsome lawbreakers.",
+    "ability_scores": [
+      "Dexterity",
+      "Constitution",
+      "Intelligence"
+    ],
+    "feat": "Alert",
+    "skill_proficiencies": [
+      "Sleight of Hand",
+      "Stealth"
+    ],
+    "tool_proficiency": "Thieves' Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "2 Daggers, Thieves' Tools, Crowbar, 2 Pouches, Traveler's Clothes, 16 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Entertainer",
+    "source": "Player's Handbook",
+    "description": "You spent much of your youth following roving fairs and carnivals, performing odd jobs for musicians and acrobats in exchange for lessons. You may have learned how to walk a tightrope, how to play a lute in a distinct style, or how to recite poetry with impeccable diction. To this day, you thrive on applause and long for the stage.",
+    "ability_scores": [
+      "Strength",
+      "Dexterity",
+      "Charisma"
+    ],
+    "feat": "Musician",
+    "skill_proficiencies": [
+      "Acrobatics",
+      "Performance"
+    ],
+    "tool_proficiency": "Choose one kind of",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Musical Instrument (same as above), 2 Costumes, Mirror, Perfume, Traveler’s Clothes, 11 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Farmer",
+    "source": "Player's Handbook",
+    "description": "You grew up close to the land. Years tending animals and cultivating the earth rewarded you with patience and good health. You have a keen appreciation for nature’s bounty alongside a healthy respect for nature's wrath.",
+    "ability_scores": [
+      "Strength",
+      "Constitution",
+      "Wisdom"
+    ],
+    "feat": "Tough",
+    "skill_proficiencies": [
+      "Animal Handling",
+      "Nature"
+    ],
+    "tool_proficiency": "Carpenter's Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Sickle, Carpenter's Tools, Healer's Kit, Iron Pot, Shovel, Traveler's Clothes, 30 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Guard",
+    "source": "Player's Handbook",
+    "description": "Your feet ache when you remember the countless hours you spent at your post in the tower. You were trained to keep one eye looking outside the wall, watching for marauders sweeping from the nearby forest, and your other eye looking inside the wall, searching for cutpurses and troublemakers.",
+    "ability_scores": [
+      "Strength",
+      "Intelligence",
+      "Wisdom"
+    ],
+    "feat": "Alert",
+    "skill_proficiencies": [
+      "Athletics",
+      "Perception"
+    ],
+    "tool_proficiency": "Choose one kind of",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Spear, Light Crossbow, 20 Bolts, Gaming Set (same as above), Hooded Lantern, Manacles, Quiver, Traveler’s Clothes, 12 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Guide",
+    "source": "Player's Handbook",
+    "description": "You came of age outdoors, far from settled lands. Your home was anywhere you chose to spread your bedroll. There are wonders in the wilderness— strange monsters, pristine forests and streams, overgrown ruins of great halls once trod by giants— and you learned to fend for yourself as you explored them. From time to time, you guided friendly nature priests who instructed you in the fundamentals of channeling the magic of the wild.",
+    "ability_scores": [
+      "Dexterity",
+      "Constitution",
+      "Wisdom"
+    ],
+    "feat": "Magic Initiate (Druid)",
+    "skill_proficiencies": [
+      "Stealth",
+      "Survival"
+    ],
+    "tool_proficiency": "Cartographer's Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Shortbow, 20 Arrows, Cartographer’s Tools, Bedroll, Quiver, Tent, Traveler's Clothes, 3 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Hermit",
+    "source": "Player's Handbook",
+    "description": "You spent your early years secluded in a hut or monastery located well beyond the outskirts of the nearest settlement. In those days, your only companions were the creatures of the forest and those who would occasionally visit to bring news of the outside world and supplies. The solitude allowed you to spend many hours pondering the mysteries of creation.",
+    "ability_scores": [
+      "Constitution",
+      "Wisdom",
+      "Charisma"
+    ],
+    "feat": "Healer",
+    "skill_proficiencies": [
+      "Medicine",
+      "Religion"
+    ],
+    "tool_proficiency": "Herbalism Kit",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Quarterstaff, Herbalism Kit, Bedroll, Book (philosophy), Lamp, Oil (3 flasks), Traveler's Clothes, 16 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Merchant",
+    "source": "Player's Handbook",
+    "description": "You were apprenticed to a trader, caravan master, or shopkeeper, learning the fundamentals of commerce. You traveled broadly, and you earned a living by buying and selling the raw materials artisans need to practice their craft or finished works from such crafters. You might have transported goods from one place to another (by ship, wagon, or caravan) or bought them from traveling traders and sold them in your own shop.",
+    "ability_scores": [
+      "Constitution",
+      "Intelligence",
+      "Charisma"
+    ],
+    "feat": "Lucky",
+    "skill_proficiencies": [
+      "Animal Handling",
+      "Persuasion"
+    ],
+    "tool_proficiency": "Navigator's Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Navigator’s Tools, 2 Pouches, Traveler's Clothes, 22 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Noble",
+    "source": "Player's Handbook",
+    "description": "You were raised in a castle, surrounded by wealth, power, and privilege. Your family of minor aristocrats ensured that you received a first-class education, some of which you appreciated and some of which you resented. Your time in the castle, especially the many hours you spent observing your family at court, also taught you a great deal about leadership.",
+    "ability_scores": [
+      "Strength",
+      "Intelligence",
+      "Charisma"
+    ],
+    "feat": "Skilled",
+    "skill_proficiencies": [
+      "History",
+      "Persuasion"
+    ],
+    "tool_proficiency": "Choose one kind of",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Gaming Set (same as above), Fine Clothes, Perfume, 29 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Sage",
+    "source": "Player's Handbook",
+    "description": "You spent your formative years traveling between manors and monasteries, performing various odd jobs and services in exchange for access to their libraries. You whiled away many a long evening studying books and scrolls, learning the lore of the multiverse - even the rudiments of magic - and your mind yearns for more.",
+    "ability_scores": [
+      "Constitution",
+      "Intelligence",
+      "Wisdom"
+    ],
+    "feat": "Magic Initiate (Wizard)",
+    "skill_proficiencies": [
+      "Arcana",
+      "History"
+    ],
+    "tool_proficiency": "Calligrapher's Supplies",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Quarterstaff, Calligrapher's Supplies, Book (history), Parchment (8 sheets), Robe, 8 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Sailor",
+    "source": "Player's Handbook",
+    "description": "You lived as a seafarer, wind at your back and decks swaying beneath your feet. You've perched on barstools in more ports of call than you can remember, faced mighty storms, and swapped stories with folk who live beneath the waves.",
+    "ability_scores": [
+      "Strength",
+      "Dexterity",
+      "Wisdom"
+    ],
+    "feat": "Tavern Brawler",
+    "skill_proficiencies": [
+      "Acrobatics",
+      "Perception"
+    ],
+    "tool_proficiency": "Navigator's Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Dagger, Navigator's Tools, Rope, Traveler's Clothes, 20 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Scribe",
+    "source": "Player's Handbook",
+    "description": "You spent formative years in a scriptorium, a monastery dedicated to the preservation of knowledge, or a government agency, where you learned to write with a clear hand and produce finely written texts. Perhaps you scribed government documents or copied tomes of literature. You might have some skill as a writer of poetry, narrative, or scholarly research. Above all, you have a careful attention to detail, helping you avoid introducing mistakes to the documents you copy and create.",
+    "ability_scores": [
+      "Dexterity",
+      "Intelligence",
+      "Wisdom"
+    ],
+    "feat": "Skilled",
+    "skill_proficiencies": [
+      "Investigation",
+      "Perception"
+    ],
+    "tool_proficiency": "Calligrapher's Supplies",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Calligrapher’s Supplies, Fine Clothes, Lamp, Oil (3 flasks), Parchment (12 sheets), 23 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Soldier",
+    "source": "Player's Handbook",
+    "description": "You began training for war as soon as you reached adulthood and carry precious few memories of life before you took up arms. Battle is in your blood. Sometimes you catch yourself reflexively performing the basic fighting exercises you learned first. Eventually, you put that training to use on the battlefield, protecting the realm by waging war.",
+    "ability_scores": [
+      "Strength",
+      "Dexterity",
+      "Constitution"
+    ],
+    "feat": "Savage Attacker",
+    "skill_proficiencies": [
+      "Athletics",
+      "Intimidation"
+    ],
+    "tool_proficiency": "Choose one kind of",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Spear, Shortbow, 20 Arrows, Gaming Set (same as above), Healer's Kit, Quiver, Traveler’s Clothes, 14 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Wayfarer",
+    "source": "Player's Handbook",
+    "description": "You grew up on the streets surrounded by similarly ill-fated castoffs, a few of them friends and a few of them rivals. You slept where you could and did odd jobs for food. At times, when the hunger became unbearable, you resorted to theft. Still, you never lost your pride and never abandoned hope. Fate is not yet finished with you.",
+    "ability_scores": [
+      "Dexterity",
+      "Wisdom",
+      "Charisma"
+    ],
+    "feat": "Lucky",
+    "skill_proficiencies": [
+      "Insight",
+      "Stealth"
+    ],
+    "tool_proficiency": "Thieves' Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "2 Daggers, Thieves' Tools, Gaming Set (any), Bedroll, 2 Pouches, Traveler's Clothes, 16 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Aberrant Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Constitution",
+      "Charisma"
+    ],
+    "feat": "Aberrant Dragonmark",
+    "skill_proficiencies": [
+      "History",
+      "Intimidation"
+    ],
+    "tool_proficiency": "Disguise Kit",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Dagger, Disguise Kit, Costume, Traveler’s Clothes, 16 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Archaeologist",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Intelligence",
+      "Wisdom"
+    ],
+    "feat": "Skilled",
+    "skill_proficiencies": [
+      "History",
+      "Survival"
+    ],
+    "tool_proficiency": "Cartographer’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Cartographer’s Tools, Bullseye Lantern, Map, Map or Scroll Case, Shovel, Tent, Traveler’s Clothes, 17 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Agent",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Intelligence",
+      "Charisma"
+    ],
+    "feat": "Lucky",
+    "skill_proficiencies": [
+      "Investigation",
+      "Persuasion"
+    ],
+    "tool_proficiency": "Choose one kind of Artisan’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Artisan’s Tools (same as above), Fine Clothes, 20 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Cannith Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Dexterity",
+      "Intelligence"
+    ],
+    "feat": "Mark of Making",
+    "skill_proficiencies": [
+      "Investigation",
+      "Sleight of Hand"
+    ],
+    "tool_proficiency": "Choose one kind of Artisan’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Artisan’s Tools (same as above), Crowbar, Fine Clothes, 2 Pouches, 17 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Deneith Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Constitution",
+      "Wisdom"
+    ],
+    "feat": "Mark of Sentinel",
+    "skill_proficiencies": [
+      "Insight",
+      "Perception"
+    ],
+    "tool_proficiency": "Choose one kind of Gaming Set",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Spear, Shortbow, 20 Arrows, Gaming Set (same as above), Fine Clothes, Healer’s Kit, Quiver, 1 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Ghallanda Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Wisdom",
+      "Charisma"
+    ],
+    "feat": "Mark of Hospitality",
+    "skill_proficiencies": [
+      "Insight",
+      "Persuasion"
+    ],
+    "tool_proficiency": "Cook’s Utensils",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Cook’s Utensils, Fine Clothes, Iron Pot, Lamp, Oil (5 flasks), Perfume, 26 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Jorasco Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Constitution",
+      "Wisdom"
+    ],
+    "feat": "Mark of Healing",
+    "skill_proficiencies": [
+      "Medicine",
+      "Stealth"
+    ],
+    "tool_proficiency": "Herbalism Kit",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Herbalism Kit, Fine Clothes, Healer’s Kit, 25 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Kundarak Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Constitution",
+      "Intelligence"
+    ],
+    "feat": "Mark of Warding",
+    "skill_proficiencies": [
+      "Arcana",
+      "Investigation"
+    ],
+    "tool_proficiency": "Thieves’ Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Thieves’ Tools, Fine Clothes, 10 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Lyrandar Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Dexterity",
+      "Charisma"
+    ],
+    "feat": "Mark of Storm",
+    "skill_proficiencies": [
+      "Acrobatics",
+      "Nature"
+    ],
+    "tool_proficiency": "Navigator’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Navigator’s Tools, Fine Clothes, 10 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Medani Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Intelligence",
+      "Wisdom"
+    ],
+    "feat": "Mark of Detection",
+    "skill_proficiencies": [
+      "Insight",
+      "Investigation"
+    ],
+    "tool_proficiency": "Disguise Kit",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Disguise Kit, Fine Clothes, 10 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Orien Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Constitution",
+      "Intelligence"
+    ],
+    "feat": "Mark of Passage",
+    "skill_proficiencies": [
+      "Acrobatics",
+      "Athletics"
+    ],
+    "tool_proficiency": "Cartographer’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Cartographer’s Tools, Fine Clothes, Map, Map or Scroll Case, 18 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Phiarlan Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Wisdom",
+      "Charisma"
+    ],
+    "feat": "Mark of Shadow",
+    "skill_proficiencies": [
+      "Deception",
+      "Stealth"
+    ],
+    "tool_proficiency": "Disguise Kit",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Disguise Kit, Fine Clothes, 10 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Sivis Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Intelligence",
+      "Wisdom",
+      "Charisma"
+    ],
+    "feat": "Mark of Scribing",
+    "skill_proficiencies": [
+      "History",
+      "Perception"
+    ],
+    "tool_proficiency": "Calligrapher’s Supplies",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Calligrapher’s Supplies, Fine Clothes, Ink, 5 Ink Pens, Paper (30 sheets), Parchment (9 sheets), 8 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Tharashk Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Constitution",
+      "Intelligence",
+      "Wisdom"
+    ],
+    "feat": "Mark of Finding",
+    "skill_proficiencies": [
+      "Perception",
+      "Survival"
+    ],
+    "tool_proficiency": "Choose one kind of Gaming Set",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Gaming Set (same as above), Climber’s Kit, Fine Clothes, Hunting Trap, Manacles, 2 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Thuranni Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Intelligence",
+      "Charisma"
+    ],
+    "feat": "Mark of Shadow",
+    "skill_proficiencies": [
+      "Performance",
+      "Stealth"
+    ],
+    "tool_proficiency": "Choose one kind of Musical Instrument",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Musical Instrument (same as above), Costume, Fine Clothes, 13 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "House Vadalis Heir",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Constitution",
+      "Wisdom",
+      "Charisma"
+    ],
+    "feat": "Mark of Handling",
+    "skill_proficiencies": [
+      "Animal Handling",
+      "Nature"
+    ],
+    "tool_proficiency": "Herbalism Kit",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Herbalism Kit, Fine Clothes, Net, 29 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Inquisitive",
+    "source": "Eberron - Forge of the Artificer",
+    "description": "",
+    "ability_scores": [
+      "Constitution",
+      "Intelligence",
+      "Charisma"
+    ],
+    "feat": "Alert",
+    "skill_proficiencies": [
+      "Insight",
+      "Investigation"
+    ],
+    "tool_proficiency": "Thieves’ Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Thieves’ Tools, Bullseye Lantern, Crowbar, Oil (10 flasks), Traveler’s Clothes, 10 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Chondathan Freebooter",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Dexterity",
+      "Wisdom"
+    ],
+    "feat": "Skilled",
+    "skill_proficiencies": [
+      "Athletics",
+      "Sleight of Hand"
+    ],
+    "tool_proficiency": "Weaver’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Dagger, Weaver’s Tools, Backpack, Ball Bearings, Basket, Bedroll, Bucket, Rations (3 days’ worth), Rope, Signal Whistle, Traveler’s Clothes, 38 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Dead Magic Dweller",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Constitution",
+      "Wisdom"
+    ],
+    "feat": "Healer",
+    "skill_proficiencies": [
+      "Medicine",
+      "Survival"
+    ],
+    "tool_proficiency": "Leatherworker’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Greatclub, Leatherworker’s Tools, Bedroll, Blanket, Healer’s Kit, Pole, Rations (3 days’ worth), Tent, Tinderbox, 5 Torches, Traveler’s Clothes, Waterskin, 32 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Dragon Cultist",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Constitution",
+      "Intelligence"
+    ],
+    "feat": "Cult of the Dragon Initiate",
+    "skill_proficiencies": [
+      "Deception",
+      "Stealth"
+    ],
+    "tool_proficiency": "Calligrapher’s Supplies",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Calligrapher’s Supplies, Dagger, Glass Bottle, Lamp, Manacles, Oil (5 flasks), 2 Pouches, Robe, Rope, 30 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Emerald Enclave Caretaker",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Constitution",
+      "Intelligence",
+      "Wisdom"
+    ],
+    "feat": "Emerald Enclave Fledgling",
+    "skill_proficiencies": [
+      "Nature",
+      "Survival"
+    ],
+    "tool_proficiency": "Herbalism Kit",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Shortbow, 20 Arrows, Herbalism Kit, Bedroll, Blanket, Pouch, Tent, Traveler’s Clothes, 13 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Flaming Fist Mercenary",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Constitution",
+      "Charisma"
+    ],
+    "feat": "Tough",
+    "skill_proficiencies": [
+      "Intimidation",
+      "Perception"
+    ],
+    "tool_proficiency": "Smith’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Mace, Smith’s Tools, Fine Clothes, Manacles, Portable Ram, 4 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Genie Touched",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Wisdom",
+      "Charisma"
+    ],
+    "feat": "Magic Initiate",
+    "skill_proficiencies": [
+      "Perception",
+      "Persuasion"
+    ],
+    "tool_proficiency": "Glassblower’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Light Hammer, Glassblower’s Tools, Fine Clothes, Lamp, Oil (3 flasks), Waterskin, 2 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Harper",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Intelligence",
+      "Charisma"
+    ],
+    "feat": "Harper Agent",
+    "skill_proficiencies": [
+      "Performance",
+      "Sleight of Hand"
+    ],
+    "tool_proficiency": "Disguise Kit",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Disguise Kit, Bedroll, Costume, Grappling Hook, Rope, Traveler’s Clothes, 14 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Ice Fisher",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Dexterity",
+      "Constitution"
+    ],
+    "feat": "Alert",
+    "skill_proficiencies": [
+      "Animal Handling",
+      "Athletics"
+    ],
+    "tool_proficiency": "Woodcarver’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Woodcarver’s Tools, Basket, Block and Tackle, Bucket, Chain, Hunting Trap, Net, Pole, Rations (3 days’ worth), Rope, Traveler’s Clothes, 32 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Knight Of The Gauntlet",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Intelligence",
+      "Wisdom"
+    ],
+    "feat": "Tyro of the Gauntlet",
+    "skill_proficiencies": [
+      "Athletics",
+      "Medicine"
+    ],
+    "tool_proficiency": "Smith’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Spear, Smith’s Tools, Bullseye Lantern, Holy Symbol, Manacles, Oil (5 flasks), Tinderbox, Traveler’s Clothes, 9 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Lords Alliance Vassal",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Intelligence",
+      "Charisma"
+    ],
+    "feat": "Lords’ Alliance Agent",
+    "skill_proficiencies": [
+      "Insight",
+      "Persuasion"
+    ],
+    "tool_proficiency": "Calligrapher’s Supplies",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "2 Javelins, Calligrapher’s Supplies, Fine Clothes, Ink, 5 Ink Pens, Parchment (9 sheets), 13 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Moonwell Pilgrim",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Constitution",
+      "Wisdom",
+      "Charisma"
+    ],
+    "feat": "Magic Initiate",
+    "skill_proficiencies": [
+      "Nature",
+      "Performance"
+    ],
+    "tool_proficiency": "Painter’s Supplies",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Quarterstaff, Painter’s Supplies, Bedroll, Bell, Pouch, Robe, String, Traveler’s Clothes, Waterskin, 34 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Mulhorandi Tomb Raider",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Constitution",
+      "Intelligence"
+    ],
+    "feat": "Lucky",
+    "skill_proficiencies": [
+      "Investigation",
+      "Religion"
+    ],
+    "tool_proficiency": "Mason’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Dagger, Light Hammer, Mason’s Tools, Backpack, Bedroll, Crowbar, Ladder, Pole, 2 Pouches, Rope, String, Tinderbox, 5 Torches, Traveler’s Clothes, Waterskin, 26 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Mythalkeeper",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Intelligence",
+      "Wisdom",
+      "Charisma"
+    ],
+    "feat": "Crafter",
+    "skill_proficiencies": [
+      "Arcana",
+      "History"
+    ],
+    "tool_proficiency": "Jeweler’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Quarterstaff, Jeweler’s Tools, Perfume, Pouch, Robe, Shovel, String, Waterskin, 16 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Purple Dragon Squire",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Wisdom",
+      "Charisma"
+    ],
+    "feat": "Purple Dragon Rook",
+    "skill_proficiencies": [
+      "Animal Handling",
+      "Insight"
+    ],
+    "tool_proficiency": "Navigator’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Spear, Navigator’s Tools, Fine Clothes, 9 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Rashemi Wanderer",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Constitution",
+      "Charisma"
+    ],
+    "feat": "Tough",
+    "skill_proficiencies": [
+      "Intimidation",
+      "Perception"
+    ],
+    "tool_proficiency": "Cartographer’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Cartographer’s Tools, Backpack, Bedroll, Hooded Lantern, Oil (3 flasks), Rope, Tinderbox, Traveler’s Clothes, Waterskin, 23 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Shadowmasters Exile",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [],
+    "feat": "Savage Attacker",
+    "skill_proficiencies": [
+      "Acrobatics",
+      "Stealth"
+    ],
+    "tool_proficiency": "Thieves’ Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "2 Daggers, Thieves’ Tools, Caltrops, Costume, Grappling Hook, Iron Spikes, Mirror, 2 Pouches, Rope, Traveler’s Clothes, 3 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Spellfire Initiate",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Constitution",
+      "Intelligence",
+      "Charisma"
+    ],
+    "feat": "Spellfire Spark",
+    "skill_proficiencies": [
+      "Arcana",
+      "Perception"
+    ],
+    "tool_proficiency": "Choose one kind of Gaming Set",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Gaming Set (same as above), Arcane Focus (Crystal or Wand), 2 Pouches, Traveler’s Clothes, 36 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Zhentarim Mercenary",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Dexterity",
+      "Charisma"
+    ],
+    "feat": "Zhentarim Ruffian",
+    "skill_proficiencies": [
+      "Intimidation",
+      "Perception"
+    ],
+    "tool_proficiency": "Forgery Kit",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Club, Dagger, Forgery Kit, Fine Clothes, Hooded Lantern, Oil (3 flasks), 2 Pouches, String, Tinderbox, 11 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Carouser",
+    "source": "Astarion's Book of Hungers",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Intelligence",
+      "Charisma"
+    ],
+    "feat": "Tireless Reveler",
+    "skill_proficiencies": [
+      "Deception",
+      "Persuasion"
+    ],
+    "tool_proficiency": "Choose one kind of Gaming Set",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Dagger, Gaming Set (same as above), Fine Clothes, Glass Bottle, Mirror, Perfume, Pouch, Tinderbox, 19 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Lorwyn Expert",
+    "source": "Lorwyn - First Light",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Constitution",
+      "Wisdom"
+    ],
+    "feat": "Child of the Sun",
+    "skill_proficiencies": [
+      "Athletics",
+      "Nature"
+    ],
+    "tool_proficiency": "Cartographer’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Quarterstaff, Cartographer’s Tools, Backpack, Basket, Parchment (4 sheets), Rope, Traveler’s Clothes, 29 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Shadowmoor Expert",
+    "source": "Lorwyn - First Light",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Intelligence",
+      "Charisma"
+    ],
+    "feat": "Shadowmoor Hexer",
+    "skill_proficiencies": [
+      "Acrobatics",
+      "Deception"
+    ],
+    "tool_proficiency": "Glassblower’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Dagger, Glassblower’s Tools, Backpack, Hunting Trap, Lamp, Oil (3 flasks), Traveler’s Clothes, Waterskin, 8 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Vampire Devotee",
+    "source": "Astarion's Book of Hungers",
+    "description": "",
+    "ability_scores": [
+      "Strength",
+      "Constitution",
+      "Charisma"
+    ],
+    "feat": "Vampire’s Plaything",
+    "skill_proficiencies": [
+      "Persuasion",
+      "Stealth"
+    ],
+    "tool_proficiency": "Cook’s Utensils",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Cook’s Utensils, Fine Clothes, 2 Glass Bottles, Healer’s Kit, Perfume, Lamp, Oil (3 flasks), Waterskin, 19 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  },
+  {
+    "name": "Vampire Survivor",
+    "source": "Astarion's Book of Hungers",
+    "description": "",
+    "ability_scores": [
+      "Dexterity",
+      "Constitution",
+      "Wisdom"
+    ],
+    "feat": "Vampire Hunter",
+    "skill_proficiencies": [
+      "Insight",
+      "Religion"
+    ],
+    "tool_proficiency": "Woodcarver’s Tools",
+    "equipment": [
+      {
+        "option": "A",
+        "items": "Woodcarver’s Tools, Crowbar, Hooded Lantern, Holy Symbol (reliquary), Holy Water, Mirror, Oil (3 flasks), Tinderbox, Traveler’s Clothes, Waterskin, 4 GP; or"
+      },
+      {
+        "option": "B",
+        "items": "50 GP"
+      }
+    ]
+  }
+]

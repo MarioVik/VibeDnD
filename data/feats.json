@@ -1,0 +1,3308 @@
+[
+  {
+    "name": "Alert",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Initiative Proficiency",
+        "description": "When you roll Initiative, you can add your Proficiency Bonus to the roll."
+      },
+      {
+        "name": "Initiative Swap",
+        "description": "Immediately after you roll Initiative, you can swap your Initiative with the Initiative of one willing ally in the same combat. You can't make this swap if you or the ally has the Incapacitated condition."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Crafter",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Healer",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Battle Medic",
+        "description": "If you have a Healer's Kit, you can expend one use of it and tend to a creature within 5 feet of yourself as a Utilize action. That creature can expend one of its Hit Point Dice, and you then roll that die. The creature regains a number of Hit Points equal to the roll plus your Proficiency Bonus."
+      },
+      {
+        "name": "Healing Rerolls",
+        "description": "Whenever you roll a die to determine the number of Hit Points you restore with a spell or with this feat's Battle Medic benefit, you can reroll the die if it rolls a 1, and you must use the new roll."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Lucky",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Luck Points",
+        "description": "You have a number of Luck Points equal to your Proficiency Bonus and can spend the points on the benefits below. You regain your expended Luck Points when you finish a Long Rest."
+      },
+      {
+        "name": "Advantage",
+        "description": "When you roll a d20 for a D20 Test, you can spend 1 Luck Point to give yourself Advantage on the roll."
+      },
+      {
+        "name": "Disadvantage",
+        "description": "When a creature rolls a d20 for an attack roll against you, you can spend 1 Luck Point to impose Disadvantage on that roll."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Magic Initiate",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Two Cantrips",
+        "description": "You learn two cantrips of your choice from the Cleric , Druid , or Wizard spell list. Intelligence, Wisdom, or Charisma is your spellcasting ability for this feat's spells (choose when you select this feat)."
+      },
+      {
+        "name": "Level 1 Spell",
+        "description": "Choose a level 1 spell from the same list you selected for this feat's cantrips. You always have that spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast the spell using any spell slots you have."
+      },
+      {
+        "name": "Spell Change",
+        "description": "Whenever you gain a new level, you can replace one of the spells you chose for this feat with a different spell of the same level from the chosen spell list."
+      },
+      {
+        "name": "Repeatable",
+        "description": "You can take this feat more than once, but you must choose a different spell list each time."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Musician",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Instrument Training",
+        "description": "You gain proficiency with three Musical Instruments of your choice."
+      },
+      {
+        "name": "Encouraging Song",
+        "description": "As you finish a Short or Long Rest, you can play a song on a Musical Instrument with which you have proficiency and give Heroic Inspiration to allies who hear the song. The number of allies you can affect in this way equals your Proficiency Bonus."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Savage Attacker",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Skilled",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Repeatable",
+        "description": ""
+      },
+      {
+        "name": "You can take this feat more than once",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Tavern Brawler",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Enhanced Unarmed Strike",
+        "description": "When you hit with your Unarmed Strike and deal damage, you can deal Bludgeoning damage equal to 1d4 plus your Strength modifier instead of the normal damage of an Unarmed Strike."
+      },
+      {
+        "name": "Damage Rerolls",
+        "description": "Whenever you roll a damage die for your Unarmed Strike, you can reroll the die if it rolls a 1, and you must use the new roll."
+      },
+      {
+        "name": "Improvised Weaponry",
+        "description": ""
+      },
+      {
+        "name": "You have proficiency with improvised weapons",
+        "description": ""
+      },
+      {
+        "name": "Push",
+        "description": "When you hit a creature with an Unarmed Strike as part of the Attack action on your turn, you can deal damage to the target and also push it 5 feet away from you. You can use this benefit only once per turn."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Tough",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Cult Of The Dragon Initiate",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Dragon’s Tongue",
+        "description": "You know Draconic. If you already know Draconic when you select this feat, you instead learn one language of your choice from the language tables in the Player’s Handbook or chapter 2 of this book."
+      },
+      {
+        "name": "Dragon’s Terror",
+        "description": "You can take a Magic action to instill terror in a creature you can see within 30 feet of yourself. The target must succeed on a Wisdom saving throw (DC 8 plus your Wisdom modifier and Proficiency Bonus) or have the Frightened condition until the end of your next turn. If the target succeeds on the save or when the effect ends for a target, the target is immune to this effect for 24 hours."
+      },
+      {
+        "name": "Inspired by Fear",
+        "description": "When you cause a creature to have the Frightened condition and you are the source of its fear, you can gain Heroic Inspiration if you lack it. Once you use this benefit, you can’t use it again until you finish a Short or Long Rest."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Emerald Enclave Fledgling",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Speak with Animals",
+        "description": "You always have the Speak with Animals spell prepared and can cast it with any spell slots you have. Intelligence, Wisdom, or Charisma is your spellcasting ability for this spell (choose when you select this feat). When you cast this spell as a Ritual, its duration is 8 hours."
+      },
+      {
+        "name": "Tag Team",
+        "description": "When you take the Help action, you can switch places with a willing ally within 5 feet of yourself as part of that same action. This movement doesn’t provoke Opportunity Attacks. You can’t use this benefit if the ally has the Incapacitated condition."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Harper Agent",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Thieves’ Cant",
+        "description": ""
+      },
+      {
+        "name": "You know Thieves’ Cant",
+        "description": ""
+      },
+      {
+        "name": "Instrument Training",
+        "description": "You gain proficiency with a Musical Instrument of your choice."
+      },
+      {
+        "name": "Distracting Melody",
+        "description": "When you take the Help action to assist an ally’s attack roll, the enemy you’re distracting can be within 30 feet of you, rather than within 5 feet of you, provided the enemy can see or hear you."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Lords Alliance Agent",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Inspiring Strike",
+        "description": "Once per turn when you score a Critical Hit against a creature, you can choose an ally within 30 feet of yourself who can see or hear you and who lacks Heroic Inspiration. That ally gains Heroic Inspiration."
+      },
+      {
+        "name": "Reassert Honor",
+        "description": "When an enemy you can see deals damage to an ally of yours that is within 5 feet of you, you have Advantage on your next attack roll against that enemy before the end of your next turn."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Purple Dragon Rook",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Entreat",
+        "description": "You gain proficiency in one of the following skills: Insight, Performance, or Persuasion."
+      },
+      {
+        "name": "Rallying Cry",
+        "description": "When you roll Initiative and don’t have the Incapacitated condition, you can choose a number of creatures equal to your Proficiency Bonus that you can see within 30 feet of yourself. Those creatures gain Heroic Inspiration. Once you use this benefit, you can’t do so again until you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Spellfire Spark",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Magic Absorption",
+        "description": "Once per turn, when you take damage from a spell or magical effect, you reduce the total damage taken by 1d4. You can’t use this benefit if you have the Incapacitated condition."
+      },
+      {
+        "name": "Spellfire Flame",
+        "description": "You learn the Sacred Flame cantrip. Intelligence, Wisdom, or Charisma is your spellcasting ability for this spell (choose when you select this feat). You can also cast this cantrip as a Bonus Action a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Tyro Of The Gauntlet",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Stand as One",
+        "description": "When an ally within 5 feet of you is subjected to an effect that would push or pull it, you can take a Reaction to prevent that ally from being pushed or pulled. To receive this benefit, the ally can’t have the Incapacitated condition."
+      },
+      {
+        "name": "Vigilant",
+        "description": "When you take the Ready action, the next attack roll made against you has Disadvantage before the start of your next turn."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Zhentarim Ruffian",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Exploit Opening",
+        "description": "When you roll damage for an Opportunity Attack, you can roll the damage dice twice and use either roll against the target."
+      },
+      {
+        "name": "Family First",
+        "description": "If you have Heroic Inspiration when you roll Initiative, you can expend it to give yourself and your allies Advantage on that Initiative roll."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Child Of The Sun",
+    "source": "Lorwyn - First Light",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Eyes of Eirdu",
+        "description": "You and allies within 10 feet of you have Advantage on saving throws made to avoid or end the Blinded condition."
+      },
+      {
+        "name": "Faerie Fire",
+        "description": "You learn the Faerie Fire spell. Intelligence, Wisdom, or Charisma is your spellcasting ability for this spell (choose when you select this feat). You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast the spell using any spell slots you have. When you cast Faerie Fire without a spell slot using this benefit, taking damage can’t break your Concentration on the spell."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Shadowmoor Hexer",
+    "source": "Lorwyn - First Light",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Hex",
+        "description": "You always have the Hex spell prepared. Intelligence, Wisdom, or Charisma is your spellcasting ability for this spell (choose when you select this feat). You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast the spell using any spell slots you have."
+      },
+      {
+        "name": "Curse Magic",
+        "description": "When a creature that you’ve cursed with Hex hits you with an attack roll, the creature takes Psychic damage equal to your Proficiency Bonus. A creature takes this damage only once per turn."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Tireless Reveler",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Vampire Hunter",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Adroit Escape",
+        "description": "You have Advantage on checks to escape from nonmagical restraints or the Grappled condition."
+      },
+      {
+        "name": "Vitality Ward",
+        "description": "When you take Necrotic damage, you can take a Reaction to mitigate the damage. Roll a number of d6s equal to your Proficiency Bonus, and add them together. Reduce the Necrotic damage you take by this total. Once you use this benefit, you can’t use it again until you finish a Short or Long Rest."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Vampire S Plaything",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Decanting",
+        "description": "When you finish a Long Rest, you can create one Potion of Healing or an Antitoxin, as long as you have an empty vial or flask. These liquids evaporate when you finish another Long Rest."
+      },
+      {
+        "name": "Timely Retreat",
+        "description": "You can take a Bonus Action to take the Dash action or the Disengage action. You can use this benefit a number of times equal to your Proficiency Bonus, and you recover all expended uses when you finish a Long Rest."
+      },
+      {
+        "name": "Vampiric Connection",
+        "description": "The DM determines the fate of your former vampire master. While you and your former vampire master are on the same plane of existence, the vampire can communicate with you telepathically, and you can choose to allow the vampire to perceive through your senses."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Ability Score Improvement",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Repeatable",
+        "description": ""
+      },
+      {
+        "name": "You can take this feat more than once",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Actor",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Charisma": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Impersonation",
+        "description": "While you're disguised as a real or fictional person, you have Advantage on Charisma (Deception or Performance) checks to convince others that you are that person."
+      },
+      {
+        "name": "Mimicry",
+        "description": "You can mimic the sounds of other creatures, including speech. A creature that hears the mimicry must succeed on a Wisdom (Insight) check to determine the effect is faked (DC 8 plus your Charisma modifier and Proficiency Bonus)."
+      }
+    ],
+    "ability_score_increase": "Charisma"
+  },
+  {
+    "name": "Athlete",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Dexterity": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Climb Speed",
+        "description": ""
+      },
+      {
+        "name": "You gain a Climb Speed equal to your Speed",
+        "description": ""
+      },
+      {
+        "name": "Hop Up",
+        "description": "When you have the Prone condition, you can right yourself with only 5 feet of movement."
+      },
+      {
+        "name": "Jumping",
+        "description": "You can make a running Long or High Jump after moving only 5 feet."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Charger",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Dexterity": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Dash",
+        "description": "When you take the Dash action, your Speed increases by 10 feet for that action."
+      },
+      {
+        "name": "Charge Attack",
+        "description": "If you move at least 10 feet in a straight line toward a target immediately before hitting it with a melee attack roll as part of the Attack action, choose one of the following effects: gain a 1d8 bonus to the attack's damage roll, or push the target up to 10 feet away if it is no more than one size larger than you. You can use this benefit only once on each of your turns."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Chef",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Constitution or Wisdom score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Cook's Utensils",
+        "description": "You gain proficiency with Cook's Utensils if you don't already have it."
+      },
+      {
+        "name": "Replenishing Meal",
+        "description": "As part of a Short Rest, you can cook special food if you have ingredients and Cook's Utensils on hand. You can prepare enough of this food for a number of creatures equal to 4 plus your Proficiency Bonus. At the end of the Short Rest, any creature who eats the food and spends one or more Hit Dice to regain Hit Points regains an extra 1d8 Hit Points."
+      },
+      {
+        "name": "Bolstering Treats",
+        "description": "With 1 hour of work or when you finish a Long Rest, you can cook a number of treats equal to your Proficiency Bonus if you have ingredients and Cook's Utensils on hand. These special treats last 8 hours after being made. A creature can use a Bonus Action to eat one of those treats. to gain a number of Temporary Hit Points equal to your Proficiency Bonus."
+      }
+    ],
+    "ability_score_increase": "Constitution"
+  },
+  {
+    "name": "Crossbow Expert",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Dexterity": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Ignore Loading",
+        "description": "You ignore the Loading property of the Hand Crossbow, Heavy Crossbow, and Light Crossbow (all called crossbows elsewhere in this feat). If you're holding one of them, you can load a piece of ammunition into it even if you lack a free hand."
+      },
+      {
+        "name": "Firing in Melee",
+        "description": "Being within 5 feet of an enemy doesn't impose Disadvantage on your attack rolls with crossbows."
+      },
+      {
+        "name": "Dual Wielding",
+        "description": "When you make the extra attack of the Light property, you can add your ability modifier to the damage of the extra attack if that attack is with a crossbow that has the Light property and you aren't already adding that modifier to the damage."
+      }
+    ],
+    "ability_score_increase": "Dexterity"
+  },
+  {
+    "name": "Crusher",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Constitution score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Push",
+        "description": "Once per turn, when you hit a creature with an attack that deals Bludgeoning damage, you can move it 5 feet to an unoccupied space if the target is no more than one size larger than you."
+      },
+      {
+        "name": "Enhanced Critical",
+        "description": "When you score a Critical Hit that deals Bludgeoning damage to a creature, attack rolls against that creature have Advantage until the start of your next turn."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Defensive Duelist",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Dexterity": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Parry",
+        "description": "If you're holding a Finesse weapon and another creature hits you with a melee attack, you can take a Reaction to add your Proficiency Bonus to your Armor Class, potentially causing the attack to miss you. You gain this bonus to your AC against melee attacks until the start of your next turn."
+      }
+    ],
+    "ability_score_increase": "Dexterity"
+  },
+  {
+    "name": "Dual Wielder",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Dexterity": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Enhanced Dual Wielding",
+        "description": "When you take the Attack action on your turn and attack with a weapon that has the Light property, you can make one extra attack as a Bonus Action later on the same turn with a different weapon, which must be a Melee weapon that lacks the Two-Handed property. You don't add your ability modifier to the extra attack's damage unless that modifier is negative."
+      },
+      {
+        "name": "Quick Draw",
+        "description": "You can draw or stow two weapons that lack the Two-Handed property when you would normally be able to draw or stow only one."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Durable",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Constitution score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Defy Death",
+        "description": ""
+      },
+      {
+        "name": "You have Advantage on Death Saving Throws",
+        "description": ""
+      },
+      {
+        "name": "Speedy Recovery",
+        "description": "As a Bonus Action, you can expend one of your Hit Point Dice, roll the die, and regain a number of Hit Points equal to the roll."
+      }
+    ],
+    "ability_score_increase": "Constitution"
+  },
+  {
+    "name": "Elemental Adept",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {},
+      "requires_spellcasting": true
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Energy Mastery",
+        "description": "Choose one of the following damage types: Acid, Cold, Fire, Lightning, or Thunder. Spells you cast ignore Resistance to damage of the chosen type. In addition, when you roll damage for a spell you cast that deals damage of that type, you can treat any 1 on a damage die as a 2."
+      },
+      {
+        "name": "Repeatable",
+        "description": "You can take this feat more than once, but you must choose a different damage type each time for Energy Mastery."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Fey Touched",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Fey Magic",
+        "description": "Choose one level 1 spell from the Divination or Enchantment school of magic. You always have that spell and the Misty Step spell prepared. You can cast each of these spells without expending a spell slot. Once you cast either spell in this way, you can't cast that spell in this way again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the ability increased by this feat."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Grappler",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Dexterity": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Punch and Grab",
+        "description": "When you hit a creature with an Unarmed Strike as part of the Attack action on your turn, you can use both the Damage and the Grapple option. You can use this benefit only once per turn."
+      },
+      {
+        "name": "Attack Advantage",
+        "description": "You have Advantage on attack rolls against a creature Grappled by you."
+      },
+      {
+        "name": "Fast Wrestler",
+        "description": "You don’t have to spend extra movement to move a creature Grappled by you if the creature is your size or smaller."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Great Weapon Master",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Strength": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Heavy Weapon Mastery",
+        "description": "When you hit a creature with a weapon that has the Heavy property as part of the Attack action on your turn, you can cause the weapon to deal extra damage to the target. The extra damage equals your Proficiency Bonus."
+      },
+      {
+        "name": "Hew",
+        "description": "Immediately after you score a Critical Hit with a Melee weapon or reduce a creature to 0 Hit Points with one, you can make one attack with the same weapon as a Bonus Action."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Heavily Armored",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Constitution or Strength score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Armor Training",
+        "description": ""
+      },
+      {
+        "name": "You gain training with Heavy armor",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Heavy Armor Master",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Constitution or Strength score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Damage Reduction",
+        "description": "When you're hit by an attack while you're wearing Heavy armor, any Bludgeoning, Piercing, and Slashing damage dealt to you by that attack is reduced by an amount equal to your Proficiency Bonus."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Inspiring Leader",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Charisma": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Wisdom or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Bolstering Performance",
+        "description": "When you finish a Short or Long Rest, you can give an inspiring performance: a speech, song, or dance. When you do so, choose up to six allies (which can include yourself) within 30 feet of yourself who witness the performance. The chosen creatures each gain Temporary Hit Points equal to your character level plus the modifier of the ability you increased with this feat."
+      }
+    ],
+    "ability_score_increase": "Wisdom"
+  },
+  {
+    "name": "Keen Mind",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Intelligence": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Lore Knowledge",
+        "description": "Choose one of the following skills: Arcana, History, Investigation, Nature, or Religion. If you lack proficiency in the chosen skill, you gain proficiency in it, and if you already have proficiency in it, you gain Expertise in it."
+      },
+      {
+        "name": "Quick Study",
+        "description": ""
+      },
+      {
+        "name": "You can take the Study action as a Bonus Action",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Lightly Armored",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Armor Training",
+        "description": ""
+      },
+      {
+        "name": "You gain training with Light armor and Shields",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Mage Slayer",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Concentration Breaker",
+        "description": "When you damage a creature that is concentrating, it has Disadvantage on the saving throw it makes to maintain Concentration."
+      },
+      {
+        "name": "Guarded Mind",
+        "description": "If you fail an Intelligence, a Wisdom, or a Charisma saving throw, you can cause yourself to succeed instead. Once you use this benefit, you can't use it again until you finish a Short or Long Rest."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Martial Weapon Training",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Weapon Proficiency",
+        "description": ""
+      },
+      {
+        "name": "You gain proficiency with Martial weapons",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Medium Armor Master",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Dexterous Wearer",
+        "description": "While you're wearing Medium armor, you can add 3, rather than 2, to your AC if you have a Dexterity score of 16 or higher."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Moderately Armored",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Armor Training",
+        "description": ""
+      },
+      {
+        "name": "You gain training with Medium armor",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Mounted Combatant",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength, Dexterity, or Wisdom score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Mounted Strike",
+        "description": "While mounted, you have Advantage on attack rolls against any unmounted creature within 5 feet of your mount that is at least one size smaller than the mount."
+      },
+      {
+        "name": "Leap Aside",
+        "description": "If your mount is subjected to an effect that allows it to make a Dexterity saving throw to take only half damage, it instead takes no damage if it succeeds on the saving throw and only half damage if it fails. For your mount to gain this benefit, you must be riding it, and neither of you can have the Incapacitated condition."
+      },
+      {
+        "name": "Veer",
+        "description": "While mounted, you can force an attack that hits your mount to hit you instead if you don't have the Incapacitated condition."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Observant",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Wisdom": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence or Wisdom score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Keen Observer",
+        "description": "Choose one of the following skills: Insight, Investigation, or Perception. If you lack proficiency with the chosen skill, you gain proficiency in it, and if you already have proficiency in it, you gain Expertise in it."
+      },
+      {
+        "name": "Quick Search",
+        "description": ""
+      },
+      {
+        "name": "You can take the Search action as a Bonus Action",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Piercer",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity by 1, to a maximum of 20."
+      },
+      {
+        "name": "Puncture",
+        "description": "Once per turn, when you hit a creature with an attack that deals Piercing damage, you can reroll one of the attack’s damage dice, and you must use the new roll."
+      },
+      {
+        "name": "Enhanced Critical",
+        "description": "When you score a Critical Hit that deals Piercing damage to a creature, you can roll one additional damage die when determining the extra Piercing damage the target takes."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Poisoner",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Dexterity or Intelligence score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Potent Poison",
+        "description": "When you make a damage roll that deals Poison damage, it ignores Resistance to Poison damage."
+      },
+      {
+        "name": "Brew Poison",
+        "description": "You gain proficiency with the Poisoner’s Kit. With 1 hour of work using such a kit and expending 50 GP worth of materials, you can create a number of poison doses equal to your Proficiency Bonus. As a Bonus Action, you can apply a poison dose to a weapon or piece of ammunition. Once applied, the poison retains its potency for 1 minute or until you deal damage with the poisoned item, whichever is shorter. When a creature takes damage from the poisoned item, that creature must succeed on a Constitution saving throw (DC 8 plus the modifier of the ability increased by this feat and your Proficiency Bonus) or take 2d8 Poison damage and have the Poisoned condition until the end of your next turn."
+      }
+    ],
+    "ability_score_increase": "Dexterity"
+  },
+  {
+    "name": "Polearm Master",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Dexterity": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Dexterity or Strength score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Pole Strike",
+        "description": "Immediately after you take the Attack action and attack with a Quarterstaff, a Spear, or a weapon that has the Heavy and Reach properties, you can use a Bonus Action to make a melee attack with the opposite end of the weapon. The weapon deals Bludgeoning damage, and the weapon’s damage die for this attack is a d4."
+      },
+      {
+        "name": "Reactive Strike",
+        "description": "While you're holding a Quarterstaff, a Spear, or a weapon that has the Heavy and Reach properties, you can take a Reaction to make one melee attack against a creature that enters the reach you have with that weapon."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Resilient",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Choose one ability in which you lack saving throw proficiency. Increase the chosen ability score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Saving Throw Proficiency",
+        "description": "You gain saving throw proficiency with the chosen ability."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Ritual Caster",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Charisma": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Ritual Spells",
+        "description": "Choose a number of level 1 spells equal to your Proficiency Bonus that have the Ritual tag. You always have those spells prepared, and you can cast them with any spell slots you have. The spells’ spellcasting ability is the ability increased by this feat. Whenever your Proficiency Bonus increases thereafter, you can add an additional level 1 spell with the Ritual tag to the spells always prepared with this feature."
+      },
+      {
+        "name": "Quick Ritual",
+        "description": "With this benefit, you can cast a Ritual spell that you have prepared using its regular casting time rather than the extended time for a Ritual. Doing so doesn't require a spell slot. Once you cast the spell in this way, you can't use this benefit again until you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Sentinel",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Dexterity": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Guardian",
+        "description": "Immediately after a creature within 5 feet of you takes the Disengage action or hits a target other than you with an attack, you can make an Opportunity Attack against that creature."
+      },
+      {
+        "name": "Halt",
+        "description": "When you hit a creature with an Opportunity Attack, the creature’s Speed becomes 0 for the rest of the current turn."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Shadow Touched",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Shadow Magic",
+        "description": "Choose one level 1 spell from the Illusion or Necromancy school of magic. You always have that spell and the Invisibility spell prepared. You can cast each of these spells without expending a spell slot. Once you cast either spell in this way, you can't cast that spell in this way again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. The spells’ spellcasting ability is the ability increased by this feat."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Sharpshooter",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Dexterity": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Bypass Cover",
+        "description": "Your ranged attacks with weapons ignore Half Cover and Three-Quarters Cover."
+      },
+      {
+        "name": "Firing in Melee",
+        "description": "Being within 5 feet of an enemy doesn’t impose Disadvantage on your attack rolls with Ranged weapons."
+      },
+      {
+        "name": "Long Shots",
+        "description": "Attacking at long range doesn't impose Disadvantage on your attack rolls with Ranged weapons."
+      }
+    ],
+    "ability_score_increase": "Dexterity"
+  },
+  {
+    "name": "Shield Master",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Shield Bash",
+        "description": "If you attack a creature within 5 feet of you as part of the Attack action and hit with a Melee weapon, you can immediately bash the target with your Shield if it's equipped, forcing the target to make a Strength saving throw (DC 8 plus your Strength modifier and Proficiency Bonus). On a failed save, you either push the target 5 feet from you or cause it to have the Prone condition (your choice). You can use this benefit only once on each of your turns."
+      },
+      {
+        "name": "Interpose Shield",
+        "description": "If you're subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you can take a Reaction to take no damage if you succeed on the saving throw and are holding a Shield."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Skill Expert",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Skill Proficiency",
+        "description": ""
+      },
+      {
+        "name": "You gain proficiency in one skill of your choice",
+        "description": ""
+      },
+      {
+        "name": "Expertise",
+        "description": "Choose one skill in which you have proficiency but lack Expertise. You gain Expertise with that skill."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Skulker",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Dexterity": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Blindsight",
+        "description": ""
+      },
+      {
+        "name": "You have Blindsight with a range of 10 feet",
+        "description": ""
+      },
+      {
+        "name": "Fog of War",
+        "description": "You exploit the distractions of battle, gaining Advantage on any Dexterity (Stealth) check you make as part of the Hide action during combat."
+      },
+      {
+        "name": "Sniper",
+        "description": "If you make an attack roll while hidden and the roll misses, making the attack roll doesn’t reveal your location."
+      }
+    ],
+    "ability_score_increase": "Dexterity"
+  },
+  {
+    "name": "Slasher",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Hamstring",
+        "description": "Once per turn when you hit a creature with an attack that deals Slashing damage, you can reduce the Speed of that creature by 10 feet until the start of your next turn."
+      },
+      {
+        "name": "Enhanced Critical",
+        "description": "When you score a Critical Hit that deals Slashing damage to a creature, it has Disadvantage on attack rolls until the start of your next turn."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Speedy",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {
+        "Constitution": 13
+      }
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Dexterity or Constitution score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Speed Increase",
+        "description": ""
+      },
+      {
+        "name": "Your Speed increases by 10 feet",
+        "description": ""
+      },
+      {
+        "name": "Dash over Difficult Terrain",
+        "description": "When you take the Dash action on your turn, Difficult Terrain doesn't cost you extra movement for the rest of that turn."
+      },
+      {
+        "name": "Agile Movement",
+        "description": "Opportunity Attacks have Disadvantage against you."
+      }
+    ],
+    "ability_score_increase": "Dexterity"
+  },
+  {
+    "name": "Spell Sniper",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {},
+      "requires_spellcasting": true
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Bypass Cover",
+        "description": "Your attack rolls for spells ignore Half Cover and Three-Quarters Cover."
+      },
+      {
+        "name": "Casting in Melee",
+        "description": "Being within 5 feet of an enemy doesn’t impose Disadvantage on your attack rolls with spells."
+      },
+      {
+        "name": "Increased Range",
+        "description": "When you cast a spell that has a range of at least 10 feet and requires you to make an attack roll, you can increase the spell's range by 60 feet."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Telekinetic",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Minor Telekinesis",
+        "description": "You learn the Mage Hand spell. You can cast it without Verbal or Somatic components, you can make the spectral hand Invisible, and its range and the distance it can be away from you both increase by 30 feet when you cast it. The spell’s spellcasting ability is the ability increased by this feat."
+      },
+      {
+        "name": "Telekinetic Shove",
+        "description": "As a Bonus Action, you can telekinetically shove one creature you can see within 30 feet of yourself. When you do so, the target must succeed on a Strength saving throw (DC 8 plus the ability modifier of the score increased by this feat and your Proficiency Bonus) or be moved 5 feet toward or away from you."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Telepathic",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Telepathic Utterance",
+        "description": "You can speak telepathically to any creature you can see within 60 feet of yourself. Your telepathic utterances are in a language you know, and the creature understands you only if it knows that language. Your communication doesn't give the creature the ability to respond to you telepathically."
+      },
+      {
+        "name": "Detect Thoughts",
+        "description": "You always have the Detect Thoughts spell prepared. You can cast it without a spell slot or spell components, and you must finish a Long Rest before you can cast it in this way again. You can also cast it using spell slots you have of the appropriate level. Your spellcasting ability for the spell is the ability increased by this feat."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "War Caster",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {},
+      "requires_spellcasting": true
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Concentration",
+        "description": "You have Advantage on Constitution saving throws that you make to maintain Concentration."
+      },
+      {
+        "name": "Reactive Spell",
+        "description": "When a creature provokes an Opportunity Attack from you by leaving your reach, you can take a Reaction to cast a spell at the creature rather than making an Opportunity Attack. The spell must have a casting time of one action and must target only that creature."
+      },
+      {
+        "name": "Somatic Components",
+        "description": "You can perform the Somatic components of spells even when you have weapons or a Shield in one or both hands."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Weapon Master",
+    "source": "Player's Handbook",
+    "category": "general",
+    "prerequisites": {
+      "level": 4,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Mastery Property",
+        "description": "Your training with weapons allows you to use the mastery property of one kind of Simple or Martial weapon of your choice, provided you have proficiency with it. Whenever you finish a Long Rest, you can change the kind of weapon to another eligible kind."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Cold Caster",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Cantrip",
+        "description": "You learn the Ray of Frost cantrip. If you already know it, you learn a different Wizard cantrip of your choice. The spell’s spellcasting ability is the ability increased by this feat."
+      },
+      {
+        "name": "Frostbite",
+        "description": "Once per turn when you hit a creature with an attack roll and deal Cold damage, you can temporarily negate the creature’s defenses. The creature subtracts 1d4 from the next saving throw it makes before the end of your next turn."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Dragonscarred",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Constitution or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Damage Resistance",
+        "description": "When you gain this feat, choose Acid, Cold, Fire, Lightning, or Poison. You have Resistance to the chosen damage type."
+      },
+      {
+        "name": "Fearsome Power",
+        "description": "When you deal damage to a creature as part of the Attack or Magic action on your turn, you can use the Dragon’s Terror benefit of the Cult of the Dragon Initiate feat as a Bonus Action this turn."
+      }
+    ],
+    "ability_score_increase": "Constitution"
+  },
+  {
+    "name": "Enclave Magic",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Friend to Animals",
+        "description": "You have Advantage on ability checks when taking the Influence action with Beasts."
+      },
+      {
+        "name": "Two Hearts, One Mind",
+        "description": "You always have the Beast Sense spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. When you cast it without a spell slot using this feature, it doesn’t require Concentration. You can also cast the spell using any spell slots you have of the appropriate level. The spell’s spellcasting ability is the ability increased by this feat."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Fairy Trickster",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Dexterity or Charisma ability score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Faerie Trod Trotter",
+        "description": "When you take the Disengage action on your turn, Difficult Terrain doesn’t cost you extra movement for the rest of that turn."
+      },
+      {
+        "name": "Flustering Strike",
+        "description": "When you hit a creature with an attack roll, you can attempt to fluster the target. The target must succeed on a Wisdom saving throw (DC 8 plus the ability modifier of the score increased by this feat and your Proficiency Bonus) or have Disadvantage on saving throws until the end of your next turn. You can use this benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": "Dexterity"
+  },
+  {
+    "name": "Genie Magic",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Wish Magic",
+        "description": "As a Magic action, you can cast a level 1 spell of your choice from the Sorcerer spell list that has a casting time of an action. Once you use this benefit, you can’t do so again until you finish a Long Rest. The spell’s spellcasting ability is the ability increased by this feat. When you reach level 11, the spell you cast with this feat is cast as though using a level 2 spell slot. When you reach level 17, the spell is cast as though using a level 3 spell slot."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Harper Teamwork",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Dexterity or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Withering Wordplay",
+        "description": "When you take the Help action to assist an ally’s attack roll against an enemy, that enemy also has Disadvantage on the first saving throw it makes before the start of your next turn."
+      },
+      {
+        "name": "Inspiring Willpower",
+        "description": "If you succeed on a saving throw to end the Frightened or Paralyzed condition on yourself, you can choose one ally you can see within 30 feet of yourself that has the same condition. That condition immediately ends for that ally."
+      }
+    ],
+    "ability_score_increase": "Dexterity"
+  },
+  {
+    "name": "Lordly Resolve",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Standard Bearer",
+        "description": "As a Bonus Action, choose up to three creatures within 60 feet of yourself that can see you. Each target can immediately take a Reaction to right itself and end the Prone condition, provided its Speed isn’t 0. Additionally, you bolster the targets’ resolve, which lasts for 1 minute or until you have the Incapacitated condition. While bolstered, a target can’t be possessed or gain the Charmed or Frightened condition; if a target is already possessed, Charmed, or Frightened, the target has Advantage on any new saving throw against the relevant effect. Once you use this benefit, you can’t do so again until you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Mythal Touched",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Mythal Ward",
+        "description": "If a spell attack hits you or you fail a saving throw against a spell, you can take a Reaction to roll on the Mythal-Touched Magic table to create a magical effect. If an effect requires a saving throw, the DC equals 8 plus the modifier of the ability increased by this feat and your Proficiency Bonus. You can use this benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Mythal-Touched Magic 1d20 Effect 1-2 You and each creature within 15 feet of you make a Dexterity saving throw, taking Force damage equal to 1d8 times the level of the triggering spell on a failed save or half as much damage on a successful one. 3-7 You and the triggering spell’s caster form a telepathic link for 1 hour. 8-10 Gravity is reversed in a 15-foot-radius, 60-foot-tall Cylinder centered on you for 1 minute, per the Reverse Gravity spell. 11-13 You and the triggering spell’s caster each make a Constitution saving throw. On a failed save, the creature has the Stunned condition until the end of its next turn. 14-17 You gain a +2 bonus to AC for 1 minute, potentially turning the triggering spell into a miss if it was a spell attack. 18-19 Any flammable, nonmagical object within 10 feet of the triggering spell’s caster that isn’t being worn or carried by another creature bursts into flame, takes 1d4 Fire damage, and is burning. 20 The triggering spell dissipates with no effect, and the action, Bonus Action, or Reaction used to cast it is wasted. If that spell was cast with a spell slot, the slot isn’t expended."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Order S Resilience",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Resurge",
+        "description": "When you have the Prone condition, you can right yourself with only 5 feet of movement."
+      },
+      {
+        "name": "Stronger Together",
+        "description": "If you are within 5 feet of an ally that doesn’t have the Incapacitated condition, you and that ally have Advantage on Strength saving throws. You can’t use this benefit while you have the Incapacitated condition."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Purple Dragon Commandant",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Encourage Ally",
+        "description": "As a Bonus Action, you bolster one ally you can see within 30 feet. The ally gains Temporary Hit Points equal to 2d6 plus the modifier of the ability score increased by this feat. You can take this Bonus Action a number of times equal to your Proficiency Bonus, and you regain all uses when you finish a Long Rest."
+      },
+      {
+        "name": "Last Stand",
+        "description": "You have Advantage on attack rolls while Bloodied."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Spellfire Adept",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Fueled Spellfire",
+        "description": "Once per turn, when a spell you cast deals Radiant damage, you can expend up to two Hit Point Dice, roll them, and add the total rolled to one damage roll of the spell."
+      },
+      {
+        "name": "Searing Spellfire",
+        "description": "When you make a damage roll that deals Radiant damage, it ignores Resistance to Radiant damage."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Street Justice",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Headlock",
+        "description": "Your allies have Advantage on attack rolls against a creature Grappled by you."
+      },
+      {
+        "name": "Sturdy Knot",
+        "description": "When you use Chain, Manacles, or Rope to bind a creature, add your Proficiency Bonus to the DC to escape or burst the Chain, Manacles, or Rope."
+      },
+      {
+        "name": "Tough Talk",
+        "description": "A creature’s Hostile attitude doesn’t impose Disadvantage on your Charisma (Intimidation) checks to influence that creature."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Zhentarim Tactics",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Dexterity or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Retaliate",
+        "description": "Immediately after a creature within 5 feet of you hits you with a melee attack, you can make an Opportunity Attack against that creature."
+      },
+      {
+        "name": "Versatile Merc",
+        "description": "When you finish a Long Rest, choose a skill in which you have proficiency. You have Expertise in that skill until you finish your next Long Rest."
+      }
+    ],
+    "ability_score_increase": "Dexterity"
+  },
+  {
+    "name": "Bloodlust",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength, Dexterity, or Constitution score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Powerful Recovery",
+        "description": "When you roll a Hit Point Die to regain Hit Points, you can treat any roll of 1 or 2 as a 3."
+      },
+      {
+        "name": "Sanguine Feast",
+        "description": "Once per turn when you hit a Bloodied creature that isn’t a Construct or Undead with an attack roll, you can expend a Hit Point Die, roll it, and regain a number of Hit Points equal to the number rolled plus your Constitution modifier. You can use this feature a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Bomber",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Dexterity score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Far Lobber",
+        "description": "When you use the Attack action to throw a vial or flask, you can target an object or creature you can see within 40 feet of yourself."
+      },
+      {
+        "name": "Long Shots",
+        "description": "Attacking at long range doesn’t impose Disadvantage on your attack rolls with Thrown weapons."
+      }
+    ],
+    "ability_score_increase": "Dexterity"
+  },
+  {
+    "name": "Cloying Mists",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Arise, Fog",
+        "description": "You always have the Fog Cloud spell prepared. You can cast it without a spell slot, and you must finish a Long Rest before you can cast it in this way again. You can also cast it using spell slots you have of the appropriate level. Your spellcasting ability for the spell is the ability increased by this feat."
+      },
+      {
+        "name": "Grasping Mist",
+        "description": "Whenever you cast Fog Cloud , nonmagical flames in the spell’s Sphere are extinguished, and creatures other than you and your allies have their Speed reduced by 5 feet while in the spell’s Sphere."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Delicious Pain",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Toughened Flesh",
+        "description": "Immediately after you take Bludgeoning, Piercing, or Slashing damage, you can take a Reaction to gain Resistance to Bludgeoning, Piercing, and Slashing damage until the start of your next turn. Once you use this benefit, you can’t use it again until you finish a Short or Long Rest."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Light Bringer",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Sacred Magic",
+        "description": "You learn the Light spell and can cast it without Material components. If you already know that cantrip, you learn a different Cleric cantrip of your choice. The spell’s spellcasting ability is the ability increased by this feat."
+      },
+      {
+        "name": "Solar Luminance",
+        "description": "When you cast Light , you can have the light from the spell be sunlight. Once you use this benefit, you can’t use it again until you finish a Long Rest."
+      },
+      {
+        "name": "Sun’s Healing",
+        "description": "As a Bonus Action while within sunlight, you can expend one of your Hit Point Dice, roll the die, and regain a number of Hit Points equal to the roll. Once you use this benefit, you can’t use it again until you finish a Short or Long Rest."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Love Bites",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Endearing Pain",
+        "description": "Immediately after you damage a creature with a Melee weapon or an Unarmed Strike, you can take a Bonus Action to give the target the Charmed condition until the start of your next turn or until you or your allies damage it. Once you use this benefit, you can’t use it again until you finish a Short or Long Rest."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Putrefy",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Necrosis",
+        "description": "When you make a damage roll that deals Necrotic damage, you can cause one creature taking that damage to have the Poisoned condition until the start of your next turn. Once you use this benefit, you can’t use it again until you finish a Short or Long Rest."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Rebuke",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Radiant Strike",
+        "description": "When you make a damage roll that deals Radiant damage, you can cause one Huge or smaller creature taking the damage to have the Prone condition. Once you use this benefit, you can’t use it again until you finish a Short or Long Rest."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Treacherous Allure",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Enchanting Presence",
+        "description": "You always have the Charm Person spell prepared. You can cast it without a spell slot, and you must finish a Long Rest before you can cast it in this way again. You can also cast it using spell slots you have of the appropriate level. Your spellcasting ability for the spell is the ability increased by this feat."
+      },
+      {
+        "name": "Inevitable Betrayal",
+        "description": "You have Advantage on attack rolls against creatures with the Charmed condition."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Vampire Touched",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Vampire Magic",
+        "description": "Choose one level 1 spell from the Enchantment or Illusion school of magic. You always have that spell and the Spider Climb spell prepared. You can cast each of these spells without expending a spell slot, but when you cast Spider Climb this way, you must target yourself, and you must finish a Long Rest before you can cast each spell in this way again. You can also cast either spell using spell slots you have of the appropriate level. Your spellcasting ability for the spells is the ability increased by this feat."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Archery",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": {
+      "level": null,
+      "abilities": {}
+    },
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Blind Fighting",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": {
+      "level": null,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "You have Blindsight with a range of 10 feet",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Defense",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": {
+      "level": null,
+      "abilities": {}
+    },
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Dueling",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": {
+      "level": null,
+      "abilities": {}
+    },
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Great Weapon Fighting",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": {
+      "level": null,
+      "abilities": {}
+    },
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Interception",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": {
+      "level": null,
+      "abilities": {}
+    },
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Protection",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": {
+      "level": null,
+      "abilities": {}
+    },
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Thrown Weapon Fighting",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": {
+      "level": null,
+      "abilities": {}
+    },
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Two Weapon Fighting",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": {
+      "level": null,
+      "abilities": {}
+    },
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Unarmed Fighting",
+    "source": "Player's Handbook",
+    "category": "origin",
+    "prerequisites": {
+      "level": null,
+      "abilities": {}
+    },
+    "benefits": [],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Boon Of Combat Prowess",
+    "source": "Player's Handbook",
+    "category": "epic_boon",
+    "prerequisites": {
+      "level": 19,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Peerless Aim",
+        "description": "When you miss with an attack roll, you can hit instead. Once you use this benefit, you can't use it again until the start of your next turn."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Dimensional Travel",
+    "source": "Player's Handbook",
+    "category": "epic_boon",
+    "prerequisites": {
+      "level": 19,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Blink Steps",
+        "description": "Immediately after you take the Attack action or the Magic action, you can teleport up to 30 feet to an unoccupied space you can see."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Energy Resistance",
+    "source": "Player's Handbook",
+    "category": "epic_boon",
+    "prerequisites": {
+      "level": 19,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Energy Resistances",
+        "description": "You gain Resistance to two of the following damage types of your choice: Acid, Cold, Fire, Lightning, Necrotic, Poison, Psychic, Radiant, or Thunder. Whenever you finish a Long Rest, you can change your choices."
+      },
+      {
+        "name": "Energy Redirection",
+        "description": "When you take damage of one of the types chosen for the Energy Resistances benefit, you can take a Reaction to direct damage of the same type toward another creature you can see within 60 feet of yourself that isn’'t behind Total Cover. If you do so, that creature must succeed on a Dexterity saving throw (DC 8 plus your Constitution modifier and Proficiency Bonus) or take damage equal to 2d12 plus your Constitution modifier."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Fate",
+    "source": "Player's Handbook",
+    "category": "epic_boon",
+    "prerequisites": {
+      "level": 19,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Improve Fate",
+        "description": "When you or another creature within 60 feet of you succeeds on or fails a D20 Test, you can roll 2d4 and apply the total rolled as a bonus or penalty to the d20 roll. Once you use this benefit, you can’t use it again until you roll Initiative or finish a Short or Long Rest."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Fortitude",
+    "source": "Player's Handbook",
+    "category": "epic_boon",
+    "prerequisites": {
+      "level": 19,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Fortified Health",
+        "description": "Your Hit Point maximum increases by 40. In addition, whenever you regain Hit Points, you can regain additional Hit Points equal to your Constitution modifier. Once you've regained these additional Hit Points, you can't do so again until the start of your next turn."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Irresistible Offense",
+    "source": "Player's Handbook",
+    "category": "epic_boon",
+    "prerequisites": {
+      "level": 19,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Dexterity score by 1, to a maximum of 30."
+      },
+      {
+        "name": "Overcome Defenses",
+        "description": "The Bludgeoning, Piercing, and Slashing damage you deal always ignores Resistance."
+      },
+      {
+        "name": "Overwhelming Strike",
+        "description": "When you roll a 20 on the d20 for an attack roll, you can deal extra damage to the target equal to the ability score increased by this feat. The extra damage’s type is the same as the attack’s type."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Boon Of Recovery",
+    "source": "Player's Handbook",
+    "category": "epic_boon",
+    "prerequisites": {
+      "level": 19,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Last Stand",
+        "description": "When you would be reduced to 0 Hit Points, you can drop to 1 Hit Point instead and regain a number of Hit Points equal to half your Hit Point maximum. Once you use this benefit, you can't use it again until you finish a Long Rest."
+      },
+      {
+        "name": "Recover Vitality",
+        "description": "You have a pool of ten d10s. As a Bonus Action, you can expend dice from the pool, roll those dice, and regain a number of Hit Points equal to the roll’s total. You regain all the expended dice when you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Skill",
+    "source": "Player's Handbook",
+    "category": "epic_boon",
+    "prerequisites": {
+      "level": 19,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "All-Around Adept",
+        "description": ""
+      },
+      {
+        "name": "You gain proficiency in all skills",
+        "description": ""
+      },
+      {
+        "name": "Expertise",
+        "description": "Choose one skill in which you lack Expertise. You gain Expertise in that skill."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Speed",
+    "source": "Player's Handbook",
+    "category": "epic_boon",
+    "prerequisites": {
+      "level": 19,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Escape Artist",
+        "description": "As a Bonus Action, you can take the Disengage action, which also ends the Grappled condition on you."
+      },
+      {
+        "name": "Quickness",
+        "description": ""
+      },
+      {
+        "name": "Your Speed increases by 30 feet",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Spell Recall",
+    "source": "Player's Handbook",
+    "category": "epic_boon",
+    "prerequisites": {
+      "level": 19,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 30."
+      },
+      {
+        "name": "Free Casting",
+        "description": "Whenever you cast a spell with a level 1-4 spell slot, roll 1d4. If the number you roll is the same as the slot’s level, the slot isn’t expended."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Boon Of The Night Spirit",
+    "source": "Player's Handbook",
+    "category": "epic_boon",
+    "prerequisites": {
+      "level": 19,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Merge with Shadows",
+        "description": "While within Dim Light or Darkness, you can give yourself the Invisible condition as a Bonus Action. The condition ends on you immediately after you take an action, a Bonus Action, or a Reaction."
+      },
+      {
+        "name": "Shadowy Form",
+        "description": "While within Dim Light or Darkness, you have Resistance to all damage except Psychic and Radiant."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Truesight",
+    "source": "Player's Handbook",
+    "category": "epic_boon",
+    "prerequisites": {
+      "level": 19,
+      "abilities": {}
+    },
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Truesight",
+        "description": ""
+      },
+      {
+        "name": "You have Truesight with a range of 60 feet",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Siberys",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Aberrant Magic",
+        "description": "Choose a level 8 or lower spell from the Sorcerer spell list or a spell from the Siberys Dragonmark Spells table (the table includes dragonmark suggestions if you’d like to associate a spell with one of the marks). You always have that spell prepared. You can cast it once without a spell slot or spell components, and you regain the ability to cast it in that way when you finish a Short or Long Rest. You can also cast this spell using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for this spell (choose when you gain this feat). Siberys Dragonmark Spells Spell Suggested Dragonmark Animal Shapes Handling Control Weather Storm Demiplane Making Heroes' Feast Hospitality Maze Warding Mind Blank Sentinel Plane Shift Passage Project Image Shadow Regenerate Healing Symbol Scribing Teleport Finding True Seeing Detection"
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Bloodshed",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Killer’s Fortune",
+        "description": "When an enemy you can see is reduced to 0 Hit Points, you gain Advantage on the next attack roll you make before the end of your next turn."
+      },
+      {
+        "name": "Power from Pain",
+        "description": "Once per turn, when you make an attack roll while Bloodied, you can deal extra damage to the target equal to your Proficiency Bonus. The extra damage’s type is the same as the attack’s type."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Bountiful Health",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Augmented Health",
+        "description": "When you gain Temporary Hit Points, increase the number of Temporary Hit Points you gain by 5."
+      },
+      {
+        "name": "Superior Recuperation",
+        "description": "When you spend one or more Hit Point Dice to regain Hit Points, you can instead use the highest number possible for each die."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Communication",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 30."
+      },
+      {
+        "name": "Cunning Speaker",
+        "description": "You don’t have Disadvantage on ability checks to influence Hostile creatures."
+      },
+      {
+        "name": "Gifted Interpreter",
+        "description": "You understand the literal meaning of any language you hear or see signed, and you can understand the literal meaning of any written language you see."
+      },
+      {
+        "name": "Mental Communication",
+        "description": ""
+      },
+      {
+        "name": "You gain telepathy with a range of 120 feet",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Boon Of Desperate Resilience",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Strength or Constitution score by 1, to a maximum of 30."
+      },
+      {
+        "name": "Defense of Body and Mind",
+        "description": "While you are Bloodied, you have Resistance to every damage type except Force."
+      }
+    ],
+    "ability_score_increase": "Strength"
+  },
+  {
+    "name": "Boon Of Exquisite Radiance",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Eternal Rest",
+        "description": "Creatures you reduce to 0 Hit Points can’t become Undead."
+      },
+      {
+        "name": "Powerful Radiance",
+        "description": "When you make a damage roll that deals Radiant damage, you can instead use the highest number possible for each damage die. Once you use this benefit, you can’t do so again until you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Fluid Forms",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 30."
+      },
+      {
+        "name": "Shapechanger",
+        "description": "You can take a Magic action to shape-shift into a Beast, Humanoid, or Monstrosity with a Challenge Rating no higher than 10. When you shape-shift, you gain a number of Temporary Hit Points equal to the Hit Points of the form. The shape-shifting effect lasts for 1 hour, and it ends early if you have no Temporary Hit Points left or if you take a Magic action to return to your true form. Your game statistics are replaced by the stat block of the chosen form, but you retain your creature type; alignment; personality; Intelligence, Wisdom, and Charisma scores; Hit Points; Hit Point Dice; proficiencies; and ability to communicate. If you have the Spellcasting or Pact Magic feature, you retain it too. Upon shape-shifting, you determine whether your equipment drops to the ground or changes in size and shape to fit the new form while you’re in it. Once you use this benefit, you can’t do so again until you finish a Long Rest."
+      },
+      {
+        "name": "Hardy Transformation",
+        "description": "When you gain Temporary Hit Points when you shape-shift, increase that number of Temporary Hit Points by 20."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Boon Of Fortune S Favor",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Saving Throw Reroll",
+        "description": "When you fail a saving throw, you can reroll it and must use the new roll. Once you use this benefit, you can’t do so again until the start of your next turn."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Poison Mastery",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Antitoxic",
+        "description": "You have Immunity to Poison damage and the Poisoned condition."
+      },
+      {
+        "name": "Perfect Poisoner",
+        "description": "Once per turn, when you roll dice to determine Poison damage a creature takes from your attack, spell, or feature, you can instead use the highest number possible for each die."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Revelry",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 30."
+      },
+      {
+        "name": "Inspire Dance",
+        "description": "You always have the Otto’s Irresistible Dance spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it that way when you finish a Long Rest. You can also cast the spell using any spell slots you have of the appropriate level. When you cast the spell, it requires no spell components, and taking damage doesn’t break your Concentration on it."
+      },
+      {
+        "name": "Sing Out",
+        "description": "While a creature that failed its saving throw against your Otto’s Irresistible Dance has the Charmed condition from that spell, it can’t cast spells with Verbal components, and it sings delightful nonsense if it can sing."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Boon Of Terror",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Charisma score by 1, to a maximum of 30."
+      },
+      {
+        "name": "Fearless",
+        "description": ""
+      },
+      {
+        "name": "You have Immunity to the Frightened condition",
+        "description": "Flee, Fools! When a creature with the Frightened condition starts its turn within 60 feet of you, you can take a Reaction to stoke its terror, provided you can see the creature and it isn’t behind Total Cover. If you do so, the creature must succeed on a Wisdom saving throw (DC 8 plus your Charisma modifier and your Proficiency Bonus) or spend its turn moving away from you by the fastest available means. Once you use this benefit, you can’t use it again until you finish a Short or Long Rest."
+      },
+      {
+        "name": "Intimidating",
+        "description": "You gain Proficiency in the Intimidation skill if you don’t already have it. You also gain Expertise in Intimidation."
+      }
+    ],
+    "ability_score_increase": "Charisma"
+  },
+  {
+    "name": "Boon Of The Bright Sun",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Constitution, Wisdom, or Charisma score by 1, to a maximum of 30."
+      },
+      {
+        "name": "Daylight Presence",
+        "description": "As a Bonus Action, you radiate a 30-foot Emanation of Bright Light that is sunlight. If any of the Emanation’s area overlaps with an area of Darkness created by a spell, that spell is dispelled. The Emanation lasts until you dismiss it (no action required), die, or have the Incapacitated condition."
+      },
+      {
+        "name": "Fortifying Light",
+        "description": "When your Daylight Presence is active, at the start of each of your turns, you and allies you can see in your Daylight Presence gain 10 Temporary Hit Points."
+      }
+    ],
+    "ability_score_increase": "Constitution"
+  },
+  {
+    "name": "Boon Of The Furious Storm",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 30."
+      },
+      {
+        "name": "Eye of the Storm",
+        "description": "You have Resistance to Lightning and Thunder damage. While you are Bloodied, you have Immunity to Lightning and Thunder damage."
+      },
+      {
+        "name": "Storm’s Strength",
+        "description": "Creatures have Disadvantage on saving throws against your spells that deal Lightning or Thunder damage."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Boon Of The Soul Drinker",
+    "source": "Forgotten Realms - Heroes of Faerun",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Grave Resistance",
+        "description": "You have Resistance to Cold damage and Necrotic damage."
+      },
+      {
+        "name": "Siphon Life",
+        "description": "When an enemy within 120 feet of you is reduced to 0 Hit Points, you can take a Reaction to regain 50 Hit Points. Once you use this benefit, you can’t use it again until you finish a Short or Long Rest."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Blazing Dawn",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Beloved of the Sun",
+        "description": ""
+      },
+      {
+        "name": "You have Immunity to Radiant damage",
+        "description": ""
+      },
+      {
+        "name": "Blazing Strike",
+        "description": "When you hit a creature with a weapon attack, the damage can be Radiant or the weapon’s normal damage type (your choice)."
+      },
+      {
+        "name": "Burst of Sunlight",
+        "description": "Once per turn when you hit a creature with an attack that deals Radiant damage, you can emit Bright Light in a 30-foot radius from yourself and Dim Light for an additional 30 feet until the start of your next turn. This light is sunlight."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Looming Shadows",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 30."
+      },
+      {
+        "name": "Shadowy Stretch",
+        "description": "When you take the Attack action, your reach for your Melee weapon attacks increases by 10 feet until the end of your turn."
+      },
+      {
+        "name": "Dancing Silhouette",
+        "description": ""
+      },
+      {
+        "name": "You can take the Dodge action as a Bonus Action",
+        "description": ""
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Boon Of Misty Escape",
+    "source": "Astarion's Book of Hungers",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 30."
+      },
+      {
+        "name": "Gaseous Form",
+        "description": "If you drop to 0 Hit Points but aren’t killed outright, you can instead drop to 1 Hit Point and cast Gaseous Form without expending a spell slot (no action required). When you cast this spell this way, you can target only yourself, your Fly Speed is 20 feet, and you regain 10 Hit Points at the start of each of your turns for the spell’s duration. The spell’s spellcasting ability is the ability increased by this feat. Once you use this benefit, you can’t do so again until you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": "Intelligence"
+  },
+  {
+    "name": "Aberrant Dragonmark",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Aberrant Fortitude",
+        "description": "When you fail a Constitution saving throw, you can take a Reaction to roll 1d4 and add the number rolled to the save, potentially turning the failure into a success. Once you’ve used this benefit, you can’t use it again until you finish a Long Rest."
+      },
+      {
+        "name": "Aberrant Magic",
+        "description": "You know one cantrip of your choice from the Sorcerer spell list . Also, choose a level 1 spell from that spell list. You always have that spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Short or Long Rest. You can also cast this spell using any spell slots you have. Constitution is your spellcasting ability for this spell."
+      },
+      {
+        "name": "Aberrant Surge",
+        "description": "When you cast the level 1 spell from this feat, you can expend one of your Hit Point Dice and roll it. If you roll an even number, you gain a number of Temporary Hit Points equal to the number rolled. If you roll an odd number, one creature within 30 feet of you (not including you) takes Force damage equal to the number rolled. If no other creatures are in range, you take the damage."
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Mark Of Detection",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Deductive Intuition",
+        "description": "When you make an Intelligence (Investigation) or Wisdom (Insight) check, you can roll 1d4 and add the number rolled to the ability check."
+      },
+      {
+        "name": "Magical Detection",
+        "description": "You always have the Detect Magic and Detect Poison and Disease spells prepared. You can cast each spell once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast these spells using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this feat). When you reach character level 3, you also always have the See Invisibility spell prepared and can cast it the same way."
+      },
+      {
+        "name": "Spells of the Mark",
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Detection Spells table are added to that feature’s spell list. Mark of Detection Spells Spell Level Spells 1 Detect Evil and Good , Identify 2 Detect Thoughts , Find Traps 3 Clairvoyance , Nondetection 4 Arcane Eye , Divination 5 Legend Lore"
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Mark Of Finding",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Hunter’s Intuition",
+        "description": "When you make a Wisdom (Perception or Survival) check, you can roll 1d4 and add the number rolled to the ability check."
+      },
+      {
+        "name": "Finder’s Magic",
+        "description": "You always have the Hunter’s Mark spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast it using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for this spell (choose when you select this feat). When you reach character level 3, you also always have the Locate Object spell prepared and can cast it the same way."
+      },
+      {
+        "name": "Spells of the Mark",
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Finding Spells table are added to that feature’s spell list. Mark of Finding Spells Spell Level Spells 1 Faerie Fire , Longstrider 2 Locate Animals or Plants , Mind Spike 3 Clairvoyance , Speak with Plants 4 Divination , Locate Creature 5 Commune with Nature"
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Mark Of Handling",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Wild Intuition",
+        "description": "When you make an Intelligence (Nature) or Wisdom (Animal Handling) check, you can roll 1d4 and add the number rolled to the ability check."
+      },
+      {
+        "name": "Primal Connection",
+        "description": "You always have the Animal Friendship and Speak with Animals spells prepared. You can cast each spell once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast these spells using any spell slots you have. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this feat)."
+      },
+      {
+        "name": "Monstrous Connections",
+        "description": "When you reach character level 3, you can target a Monstrosity when you cast Animal Friendship or Speak with Animals if the creature’s Intelligence score is 3 or lower."
+      },
+      {
+        "name": "Spells of the Mark",
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Handling Spells table are added to that feature’s spell list. Mark of Handling Spells Spell Level Spells 1 Command , Find Familiar 2 Beast Sense , Calm Emotions 3 Beacon of Hope , Conjure Animals 4 Aura of Life , Dominate Beast 5 Awaken"
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Mark Of Healing",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Medical Intuition",
+        "description": "When you make a Wisdom (Medicine) check or an ability check using a Herbalism Kit, you can roll 1d4 and add the number rolled to the ability check."
+      },
+      {
+        "name": "Healing Touch",
+        "description": "You always have the Cure Wounds spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast it using any spell slots you have you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this feat). When you reach character level 3, you also always have the Lesser Restoration spell prepared and can cast it the same way."
+      },
+      {
+        "name": "Spells of the Mark",
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Healing Spells table are added to that feature’s spell list. Mark of Healing Spells Spell Level Spells 1 False Life , Healing Word 2 Arcane Vigor , Prayer of Healing 3 Aura of Vitality , Mass Healing Word 4 Aura of Life , Aura of Purity 5 Greater Restoration"
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Mark Of Hospitality",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ever Hospitable",
+        "description": "When you make a Charisma (Persuasion) check or an ability check using Brewer’s Supplies or Cook’s Utensils, you can roll 1d4 and add the number rolled to the ability check."
+      },
+      {
+        "name": "Innkeeper’s Magic",
+        "description": "You always have the Purify Food and Drink and Unseen Servant spells prepared. You can cast each spell once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast these spells using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this feat). When you reach character level 3, you also always have the Calm Emotions spell prepared and can cast it the same way."
+      },
+      {
+        "name": "Spells of the Mark",
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Hospitality Spells table are added to that feature’s spell list. Mark of Hospitality Spells Spell Level Spells 1 Goodberry , Sleep 2 Aid , Enhance Ability 3 Create Food and Water , Leomund's Tiny Hut 4 Aura of Purity , Mordenkainen's Private Sanctum 5 Hallow"
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Mark Of Making",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Artisan’s Intuition",
+        "description": "When you make an Intelligence (Arcana) check or an ability check using Artisan’s Tools, you can roll 1d4 and add the number rolled to the ability check."
+      },
+      {
+        "name": "Spellsmith",
+        "description": "You know the Mending cantrip. You also always have the Magic Weapon spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast it using any spell slots you have. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this feat)."
+      },
+      {
+        "name": "Spells of the Mark",
+        "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Making Spells table are added to that feature’s spell list. Mark of Making Spells Spell Level Spells 1 Identify , Tenser's Floating Disk 2 Continual Flame , Spiritual Weapon 3 Conjure Barrage , Elemental Weapon 4 Fabricate , Stone Shape 5 Creation"
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Mark Of Passage",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Courier’s Speed",
+        "description": ""
+      },
+      {
+        "name": "Your Speed increases by 5 feet",
+        "description": ""
+      },
+      {
+        "name": "Intuitive Motion",
+        "description": "When you make a Strength (Athletics) or Dexterity (Acrobatics) check, you can roll 1d4 and add the number rolled to the ability check."
+      },
+      {
+        "name": "Magical Passage",
+        "description": "You always have the Misty Step spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast it using any spell slots you have. Intelligence, Wisdom, or Charisma is your spellcasting ability for this spell (choose when you select this feat)."
+      },
+      {
+        "name": "Spells of the Mark",
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Passage Spells table are added to that feature’s spell list. Mark of Passage Spells Spell Level Spells 1 Expeditious Retreat , Jump 2 Find Steed , Pass without Trace 3 Blink , Phantom Steed 4 Dimension Door , Freedom of Movement 5 Teleportation Circle"
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Mark Of Scribing",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Gifted Scribe",
+        "description": "When you make an Intelligence (History) check or an ability check using Calligrapher’s Supplies, you can roll 1d4 and add the number rolled to the ability check."
+      },
+      {
+        "name": "Scribe’s Insight",
+        "description": "You know the Message cantrip. You also always have the Comprehend Languages spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast it using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for this spell (choose when you select this feat). When you reach character level 3, you also always have the Magic Mouth spell prepared and can cast it the same way."
+      },
+      {
+        "name": "Spells of the Mark",
+        "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Scribing Spells table are added to that feature’s spell list. Mark of Scribing Spells Spell Level Spells 1 Command , Illusory Script 2 Animal Messenger , Silence 3 Sending , Tongues 4 Arcane Eye , Confusion 5 Dream"
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Mark Of Sentinel",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Sentinel’s Intuition",
+        "description": "When you make a Wisdom (Insight or Perception) check, you can roll 1d4 and add the number rolled to the ability check."
+      },
+      {
+        "name": "Guardian’s Shield",
+        "description": "You always have the Shield spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast it using any spell slots you have. Intelligence, Wisdom, or Charisma is your spellcasting ability for this spell (choose when you select this feat)."
+      },
+      {
+        "name": "Vigilant Guardian",
+        "description": "When a creature you can see within 5 feet of you is hit by an attack roll, you can take a Reaction to swap places with that creature, and you are hit by the attack instead. You can use this feature a number of times equal to your Proficiency Bonus and regain all expended uses when you finish a Long Rest."
+      },
+      {
+        "name": "Spells of the Mark",
+        "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Sentinel Spells table are added to that feature’s spell list. Mark of Sentinel Spells Spell Level Spells 1 Compelled Duel , Shield of Faith 2 Warding Bond , Zone of Truth 3 Counterspell , Protection from Energy 4 Death Ward , Guardian-of-Faith 5 Bigby's Hand"
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Mark Of Shadow",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Cunning Intuition",
+        "description": "When you make a Dexterity (Stealth) or Charisma (Performance) check, you can roll 1d4 and add the number rolled to the ability check."
+      },
+      {
+        "name": "Shape Shadows",
+        "description": "You know the Minor Illusion cantrip. You also always have the Invisibility spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast it using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this feat)."
+      },
+      {
+        "name": "Spells of the Mark",
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Shadow Spells table are added to that feature’s spell list. Mark of Shadow Spells Spell Level Spells 1 Disguise Self , Silent Image 2 Darkness , Pass without Trace 3 Clairvoyance , Major Image 4 Greater Invisibility , Hallucinatory Terrain 5 Mislead"
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Mark Of Storm",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Windwright’s Intuition",
+        "description": "When you make a Dexterity (Acrobatics) check or an ability check using Navigator’s Tools, you can roll 1d4 and add the number rolled to the ability check."
+      },
+      {
+        "name": "Storm’s Boon",
+        "description": ""
+      },
+      {
+        "name": "You have Resistance to Lightning damage",
+        "description": ""
+      },
+      {
+        "name": "Storm Magic",
+        "description": "You know the Thunderclap cantrip. When you reach character level 3, you also always have the Gust of Wind spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast it using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this feat)."
+      },
+      {
+        "name": "Spells of the Mark",
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Storm Spells table are added to that feature’s spell list. Mark of Storm Spells Spell Level Spells 1 Feather Fall , Fog Cloud 2 Levitate , Shatter 3 Sleet Storm , Wind Wall 4 Conjure Minor Elementals , Control Water 5 Conjure Elemental"
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Mark Of Warding",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Warder’s Intuition",
+        "description": "When you make an Intelligence (Investigation) check or an ability check using Thieves’ Tools, you can roll 1d4 and add the number rolled to the ability check."
+      },
+      {
+        "name": "Wards and Seals",
+        "description": "You always have the Alarm and Mage Armor spells prepared. You can cast each spell once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast these spells using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this feat). When you reach character level 3, you also always have the Arcane Lock spell prepared and can cast it the same way."
+      },
+      {
+        "name": "Spells of the Mark",
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Warding Spells table are added to that feature’s spell list. Mark of Warding Spells Spell Level Spells 1 Armor of Agathys , Sanctuary 2 Knock , Nystul's Magic Aura 3 Glyph of Warding , Magic Circle 4 Leomund's Secret Chest , Mordenkainen's Faithful Hound 5 Antilife Shell"
+      }
+    ],
+    "ability_score_increase": null
+  },
+  {
+    "name": "Greater Aberrant Mark",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase your Constitution score by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Fortitude",
+        "description": "When you use the Aberrant Fortitude benefit of your Aberrant Dragonmark feat, you can roll 1d6 instead of 1d4. You also now regain your use of Aberrant Fortitude whenever you finish a Short or Long Rest."
+      },
+      {
+        "name": "Mark of Inspiration",
+        "description": "When you cast a cantrip, you can roll one or two of your unexpended Hit Point Dice. You gain a number of Temporary Hit Points equal to the number rolled plus your Constitution modifier, and one creature of your choice within 30 feet of you (not including you) takes Force damage equal to the number rolled. Those dice are then expended. You can use this benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": "Constitution"
+  },
+  {
+    "name": "Greater Mark Of Detection",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Intuition",
+        "description": "When you use the Deductive Intuition benefit of your Mark of Detection feat, you can roll 1d6 instead of 1d4."
+      },
+      {
+        "name": "Shared Detection",
+        "description": "When you use the Magical Detection benefit of your Mark of Detection feat to cast See Invisibility without a spell slot, you can choose one creature you can see within 30 feet of yourself. That creature also gains the benefits of the spell for its duration."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Greater Mark Of Finding",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Intuition",
+        "description": "When you use the Hunter’s Intuition benefit of your Mark of Finding feat, you can roll 1d6 instead of 1d4."
+      },
+      {
+        "name": "Improved Finding",
+        "description": "When you use the Finder’s Magic benefit of your Mark of Finding to cast Hunter’s Mark without a spell slot, the range of the spell is doubled, and you can modify the spell so that the target can’t benefit from the Invisible condition for the duration."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Greater Mark Of Handling",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Intuition",
+        "description": "When you use the Wild Intuition benefit of your Mark of Handling feat, you can roll 1d6 instead of 1d4."
+      },
+      {
+        "name": "Improved Handling",
+        "description": "While you are mounted, immediately after you hit a target within 5 feet of your mount with a melee attack roll, your mount can take a Reaction to move up to its Speed or take the Attack action to make one attack only (your choice)."
+      },
+      {
+        "name": "Subdue Animal",
+        "description": "As a Magic action, you exert command over one Beast or Monstrosity you can see within 30 feet of yourself. The target must succeed on a Wisdom saving throw (DC 8 plus your Wisdom modifier and Proficiency Bonus) or have the Frightened condition until the start of your next turn. You can use this benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Greater Mark Of Healing",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Intuition",
+        "description": "When you use the Medical Intuition benefit of your Mark of Healing feat, you can roll 1d6 instead of 1d4."
+      },
+      {
+        "name": "Improved Healing",
+        "description": "You can now use the Healing Touch benefit of your Mark of Healing feat to cast Cure Wounds without using a spell slot a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Additionally, when you cast Cure Wounds and roll dice to determine the number of Hit Points restored, you can treat any 1 or 2 on a roll as a 3."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Greater Mark Of Hospitality",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Intuition",
+        "description": "When you use the Ever Hospitable benefit of your Mark of Hospitality feat, you can roll 1d6 instead of 1d4."
+      },
+      {
+        "name": "Inspired Hospitality",
+        "description": "When you cast Purify Food and Drink , you can modify the spell so that instead of its normal effect, each creature of your choice within 30 feet of you is refreshed. Each affected creature’s Exhaustion level is reduced by 1, and the creature gains Temporary Hit Points equal to your Proficiency Bonus plus your Intelligence, Wisdom, or Charisma modifier (choose when you select this feat). Once you modify the spell with this benefit, you can’t do so again until you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Greater Mark Of Making",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Intuition",
+        "description": "When you use the Artisan’s Intuition benefit of your Mark of Making feat, you can roll 1d6 instead of 1d4."
+      },
+      {
+        "name": "Improved Making",
+        "description": "When you use the Spellsmith benefit of your Mark of Making feat to cast Magic Weapon without a spell slot, you cast the spell as its level 3 version."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Greater Mark Of Passage",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Intuition",
+        "description": "When you use the Intuitive Motion benefit of your Mark of Passage feat, you can roll 1d6 instead of 1d4."
+      },
+      {
+        "name": "Inspired Passage",
+        "description": "When you use the Magical Passage benefit of your Mark of Passage feat to cast Misty Step without a spell slot, you can also choose up to two willing creatures you can see within 30 feet of yourself before you teleport. Each target can then take a Reaction to also teleport up to 30 feet to an unoccupied space it can see."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Greater Mark Of Scribing",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Intuition",
+        "description": "When you use the Gifted Scribe benefit of your Mark of Scribing feat, you can roll 1d6 instead of 1d4."
+      },
+      {
+        "name": "Inspired Scribing",
+        "description": "When you cast Comprehend Languages , you can modify the spell to encompass up to three willing creatures you can see within 30 feet of yourself. Each chosen creature also gains the benefits of the spell for the duration. In addition, for the duration of the spell, you and the chosen creatures can communicate telepathically with each other while within 1 mile of each other. Once you modify the spell with this benefit, you can’t do so again until you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Greater Mark Of Sentinel",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Intuition",
+        "description": "When you use the Sentinel’s Intuition benefit of your Mark of Sentinel feat, you can roll 1d6 instead of 1d4."
+      },
+      {
+        "name": "Improved Sentinel",
+        "description": "When you use the Vigilant Guardian benefit of your Mark of Sentinel feat, you can also make one attack with a weapon or an Unarmed Strike as part of that same Reaction."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Greater Mark Of Shadow",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Intuition",
+        "description": "When you use the Cunning Intuition benefit of your Mark of Shadow feat, you can roll 1d6 instead of 1d4."
+      },
+      {
+        "name": "Improved Shadow",
+        "description": "When you use the Shape Shadows benefit of your Mark of Shadow feat to cast Invisibility without a spell slot, you cast the spell as its level 3 version."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Greater Mark Of Storm",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Intuition",
+        "description": "When you use the Windwright’s Intuition benefit of your Mark of Storm feat, you can roll 1d6 instead of 1d4."
+      },
+      {
+        "name": "Improved Storm",
+        "description": "When you use the Storm Magic benefit of your Mark of Storm feat to cast Gust of Wind without a spell slot, you also gain a Fly Speed of 60 feet for the duration of the spell."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Greater Mark Of Warding",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase one ability score of your choice by 1, to a maximum of 20."
+      },
+      {
+        "name": "Improved Intuition",
+        "description": "When you use the Warder’s Intuition benefit of your Mark of Warding feat, you can roll 1d6 instead of 1d4."
+      },
+      {
+        "name": "Improved Warding",
+        "description": "When a creature makes an attack roll against you or a creature you can see within 30 feet of yourself, you can take a Reaction to impose Disadvantage on that roll. You can use this benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest."
+      }
+    ],
+    "ability_score_increase": "Choice"
+  },
+  {
+    "name": "Potent Dragonmark",
+    "source": "Eberron - Forge of the Artificer",
+    "category": "origin",
+    "prerequisites": null,
+    "benefits": [
+      {
+        "name": "Ability Score Increase",
+        "description": "Increase the spellcasting ability score used by your Dragonmark feat by 1, to a maximum of 20."
+      },
+      {
+        "name": "Dragonmark Preparation",
+        "description": "You always have the spells on your Spells of the Mark list (if any) prepared."
+      },
+      {
+        "name": "Dragonmark Spellcasting",
+        "description": "You have one extra spell slot to cast the spells granted by your Dragonmark feat. The spell slot’s level is half your level (round up), to a maximum of level 5. You regain the expended slot when you finish a Short or Long Rest. You can use this spell slot to cast only a spell you have prepared because of your Dragonmark feat or the Dragonmark Preparation benefit of this feat."
+      }
+    ],
+    "ability_score_increase": null
+  }
+]
