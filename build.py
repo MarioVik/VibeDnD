@@ -143,7 +143,7 @@ def main():
         for d in (BUILD, DIST):
             if os.path.exists(d):
                 print(f"Removing {d}")
-                shutil.rmtree(d)
+                shutil.rmtree(d, ignore_errors=True)
 
     build(onefile=args.onefile)
 

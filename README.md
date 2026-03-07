@@ -92,26 +92,91 @@ dist/VibeDnD/VibeDnD
 
 No Python installation is needed on the target machine.
 
-### Platform-Specific Notes
+### Platform-Specific Build Instructions
 
 #### Windows
-- Works out of the box. The build produces a `.exe` file.
-- Windows Defender or SmartScreen may flag the unsigned executable the first time it runs. This is normal for unsigned apps.
+
+1. Open a terminal in the project directory.
+2. Make sure your venv is activated:
+   ```powershell
+   .venv\Scripts\activate
+   ```
+3. Install build dependencies:
+   ```powershell
+   pip install pyinstaller fpdf2
+   ```
+4. Build:
+   ```powershell
+   python build.py --clean --onefile
+   ```
+5. The executable is at `dist\VibeDnD.exe`. Copy it anywhere and run it — no Python needed.
+
+> Windows Defender or SmartScreen may flag the unsigned executable the first time it runs. This is normal for unsigned apps — click "More info" then "Run anyway".
+
+#### Ubuntu / Debian
+
+1. Install Python 3.14+, Tkinter, and pip. On Ubuntu 24.04+:
+   ```bash
+   sudo apt update
+   sudo apt install python3 python3-venv python3-pip python3-tk
+   ```
+   If your distro does not ship Python 3.14, install it from the [deadsnakes PPA](https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa):
+   ```bash
+   sudo add-apt-repository ppa:deadsnakes/ppa
+   sudo apt update
+   sudo apt install python3.14 python3.14-venv python3.14-tk
+   ```
+2. Clone the repository and create a virtual environment:
+   ```bash
+   git clone <repo-url>
+   cd VibeDnD
+   python3.14 -m venv .venv
+   source .venv/bin/activate
+   ```
+3. Install runtime and build dependencies:
+   ```bash
+   pip install fpdf2 pyinstaller
+   ```
+4. Build:
+   ```bash
+   python build.py --clean --onefile
+   ```
+5. The executable is at `dist/VibeDnD`. Copy it to the target machine and run:
+   ```bash
+   chmod +x dist/VibeDnD
+   ./dist/VibeDnD
+   ```
+
+> No Python installation is needed on the target machine to **run** the executable, but you need Python to **build** it.
 
 #### macOS
-- You must build on a Mac with Python 3.14+ and Tkinter installed.
-- macOS may require you to allow the app in **System Preferences > Privacy & Security** on first launch.
-- If using Homebrew Python, make sure `python3-tk` / `tkinter` is available: `brew install python-tk@3.14`
 
-#### Linux (Ubuntu / Debian)
-- Tkinter is not always bundled with Python on Linux. Install it first:
-  ```bash
-  sudo apt install python3-tk
-  ```
-- The built executable is a standard Linux binary. Mark it executable if needed:
-  ```bash
-  chmod +x dist/VibeDnD/VibeDnD
-  ```
+1. Install Python 3.14+ with Tkinter. Using [Homebrew](https://brew.sh/):
+   ```bash
+   brew install python@3.14 python-tk@3.14
+   ```
+2. Clone the repository and create a virtual environment:
+   ```bash
+   git clone <repo-url>
+   cd VibeDnD
+   python3.14 -m venv .venv
+   source .venv/bin/activate
+   ```
+3. Install runtime and build dependencies:
+   ```bash
+   pip install fpdf2 pyinstaller
+   ```
+4. Build:
+   ```bash
+   python build.py --clean --onefile
+   ```
+5. The executable is at `dist/VibeDnD`. Copy it anywhere and run:
+   ```bash
+   chmod +x dist/VibeDnD
+   ./dist/VibeDnD
+   ```
+
+> macOS may require you to allow the app in **System Settings > Privacy & Security** on first launch since it is unsigned.
 
 ### Settings Persistence
 
