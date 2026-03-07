@@ -3,7 +3,9 @@
 import json
 import os
 
-SETTINGS_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "settings.json")
+from paths import settings_path
+
+SETTINGS_PATH = settings_path()
 
 # Map raw source book names → display category, per context
 # Each context defines which categories exist and what sources map to them.

@@ -1,10 +1,16 @@
 [project]
 name = "vibednd"
 version = "0.1.0"
-description = "Add your description here"
+description = "D&D 2024 Character Creator"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "beautifulsoup4>=4.14.3",
     "requests>=2.32.5",
+    "fpdf2>=2.8.0",
+]
+
+[project.optional-dependencies]
+build = [
+    "pyinstaller>=6.0",
 ]

@@ -4,8 +4,9 @@ import json
 import os
 
 from gui.source_config import load_settings
+from paths import data_dir
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+DATA_DIR = data_dir()
 
 
 class GameData:

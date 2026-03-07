@@ -4,7 +4,11 @@
       "Bash(python3:*)",
       "Bash(python:*)",
       "Bash(pip install fpdf2)",
-      "Bash(C:/VibeDnD/.venv/Scripts/pip install fpdf2)"
+      "Bash(C:/VibeDnD/.venv/Scripts/pip install fpdf2)",
+      "Bash(du -sh /c/VibeDnD/data/* /c/VibeDnD/*.json)",
+      "Bash(C:/VibeDnD/.venv/Scripts/pip install pyinstaller)",
+      "Bash(C:/VibeDnD/.venv/Scripts/python -c \":*)",
+      "Bash(C:/VibeDnD/.venv/Scripts/python build.py --clean)"
     ]
   }
 }
