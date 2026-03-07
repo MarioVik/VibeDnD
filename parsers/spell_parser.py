@@ -119,7 +119,7 @@ def parse_spells(raw_data: list[dict]) -> list[dict]:
         # Parse casting time for ritual
         ritual = False
         casting_time = casting_time_raw or "Action"
-        if casting_time_raw and ("Ritual" in casting_time_raw or "\nR" in content):
+        if casting_time_raw and "Ritual" in casting_time_raw:
             ritual = True
             casting_time = re.sub(r'\s*or\s*Ritual\s*', '', casting_time).strip()
             casting_time = re.sub(r'\s*or\s*$', '', casting_time).strip()

@@ -9,7 +9,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -34,7 +34,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -58,7 +58,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -83,7 +83,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -105,7 +105,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -127,7 +127,7 @@
       "Warlock"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -152,7 +152,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -176,7 +176,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -201,7 +201,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "10 feet",
     "components": {
       "V": false,
@@ -225,7 +225,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -251,7 +251,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -277,7 +277,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -303,7 +303,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -329,7 +329,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": false,
@@ -353,7 +353,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -378,7 +378,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": false,
@@ -404,7 +404,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -430,7 +430,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "10 feet",
     "components": {
       "V": true,
@@ -452,7 +452,7 @@
       "Druid"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -476,7 +476,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -500,7 +500,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -522,7 +522,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -544,7 +544,7 @@
       "Druid"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -568,7 +568,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -590,7 +590,7 @@
       "Sorcerer"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -614,7 +614,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "15 feet",
     "components": {
       "V": true,
@@ -637,7 +637,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -659,7 +659,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -682,7 +682,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -709,7 +709,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": false,
@@ -733,7 +733,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -759,7 +759,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": false,
@@ -781,7 +781,7 @@
       "Bard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -803,7 +803,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -851,7 +851,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -873,7 +873,7 @@
       "Warlock"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -895,7 +895,7 @@
       "Warlock"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -919,7 +919,7 @@
       "Warlock"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -942,7 +942,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -965,7 +965,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -991,7 +991,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -1014,7 +1014,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -1038,7 +1038,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -1062,7 +1062,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -1084,7 +1084,7 @@
       "Paladin"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -1132,7 +1132,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -1159,7 +1159,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -1182,7 +1182,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -1262,7 +1262,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -1284,7 +1284,7 @@
       "Bard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -1306,7 +1306,7 @@
       "Paladin"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -1328,7 +1328,7 @@
       "Paladin"
     ],
     "casting_time": "Bonus Action, which you take immediately after hitting a target with a Melee weapon or an Unarmed Strike",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -1350,7 +1350,7 @@
       "Ranger"
     ],
     "casting_time": "Bonus Action, which you take immediately after hitting a creature with a weapon",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -1373,7 +1373,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -1398,7 +1398,7 @@
       "Wizard"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -1422,7 +1422,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -1446,7 +1446,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -1471,7 +1471,7 @@
       "Wizard"
     ],
     "casting_time": "Reaction, which you take when you or a creature you can see within 60 feet of you falls",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -1518,7 +1518,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -1541,7 +1541,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -1565,7 +1565,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -1587,7 +1587,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -1609,7 +1609,7 @@
       "Ranger"
     ],
     "casting_time": "Bonus Action, which you take immediately after hitting a creature with a Ranged weapon",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -1633,7 +1633,7 @@
       "Druid"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -1655,7 +1655,7 @@
       "Warlock"
     ],
     "casting_time": "Reaction, which you take in response to taking damage from a creature that you can see within 60 feet of yourself",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -1678,7 +1678,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -1700,7 +1700,7 @@
       "Warlock"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -1722,7 +1722,7 @@
       "Ranger"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -1746,7 +1746,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": false,
@@ -1816,7 +1816,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -1842,7 +1842,7 @@
       "Wizard"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -1868,7 +1868,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -1891,7 +1891,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -1914,7 +1914,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -1940,7 +1940,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -1988,7 +1988,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -2011,7 +2011,7 @@
       "Cleric"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -2033,7 +2033,7 @@
       "Paladin"
     ],
     "casting_time": "Bonus Action, which you take immediately after hitting a target with a Melee weapon or an Unarmed Strike",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -2056,7 +2056,7 @@
       "Wizard"
     ],
     "casting_time": "Reaction, which you take when you are hit by an attack roll or targeted by the",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -2079,7 +2079,7 @@
       "Paladin"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -2103,7 +2103,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -2127,7 +2127,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -2175,7 +2175,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -2199,7 +2199,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -2243,7 +2243,7 @@
       "Paladin"
     ],
     "casting_time": "Bonus Action, which you take immediately after hitting a target with a Melee weapon or an Unarmed Strike",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -2268,7 +2268,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -2317,7 +2317,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -2341,7 +2341,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -2363,7 +2363,7 @@
       "Paladin"
     ],
     "casting_time": "Bonus Action, which you take immediately after hitting a creature with a Melee weapon or an Unarmed Strike",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -2390,7 +2390,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -2414,7 +2414,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -2461,7 +2461,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -2485,7 +2485,7 @@
       "Wizard"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": false,
@@ -2532,7 +2532,7 @@
       "Ranger"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -2580,7 +2580,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -2604,7 +2604,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -2627,7 +2627,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -2652,7 +2652,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -2677,7 +2677,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -2699,7 +2699,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -2724,7 +2724,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -2748,7 +2748,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -2774,7 +2774,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -2797,7 +2797,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -2844,7 +2844,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -2868,7 +2868,7 @@
       "Wizard"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -2890,7 +2890,7 @@
       "Wizard"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -2918,7 +2918,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -2944,7 +2944,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -2967,7 +2967,7 @@
       "Warlock"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -2989,7 +2989,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -3013,7 +3013,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -3036,7 +3036,7 @@
       "Sorcerer"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -3060,7 +3060,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -3109,7 +3109,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -3133,7 +3133,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -3160,7 +3160,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -3208,7 +3208,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -3232,7 +3232,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -3259,7 +3259,7 @@
       "Ranger"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -3283,7 +3283,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -3334,7 +3334,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -3384,7 +3384,7 @@
       "Wizard"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -3406,7 +3406,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -3430,7 +3430,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": false,
@@ -3455,7 +3455,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -3479,7 +3479,7 @@
       "Wizard"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -3501,7 +3501,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -3523,7 +3523,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -3546,7 +3546,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -3570,7 +3570,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -3593,7 +3593,7 @@
       "Paladin"
     ],
     "casting_time": "10 minutes",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -3619,7 +3619,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -3642,7 +3642,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -3665,7 +3665,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -3688,7 +3688,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -3713,7 +3713,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -3737,7 +3737,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -3759,7 +3759,7 @@
       "Paladin"
     ],
     "casting_time": "Bonus Action, which you take immediately after hitting a creature with a Melee weapon or an Unarmed Strike",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -3808,7 +3808,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -3831,7 +3831,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -3853,7 +3853,7 @@
       "Cleric"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -3878,7 +3878,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -3901,7 +3901,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -3924,7 +3924,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -3948,7 +3948,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -3972,7 +3972,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -3995,7 +3995,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "10 Feet",
     "components": {
       "V": true,
@@ -4019,7 +4019,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -4041,7 +4041,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -4065,7 +4065,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -4087,7 +4087,7 @@
       "Paladin"
     ],
     "casting_time": "Bonus Action, which you take immediately after hitting a creature with a Melee weapon or an Unarmed Strike",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": false,
@@ -4111,7 +4111,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -4135,7 +4135,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -4157,7 +4157,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -4182,7 +4182,7 @@
       "Wizard"
     ],
     "casting_time": "10 minutes",
-    "ritual": true,
+    "ritual": false,
     "range": "1 mile",
     "components": {
       "V": true,
@@ -4205,7 +4205,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -4227,7 +4227,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -4249,7 +4249,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -4273,7 +4273,7 @@
       "Wizard"
     ],
     "casting_time": "Reaction, which you take when you see a creature within 60 feet of yourself casting a spell with Verbal, Somatic, or Material components",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": false,
@@ -4297,7 +4297,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -4319,7 +4319,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -4345,7 +4345,7 @@
       "Sorcerer"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -4375,7 +4375,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -4400,7 +4400,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -4425,7 +4425,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -4473,7 +4473,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -4498,7 +4498,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -4522,7 +4522,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -4547,7 +4547,7 @@
       "Wizard"
     ],
     "casting_time": "1 hour",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -4571,7 +4571,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -4593,7 +4593,7 @@
       "Warlock"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -4618,7 +4618,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": false,
@@ -4642,7 +4642,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -4687,7 +4687,7 @@
       "Ranger"
     ],
     "casting_time": "Bonus Action, which you take immediately after hitting or missing a target with a ranged attack using a weapon",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -4710,7 +4710,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -4735,7 +4735,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "10 feet",
     "components": {
       "V": true,
@@ -4760,7 +4760,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -4783,7 +4783,7 @@
       "Cleric"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -4831,7 +4831,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -4877,7 +4877,7 @@
       "Ranger"
     ],
     "casting_time": "Action (Overgrowth) or 8 hours (Enrichment)",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -4904,7 +4904,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -4929,7 +4929,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -4955,7 +4955,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -4979,7 +4979,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Unlimited",
     "components": {
       "V": true,
@@ -5003,7 +5003,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -5027,7 +5027,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -5051,7 +5051,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "10 feet",
     "components": {
       "V": true,
@@ -5075,7 +5075,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -5097,7 +5097,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -5121,7 +5121,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -5146,7 +5146,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -5169,7 +5169,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -5192,7 +5192,7 @@
       "Wizard"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -5218,7 +5218,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -5242,7 +5242,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -5317,7 +5317,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -5340,7 +5340,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -5363,7 +5363,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -5386,7 +5386,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -5411,7 +5411,7 @@
       "Wizard"
     ],
     "casting_time": "Reaction, which you take in response to taking damage",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -5437,7 +5437,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -5462,7 +5462,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -5488,7 +5488,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -5510,7 +5510,7 @@
       "Bard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -5535,7 +5535,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -5558,7 +5558,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -5581,7 +5581,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -5605,7 +5605,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "300 feet",
     "components": {
       "V": true,
@@ -5628,7 +5628,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -5653,7 +5653,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "500 feet",
     "components": {
       "V": true,
@@ -5701,7 +5701,7 @@
       "Sorcerer"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -5725,7 +5725,7 @@
       "Warlock"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -5747,7 +5747,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -5770,7 +5770,7 @@
       "Wizard"
     ],
     "casting_time": "10 minutes",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -5794,7 +5794,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -5817,7 +5817,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -5843,7 +5843,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -5865,7 +5865,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -5888,7 +5888,7 @@
       "Ranger"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -5912,7 +5912,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -5934,7 +5934,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -5959,7 +5959,7 @@
       "Wizard"
     ],
     "casting_time": "10 minutes",
-    "ritual": true,
+    "ritual": false,
     "range": "300 feet",
     "components": {
       "V": true,
@@ -5983,7 +5983,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "300 feet",
     "components": {
       "V": true,
@@ -6006,7 +6006,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -6033,7 +6033,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -6055,7 +6055,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -6078,7 +6078,7 @@
       "Wizard"
     ],
     "casting_time": "10 minutes",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -6101,7 +6101,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -6124,7 +6124,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -6149,7 +6149,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -6172,7 +6172,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -6194,7 +6194,7 @@
       "Paladin"
     ],
     "casting_time": "Bonus Action, which you take immediately after hitting a creature with a Melee weapon or an Unarmed Strike",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -6219,7 +6219,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -6245,7 +6245,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -6268,7 +6268,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -6291,7 +6291,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -6315,7 +6315,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -6338,7 +6338,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -6362,7 +6362,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -6387,7 +6387,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -6412,7 +6412,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -6434,7 +6434,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -6457,7 +6457,7 @@
       "Druid"
     ],
     "casting_time": "8 hours",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -6479,7 +6479,7 @@
       "Paladin"
     ],
     "casting_time": "Bonus Action, which you take immediately after hitting a creature with a Melee weapon or an Unarmed Strike",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -6503,7 +6503,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -6528,7 +6528,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -6551,7 +6551,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -6620,7 +6620,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -6643,7 +6643,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -6665,7 +6665,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -6711,7 +6711,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": false,
@@ -6735,7 +6735,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -6757,7 +6757,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -6780,7 +6780,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -6804,7 +6804,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -6828,7 +6828,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "Special",
     "components": {
       "V": true,
@@ -6850,7 +6850,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -6876,7 +6876,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -6903,7 +6903,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -6925,7 +6925,7 @@
       "Cleric"
     ],
     "casting_time": "24 hours",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -6950,7 +6950,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -6974,7 +6974,7 @@
       "Sorcerer"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "300 feet",
     "components": {
       "V": true,
@@ -6997,7 +6997,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -7021,7 +7021,7 @@
       "Wizard"
     ],
     "casting_time": "10 minutes",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -7045,7 +7045,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -7069,7 +7069,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": false,
@@ -7092,7 +7092,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -7114,7 +7114,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -7140,7 +7140,7 @@
       "Wizard"
     ],
     "casting_time": "1 hour",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -7164,7 +7164,7 @@
       "Paladin"
     ],
     "casting_time": "1 hour",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -7209,7 +7209,7 @@
       "Druid"
     ],
     "casting_time": "1 hour",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -7235,7 +7235,7 @@
       "Wizard"
     ],
     "casting_time": "10 minutes",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -7259,7 +7259,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -7283,7 +7283,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -7306,7 +7306,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": false,
@@ -7329,7 +7329,7 @@
       "Paladin"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -7351,7 +7351,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -7373,7 +7373,7 @@
       "Ranger"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -7398,7 +7398,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -7421,7 +7421,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -7446,7 +7446,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "10 feet",
     "components": {
       "V": true,
@@ -7469,7 +7469,7 @@
       "Ranger"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -7491,7 +7491,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -7516,7 +7516,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -7539,7 +7539,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -7563,7 +7563,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "500 feet",
     "components": {
       "V": true,
@@ -7585,7 +7585,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -7608,7 +7608,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -7632,7 +7632,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -7654,7 +7654,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -7676,7 +7676,7 @@
       "Wizard"
     ],
     "casting_time": "10 minutes",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -7700,7 +7700,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "10 feet",
     "components": {
       "V": true,
@@ -7723,7 +7723,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -7746,7 +7746,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -7792,7 +7792,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -7817,7 +7817,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -7841,7 +7841,7 @@
       "Druid"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -7865,7 +7865,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -7910,7 +7910,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -7933,7 +7933,7 @@
       "Wizard"
     ],
     "casting_time": "1 hour",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -7955,7 +7955,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -7978,7 +7978,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -8002,7 +8002,7 @@
       "Druid"
     ],
     "casting_time": "10 minutes",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -8024,7 +8024,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -8048,7 +8048,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -8072,7 +8072,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -8095,7 +8095,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "300 feet",
     "components": {
       "V": true,
@@ -8118,7 +8118,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -8140,7 +8140,7 @@
       "Cleric"
     ],
     "casting_time": "10 minutes",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -8163,7 +8163,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -8186,7 +8186,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -8211,7 +8211,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -8234,7 +8234,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "5 feet",
     "components": {
       "V": true,
@@ -8256,7 +8256,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "10 feet",
     "components": {
       "V": true,
@@ -8282,7 +8282,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -8304,7 +8304,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -8326,7 +8326,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -8348,7 +8348,7 @@
       "Druid"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -8370,7 +8370,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "5 feet",
     "components": {
       "V": true,
@@ -8392,7 +8392,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -8415,7 +8415,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -8437,7 +8437,7 @@
       "Cleric"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -8463,7 +8463,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -8487,7 +8487,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -8511,7 +8511,7 @@
       "Sorcerer"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -8535,7 +8535,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "100 feet",
     "components": {
       "V": true,
@@ -8559,7 +8559,7 @@
       "Wizard"
     ],
     "casting_time": "10 minutes",
-    "ritual": true,
+    "ritual": false,
     "range": "Sight",
     "components": {
       "V": true,
@@ -8582,7 +8582,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "300 feet",
     "components": {
       "V": true,
@@ -8605,7 +8605,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "90 feet",
     "components": {
       "V": true,
@@ -8631,7 +8631,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -8654,7 +8654,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 foot",
     "components": {
       "V": true,
@@ -8678,7 +8678,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -8701,7 +8701,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "500 miles",
     "components": {
       "V": true,
@@ -8725,7 +8725,7 @@
       "Druid"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -8748,7 +8748,7 @@
       "Cleric"
     ],
     "casting_time": "1 hour",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -8772,7 +8772,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "100 feet",
     "components": {
       "V": true,
@@ -8794,7 +8794,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -8817,7 +8817,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -8839,7 +8839,7 @@
       "Wizard"
     ],
     "casting_time": "12 hours",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -8864,7 +8864,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -8888,7 +8888,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "10 feet",
     "components": {
       "V": true,
@@ -8910,7 +8910,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 Feet",
     "components": {
       "V": true,
@@ -8933,7 +8933,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -8957,7 +8957,7 @@
       "Wizard"
     ],
     "casting_time": "1 Hour",
-    "ritual": true,
+    "ritual": false,
     "range": "60 Feet",
     "components": {
       "V": true,
@@ -8982,7 +8982,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -9004,7 +9004,7 @@
       "Wizard"
     ],
     "casting_time": "1 hour",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -9028,7 +9028,7 @@
       "Wizard"
     ],
     "casting_time": "10 minutes",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -9052,7 +9052,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": false,
@@ -9077,7 +9077,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -9101,7 +9101,7 @@
       "Sorcerer"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "500 feet",
     "components": {
       "V": true,
@@ -9124,7 +9124,7 @@
       "Warlock"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -9146,7 +9146,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -9169,7 +9169,7 @@
       "Wizard"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -9193,7 +9193,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -9215,7 +9215,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -9238,7 +9238,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -9263,7 +9263,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -9288,7 +9288,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "150 feet",
     "components": {
       "V": true,
@@ -9310,7 +9310,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Unlimited",
     "components": {
       "V": true,
@@ -9332,7 +9332,7 @@
       "Druid"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "1 mile",
     "components": {
       "V": true,
@@ -9356,7 +9356,7 @@
       "Wizard"
     ],
     "casting_time": "1 hour",
-    "ritual": true,
+    "ritual": false,
     "range": "10 feet",
     "components": {
       "V": true,
@@ -9380,7 +9380,7 @@
       "Wizard"
     ],
     "casting_time": "Bonus Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -9405,7 +9405,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -9430,7 +9430,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -9453,7 +9453,7 @@
       "Wizard"
     ],
     "casting_time": "1 minute",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -9475,7 +9475,7 @@
       "Cleric"
     ],
     "casting_time": "1 Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -9498,7 +9498,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "1 mile",
     "components": {
       "V": true,
@@ -9521,7 +9521,7 @@
       "Cleric"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -9546,7 +9546,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -9569,7 +9569,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "60 feet",
     "components": {
       "V": true,
@@ -9592,7 +9592,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -9614,7 +9614,7 @@
       "Druid"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "1 mile",
     "components": {
       "V": true,
@@ -9637,7 +9637,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,
@@ -9661,7 +9661,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "30 feet",
     "components": {
       "V": true,
@@ -9684,7 +9684,7 @@
       "Druid"
     ],
     "casting_time": "1 hour",
-    "ritual": true,
+    "ritual": false,
     "range": "Touch",
     "components": {
       "V": true,
@@ -9707,7 +9707,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "120 feet",
     "components": {
       "V": true,
@@ -9730,7 +9730,7 @@
       "Wizard"
     ],
     "casting_time": "Action",
-    "ritual": true,
+    "ritual": false,
     "range": "Self",
     "components": {
       "V": true,

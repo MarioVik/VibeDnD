@@ -27,6 +27,7 @@ class SummaryStep(WizardStep):
 
         ttk.Button(top, text="Export JSON", command=self._export_json).pack(side=tk.RIGHT, padx=4)
         ttk.Button(top, text="Export Text", command=self._export_text).pack(side=tk.RIGHT, padx=4)
+        ttk.Button(top, text="Export PDF", command=self._export_pdf).pack(side=tk.RIGHT, padx=4)
 
         # Scrollable character sheet
         self.scroll = ScrollableFrame(self.frame)
@@ -240,3 +241,17 @@ class SummaryStep(WizardStep):
         if path:
             export_text(self.character, path)
             messagebox.showinfo("Export", f"Character sheet saved to {path}")
+
+    def _export_pdf(self):
+        from export.pdf_export import export_pdf
+        path = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF files", "*.pdf")],
+            initialfile=f"{self.character.name}.pdf",
+        )
+        if path:
+            try:
+                export_pdf(self.character, path)
+                messagebox.showinfo("Export", f"PDF character sheet saved to {path}")
+            except Exception as e:
+                messagebox.showerror("Export Error", f"Failed to generate PDF:\n{e}")

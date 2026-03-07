@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(python3:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(pip install fpdf2)",
+      "Bash(C:/VibeDnD/.venv/Scripts/pip install fpdf2)"
     ]
   }
 }
