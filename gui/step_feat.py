@@ -4,8 +4,9 @@ import re
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.widgets import ScrollableFrame, SearchableListbox
+from gui.widgets import ScrollableFrame, SectionedListbox
 from gui.theme import COLORS, FONTS
+from gui.source_config import SECTION_ORDER, group_by_category, save_settings
 
 
 class FeatStep(WizardStep):
@@ -51,14 +52,21 @@ class FeatStep(WizardStep):
         self.sp_top.columnconfigure(1, weight=1)
         self.sp_top.rowconfigure(0, weight=1)
 
-        # Left: searchable list of origin feats
+        # Left: source toggles + searchable sectioned list of origin feats
         self.sp_list_frame = ttk.Frame(self.sp_top, width=220, height=300)
         self.sp_list_frame.grid(row=0, column=0, sticky="nsew", padx=(4, 4), pady=4)
         self.sp_list_frame.grid_propagate(False)
 
         ttk.Label(self.sp_list_frame, text="Choose an Origin Feat:",
-                  style="Dim.TLabel").pack(anchor="w", pady=(0, 4))
-        self.origin_feat_list = SearchableListbox(self.sp_list_frame, on_select=self._on_species_feat_select)
+                  style="Dim.TLabel").pack(anchor="w", pady=(0, 2))
+
+        # Source filter toggles for origin feats
+        self.feat_toggle_frame = ttk.Frame(self.sp_list_frame)
+        self.feat_toggle_frame.pack(fill=tk.X, pady=(0, 4))
+        self.feat_toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._build_feat_toggles()
+
+        self.origin_feat_list = SectionedListbox(self.sp_list_frame, on_select=self._on_species_feat_select)
         self.origin_feat_list.pack(fill=tk.BOTH, expand=True)
 
         # Right: detail panel for selected origin feat
@@ -74,6 +82,40 @@ class FeatStep(WizardStep):
 
         self.sp_benefits_frame = ttk.Frame(self.sp_detail)
         self.sp_benefits_frame.pack(fill=tk.X, pady=(4, 0))
+
+    def _build_feat_toggles(self):
+        """Build source filter checkboxes for origin feats."""
+        for w in self.feat_toggle_frame.winfo_children():
+            w.destroy()
+        self.feat_toggle_vars.clear()
+
+        filters = self.data.source_filters.get("feats", {})
+        sections = SECTION_ORDER["feats"]
+
+        for cat in sections:
+            var = tk.BooleanVar(value=filters.get(cat, True))
+            cb = ttk.Checkbutton(self.feat_toggle_frame, text=cat, variable=var,
+                                 command=self._on_feat_toggle_change)
+            cb.pack(side=tk.LEFT, padx=(0, 4))
+            self.feat_toggle_vars[cat] = var
+
+    def _on_feat_toggle_change(self):
+        """Update filters and rebuild origin feat list."""
+        filters = {cat: var.get() for cat, var in self.feat_toggle_vars.items()}
+        self.data.source_filters["feats"] = filters
+        save_settings(self.data.source_filters)
+        self._populate_origin_feats()
+
+    def _populate_origin_feats(self):
+        """Build sectioned origin feat list based on current filters."""
+        filters = self.data.source_filters.get("feats", {})
+        enabled = {cat for cat, on in filters.items() if on}
+
+        origin_feats = [f for f in self.data.feats if f.get("category") == "origin"]
+        grouped = group_by_category(origin_feats, "feats")
+        sections = [(cat, [f["name"] for f in items])
+                     for cat, items in grouped if cat in enabled]
+        self.origin_feat_list.set_sectioned_items(sections)
 
     def on_enter(self):
         """Refresh based on current background and species."""
@@ -137,10 +179,8 @@ class FeatStep(WizardStep):
                     break
             self.sp_section.configure(text=f"From Species ({sp_name} — {trait_name})")
 
-            # Populate origin feat list
-            origin_feats = [f for f in self.data.feats if f.get("category") == "origin"]
-            names = sorted([f["name"] for f in origin_feats])
-            self.origin_feat_list.set_items(names)
+            # Populate origin feat list with sections
+            self._populate_origin_feats()
 
             # Re-select if we already had one
             if self.character.species_origin_feat:

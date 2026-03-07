@@ -3,8 +3,9 @@
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.widgets import SearchableListbox, ScrollableFrame
+from gui.widgets import SectionedListbox, ScrollableFrame
 from gui.theme import COLORS, FONTS
+from gui.source_config import SECTION_ORDER, group_by_category, save_settings
 
 
 class BackgroundStep(WizardStep):
@@ -14,13 +15,20 @@ class BackgroundStep(WizardStep):
         self.frame.columnconfigure(1, weight=1)
         self.frame.rowconfigure(0, weight=1)
 
-        # Left: background list
+        # Left: background list with source toggles
         left = ttk.Frame(self.frame, width=220)
         left.grid(row=0, column=0, sticky="nsew", padx=(8, 4), pady=8)
         left.grid_propagate(False)
 
-        ttk.Label(left, text="Choose Background", style="Heading.TLabel").pack(anchor="w", pady=(0, 6))
-        self.bg_list = SearchableListbox(left, on_select=self._on_select)
+        ttk.Label(left, text="Choose Background", style="Heading.TLabel").pack(anchor="w", pady=(0, 4))
+
+        # Source filter toggles
+        self.toggle_frame = ttk.Frame(left)
+        self.toggle_frame.pack(fill=tk.X, pady=(0, 4))
+        self.toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._build_toggles()
+
+        self.bg_list = SectionedListbox(left, on_select=self._on_select)
         self.bg_list.pack(fill=tk.BOTH, expand=True)
 
         # Right: detail
@@ -48,9 +56,37 @@ class BackgroundStep(WizardStep):
 
         self._populate_list()
 
+    def _build_toggles(self):
+        """Build source filter checkboxes."""
+        for w in self.toggle_frame.winfo_children():
+            w.destroy()
+        self.toggle_vars.clear()
+
+        filters = self.data.source_filters.get("backgrounds", {})
+        sections = SECTION_ORDER["backgrounds"]
+
+        for cat in sections:
+            var = tk.BooleanVar(value=filters.get(cat, True))
+            cb = ttk.Checkbutton(self.toggle_frame, text=cat, variable=var,
+                                 command=self._on_toggle_change)
+            cb.pack(side=tk.LEFT, padx=(0, 6))
+            self.toggle_vars[cat] = var
+
+    def _on_toggle_change(self):
+        """Update filters and rebuild list when a toggle changes."""
+        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
+        self.data.source_filters["backgrounds"] = filters
+        save_settings(self.data.source_filters)
+        self._populate_list()
+
     def _populate_list(self):
-        names = sorted([b["name"] for b in self.data.backgrounds])
-        self.bg_list.set_items(names)
+        filters = self.data.source_filters.get("backgrounds", {})
+        enabled = {cat for cat, on in filters.items() if on}
+
+        grouped = group_by_category(self.data.backgrounds, "backgrounds")
+        sections = [(cat, [b["name"] for b in items])
+                     for cat, items in grouped if cat in enabled]
+        self.bg_list.set_sectioned_items(sections)
 
     def _on_select(self, name: str):
         bg = self.data.backgrounds_by_name.get(name)

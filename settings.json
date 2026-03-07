@@ -1,0 +1,20 @@
+{
+  "source_filters": {
+    "species": {
+      "Common": true,
+      "Eberron": true,
+      "Exotic": true
+    },
+    "backgrounds": {
+      "Common": true,
+      "Eberron": true,
+      "Faerun": true,
+      "Exotic": true
+    },
+    "feats": {
+      "Common": true,
+      "Faerun": true,
+      "Exotic": true
+    }
+  }
+}

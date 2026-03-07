@@ -74,6 +74,114 @@ class SearchableListbox(ttk.Frame):
                 break
 
 
+class SectionedListbox(ttk.Frame):
+    """A listbox with search, grouped by sections with non-selectable headers."""
+
+    HEADER_PREFIX = "\u2500\u2500 "  # ── prefix for section headers
+    HEADER_SUFFIX = " \u2500\u2500"
+
+    def __init__(self, parent, on_select=None, **kwargs):
+        super().__init__(parent, **kwargs)
+        self.on_select = on_select
+        self.sections: list[tuple[str, list[str]]] = []  # [(section_name, [items])]
+        self._header_indices: set[int] = set()  # listbox indices that are headers
+
+        # Search entry
+        self.search_var = tk.StringVar()
+        self.search_var.trace_add("write", self._filter)
+        self.search_entry = ttk.Entry(self, textvariable=self.search_var)
+        self.search_entry.pack(fill=tk.X, padx=2, pady=(2, 4))
+
+        # Listbox with scrollbar
+        list_frame = ttk.Frame(self)
+        list_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.listbox = tk.Listbox(
+            list_frame,
+            bg=COLORS["bg_light"], fg=COLORS["fg"],
+            selectbackground=COLORS["select_bg"], selectforeground=COLORS["select_fg"],
+            font=FONTS["body"], borderwidth=0, highlightthickness=0,
+            activestyle="none",
+        )
+        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.listbox.yview)
+        self.listbox.configure(yscrollcommand=scrollbar.set)
+
+        self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.listbox.bind("<<ListboxSelect>>", self._on_select)
+
+    def set_sectioned_items(self, sections: list[tuple[str, list[str]]]):
+        """Set items grouped by section. sections = [(section_name, [item_names])]"""
+        self.sections = sections
+        self._populate()
+
+    def _populate(self):
+        self.listbox.delete(0, tk.END)
+        self._header_indices.clear()
+        query = self.search_var.get().lower()
+        idx = 0
+
+        for section_name, items in self.sections:
+            # Filter items by search query
+            visible = [it for it in items if not query or query in it.lower()]
+            if not visible:
+                continue
+
+            # Insert section header
+            header_text = f"{self.HEADER_PREFIX}{section_name}{self.HEADER_SUFFIX}"
+            self.listbox.insert(tk.END, header_text)
+            self.listbox.itemconfig(idx, fg=COLORS["accent"], selectbackground=COLORS["bg_light"],
+                                    selectforeground=COLORS["accent"])
+            self._header_indices.add(idx)
+            idx += 1
+
+            # Insert items
+            for item in visible:
+                self.listbox.insert(tk.END, f"  {item}")
+                idx += 1
+
+    def _filter(self, *args):
+        self._populate()
+
+    def _on_select(self, event):
+        sel = self.listbox.curselection()
+        if not sel:
+            return
+        i = sel[0]
+        if i in self._header_indices:
+            # Clicked a header — deselect and select next real item instead
+            self.listbox.selection_clear(i)
+            # Find next non-header item
+            for j in range(i + 1, self.listbox.size()):
+                if j not in self._header_indices:
+                    self.listbox.selection_set(j)
+                    self.listbox.see(j)
+                    if self.on_select:
+                        name = self.listbox.get(j).strip()
+                        self.on_select(name)
+                    return
+            return
+        if self.on_select:
+            name = self.listbox.get(i).strip()
+            self.on_select(name)
+
+    def get_selection(self) -> str | None:
+        sel = self.listbox.curselection()
+        if sel and sel[0] not in self._header_indices:
+            return self.listbox.get(sel[0]).strip()
+        return None
+
+    def select_item(self, name: str):
+        """Programmatically select an item by name."""
+        for i in range(self.listbox.size()):
+            if i not in self._header_indices and self.listbox.get(i).strip() == name:
+                self.listbox.selection_clear(0, tk.END)
+                self.listbox.selection_set(i)
+                self.listbox.see(i)
+                break
+
+
 class ScrollableFrame(ttk.Frame):
     """A frame with a vertical scrollbar."""
 

@@ -3,6 +3,8 @@
 import json
 import os
 
+from gui.source_config import load_settings
+
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 
 
@@ -15,6 +17,9 @@ class GameData:
         self.species = self._load("species.json")
         self.backgrounds = self._load("backgrounds.json")
         self.feats = self._load("feats.json")
+
+        # Source filter settings (mutable, shared with steps)
+        self.source_filters = load_settings()
 
         # Build lookup indexes
         self.classes_by_name = {c["name"]: c for c in self.classes}

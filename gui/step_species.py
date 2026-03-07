@@ -3,8 +3,9 @@
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.widgets import SearchableListbox, ScrollableFrame
+from gui.widgets import SectionedListbox, ScrollableFrame
 from gui.theme import COLORS, FONTS
+from gui.source_config import SECTION_ORDER, group_by_category, save_settings
 
 
 class SpeciesStep(WizardStep):
@@ -14,13 +15,20 @@ class SpeciesStep(WizardStep):
         self.frame.columnconfigure(1, weight=1)
         self.frame.rowconfigure(0, weight=1)
 
-        # Left: species list
+        # Left: species list with source toggles
         left = ttk.Frame(self.frame, width=220)
         left.grid(row=0, column=0, sticky="nsew", padx=(8, 4), pady=8)
         left.grid_propagate(False)
 
-        ttk.Label(left, text="Choose Species", style="Heading.TLabel").pack(anchor="w", pady=(0, 6))
-        self.species_list = SearchableListbox(left, on_select=self._on_select)
+        ttk.Label(left, text="Choose Species", style="Heading.TLabel").pack(anchor="w", pady=(0, 4))
+
+        # Source filter toggles
+        self.toggle_frame = ttk.Frame(left)
+        self.toggle_frame.pack(fill=tk.X, pady=(0, 4))
+        self.toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._build_toggles()
+
+        self.species_list = SectionedListbox(left, on_select=self._on_select)
         self.species_list.pack(fill=tk.BOTH, expand=True)
 
         # Right: detail panel
@@ -59,9 +67,38 @@ class SpeciesStep(WizardStep):
 
         self._populate_list()
 
+    def _build_toggles(self):
+        """Build source filter checkboxes."""
+        for w in self.toggle_frame.winfo_children():
+            w.destroy()
+        self.toggle_vars.clear()
+
+        filters = self.data.source_filters.get("species", {})
+        sections = SECTION_ORDER["species"]
+
+        for cat in sections:
+            var = tk.BooleanVar(value=filters.get(cat, True))
+            cb = ttk.Checkbutton(self.toggle_frame, text=cat, variable=var,
+                                 command=self._on_toggle_change)
+            cb.pack(side=tk.LEFT, padx=(0, 6))
+            self.toggle_vars[cat] = var
+
+    def _on_toggle_change(self):
+        """Update filters and rebuild list when a toggle changes."""
+        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
+        self.data.source_filters["species"] = filters
+        save_settings(self.data.source_filters)
+        self._populate_list()
+
     def _populate_list(self):
-        names = sorted([s["name"] for s in self.data.species])
-        self.species_list.set_items(names)
+        filters = self.data.source_filters.get("species", {})
+        enabled = {cat for cat, on in filters.items() if on}
+
+        # Group species by category, only include enabled sections
+        grouped = group_by_category(self.data.species, "species")
+        sections = [(cat, [s["name"] for s in items])
+                     for cat, items in grouped if cat in enabled]
+        self.species_list.set_sectioned_items(sections)
 
     def _on_select(self, name: str):
         sp = self.data.species_by_name.get(name)
@@ -105,7 +142,6 @@ class SpeciesStep(WizardStep):
         if sp.get("sub_choices"):
             self.sub_frame.pack(fill=tk.X, pady=(8, 0))
             choices = sp["sub_choices"]
-            # Get the first key to determine choice type
             if choices and isinstance(choices[0], dict):
                 first_key = list(choices[0].keys())[0]
                 ttk.Label(self.sub_frame, text=f"Choose {first_key}:", style="Subheading.TLabel").pack(anchor="w")
