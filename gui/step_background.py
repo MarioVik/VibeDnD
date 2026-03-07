@@ -12,6 +12,7 @@ class BackgroundStep(WizardStep):
     tab_title = "Background"
 
     def build_ui(self):
+        self._edit_initialized = False
         self.frame.columnconfigure(1, weight=1)
         self.frame.rowconfigure(0, weight=1)
 
@@ -55,6 +56,28 @@ class BackgroundStep(WizardStep):
         self.bonus_frame.pack(fill=tk.X, pady=(8, 0))
 
         self._populate_list()
+
+    def on_enter(self):
+        """Pre-select background and bonus assignments when editing."""
+        if not self._edit_initialized and self.character.background:
+            self._edit_initialized = True
+            name = self.character.background.get("name", "")
+            # Snapshot bonus settings (_on_select will reset them)
+            saved_mode = self.character.ability_bonus_mode
+            saved_bonuses = dict(self.character.ability_scores.bonuses)
+            # Select in list and populate detail panel
+            self.bg_list.select_item(name)
+            self._on_select(name)
+            # Restore bonus mode and assignments
+            if hasattr(self, 'bonus_mode'):
+                self.bonus_mode.set(saved_mode)
+                self._update_bonus_ui()
+                if saved_mode == "2/1":
+                    for ab, val in saved_bonuses.items():
+                        if val == 2 and "+2" in self.bonus_combos:
+                            self.bonus_combos["+2"].set(ab)
+                        elif val == 1 and "+1" in self.bonus_combos:
+                            self.bonus_combos["+1"].set(ab)
 
     def _build_toggles(self):
         """Build source filter checkboxes."""

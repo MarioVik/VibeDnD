@@ -6,7 +6,7 @@ import os
 # Ensure project root is on path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from paths import data_dir, is_frozen
+from paths import data_dir, characters_dir, is_frozen
 from gui.app import CharacterCreatorApp
 
 
@@ -24,6 +24,9 @@ def main():
     elif missing:
         print(f"ERROR: Data files missing from {dd}: {missing}")
         sys.exit(1)
+
+    # Ensure characters directory exists
+    os.makedirs(characters_dir(), exist_ok=True)
 
     app = CharacterCreatorApp()
     app.run()

@@ -45,12 +45,44 @@ class AbilityScoresStep(WizardStep):
                                           value=0, length=200)
         self.budget_bar.pack(side=tk.LEFT, padx=8)
 
+        # Snapshot loaded scores before defaults overwrite them (edit mode)
+        self._loaded_scores = dict(self.character.ability_scores.scores)
+        self._has_loaded_data = any(v != 10 for v in self._loaded_scores.values())
+        self._edit_initialized = False
+
+        # Use character's method (may differ from default for loaded characters)
+        self.method_var.set(self.character.score_method)
+
         # Score widgets
         self.score_widgets = {}
         self._build_assignment_ui()
 
+        # Restore loaded scores to character model (_build_assignment_ui set defaults)
+        if self._has_loaded_data:
+            for ab, val in self._loaded_scores.items():
+                self.character.ability_scores.set_base(ab, val)
+
     def on_enter(self):
-        """Refresh when entering this tab (background bonuses may have changed)."""
+        """Refresh when entering this tab. Pre-populate scores in edit mode."""
+        if not self._edit_initialized and self._has_loaded_data:
+            self._edit_initialized = True
+            method = self.method_var.get()
+            if method == "standard_array":
+                self._swapping = True
+                try:
+                    for ab in ABILITIES:
+                        val = self._loaded_scores.get(ab, 10)
+                        if ab in self.score_widgets:
+                            self.score_widgets[ab]["var"].set(str(val))
+                        self.character.ability_scores.set_base(ab, val)
+                finally:
+                    self._swapping = False
+            else:  # point_buy
+                for ab in ABILITIES:
+                    val = self._loaded_scores.get(ab, 8)
+                    if ab in self.score_widgets:
+                        self.score_widgets[ab]["var"].set(val)
+                # _on_pb_change fires for each set and handles bases
         self._update_display()
 
     def _build_assignment_ui(self):

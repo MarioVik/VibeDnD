@@ -1,0 +1,35 @@
+{
+  "format_version": 1,
+  "name": "Aleister Holiday",
+  "species_name": "Changeling",
+  "species_sub_choice": null,
+  "size_choice": "Medium",
+  "class_name": "Artificer",
+  "background_name": "Inquisitive",
+  "selected_skills": [],
+  "score_method": "standard_array",
+  "ability_scores": {
+    "Strength": 8,
+    "Dexterity": 14,
+    "Constitution": 13,
+    "Intelligence": 15,
+    "Wisdom": 10,
+    "Charisma": 12
+  },
+  "ability_bonuses": {
+    "Intelligence": 2,
+    "Constitution": 1
+  },
+  "ability_bonus_mode": "2/1",
+  "ability_bonus_assignments": {},
+  "feat_name": "Alert",
+  "species_origin_feat_name": null,
+  "feat_sub_choices": {},
+  "selected_cantrips": [
+    "Elementalism",
+    "True Strike"
+  ],
+  "selected_spells": [],
+  "equipment_choice_class": "A",
+  "equipment_choice_background": "A"
+}

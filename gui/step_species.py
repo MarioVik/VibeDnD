@@ -12,6 +12,7 @@ class SpeciesStep(WizardStep):
     tab_title = "Species"
 
     def build_ui(self):
+        self._edit_initialized = False
         self.frame.columnconfigure(1, weight=1)
         self.frame.rowconfigure(0, weight=1)
 
@@ -66,6 +67,23 @@ class SpeciesStep(WizardStep):
         self.traits_frame.pack(fill=tk.X, pady=(8, 0))
 
         self._populate_list()
+
+    def on_enter(self):
+        """Pre-select species when editing an existing character."""
+        if not self._edit_initialized and self.character.species:
+            self._edit_initialized = True
+            name = self.character.species.get("name", "")
+            # Snapshot values that _on_select will reset
+            saved_sub = self.character.species_sub_choice
+            saved_size = self.character.size_choice
+            # Select in list and populate detail panel
+            self.species_list.select_item(name)
+            self._on_select(name)
+            # Restore saved choices
+            if saved_sub:
+                self.sub_var.set(saved_sub)
+            if saved_size:
+                self.size_var.set(saved_size)
 
     def _build_toggles(self):
         """Build source filter checkboxes."""

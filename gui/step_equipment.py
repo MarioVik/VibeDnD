@@ -38,8 +38,16 @@ class EquipmentStep(WizardStep):
         self.summary_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
     def on_enter(self):
+        # Snapshot choices before populate resets them to first option
+        saved_class = self.character.equipment_choice_class
+        saved_bg = self.character.equipment_choice_background
         self._populate_class_equipment()
         self._populate_bg_equipment()
+        # Restore saved equipment choices
+        if saved_class:
+            self.class_equip_var.set(saved_class)
+        if saved_bg:
+            self.bg_equip_var.set(saved_bg)
         self._update_summary()
 
     def _populate_class_equipment(self):

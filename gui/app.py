@@ -1,4 +1,4 @@
-"""Main application: character creation wizard with live summary panel."""
+"""Main application: screen manager for home, wizard and viewer screens."""
 
 import tkinter as tk
 from tkinter import ttk
@@ -18,9 +18,12 @@ from gui.step_spells import SpellsStep
 from gui.step_equipment import EquipmentStep
 from gui.step_summary import SummaryStep
 
+from gui.home_screen import HomeScreen
+from gui.character_viewer import CharacterViewer
+
 
 class SummaryPanel(ttk.Frame):
-    """Live-updating summary panel on the right side of the window."""
+    """Live-updating summary panel on the right side of the wizard."""
 
     def __init__(self, parent, character: Character):
         super().__init__(parent, style="Card.TFrame")
@@ -60,7 +63,7 @@ class SummaryPanel(ttk.Frame):
             row.pack(fill=tk.X, pady=1)
             ttk.Label(row, text=f"{label}:", width=8,
                       background=COLORS["bg_card"], foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
-            val_label = ttk.Label(row, text="—", background=COLORS["bg_card"],
+            val_label = ttk.Label(row, text="\u2014", background=COLORS["bg_card"],
                                   foreground=COLORS["fg_bright"], font=FONTS["subheading"])
             val_label.pack(side=tk.LEFT)
             self.stat_labels[label] = val_label
@@ -101,7 +104,7 @@ class SummaryPanel(ttk.Frame):
             row.pack(fill=tk.X, pady=1)
             ttk.Label(row, text=f"{label}:", width=10,
                       background=COLORS["bg_card"], foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
-            val_label = ttk.Label(row, text="—", background=COLORS["bg_card"],
+            val_label = ttk.Label(row, text="\u2014", background=COLORS["bg_card"],
                                   foreground=COLORS["fg"], wraplength=160)
             val_label.pack(side=tk.LEFT)
             self.choice_labels[label] = val_label
@@ -117,8 +120,8 @@ class SummaryPanel(ttk.Frame):
             self.stat_labels["HP"].configure(text=str(c.hit_points))
             self.stat_labels["AC"].configure(text=str(c.armor_class))
         else:
-            self.stat_labels["HP"].configure(text="—")
-            self.stat_labels["AC"].configure(text="—")
+            self.stat_labels["HP"].configure(text="\u2014")
+            self.stat_labels["AC"].configure(text="\u2014")
 
         self.stat_labels["Speed"].configure(text=f"{c.speed} ft")
         init = c.initiative
@@ -144,14 +147,14 @@ class SummaryPanel(ttk.Frame):
                 feat_parts.append(c.feat.get("name", "?"))
         if c.species_origin_feat:
             feat_parts.append(c.species_origin_feat.get("name", "?"))
-        self.choice_labels["Feat"].configure(text=", ".join(feat_parts) if feat_parts else "—")
+        self.choice_labels["Feat"].configure(text=", ".join(feat_parts) if feat_parts else "\u2014")
 
         all_skills = sorted(c.all_skill_proficiencies)
-        self.choice_labels["Skills"].configure(text=", ".join(all_skills) if all_skills else "—")
+        self.choice_labels["Skills"].configure(text=", ".join(all_skills) if all_skills else "\u2014")
 
 
 class CharacterCreatorApp:
-    """Main application window."""
+    """Main application window with screen management."""
 
     def __init__(self):
         self.root = tk.Tk()
@@ -160,49 +163,120 @@ class CharacterCreatorApp:
         self.root.minsize(900, 600)
 
         apply_theme(self.root)
-
-        self.character = Character()
         self.data = GameData()
 
-        self._build_ui()
+        # Container for all screens
+        self.container = ttk.Frame(self.root)
+        self.container.pack(fill=tk.BOTH, expand=True)
 
-    def _build_ui(self):
+        # Screen references
+        self.home_screen = HomeScreen(self.container, self)
+        self.wizard_frame = None   # built lazily
+        self.viewer_frame = None   # built lazily
+
+        # State
+        self.character = None
+        self.current_save_path = None
+
+        # Start on home screen
+        self.show_home()
+
+    # ── Screen transitions ──────────────────────────────────────
+
+    def show_home(self):
+        """Switch to the home screen."""
+        self._hide_all()
+        self.home_screen.refresh()
+        self.home_screen.frame.pack(fill=tk.BOTH, expand=True)
+
+    def show_wizard(self, character=None, save_path=None):
+        """Switch to the character creation wizard.
+
+        If *character* is provided (edit mode), the wizard is populated
+        with that character's data.
+        """
+        self._hide_all()
+
+        if character is None:
+            character = Character()
+        self.character = character
+        self.current_save_path = save_path
+
+        # Rebuild wizard each time (steps bind to a specific Character)
+        if self.wizard_frame:
+            self.wizard_frame.destroy()
+        self.wizard_frame = self._build_wizard(character, save_path)
+        self.wizard_frame.pack(fill=tk.BOTH, expand=True)
+
+    def show_viewer(self, character, save_path):
+        """Switch to the read-only character viewer."""
+        self._hide_all()
+        self.character = character
+        self.current_save_path = save_path
+
+        if self.viewer_frame:
+            self.viewer_frame.destroy()
+        self.viewer_frame = CharacterViewer(
+            self.container, character, save_path, self.data, self)
+        self.viewer_frame.pack(fill=tk.BOTH, expand=True)
+
+    def _hide_all(self):
+        self.home_screen.frame.pack_forget()
+        if self.wizard_frame:
+            self.wizard_frame.pack_forget()
+        if self.viewer_frame:
+            self.viewer_frame.pack_forget()
+
+    # ── Wizard builder ──────────────────────────────────────────
+
+    def _build_wizard(self, character, save_path=None):
+        """Create the wizard frame containing notebook + summary panel."""
+        frame = ttk.Frame(self.container)
+
+        # Top bar with back button
+        top = ttk.Frame(frame)
+        top.pack(fill=tk.X, padx=8, pady=(6, 2))
+        ttk.Button(
+            top, text="\u25c0  Back to Menu",
+            command=self.show_home,
+        ).pack(side=tk.LEFT)
+
         # Main horizontal split: notebook (left) + summary (right)
-        paned = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        paned = ttk.PanedWindow(frame, orient=tk.HORIZONTAL)
         paned.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
-        # Notebook
-        self.notebook = ttk.Notebook(paned)
+        notebook = ttk.Notebook(paned)
+        summary = SummaryPanel(paned, character)
 
-        # Summary panel
-        self.summary = SummaryPanel(paned, self.character)
-
-        paned.add(self.notebook, weight=3)
-        paned.add(self.summary, weight=1)
+        paned.add(notebook, weight=3)
+        paned.add(summary, weight=1)
 
         # Create wizard steps
-        self.steps = [
-            SpeciesStep(self.notebook, self.character, self.data),
-            ClassStep(self.notebook, self.character, self.data),
-            BackgroundStep(self.notebook, self.character, self.data),
-            AbilityScoresStep(self.notebook, self.character, self.data),
-            FeatStep(self.notebook, self.character, self.data),
-            SpellsStep(self.notebook, self.character, self.data),
-            EquipmentStep(self.notebook, self.character, self.data),
-            SummaryStep(self.notebook, self.character, self.data),
+        steps = [
+            SpeciesStep(notebook, character, self.data),
+            ClassStep(notebook, character, self.data),
+            BackgroundStep(notebook, character, self.data),
+            AbilityScoresStep(notebook, character, self.data),
+            FeatStep(notebook, character, self.data),
+            SpellsStep(notebook, character, self.data),
+            EquipmentStep(notebook, character, self.data),
+            SummaryStep(notebook, character, self.data,
+                        app=self, save_path=save_path),
         ]
 
         # Register change callbacks
-        for step in self.steps:
-            step.on_change_callbacks.append(self.summary.refresh)
+        for step in steps:
+            step.on_change_callbacks.append(summary.refresh)
 
         # Tab change event
-        self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_change)
+        def on_tab_change(event):
+            idx = notebook.index(notebook.select())
+            if 0 <= idx < len(steps):
+                steps[idx].on_enter()
 
-    def _on_tab_change(self, event):
-        idx = self.notebook.index(self.notebook.select())
-        if 0 <= idx < len(self.steps):
-            self.steps[idx].on_enter()
+        notebook.bind("<<NotebookTabChanged>>", on_tab_change)
+
+        return frame
 
     def run(self):
         self.root.mainloop()

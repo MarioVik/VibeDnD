@@ -10,7 +10,9 @@
       "Bash(C:/VibeDnD/.venv/Scripts/python -c \":*)",
       "Bash(C:/VibeDnD/.venv/Scripts/python build.py --clean)",
       "Bash(C:/VibeDnD/.venv/Scripts/python build.py --clean --onefile)",
-      "Bash(docker --version)"
+      "Bash(docker --version)",
+      "Bash(C:/VibeDnD/.venv/Scripts/python -c \"from gui.step_species import SpeciesStep; from gui.step_class import ClassStep; from gui.step_background import BackgroundStep; from gui.step_ability_scores import AbilityScoresStep; from gui.step_equipment import EquipmentStep; print\\(''All step imports OK''\\)\")",
+      "Bash(C:/VibeDnD/.venv/Scripts/python -m gui.app)"
     ]
   }
 }

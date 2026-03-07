@@ -42,3 +42,12 @@ def settings_path() -> str:
     survive application restarts.
     """
     return os.path.join(_exe_dir(), "settings.json")
+
+
+def characters_dir() -> str:
+    """Path to the ``characters/`` directory for saved characters.
+
+    Uses ``_exe_dir()`` so saved characters persist between runs,
+    same pattern as :func:`settings_path`.
+    """
+    return os.path.join(_exe_dir(), "characters")

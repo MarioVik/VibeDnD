@@ -11,6 +11,7 @@ class ClassStep(WizardStep):
     tab_title = "Class"
 
     def build_ui(self):
+        self._edit_initialized = False
         self.frame.columnconfigure(1, weight=1)
         self.frame.rowconfigure(0, weight=1)
 
@@ -53,6 +54,22 @@ class ClassStep(WizardStep):
         self.features_frame.pack(fill=tk.X, pady=(8, 0))
 
         self._populate_list()
+
+    def on_enter(self):
+        """Pre-select class and skills when editing an existing character."""
+        if not self._edit_initialized and self.character.character_class:
+            self._edit_initialized = True
+            name = self.character.character_class.get("name", "")
+            # Snapshot skills (_on_select resets selected_skills to [])
+            saved_skills = list(self.character.selected_skills)
+            # Select in list and populate detail panel
+            self.class_list.select_item(name)
+            self._on_select(name)
+            # Restore skill checkbox selections
+            for skill_name in saved_skills:
+                if skill_name in self.skill_vars:
+                    self.skill_vars[skill_name].set(True)
+            self.character.selected_skills = saved_skills
 
     def _populate_list(self):
         names = sorted([c["name"] for c in self.data.classes])
