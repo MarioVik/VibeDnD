@@ -5,7 +5,7 @@ from tkinter import ttk, filedialog, messagebox
 
 from gui.theme import apply_theme, COLORS, FONTS
 from gui.data_loader import GameData
-from gui.widgets import ScrollableFrame
+from gui.widgets import ScrollableFrame, WrappingLabel
 from models.character import Character
 from models.enums import ALL_SKILLS
 
@@ -47,9 +47,9 @@ class SummaryPanel(ttk.Frame):
         ttk.Label(self.inner, text="Character", style="CardHeading.TLabel").pack(
             anchor="w", padx=8, pady=(8, 2))
 
-        self.summary_label = ttk.Label(self.inner, text=c.summary_text(),
-                                        style="Card.TLabel", wraplength=220)
-        self.summary_label.pack(anchor="w", padx=8)
+        self.summary_label = WrappingLabel(self.inner, text=c.summary_text(),
+                                        style="Card.TLabel")
+        self.summary_label.pack(fill=tk.X, anchor="w", padx=8)
 
         ttk.Separator(self.inner, orient=tk.HORIZONTAL).pack(fill=tk.X, padx=4, pady=6)
 
@@ -104,9 +104,9 @@ class SummaryPanel(ttk.Frame):
             row.pack(fill=tk.X, pady=1)
             ttk.Label(row, text=f"{label}:", width=10,
                       background=COLORS["bg_card"], foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
-            val_label = ttk.Label(row, text="\u2014", background=COLORS["bg_card"],
-                                  foreground=COLORS["fg"], wraplength=160)
-            val_label.pack(side=tk.LEFT)
+            val_label = WrappingLabel(row, text="\u2014", background=COLORS["bg_card"],
+                                  foreground=COLORS["fg"])
+            val_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
             self.choice_labels[label] = val_label
 
     def refresh(self):

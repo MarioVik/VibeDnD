@@ -5,6 +5,25 @@ from tkinter import ttk
 from gui.theme import COLORS, FONTS
 
 
+class WrappingLabel(ttk.Label):
+    """A label that automatically updates its wraplength based on its allocated width.
+    Must be packed with fill=tk.X or fill=tk.BOTH to receive width updates."""
+
+    def __init__(self, master=None, **kwargs):
+        # Remove any fixed wraplength passed by default so it can be managed dynamically
+        kwargs.pop("wraplength", None)
+        super().__init__(master, **kwargs)
+        self.bind("<Configure>", self._on_configure)
+
+    def _on_configure(self, event):
+        # Leave a tiny margin to prevent layout thrashing
+        new_wrap = event.width - 4
+        if new_wrap > 0:
+            current_wrap = self.cget("wraplength")
+            if current_wrap != new_wrap:
+                self.configure(wraplength=new_wrap)
+
+
 class SearchableListbox(ttk.Frame):
     """A listbox with a search/filter entry above it."""
 

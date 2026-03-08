@@ -6,6 +6,7 @@ from tkinter import ttk
 
 from gui.theme import COLORS, FONTS
 from models.enums import ALL_SKILLS
+from gui.widgets import WrappingLabel
 
 
 def _show_level_features(parent: tk.Widget, character, game_data=None):
@@ -37,8 +38,8 @@ def _show_level_features(parent: tk.Widget, character, game_data=None):
         if character.is_multiclass:
             prefix = f"{cl.class_slug.title()} "
         text = f"  {prefix}Level {cl.class_level}: {', '.join(items)}"
-        ttk.Label(parent, text=text, foreground=COLORS["fg"], wraplength=600).pack(
-            anchor="w", padx=8, pady=1)
+        WrappingLabel(parent, text=text, foreground=COLORS["fg"]).pack(
+            fill=tk.X, anchor="w", padx=8, pady=1)
 
 
 def build_character_sheet(parent: tk.Widget, character, game_data=None):
@@ -158,10 +159,10 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
         traits_frame = ttk.LabelFrame(parent, text=f"{c.species_name} Traits")
         traits_frame.pack(fill=tk.X, pady=4)
         for trait in c.species["traits"]:
-            ttk.Label(traits_frame,
+            WrappingLabel(traits_frame,
                       text=f"  {trait['name']}: {trait.get('description', '')[:150]}",
-                      wraplength=600, foreground=COLORS["fg_dim"]).pack(
-                          anchor="w", padx=8, pady=1)
+                      foreground=COLORS["fg_dim"]).pack(
+                          fill=tk.X, anchor="w", padx=8, pady=1)
 
     # ── Class Features ──────────────────────────────────────────
     if c.character_class:
@@ -178,10 +179,10 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
                           foreground=COLORS["accent"], font=FONTS["subheading"]).pack(
                               anchor="w", padx=8)
                 if feat.get("description"):
-                    ttk.Label(feat_frame,
+                    WrappingLabel(feat_frame,
                               text=f"    {feat['description'][:200]}",
-                              wraplength=600, foreground=COLORS["fg_dim"]).pack(
-                                  anchor="w", padx=8, pady=(0, 4))
+                              foreground=COLORS["fg_dim"]).pack(
+                                  fill=tk.X, anchor="w", padx=8, pady=(0, 4))
         elif c.class_levels:
             # Multi-level: show features gained at each level
             _show_level_features(feat_frame, c, game_data)
@@ -208,10 +209,10 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
                       foreground=COLORS["accent"], font=FONTS["subheading"]).pack(
                           anchor="w", padx=8)
             for b in c.feat.get("benefits", []):
-                ttk.Label(feat_sec,
+                WrappingLabel(feat_sec,
                           text=f"    {b['name']}: {b.get('description', '')[:150]}",
-                          wraplength=600, foreground=COLORS["fg_dim"]).pack(
-                              anchor="w", padx=8, pady=1)
+                          foreground=COLORS["fg_dim"]).pack(
+                              fill=tk.X, anchor="w", padx=8, pady=1)
 
         # Species origin feat (Human Versatile)
         if c.species_origin_feat:
@@ -224,23 +225,21 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
                       foreground=COLORS["accent"], font=FONTS["subheading"]).pack(
                           anchor="w", padx=8)
             for b in c.species_origin_feat.get("benefits", []):
-                ttk.Label(feat_sec,
+                WrappingLabel(feat_sec,
                           text=f"    {b['name']}: {b.get('description', '')[:150]}",
-                          wraplength=600, foreground=COLORS["fg_dim"]).pack(
-                              anchor="w", padx=8, pady=1)
+                          foreground=COLORS["fg_dim"]).pack(
+                              fill=tk.X, anchor="w", padx=8, pady=1)
 
     # ── Spells ──────────────────────────────────────────────────
     if c.selected_cantrips or c.selected_spells:
         spell_sec = ttk.LabelFrame(parent, text="Spells")
         spell_sec.pack(fill=tk.X, pady=4)
         if c.selected_cantrips:
-            ttk.Label(spell_sec,
-                      text=f"  Cantrips: {', '.join(c.selected_cantrips)}",
-                      wraplength=600).pack(anchor="w", padx=8, pady=2)
+            WrappingLabel(spell_sec,
+                      text=f"  Cantrips: {', '.join(c.selected_cantrips)}").pack(fill=tk.X, anchor="w", padx=8, pady=2)
         if c.selected_spells:
-            ttk.Label(spell_sec,
-                      text=f"  Level 1: {', '.join(c.selected_spells)}",
-                      wraplength=600).pack(anchor="w", padx=8, pady=2)
+            WrappingLabel(spell_sec,
+                      text=f"  Level 1: {', '.join(c.selected_spells)}").pack(fill=tk.X, anchor="w", padx=8, pady=2)
 
     # ── Equipment ───────────────────────────────────────────────
     equip_sec = ttk.LabelFrame(parent, text="Equipment")
@@ -249,16 +248,16 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
     if c.character_class:
         for opt in c.character_class.get("starting_equipment", []):
             if opt["option"] == c.equipment_choice_class:
-                ttk.Label(equip_sec, text=f"  {opt['items'][:200]}",
-                          wraplength=600, foreground=COLORS["fg_dim"]).pack(
-                              anchor="w", padx=8, pady=2)
+                WrappingLabel(equip_sec, text=f"  {opt['items'][:200]}",
+                          foreground=COLORS["fg_dim"]).pack(
+                              fill=tk.X, anchor="w", padx=8, pady=2)
                 has_equip = True
     if c.background:
         for opt in c.background.get("equipment", []):
             if opt["option"] == c.equipment_choice_background:
-                ttk.Label(equip_sec, text=f"  {opt['items'][:200]}",
-                          wraplength=600, foreground=COLORS["fg_dim"]).pack(
-                              anchor="w", padx=8, pady=2)
+                WrappingLabel(equip_sec, text=f"  {opt['items'][:200]}",
+                          foreground=COLORS["fg_dim"]).pack(
+                              fill=tk.X, anchor="w", padx=8, pady=2)
                 has_equip = True
     if not has_equip:
         ttk.Label(equip_sec, text="  No equipment selected",

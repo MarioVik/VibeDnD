@@ -4,7 +4,7 @@ import re
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.widgets import ScrollableFrame, SectionedListbox
+from gui.widgets import ScrollableFrame, SectionedListbox, WrappingLabel
 from gui.theme import COLORS, FONTS
 from gui.source_config import SECTION_ORDER, group_by_category, save_settings
 
@@ -149,10 +149,10 @@ class FeatStep(WizardStep):
                 m = re.search(r'\((\w+)\)', feat_name)
                 if m:
                     spell_class = m.group(1)
-                    ttk.Label(self.bg_note_frame,
+                    WrappingLabel(self.bg_note_frame,
                               text=f"This grants 2 cantrips and 1 level 1 spell from the {spell_class} list. "
                                    f"Select them in the Spells tab.",
-                              foreground=COLORS["accent"], wraplength=500).pack(anchor="w")
+                              foreground=COLORS["accent"]).pack(fill=tk.X, anchor="w")
         else:
             self.bg_feat_source.configure(text="(Feat data not found)")
 
@@ -214,5 +214,5 @@ class FeatStep(WizardStep):
                       foreground=COLORS["accent"], font=FONTS["subheading"]).pack(anchor="w")
             desc = benefit.get("description", "")
             if desc:
-                ttk.Label(bf, text=desc[:300], wraplength=480,
-                          foreground=COLORS["fg_dim"]).pack(anchor="w", padx=(16, 0))
+                WrappingLabel(bf, text=desc[:300],
+                          foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w", padx=(16, 0))

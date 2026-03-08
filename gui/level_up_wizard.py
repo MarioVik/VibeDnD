@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import ScrollableFrame
+from gui.widgets import ScrollableFrame, WrappingLabel
 from models.character import Character
 from models.class_level import ClassLevel
 
@@ -221,13 +221,12 @@ class LevelUpWizard(tk.Toplevel):
                 # Truncate long descriptions
                 if len(desc) > 300:
                     desc = desc[:297] + "..."
-                ttk.Label(
+                WrappingLabel(
                     frame,
                     text=desc,
-                    wraplength=650,
                     foreground=COLORS["fg_dim"],
                     background=COLORS["bg_card"],
-                ).pack(anchor="w", padx=8, pady=(0, 4))
+                ).pack(fill=tk.X, anchor="w", padx=8, pady=(0, 4))
 
         # Show extra column changes
         extra = self.level_data.get("extra", {})
@@ -278,13 +277,12 @@ class LevelUpWizard(tk.Toplevel):
             if desc:
                 if len(desc) > 300:
                     desc = desc[:297] + "..."
-                ttk.Label(
+                WrappingLabel(
                     frame,
                     text=desc,
-                    wraplength=650,
                     foreground=COLORS["fg_dim"],
                     background=COLORS["bg_card"],
-                ).pack(anchor="w", padx=8, pady=(0, 4))
+                ).pack(fill=tk.X, anchor="w", padx=8, pady=(0, 4))
 
     def _build_hp_section(self):
         """HP gain section."""
@@ -404,11 +402,11 @@ class LevelUpWizard(tk.Toplevel):
         combo.pack(anchor="w")
 
         # Show subclass description when selected
-        self.sub_desc_label = ttk.Label(
-            self.content, text="", wraplength=650,
+        self.sub_desc_label = WrappingLabel(
+            self.content, text="",
             foreground=COLORS["fg_dim"],
         )
-        self.sub_desc_label.pack(anchor="w", padx=12, pady=4)
+        self.sub_desc_label.pack(fill=tk.X, anchor="w", padx=12, pady=4)
 
         def on_sub_select(*_):
             name = self.subclass_var.get().replace(" (PHB)", "")

@@ -3,7 +3,7 @@
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.widgets import SectionedListbox, ScrollableFrame
+from gui.widgets import SectionedListbox, ScrollableFrame, WrappingLabel
 from gui.theme import COLORS, FONTS
 from gui.source_config import SECTION_ORDER, group_by_category, save_settings
 
@@ -43,8 +43,8 @@ class BackgroundStep(WizardStep):
         self.detail_source = ttk.Label(self.detail, text="", style="Dim.TLabel")
         self.detail_source.pack(anchor="w")
 
-        self.detail_desc = ttk.Label(self.detail, text="", wraplength=500)
-        self.detail_desc.pack(anchor="w", pady=(8, 0))
+        self.detail_desc = WrappingLabel(self.detail, text="")
+        self.detail_desc.pack(fill=tk.X, anchor="w", pady=(8, 0))
 
         ttk.Separator(self.detail, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=8)
 
@@ -141,7 +141,7 @@ class BackgroundStep(WizardStep):
             row.pack(fill=tk.X, pady=1)
             ttk.Label(row, text=f"{label}:", foreground=COLORS["accent"],
                       font=FONTS["body"], width=12, anchor="e").pack(side=tk.LEFT)
-            ttk.Label(row, text=f"  {value}", wraplength=400).pack(side=tk.LEFT, padx=(4, 0))
+            WrappingLabel(row, text=f"  {value}").pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(4, 0))
 
         # Ability bonus assignment
         for w in self.bonus_frame.winfo_children():

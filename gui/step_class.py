@@ -3,7 +3,7 @@
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.widgets import SearchableListbox, ScrollableFrame
+from gui.widgets import SearchableListbox, ScrollableFrame, WrappingLabel
 from gui.theme import COLORS, FONTS
 
 
@@ -35,8 +35,8 @@ class ClassStep(WizardStep):
         self.detail_source = ttk.Label(self.detail, text="", style="Dim.TLabel")
         self.detail_source.pack(anchor="w")
 
-        self.detail_desc = ttk.Label(self.detail, text="", wraplength=500)
-        self.detail_desc.pack(anchor="w", pady=(8, 0))
+        self.detail_desc = WrappingLabel(self.detail, text="")
+        self.detail_desc.pack(fill=tk.X, anchor="w", pady=(8, 0))
 
         ttk.Separator(self.detail, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=8)
 
@@ -158,8 +158,8 @@ class ClassStep(WizardStep):
                 ttk.Label(self.features_frame, text=f"  {feat['name']}",
                           foreground=COLORS["accent"], font=FONTS["subheading"]).pack(anchor="w")
                 if feat.get("description"):
-                    ttk.Label(self.features_frame, text=f"    {feat['description'][:200]}",
-                              wraplength=480, foreground=COLORS["fg_dim"]).pack(anchor="w", pady=(0, 4))
+                    WrappingLabel(self.features_frame, text=f"    {feat['description'][:200]}",
+                              foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w", pady=(0, 4))
 
         # Equipment
         equip = cls.get("starting_equipment", [])
@@ -167,9 +167,9 @@ class ClassStep(WizardStep):
             ttk.Label(self.features_frame, text="Starting Equipment",
                       style="Subheading.TLabel").pack(anchor="w", pady=(8, 4))
             for opt in equip:
-                ttk.Label(self.features_frame,
+                WrappingLabel(self.features_frame,
                           text=f"  ({opt['option']}) {opt['items'][:120]}",
-                          wraplength=480, foreground=COLORS["fg_dim"]).pack(anchor="w")
+                          foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w")
 
         self.notify_change()
 
