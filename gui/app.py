@@ -262,13 +262,6 @@ class CharacterCreatorApp:
         ttk.Button(top, text="Export PDF",
                    command=self._export_pdf).pack(side=tk.RIGHT, padx=4)
 
-        if character.character_class and character.level < 20:
-            ttk.Button(
-                top, text="Level Up",
-                style="Accent.TButton",
-                command=self._on_level_up,
-            ).pack(side=tk.LEFT, padx=4)
-
         # Main horizontal split: notebook (left) + summary (right)
         paned = ttk.PanedWindow(frame, orient=tk.HORIZONTAL)
         paned.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
@@ -292,11 +285,6 @@ class CharacterCreatorApp:
                         app=self, save_path=save_path),
         ]
 
-        # Store references for level-up refresh
-        self._wizard_notebook = notebook
-        self._wizard_steps = steps
-        self._wizard_summary = summary
-
         # Register change callbacks
         for step in steps:
             step.on_change_callbacks.append(summary.refresh)
@@ -310,26 +298,6 @@ class CharacterCreatorApp:
         notebook.bind("<<NotebookTabChanged>>", on_tab_change)
 
         return frame
-
-    # ── Level Up ──────────────────────────────────────────────
-
-    def _on_level_up(self):
-        if not self.character or not self.character.character_class:
-            return
-        from gui.level_up_wizard import LevelUpWizard
-
-        def on_complete():
-            # Refresh the wizard UI (no save — user must click Save & Finish)
-            self._wizard_summary.refresh()
-            try:
-                idx = self._wizard_notebook.index(self._wizard_notebook.select())
-                if 0 <= idx < len(self._wizard_steps):
-                    self._wizard_steps[idx].on_enter()
-            except Exception:
-                pass
-
-        LevelUpWizard(self.wizard_frame, self.character, self.data,
-                      on_complete=on_complete)
 
     # ── Save & Export ──────────────────────────────────────────
 
