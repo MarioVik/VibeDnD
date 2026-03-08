@@ -194,6 +194,62 @@ def load_character(filepath: str, game_data) -> Character:
     return save_dict_to_character(data, game_data)
 
 
+def import_character_from_export(filepath: str, game_data) -> Character:
+    """Import a character from an *exported* JSON file (produced by
+    ``export_json``).  The export format differs from the save format,
+    so we translate the keys before loading.
+
+    Also handles native save-format files transparently – if the file
+    already has ``format_version`` it is loaded directly.
+    """
+    with open(filepath, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # If it's already in native save format, just load directly
+    if "format_version" in data:
+        return save_dict_to_character(data, game_data)
+
+    # --- Translate export format → save format ---
+    save = {}
+    save["name"] = data.get("name", "Imported Character")
+    save["species_name"] = data.get("species")
+    save["species_sub_choice"] = data.get("species_sub_choice")
+    save["size_choice"] = data.get("size")
+    save["class_name"] = data.get("class")
+    save["background_name"] = data.get("background")
+    save["score_method"] = data.get("score_method", "standard_array")
+
+    # Ability scores – extract base values from the nested dict
+    abilities = data.get("abilities", {})
+    scores = {}
+    bonuses = {}
+    for ab_name, ab_data in abilities.items():
+        if isinstance(ab_data, dict):
+            scores[ab_name] = ab_data.get("base", 10)
+            bonuses[ab_name] = ab_data.get("bonus", 0)
+        else:
+            scores[ab_name] = ab_data
+    save["ability_scores"] = scores
+    save["ability_bonuses"] = bonuses
+
+    # Skills
+    save["selected_skills"] = data.get("skill_proficiencies", [])
+
+    # Feats
+    save["feat_name"] = data.get("background_feat")
+    save["species_origin_feat_name"] = data.get("species_origin_feat")
+
+    # Spells
+    save["selected_cantrips"] = data.get("cantrips", [])
+    save["selected_spells"] = data.get("spells", [])
+
+    # Equipment
+    save["equipment_choice_class"] = data.get("equipment_choice_class", "A")
+    save["equipment_choice_background"] = data.get("equipment_choice_background", "A")
+
+    return save_dict_to_character(save, game_data)
+
+
 def list_saved_characters(characters_path: str) -> list[dict]:
     """Return a list of summary dicts for every saved character.
 

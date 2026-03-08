@@ -1,7 +1,7 @@
 """Home screen: main menu with 'Create New' and saved character list."""
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 
 from gui.theme import COLORS, FONTS
 from gui.widgets import ScrollableFrame
@@ -35,7 +35,7 @@ class HomeScreen:
             foreground=COLORS["fg_dim"],
         ).pack(pady=(2, 0))
 
-        # ── Create New button ───────────────────────────────────
+        # ── Action buttons ─────────────────────────────────────
         btn_frame = ttk.Frame(self.frame)
         btn_frame.pack(pady=24)
 
@@ -44,7 +44,13 @@ class HomeScreen:
             text="  Create New Character  ",
             style="Accent.TButton",
             command=self._on_create_new,
-        ).pack()
+        ).pack(side=tk.LEFT, padx=(0, 12))
+
+        ttk.Button(
+            btn_frame,
+            text="  Import Character  ",
+            command=self._on_import,
+        ).pack(side=tk.LEFT)
 
         # ── Separator ──────────────────────────────────────────
         ttk.Separator(self.frame, orient=tk.HORIZONTAL).pack(
@@ -128,6 +134,22 @@ class HomeScreen:
 
     def _on_create_new(self):
         self.app.show_wizard()
+
+    def _on_import(self):
+        path = filedialog.askopenfilename(
+            title="Import Character",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if not path:
+            return
+        from models.character_store import import_character_from_export, save_character
+        try:
+            character = import_character_from_export(path, self.app.data)
+            # Save to library so it shows up in the character list
+            save_path = save_character(character, characters_dir())
+            self.app.show_viewer(character, save_path)
+        except Exception as e:
+            messagebox.showerror("Import Error", f"Could not import character:\n{e}")
 
     def _on_view(self, path):
         from models.character_store import load_character

@@ -256,7 +256,7 @@ class CharacterCreatorApp:
             command=self._save_and_finish,
         ).pack(side=tk.LEFT, padx=12)
 
-        ttk.Button(top, text="Export JSON",
+        ttk.Button(top, text="Export Character",
                    command=self._export_json).pack(side=tk.RIGHT, padx=4)
 
         ttk.Button(top, text="Export PDF",
@@ -354,14 +354,17 @@ class CharacterCreatorApp:
     def _export_json(self):
         if not self.character:
             return
-        from export.json_export import export_json
+        from models.character_store import character_to_save_dict
+        import json
         path = filedialog.asksaveasfilename(
             defaultextension=".json",
             filetypes=[("JSON files", "*.json")],
             initialfile=f"{self.character.name}.json",
         )
         if path:
-            export_json(self.character, path)
+            data = character_to_save_dict(self.character)
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
             messagebox.showinfo("Export", f"Character saved to {path}")
 
     def _export_pdf(self):
