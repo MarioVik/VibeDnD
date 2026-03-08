@@ -108,9 +108,39 @@ def apply_theme(root: tk.Tk):
               background=[("selected", COLORS["select_bg"])],
               foreground=[("selected", COLORS["select_fg"])])
 
-    # Scrollbar
-    style.configure("TScrollbar", background=COLORS["bg_light"], troughcolor=COLORS["bg"],
-                    arrowcolor=COLORS["fg_dim"])
+    # Scrollbar – fully themed so every scrollbar is consistently dark
+    style.configure("TScrollbar",
+                    background=COLORS["bg_light"],
+                    troughcolor=COLORS["bg"],
+                    bordercolor=COLORS["bg"],
+                    arrowcolor=COLORS["fg_dim"],
+                    lightcolor=COLORS["bg_light"],
+                    darkcolor=COLORS["bg"],
+                    gripcount=0)
+    style.map("TScrollbar",
+              background=[("active", COLORS["accent_dark"]),
+                          ("pressed", COLORS["accent_dark"]),
+                          ("disabled", COLORS["bg"])],
+              arrowcolor=[("active", COLORS["fg_bright"]),
+                          ("pressed", COLORS["fg_bright"]),
+                          ("disabled", COLORS["fg_dim"])])
+    # Ensure vertical/horizontal sub-styles also pick up the dark colours
+    for orient in ("Vertical", "Horizontal"):
+        style.configure(f"{orient}.TScrollbar",
+                        background=COLORS["bg_light"],
+                        troughcolor=COLORS["bg"],
+                        bordercolor=COLORS["bg"],
+                        arrowcolor=COLORS["fg_dim"],
+                        lightcolor=COLORS["bg_light"],
+                        darkcolor=COLORS["bg"],
+                        gripcount=0)
+        style.map(f"{orient}.TScrollbar",
+                  background=[("active", COLORS["accent_dark"]),
+                              ("pressed", COLORS["accent_dark"]),
+                              ("disabled", COLORS["bg"])],
+                  arrowcolor=[("active", COLORS["fg_bright"]),
+                              ("pressed", COLORS["fg_bright"]),
+                              ("disabled", COLORS["fg_dim"])])
 
     # Separator
     style.configure("TSeparator", background=COLORS["border"])
@@ -123,3 +153,12 @@ def apply_theme(root: tk.Tk):
 
     # Root window
     root.configure(bg=COLORS["bg"])
+
+    # Override native Tk scrollbar defaults (affects any tk.Scrollbar or
+    # internal scrollbar rendering that bypasses ttk theming)
+    root.option_add("*Scrollbar.background", COLORS["bg_light"])
+    root.option_add("*Scrollbar.troughColor", COLORS["bg"])
+    root.option_add("*Scrollbar.activeBackground", COLORS["accent_dark"])
+    root.option_add("*Scrollbar.highlightBackground", COLORS["bg"])
+    root.option_add("*Scrollbar.highlightColor", COLORS["bg"])
+    root.option_add("*Scrollbar.borderWidth", 0)
