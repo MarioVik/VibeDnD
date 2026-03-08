@@ -82,6 +82,13 @@ class ClassStep(WizardStep):
 
         self.character.character_class = cls
         self.character.selected_skills = []
+
+        # Initialize class_levels with level 1 entry
+        from models.class_level import ClassLevel
+        slug = cls.get("slug", "")
+        if not self.character.class_levels or self.character.class_levels[0].class_slug != slug:
+            hit_die = cls.get("hit_die", 8)
+            self.character.class_levels = [ClassLevel(class_slug=slug, class_level=1, hit_die=hit_die)]
         self.detail_name.configure(text=cls["name"])
         self.detail_source.configure(text=f"Source: {cls.get('source', 'Unknown')}")
         self.detail_desc.configure(text=cls.get("description", "")[:300])

@@ -2,7 +2,29 @@
 
 from dataclasses import dataclass, field
 from models.ability_scores import AbilityScores
+from models.class_level import ClassLevel
 from models.enums import Ability, Skill, SKILL_BY_NAME
+
+
+# D&D 2024 multiclass prerequisites: 13+ in the class's primary ability
+_MULTICLASS_PREREQUISITES = {
+    "barbarian": ["Strength"],
+    "bard": ["Charisma"],
+    "cleric": ["Wisdom"],
+    "druid": ["Wisdom"],
+    "fighter": ["Strength", "Dexterity"],       # 13 in STR or DEX
+    "monk": ["Dexterity", "Wisdom"],             # 13 in DEX and WIS
+    "paladin": ["Strength", "Charisma"],         # 13 in STR and CHA
+    "ranger": ["Dexterity", "Wisdom"],           # 13 in DEX and WIS
+    "rogue": ["Dexterity"],
+    "sorcerer": ["Charisma"],
+    "warlock": ["Charisma"],
+    "wizard": ["Intelligence"],
+    "artificer": ["Intelligence"],
+}
+
+# Classes that need only ONE of the listed abilities at 13+
+_MULTICLASS_OR_CLASSES = {"fighter"}
 
 
 @dataclass
@@ -37,22 +59,55 @@ class Character:
     equipment_choice_class: str = "A"
     equipment_choice_background: str = "A"
 
+    # Level progression
+    class_levels: list[ClassLevel] = field(default_factory=list)
+
     # Computed properties
     @property
     def level(self) -> int:
-        return 1
+        """Total character level (sum of all class levels)."""
+        if not self.class_levels:
+            return 1
+        return len(self.class_levels)
 
     @property
     def proficiency_bonus(self) -> int:
-        return 2
+        return (self.level - 1) // 4 + 2
 
     @property
     def hit_points(self) -> int:
         if not self.character_class:
             return 0
-        hit_die = self.character_class.get("hit_die", 8)
         con_mod = self.ability_scores.modifier("Constitution")
-        return max(1, hit_die + con_mod)
+
+        if not self.class_levels:
+            # Legacy: level 1 only
+            hit_die = self.character_class.get("hit_die", 8)
+            return max(1, hit_die + con_mod)
+
+        total_hp = 0
+        for cl in self.class_levels:
+            hit_die = self._hit_die_for_class(cl.class_slug)
+            if cl.class_level == 1 and cl == self.class_levels[0]:
+                # First level ever: max hit die + CON
+                total_hp += hit_die + con_mod
+            elif cl.hp_roll is not None:
+                total_hp += cl.hp_roll + con_mod
+            else:
+                # Default: average (rounded up)
+                total_hp += (hit_die // 2 + 1) + con_mod
+        return max(1, total_hp)
+
+    def _hit_die_for_class(self, class_slug: str) -> int:
+        """Get hit die size for a class slug."""
+        # Primary class data dict
+        if self.character_class and self.character_class.get("slug") == class_slug:
+            return self.character_class.get("hit_die", 8)
+        # Check stored hit_die on class_levels (set during level-up)
+        for cl in self.class_levels:
+            if cl.class_slug == class_slug and cl.hit_die > 0:
+                return cl.hit_die
+        return 8
 
     @property
     def armor_class(self) -> int:
@@ -157,6 +212,60 @@ class Character:
             return 0
         return self.character_class.get("spells_prepared") or 0
 
+    @property
+    def current_subclass(self) -> str | None:
+        """Get the subclass slug for the primary class, if any."""
+        if not self.class_levels:
+            return None
+        primary = self.class_levels[0].class_slug if self.class_levels else ""
+        return self.subclass_for_class(primary)
+
+    def subclass_for_class(self, class_slug: str) -> str | None:
+        """Get the subclass slug for a specific class, if any."""
+        for cl in self.class_levels:
+            if cl.class_slug == class_slug and cl.subclass_slug:
+                return cl.subclass_slug
+        return None
+
+    def class_level_in(self, class_slug: str) -> int:
+        """Get the number of levels in a specific class."""
+        return sum(1 for cl in self.class_levels if cl.class_slug == class_slug)
+
+    @property
+    def is_multiclass(self) -> bool:
+        """Check if character has levels in multiple classes."""
+        if not self.class_levels:
+            return False
+        slugs = {cl.class_slug for cl in self.class_levels}
+        return len(slugs) > 1
+
+    def multiclass_prereqs_met(self, class_slug: str) -> tuple[bool, str]:
+        """Check if the character meets multiclass prerequisites for a class.
+
+        Returns (met, reason) where reason explains what's missing.
+        """
+        reqs = _MULTICLASS_PREREQUISITES.get(class_slug, [])
+        if not reqs:
+            return True, ""
+
+        scores = []
+        for ability_name in reqs:
+            score = self.ability_scores.total(ability_name)
+            scores.append((ability_name, score))
+
+        if class_slug in _MULTICLASS_OR_CLASSES:
+            # Need at least ONE at 13+
+            if any(s >= 13 for _, s in scores):
+                return True, ""
+            names = " or ".join(a for a, _ in scores)
+            return False, f"Requires {names} 13+"
+        else:
+            # Need ALL at 13+
+            missing = [a for a, s in scores if s < 13]
+            if not missing:
+                return True, ""
+            return False, f"Requires {', '.join(missing)} 13+"
+
     def summary_text(self) -> str:
         """Short one-line summary."""
         parts = []
@@ -164,4 +273,10 @@ class Character:
             parts.append(self.species_name)
         if self.character_class:
             parts.append(self.class_name)
+        if self.is_multiclass:
+            # Show multiclass breakdown
+            from collections import Counter
+            counts = Counter(cl.class_slug for cl in self.class_levels)
+            mc_parts = [f"{slug.title()} {n}" for slug, n in counts.items()]
+            return f"Level {self.level} {self.species_name} ({'/'.join(mc_parts)})"
         return f"Level {self.level} " + " ".join(parts) if parts else "No selections"

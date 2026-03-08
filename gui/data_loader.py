@@ -18,6 +18,8 @@ class GameData:
         self.species = self._load("species.json")
         self.backgrounds = self._load("backgrounds.json")
         self.feats = self._load("feats.json")
+        self.class_progressions = self._load("class_progressions.json")
+        self.subclasses = self._load("subclasses.json")
 
         # Source filter settings (mutable, shared with steps)
         self.source_filters = load_settings()
@@ -27,6 +29,13 @@ class GameData:
         self.species_by_name = {s["name"]: s for s in self.species}
         self.backgrounds_by_name = {b["name"]: b for b in self.backgrounds}
         self.feats_by_name = {f["name"]: f for f in self.feats}
+        self.progressions_by_slug = {p["slug"]: p for p in self.class_progressions}
+
+        # Group subclasses by class
+        self.subclasses_by_class = {}
+        for sc in self.subclasses:
+            cls = sc.get("class_slug", "")
+            self.subclasses_by_class.setdefault(cls, []).append(sc)
 
         # Group by source
         self.classes_by_source = self._group_by_source(self.classes)
@@ -65,6 +74,31 @@ class GameData:
             s for s in self.spells
             if class_name in s.get("classes", []) and s.get("level", 99) == 0
         ]
+
+    def get_progression(self, class_slug: str) -> dict | None:
+        """Get the full 1-20 level progression for a class."""
+        return self.progressions_by_slug.get(class_slug)
+
+    def get_level_data(self, class_slug: str, level: int) -> dict | None:
+        """Get data for a specific class level."""
+        prog = self.get_progression(class_slug)
+        if not prog:
+            return None
+        for lvl_data in prog["levels"]:
+            if lvl_data.get("level") == level:
+                return lvl_data
+        return None
+
+    def get_subclasses_for_class(self, class_slug: str) -> list[dict]:
+        """Get all available subclasses for a class."""
+        return self.subclasses_by_class.get(class_slug, [])
+
+    def get_subclass(self, class_slug: str, subclass_slug: str) -> dict | None:
+        """Get a specific subclass by class and subclass slug."""
+        for sc in self.get_subclasses_for_class(class_slug):
+            if sc["slug"] == subclass_slug:
+                return sc
+        return None
 
     def find_feat(self, name: str) -> dict | None:
         """Find a feat by name, handling parenthetical variants like 'Magic Initiate (Cleric)'."""

@@ -100,7 +100,8 @@ class HomeScreen:
             background=COLORS["bg_card"],
         ).pack(anchor="w")
 
-        summary = f'{info.get("species", "?")} {info.get("class_name", "?")}'
+        lvl = info.get("level", 1)
+        summary = f'Level {lvl} {info.get("species", "?")} {info.get("class_name", "?")}'
         ttk.Label(
             text_frame,
             text=summary,

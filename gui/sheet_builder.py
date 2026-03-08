@@ -8,7 +8,40 @@ from gui.theme import COLORS, FONTS
 from models.enums import ALL_SKILLS
 
 
-def build_character_sheet(parent: tk.Widget, character):
+def _show_level_features(parent: tk.Widget, character, game_data=None):
+    """Show features from all class levels in a compact list."""
+    for cl in character.class_levels:
+        level_data = None
+        if game_data:
+            level_data = game_data.get_level_data(cl.class_slug, cl.class_level)
+
+        features = []
+        if level_data:
+            features = [f for f in level_data.get("features", [])
+                        if f != "-" and f != "Ability Score Improvement"]
+
+        if not features and not cl.feat_choice and not cl.subclass_slug:
+            continue
+
+        # Level header
+        items = []
+        for f in features:
+            items.append(f)
+        if cl.feat_choice:
+            items.append(f"Feat: {cl.feat_choice}")
+        if cl.subclass_slug:
+            items.append(f"Subclass: {cl.subclass_slug.replace('-', ' ').title()}")
+
+        # Show class name prefix for multiclass characters
+        prefix = ""
+        if character.is_multiclass:
+            prefix = f"{cl.class_slug.title()} "
+        text = f"  {prefix}Level {cl.class_level}: {', '.join(items)}"
+        ttk.Label(parent, text=text, foreground=COLORS["fg"], wraplength=600).pack(
+            anchor="w", padx=8, pady=1)
+
+
+def build_character_sheet(parent: tk.Widget, character, game_data=None):
     """Render a read-only character sheet into *parent*.
 
     Clears any existing children first so it can safely be called
@@ -131,18 +164,35 @@ def build_character_sheet(parent: tk.Widget, character):
                           anchor="w", padx=8, pady=1)
 
     # ── Class Features ──────────────────────────────────────────
-    if c.character_class and c.character_class.get("level_1_features"):
-        feat_frame = ttk.LabelFrame(parent, text=f"{c.class_name} Features")
+    if c.character_class:
+        feat_title = f"{c.class_name} Features"
+        if c.is_multiclass:
+            feat_title = "Class Features"
+        feat_frame = ttk.LabelFrame(parent, text=feat_title)
         feat_frame.pack(fill=tk.X, pady=4)
-        for feat in c.character_class["level_1_features"]:
-            ttk.Label(feat_frame, text=f"  {feat['name']}",
-                      foreground=COLORS["accent"], font=FONTS["subheading"]).pack(
-                          anchor="w", padx=8)
-            if feat.get("description"):
-                ttk.Label(feat_frame,
-                          text=f"    {feat['description'][:200]}",
-                          wraplength=600, foreground=COLORS["fg_dim"]).pack(
-                              anchor="w", padx=8, pady=(0, 4))
+
+        # Show level 1 features from class data
+        if c.character_class.get("level_1_features") and c.level == 1:
+            for feat in c.character_class["level_1_features"]:
+                ttk.Label(feat_frame, text=f"  {feat['name']}",
+                          foreground=COLORS["accent"], font=FONTS["subheading"]).pack(
+                              anchor="w", padx=8)
+                if feat.get("description"):
+                    ttk.Label(feat_frame,
+                              text=f"    {feat['description'][:200]}",
+                              wraplength=600, foreground=COLORS["fg_dim"]).pack(
+                                  anchor="w", padx=8, pady=(0, 4))
+        elif c.class_levels:
+            # Multi-level: show features gained at each level
+            _show_level_features(feat_frame, c, game_data)
+
+    # ── Subclass ──────────────────────────────────────────────
+    if c.current_subclass:
+        sub_name = c.current_subclass.replace("-", " ").title()
+        sub_frame = ttk.LabelFrame(parent, text=f"Subclass: {sub_name}")
+        sub_frame.pack(fill=tk.X, pady=4)
+        ttk.Label(sub_frame, text=f"  {sub_name}",
+                  foreground=COLORS["accent"]).pack(anchor="w", padx=8, pady=4)
 
     # ── Feats ───────────────────────────────────────────────────
     has_any_feat = c.feat or c.species_origin_feat

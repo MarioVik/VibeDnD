@@ -6,6 +6,8 @@ from tkinter import ttk, filedialog, messagebox
 from gui.theme import COLORS, FONTS
 from gui.widgets import ScrollableFrame
 from gui.sheet_builder import build_character_sheet
+from models.character_store import save_character
+from paths import characters_dir
 
 
 class CharacterViewer(ttk.Frame):
@@ -33,7 +35,14 @@ class CharacterViewer(ttk.Frame):
             top, text="Edit Character",
             style="Accent.TButton",
             command=self._on_edit,
-        ).pack(side=tk.LEFT, padx=16)
+        ).pack(side=tk.LEFT, padx=8)
+
+        if self.character.level < 20:
+            ttk.Button(
+                top, text="Level Up",
+                style="Accent.TButton",
+                command=self._on_level_up,
+            ).pack(side=tk.LEFT, padx=8)
 
         # Character name
         ttk.Label(
@@ -55,7 +64,7 @@ class CharacterViewer(ttk.Frame):
         scroll = ScrollableFrame(self)
         scroll.pack(fill=tk.BOTH, expand=True, padx=12, pady=(4, 12))
 
-        build_character_sheet(scroll.inner, self.character)
+        build_character_sheet(scroll.inner, self.character, self.data)
 
     # ── Navigation ──────────────────────────────────────────────
 
@@ -64,6 +73,17 @@ class CharacterViewer(ttk.Frame):
 
     def _on_edit(self):
         self.app.show_wizard(self.character, self.save_path)
+
+    def _on_level_up(self):
+        from gui.level_up_wizard import LevelUpWizard
+
+        def on_complete():
+            # Save and refresh
+            save_character(self.character, characters_dir(),
+                           existing_filename=self.save_path)
+            self.app.show_viewer(self.character, self.save_path)
+
+        LevelUpWizard(self, self.character, self.data, on_complete=on_complete)
 
     # ── Exports (same pattern as SummaryStep) ───────────────────
 

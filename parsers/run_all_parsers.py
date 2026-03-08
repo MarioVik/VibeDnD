@@ -12,6 +12,8 @@ from parsers.class_parser import parse_classes
 from parsers.species_parser import parse_species
 from parsers.background_parser import parse_backgrounds
 from parsers.feat_parser import parse_feats
+from parsers.progression_parser import parse_progressions
+from parsers.subclass_parser import parse_subclasses
 
 DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dnd2024_data.json")
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
@@ -83,6 +85,14 @@ def main():
     feats = parse_feats(raw.get("feats", []))
     print(f"  Parsed {len(feats)} feats")
 
+    print("\n--- Parsing Class Progressions ---")
+    progressions = parse_progressions(raw.get("classes", []))
+    print(f"  Parsed {len(progressions)} class progressions (levels 1-20)")
+
+    print("\n--- Parsing Subclasses ---")
+    subclasses = parse_subclasses(raw.get("ua", []))
+    print(f"  Parsed {len(subclasses)} subclasses")
+
     # Save output
     print("\n--- Saving to data/ ---")
     for data, filename in [
@@ -91,6 +101,8 @@ def main():
         (species, "species.json"),
         (backgrounds, "backgrounds.json"),
         (feats, "feats.json"),
+        (progressions, "class_progressions.json"),
+        (subclasses, "subclasses.json"),
     ]:
         path = save_json(data, filename)
         print(f"  Saved {path}")
@@ -109,12 +121,15 @@ def main():
 
     # Summary
     print(f"\n=== Summary ===")
-    print(f"  Spells:      {len(spells)}")
-    print(f"  Classes:     {len(classes)}")
-    print(f"  Species:     {len(species)}")
-    print(f"  Backgrounds: {len(backgrounds)}")
-    print(f"  Feats:       {len(feats)}")
-    print(f"  Total:       {len(spells) + len(classes) + len(species) + len(backgrounds) + len(feats)}")
+    print(f"  Spells:       {len(spells)}")
+    print(f"  Classes:      {len(classes)}")
+    print(f"  Progressions: {len(progressions)}")
+    print(f"  Subclasses:   {len(subclasses)}")
+    print(f"  Species:      {len(species)}")
+    print(f"  Backgrounds:  {len(backgrounds)}")
+    print(f"  Feats:        {len(feats)}")
+    total = len(spells) + len(classes) + len(species) + len(backgrounds) + len(feats) + len(progressions) + len(subclasses)
+    print(f"  Total:        {total}")
 
     # Spot checks
     print(f"\n=== Spot Checks ===")

@@ -15,8 +15,9 @@ from datetime import datetime
 
 from models.character import Character
 from models.ability_scores import AbilityScores
+from models.class_level import ClassLevel
 
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2
 
 
 # ---------------------------------------------------------------------------
@@ -26,7 +27,7 @@ FORMAT_VERSION = 1
 def character_to_save_dict(character: Character) -> dict:
     """Serialise a Character to a save-friendly dict using name references."""
     c = character
-    return {
+    d = {
         "format_version": FORMAT_VERSION,
         "name": c.name,
         "species_name": c.species.get("name") if c.species else None,
@@ -50,6 +51,24 @@ def character_to_save_dict(character: Character) -> dict:
         "equipment_choice_class": c.equipment_choice_class,
         "equipment_choice_background": c.equipment_choice_background,
     }
+
+    # Serialize class_levels
+    if c.class_levels:
+        d["class_levels"] = [
+            {
+                "class_slug": cl.class_slug,
+                "class_level": cl.class_level,
+                "subclass_slug": cl.subclass_slug,
+                "feat_choice": cl.feat_choice,
+                "new_cantrips": list(cl.new_cantrips),
+                "new_spells": list(cl.new_spells),
+                "hp_roll": cl.hp_roll,
+                "hit_die": cl.hit_die,
+            }
+            for cl in c.class_levels
+        ]
+
+    return d
 
 
 def save_dict_to_character(data: dict, game_data) -> Character:
@@ -99,6 +118,27 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.selected_spells = data.get("selected_spells", [])
     c.equipment_choice_class = data.get("equipment_choice_class", "A")
     c.equipment_choice_background = data.get("equipment_choice_background", "A")
+
+    # Load class_levels (v2) or construct from v1 data
+    if "class_levels" in data:
+        c.class_levels = [
+            ClassLevel(
+                class_slug=cl.get("class_slug", ""),
+                class_level=cl.get("class_level", 1),
+                subclass_slug=cl.get("subclass_slug"),
+                feat_choice=cl.get("feat_choice"),
+                new_cantrips=cl.get("new_cantrips", []),
+                new_spells=cl.get("new_spells", []),
+                hp_roll=cl.get("hp_roll"),
+                hit_die=cl.get("hit_die", 0),
+            )
+            for cl in data["class_levels"]
+        ]
+    elif c.character_class:
+        # v1 backward compat: create a single level 1 entry
+        slug = c.character_class.get("slug", "")
+        hit_die = c.character_class.get("hit_die", 8)
+        c.class_levels = [ClassLevel(class_slug=slug, class_level=1, hit_die=hit_die)]
 
     return c
 
@@ -172,10 +212,12 @@ def list_saved_characters(characters_path: str) -> list[dict]:
             with open(fpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
             mtime = os.path.getmtime(fpath)
+            level = len(data.get("class_levels", [])) or 1
             results.append({
                 "name": data.get("name", "Unknown"),
                 "species": data.get("species_name", "?"),
                 "class_name": data.get("class_name", "?"),
+                "level": level,
                 "path": fpath,
                 "modified": datetime.fromtimestamp(mtime).isoformat(sep=" ", timespec="minutes"),
             })

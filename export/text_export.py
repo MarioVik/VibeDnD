@@ -68,13 +68,26 @@ def generate_text(character: Character) -> str:
         for trait in c.species["traits"]:
             lines.append(f"  {trait['name']}: {trait.get('description', '')[:200]}")
 
-    if c.character_class and c.character_class.get("level_1_features"):
+    if c.character_class:
         lines.append("")
-        lines.append(f"{c.class_name.upper()} FEATURES (LEVEL 1)")
-        for feat in c.character_class["level_1_features"]:
-            lines.append(f"  {feat['name']}")
-            if feat.get("description"):
-                lines.append(f"    {feat['description'][:200]}")
+        if c.level == 1 and c.character_class.get("level_1_features"):
+            lines.append(f"{c.class_name.upper()} FEATURES (LEVEL 1)")
+            for feat in c.character_class["level_1_features"]:
+                lines.append(f"  {feat['name']}")
+                if feat.get("description"):
+                    lines.append(f"    {feat['description'][:200]}")
+        elif c.class_levels:
+            header = f"{c.class_name.upper()} FEATURES" if not c.is_multiclass else "CLASS FEATURES"
+            lines.append(header)
+            for cl in c.class_levels:
+                items = []
+                if cl.feat_choice:
+                    items.append(f"Feat: {cl.feat_choice}")
+                if cl.subclass_slug:
+                    items.append(f"Subclass: {cl.subclass_slug.replace('-', ' ').title()}")
+                if items:
+                    prefix = f"{cl.class_slug.title()} " if c.is_multiclass else ""
+                    lines.append(f"  {prefix}Level {cl.class_level}: {', '.join(items)}")
 
     # Feats
     if c.feat or c.species_origin_feat:

@@ -51,7 +51,7 @@ class SummaryStep(WizardStep):
             self.name_var.set(self.character.name)
         elif not self.character.name:
             self.character.name = self.name_var.get()
-        build_character_sheet(self.sheet, self.character)
+        build_character_sheet(self.sheet, self.character, self.data)
 
     def _on_name_change(self, *args):
         self.character.name = self.name_var.get()
