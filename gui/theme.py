@@ -76,8 +76,8 @@ def apply_theme(root: tk.Tk):
               background=[("active", COLORS["accent"]), ("disabled", COLORS["bg_light"])],
               foreground=[("disabled", COLORS["fg_dim"])])
 
-    style.configure("Accent.TButton", background=COLORS["accent"], foreground="#1a1a1a",
-                    font=FONTS["subheading"])
+    style.configure("Accent.TButton", background=COLORS["accent"], foreground=COLORS["fg_bright"],
+                    font=FONTS["body"])
     style.map("Accent.TButton",
               background=[("active", COLORS["accent_dark"])])
 
