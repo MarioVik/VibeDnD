@@ -1,7 +1,7 @@
 """Main application: screen manager for home, wizard and viewer screens."""
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog, messagebox
 
 from gui.theme import apply_theme, COLORS, FONTS
 from gui.data_loader import GameData
@@ -233,13 +233,25 @@ class CharacterCreatorApp:
         """Create the wizard frame containing notebook + summary panel."""
         frame = ttk.Frame(self.container)
 
-        # Top bar with back button
+        # Top bar with back button + save/export buttons
         top = ttk.Frame(frame)
         top.pack(fill=tk.X, padx=8, pady=(6, 2))
         ttk.Button(
             top, text="\u25c0  Back to Menu",
             command=self.show_home,
         ).pack(side=tk.LEFT)
+
+        ttk.Button(
+            top, text="Save & Finish",
+            style="Accent.TButton",
+            command=self._save_and_finish,
+        ).pack(side=tk.LEFT, padx=12)
+
+        ttk.Button(top, text="Export JSON",
+                   command=self._export_json).pack(side=tk.LEFT, padx=4)
+
+        ttk.Button(top, text="Export PDF",
+                   command=self._export_pdf).pack(side=tk.LEFT, padx=4)
 
         # Main horizontal split: notebook (left) + summary (right)
         paned = ttk.PanedWindow(frame, orient=tk.HORIZONTAL)
@@ -277,6 +289,50 @@ class CharacterCreatorApp:
         notebook.bind("<<NotebookTabChanged>>", on_tab_change)
 
         return frame
+
+    # ── Save & Export ──────────────────────────────────────────
+
+    def _save_and_finish(self):
+        if not self.character or not self.character.name or self.character.name == "New Character":
+            messagebox.showwarning("Name Required",
+                                   "Please enter a character name on the Summary tab before saving.")
+            return
+
+        from models.character_store import save_character
+        from paths import characters_dir
+
+        path = save_character(self.character, characters_dir(), self.current_save_path)
+        self.current_save_path = path
+        self.show_home()
+
+    def _export_json(self):
+        if not self.character:
+            return
+        from export.json_export import export_json
+        path = filedialog.asksaveasfilename(
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json")],
+            initialfile=f"{self.character.name}.json",
+        )
+        if path:
+            export_json(self.character, path)
+            messagebox.showinfo("Export", f"Character saved to {path}")
+
+    def _export_pdf(self):
+        if not self.character:
+            return
+        from export.pdf_export import export_pdf
+        path = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF files", "*.pdf")],
+            initialfile=f"{self.character.name}.pdf",
+        )
+        if path:
+            try:
+                export_pdf(self.character, path)
+                messagebox.showinfo("Export", f"PDF character sheet saved to {path}")
+            except Exception as e:
+                messagebox.showerror("Export Error", f"Failed to generate PDF:\n{e}")
 
     def run(self):
         self.root.mainloop()
