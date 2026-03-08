@@ -48,17 +48,18 @@ def categorize_feat(prereqs: dict | None) -> str:
     return "general"
 
 
-def parse_benefits(content: str) -> list[dict]:
+def parse_benefits(feat_name: str, content: str) -> list[dict]:
     """Parse feat benefits.
 
     Benefits follow the pattern:
         Benefit Name.
         Description text.
+    Or there might just be a description for simple feats.
     """
     benefits = []
     lines = content.split("\n")
 
-    # Find start of benefits (after "You gain the following benefits." or after prerequisites)
+    # Find start of benefits
     start = 0
     for i, line in enumerate(lines):
         stripped = line.strip()
@@ -68,7 +69,7 @@ def parse_benefits(content: str) -> list[dict]:
         if stripped.lower().startswith("prerequisite"):
             start = i + 1
             # Skip the "You gain..." line if it follows
-            if i + 1 < len(lines) and "you gain" in lines[i + 1].strip().lower():
+            if i + 1 < len(lines) and "you gain the following" in lines[i + 1].strip().lower():
                 start = i + 2
             break
 
@@ -76,7 +77,9 @@ def parse_benefits(content: str) -> list[dict]:
     if start == 0:
         for i, line in enumerate(lines):
             if line.strip().startswith("Source"):
-                start = i + 2  # skip source and its value
+                start = i + 1
+                if i + 1 < len(lines) and lines[i+1].strip().startswith("Prerequisite"):
+                    start = i + 2
                 break
 
     current_name = None
@@ -91,23 +94,41 @@ def parse_benefits(content: str) -> list[dict]:
         if "you gain the following" in stripped.lower():
             continue
 
-        # Check if this is a benefit header (ends with period, short, title-case-ish)
+        # If this is a continuation after a broken header (e.g. \n.)
+        if stripped.startswith(".") and current_name and not current_desc_lines:
+            stripped = stripped.lstrip(". ").strip()
+            if not stripped:
+                continue
+
+        is_header = False
+        header_text = ""
+
+        # Check if this is a benefit header
         if (stripped.endswith(".") and len(stripped) < 50 and
                 not stripped[0].islower() and
-                stripped.count(". ") == 0):  # no mid-sentence periods
-            if current_name:
+                stripped.count(". ") == 0):
+            is_header = True
+            header_text = stripped.rstrip(".")
+        elif (i + 1 < len(lines) and lines[i+1].strip().startswith(".")):
+            # Handle markdown quirk where the period ended up on the next line
+            if len(stripped) < 50 and not stripped.endswith(".") and not stripped.startswith("."):
+                is_header = True
+                header_text = stripped
+
+        if is_header:
+            if current_name or current_desc_lines:
                 benefits.append({
-                    "name": current_name,
+                    "name": current_name or feat_name,
                     "description": " ".join(current_desc_lines).strip(),
                 })
-            current_name = stripped.rstrip(".")
+            current_name = header_text
             current_desc_lines = []
-        elif current_name:
+        else:
             current_desc_lines.append(stripped)
 
-    if current_name:
+    if current_name or current_desc_lines:
         benefits.append({
-            "name": current_name,
+            "name": current_name or feat_name,
             "description": " ".join(current_desc_lines).strip(),
         })
 
@@ -148,8 +169,7 @@ def parse_feats(raw_data: list[dict]) -> list[dict]:
         # Category
         category = categorize_feat(prereqs)
 
-        # Benefits
-        benefits = parse_benefits(content)
+        benefits = parse_benefits(name, content)
 
         # Ability score increase detection
         ability_increase = detect_ability_increase(benefits)
