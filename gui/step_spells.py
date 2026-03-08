@@ -10,6 +10,13 @@ from gui.theme import COLORS, FONTS
 class SpellsStep(WizardStep):
     tab_title = "Spells"
 
+    def __init__(self, parent_notebook, character, game_data):
+        self._updating_cantrips = False
+        self._updating_spells = False
+        self.cantrip_checkbuttons = {}
+        self.spell_checkbuttons = {}
+        super().__init__(parent_notebook, character, game_data)
+
     def build_ui(self):
         self.frame.columnconfigure(0, weight=1)
         self.frame.columnconfigure(1, weight=1)
@@ -82,10 +89,51 @@ class SpellsStep(WizardStep):
         self.info_label.configure(
             text=f"{cls['name']}: {cantrip_max} cantrips, {spell_max} prepared spells")
 
+    def _make_scrollable_list(self, parent_frame):
+        """Create a scrollable canvas+inner frame inside parent_frame.
+
+        Returns (canvas, inner_frame).  Includes mousewheel scrolling and
+        automatic width-sync so the inner frame fills the canvas.
+        """
+        canvas = tk.Canvas(parent_frame, bg=COLORS["bg"],
+                           highlightthickness=0, borderwidth=0)
+        scrollbar = ttk.Scrollbar(parent_frame, orient=tk.VERTICAL,
+                                  command=canvas.yview)
+        inner = ttk.Frame(canvas)
+
+        inner.bind("<Configure>",
+                   lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas_window = canvas.create_window((0, 0), window=inner, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Keep inner frame as wide as the canvas
+        canvas.bind("<Configure>",
+                    lambda e, cw=canvas_window: canvas.itemconfig(cw, width=e.width))
+
+        # Pack scrollbar FIRST so it gets space priority over the canvas
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Mousewheel scrolling — scoped to whichever list the cursor is over
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        def _bind_wheel(event):
+            canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+        def _unbind_wheel(event):
+            canvas.unbind_all("<MouseWheel>")
+
+        inner.bind("<Enter>", _bind_wheel)
+        inner.bind("<Leave>", _unbind_wheel)
+
+        return canvas, inner
+
     def _populate_cantrips(self):
         for w in self.cantrip_list_frame.winfo_children():
             w.destroy()
         self.cantrip_vars.clear()
+        self.cantrip_checkbuttons.clear()
 
         cls = self.character.character_class
         if not cls:
@@ -94,21 +142,12 @@ class SpellsStep(WizardStep):
         class_name = cls["name"]
         cantrips = self.data.cantrips_for_class(class_name)
         cantrip_max = cls.get("cantrips_known", 0) or 0
+        current_count = len(self.character.selected_cantrips)
 
-        self.cantrip_count_label.configure(text=f"0 / {cantrip_max} selected")
+        self.cantrip_count_label.configure(text=f"{current_count} / {cantrip_max} selected")
 
         # Scrollable checkbox list
-        canvas = tk.Canvas(self.cantrip_list_frame, bg=COLORS["bg"],
-                           highlightthickness=0, borderwidth=0)
-        scrollbar = ttk.Scrollbar(self.cantrip_list_frame, orient=tk.VERTICAL, command=canvas.yview)
-        inner = ttk.Frame(canvas)
-
-        inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.create_window((0, 0), window=inner, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        canvas, inner = self._make_scrollable_list(self.cantrip_list_frame)
 
         for spell in sorted(cantrips, key=lambda s: s["name"]):
             var = tk.BooleanVar(value=spell["name"] in self.character.selected_cantrips)
@@ -118,11 +157,16 @@ class SpellsStep(WizardStep):
                                  variable=var)
             cb.pack(anchor="w", pady=1)
             cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
+            self.cantrip_checkbuttons[spell["name"]] = cb
+
+        # Disable unchecked if already at max
+        self._update_cantrip_states()
 
     def _populate_spells(self):
         for w in self.spell_list_frame.winfo_children():
             w.destroy()
         self.spell_vars.clear()
+        self.spell_checkbuttons.clear()
 
         cls = self.character.character_class
         if not cls:
@@ -132,20 +176,11 @@ class SpellsStep(WizardStep):
         spells = self.data.spells_for_class(class_name, max_level=1)
         level1_spells = [s for s in spells if s["level"] == 1]
         spell_max = cls.get("spells_prepared", 0) or 0
+        current_count = len(self.character.selected_spells)
 
-        self.spell_count_label.configure(text=f"0 / {spell_max} selected")
+        self.spell_count_label.configure(text=f"{current_count} / {spell_max} selected")
 
-        canvas = tk.Canvas(self.spell_list_frame, bg=COLORS["bg"],
-                           highlightthickness=0, borderwidth=0)
-        scrollbar = ttk.Scrollbar(self.spell_list_frame, orient=tk.VERTICAL, command=canvas.yview)
-        inner = ttk.Frame(canvas)
-
-        inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.create_window((0, 0), window=inner, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        canvas, inner = self._make_scrollable_list(self.spell_list_frame)
 
         for spell in sorted(level1_spells, key=lambda s: s["name"]):
             var = tk.BooleanVar(value=spell["name"] in self.character.selected_spells)
@@ -162,32 +197,78 @@ class SpellsStep(WizardStep):
             cb = ttk.Checkbutton(inner, text=text, variable=var)
             cb.pack(anchor="w", pady=1)
             cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
+            self.spell_checkbuttons[spell["name"]] = cb
+
+        # Disable unchecked if already at max
+        self._update_spell_states()
 
     def _on_cantrip_toggle(self, spell):
-        cls = self.character.character_class
-        cantrip_max = cls.get("cantrips_known", 0) or 0 if cls else 0
-
-        selected = [name for name, d in self.cantrip_vars.items() if d["var"].get()]
-        if len(selected) > cantrip_max:
-            self.cantrip_vars[spell["name"]]["var"].set(False)
+        if self._updating_cantrips:
             return
+        self._updating_cantrips = True
+        try:
+            cls = self.character.character_class
+            cantrip_max = (cls.get("cantrips_known", 0) or 0) if cls else 0
 
-        self.character.selected_cantrips = selected
-        self.cantrip_count_label.configure(text=f"{len(selected)} / {cantrip_max} selected")
-        self.notify_change()
+            selected = [name for name, d in self.cantrip_vars.items() if d["var"].get()]
+            if len(selected) > cantrip_max:
+                # Undo the toggle
+                self.cantrip_vars[spell["name"]]["var"].set(False)
+                selected = [name for name, d in self.cantrip_vars.items() if d["var"].get()]
+
+            self.character.selected_cantrips = selected
+            self.cantrip_count_label.configure(text=f"{len(selected)} / {cantrip_max} selected")
+            self._update_cantrip_states()
+            self.notify_change()
+        finally:
+            self._updating_cantrips = False
 
     def _on_spell_toggle(self, spell):
-        cls = self.character.character_class
-        spell_max = cls.get("spells_prepared", 0) or 0 if cls else 0
-
-        selected = [name for name, d in self.spell_vars.items() if d["var"].get()]
-        if len(selected) > spell_max:
-            self.spell_vars[spell["name"]]["var"].set(False)
+        if self._updating_spells:
             return
+        self._updating_spells = True
+        try:
+            cls = self.character.character_class
+            spell_max = (cls.get("spells_prepared", 0) or 0) if cls else 0
 
-        self.character.selected_spells = selected
-        self.spell_count_label.configure(text=f"{len(selected)} / {spell_max} selected")
-        self.notify_change()
+            selected = [name for name, d in self.spell_vars.items() if d["var"].get()]
+            if len(selected) > spell_max:
+                # Undo the toggle
+                self.spell_vars[spell["name"]]["var"].set(False)
+                selected = [name for name, d in self.spell_vars.items() if d["var"].get()]
+
+            self.character.selected_spells = selected
+            self.spell_count_label.configure(text=f"{len(selected)} / {spell_max} selected")
+            self._update_spell_states()
+            self.notify_change()
+        finally:
+            self._updating_spells = False
+
+    def _update_cantrip_states(self):
+        """Disable unchecked cantrip checkboxes when at max."""
+        cls = self.character.character_class
+        cantrip_max = (cls.get("cantrips_known", 0) or 0) if cls else 0
+        selected = [name for name, d in self.cantrip_vars.items() if d["var"].get()]
+        at_max = len(selected) >= cantrip_max
+
+        for name, cb in self.cantrip_checkbuttons.items():
+            if at_max and name not in selected:
+                cb.configure(state=tk.DISABLED)
+            else:
+                cb.configure(state=tk.NORMAL)
+
+    def _update_spell_states(self):
+        """Disable unchecked spell checkboxes when at max."""
+        cls = self.character.character_class
+        spell_max = (cls.get("spells_prepared", 0) or 0) if cls else 0
+        selected = [name for name, d in self.spell_vars.items() if d["var"].get()]
+        at_max = len(selected) >= spell_max
+
+        for name, cb in self.spell_checkbuttons.items():
+            if at_max and name not in selected:
+                cb.configure(state=tk.DISABLED)
+            else:
+                cb.configure(state=tk.NORMAL)
 
     def _show_detail(self, spell):
         self.spell_detail_text.configure(state=tk.NORMAL)

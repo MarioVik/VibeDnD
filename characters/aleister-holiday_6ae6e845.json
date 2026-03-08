@@ -28,10 +28,7 @@
   "feat_name": "Alert",
   "species_origin_feat_name": null,
   "feat_sub_choices": {},
-  "selected_cantrips": [
-    "Elementalism",
-    "True Strike"
-  ],
+  "selected_cantrips": [],
   "selected_spells": [],
   "equipment_choice_class": "A",
   "equipment_choice_background": "A",

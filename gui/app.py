@@ -257,10 +257,10 @@ class CharacterCreatorApp:
         ).pack(side=tk.LEFT, padx=12)
 
         ttk.Button(top, text="Export JSON",
-                   command=self._export_json).pack(side=tk.LEFT, padx=4)
+                   command=self._export_json).pack(side=tk.RIGHT, padx=4)
 
         ttk.Button(top, text="Export PDF",
-                   command=self._export_pdf).pack(side=tk.LEFT, padx=4)
+                   command=self._export_pdf).pack(side=tk.RIGHT, padx=4)
 
         if character.character_class and character.level < 20:
             ttk.Button(
