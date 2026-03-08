@@ -3,7 +3,6 @@
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.widgets import SearchableListbox, ScrollableFrame
 from gui.theme import COLORS, FONTS
 
 
@@ -15,50 +14,33 @@ class SpellsStep(WizardStep):
         self._updating_spells = False
         self.cantrip_checkbuttons = {}
         self.spell_checkbuttons = {}
+        self.cantrip_vars = {}
+        self.spell_vars = {}
         super().__init__(parent_notebook, character, game_data)
 
     def build_ui(self):
         self.frame.columnconfigure(0, weight=1)
-        self.frame.columnconfigure(1, weight=1)
         self.frame.rowconfigure(1, weight=1)
 
-        # Title
-        ttk.Label(self.frame, text="Select Spells", style="Heading.TLabel").grid(
-            row=0, column=0, columnspan=2, sticky="w", padx=12, pady=(12, 4))
+        # Title row
+        title_frame = ttk.Frame(self.frame)
+        title_frame.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 4))
+        title_frame.columnconfigure(0, weight=1)
 
-        self.info_label = ttk.Label(self.frame, text="", style="Dim.TLabel")
-        self.info_label.grid(row=0, column=1, sticky="e", padx=12)
+        ttk.Label(title_frame, text="Select Spells",
+                  style="Heading.TLabel").grid(row=0, column=0, sticky="w")
+
+        self.info_label = ttk.Label(title_frame, text="", style="Dim.TLabel")
+        self.info_label.grid(row=0, column=1, sticky="e")
 
         # Non-caster message
         self.no_spells_label = ttk.Label(self.frame,
                                           text="Your class does not have spellcasting at level 1.",
                                           style="Dim.TLabel")
 
-        # Left: Cantrips
-        self.cantrip_frame = ttk.LabelFrame(self.frame, text="Cantrips")
-        self.cantrip_count_label = ttk.Label(self.cantrip_frame, text="0 / 0 selected",
-                                              style="Dim.TLabel")
-        self.cantrip_count_label.pack(anchor="w", padx=4, pady=(4, 2))
-        self.cantrip_list_frame = ttk.Frame(self.cantrip_frame)
-        self.cantrip_list_frame.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
-        self.cantrip_vars = {}
-
-        # Right: Level 1 spells
-        self.spell_frame = ttk.LabelFrame(self.frame, text="Level 1 Spells")
-        self.spell_count_label = ttk.Label(self.spell_frame, text="0 / 0 selected",
-                                            style="Dim.TLabel")
-        self.spell_count_label.pack(anchor="w", padx=4, pady=(4, 2))
-        self.spell_list_frame = ttk.Frame(self.spell_frame)
-        self.spell_list_frame.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
-        self.spell_vars = {}
-
-        # Spell detail
-        self.spell_detail = ttk.LabelFrame(self.frame, text="Spell Details")
-        self.spell_detail_text = tk.Text(self.spell_detail, wrap=tk.WORD, height=8,
-                                          bg=COLORS["bg_light"], fg=COLORS["fg"],
-                                          font=FONTS["body"], borderwidth=0,
-                                          state=tk.DISABLED)
-        self.spell_detail_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+        # Main content: two-column split (list left, detail right)
+        self.content_frame = ttk.Frame(self.frame)
+        # Not gridded yet — done in _show_spell_ui
 
     def on_enter(self):
         """Refresh spell lists based on current class."""
@@ -68,26 +50,128 @@ class SpellsStep(WizardStep):
             return
 
         self._show_spell_ui()
-        self._populate_cantrips()
-        self._populate_spells()
 
     def _show_no_spells(self):
-        self.cantrip_frame.grid_forget()
-        self.spell_frame.grid_forget()
-        self.spell_detail.grid_forget()
-        self.no_spells_label.grid(row=1, column=0, columnspan=2, padx=12, pady=20)
+        self.content_frame.grid_forget()
+        self.no_spells_label.grid(row=1, column=0, padx=12, pady=20)
 
     def _show_spell_ui(self):
+        """Build the full spell selection UI: left list + right detail."""
         self.no_spells_label.grid_forget()
-        self.cantrip_frame.grid(row=1, column=0, sticky="nsew", padx=(12, 4), pady=4)
-        self.spell_frame.grid(row=1, column=1, sticky="nsew", padx=(4, 12), pady=4)
-        self.spell_detail.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=12, pady=(4, 8))
+
+        # Destroy old content and rebuild
+        for w in self.content_frame.winfo_children():
+            w.destroy()
+        self.cantrip_vars.clear()
+        self.spell_vars.clear()
+        self.cantrip_checkbuttons.clear()
+        self.spell_checkbuttons.clear()
 
         cls = self.character.character_class
-        cantrip_max = cls.get("cantrips_known", 0) or 0
-        spell_max = cls.get("spells_prepared", 0) or 0
+        class_name = cls["name"]
+        cantrip_max = (cls.get("cantrips_known", 0) or 0) if cls else 0
+        spell_max = (cls.get("spells_prepared", 0) or 0) if cls else 0
+
         self.info_label.configure(
-            text=f"{cls['name']}: {cantrip_max} cantrips, {spell_max} prepared spells")
+            text=f"{class_name}: {cantrip_max} cantrips, {spell_max} prepared spells")
+
+        # Grid the content frame
+        self.content_frame.grid(row=1, column=0, sticky="nsew", padx=12, pady=(0, 8))
+        self.content_frame.columnconfigure(0, weight=1)
+        self.content_frame.columnconfigure(1, weight=1)
+        self.content_frame.rowconfigure(0, weight=1)
+
+        # --- LEFT: spell list column ---
+        left = ttk.Frame(self.content_frame)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+
+        # Count labels
+        cantrips = self.data.cantrips_for_class(class_name)
+        level1_spells = [s for s in self.data.spells_for_class(class_name, max_level=1)
+                         if s["level"] == 1]
+        has_cantrips = cantrip_max > 0 and len(cantrips) > 0
+        has_spells = spell_max > 0 and len(level1_spells) > 0
+
+        current_cantrip_count = len(self.character.selected_cantrips)
+        current_spell_count = len(self.character.selected_spells)
+
+        if has_cantrips:
+            self.cantrip_count_label = ttk.Label(
+                left, text=f"{current_cantrip_count} / {cantrip_max} cantrips selected",
+                style="Dim.TLabel",
+            )
+            self.cantrip_count_label.pack(anchor="w", padx=4, pady=(0, 1))
+
+        if has_spells:
+            self.spell_count_label = ttk.Label(
+                left, text=f"{current_spell_count} / {spell_max} spells selected",
+                style="Dim.TLabel",
+            )
+            self.spell_count_label.pack(anchor="w", padx=4, pady=(0, 1))
+
+        # Scrollable list
+        list_outer = ttk.Frame(left)
+        list_outer.pack(fill=tk.BOTH, expand=True, pady=(2, 0))
+        canvas, inner = self._make_scrollable_list(list_outer)
+
+        # Section header helper (matches SectionedListbox style)
+        def _section_header(parent, title):
+            ttk.Label(
+                parent, text=f"\u2500\u2500 {title} \u2500\u2500",
+                foreground=COLORS["accent"], font=FONTS["body"],
+            ).pack(anchor="w", pady=(6, 2))
+
+        # ── Cantrips ──────────────────────────────────────────────
+        if has_cantrips:
+            _section_header(inner, "Cantrips")
+
+            for spell in sorted(cantrips, key=lambda s: s["name"]):
+                var = tk.BooleanVar(value=spell["name"] in self.character.selected_cantrips)
+                var.trace_add("write", lambda *a, s=spell: self._on_cantrip_toggle(s))
+                self.cantrip_vars[spell["name"]] = {"var": var, "spell": spell}
+                cb = ttk.Checkbutton(
+                    inner, text=f"{spell['name']} ({spell['school']})",
+                    variable=var,
+                )
+                cb.pack(anchor="w", pady=1, padx=(8, 0))
+                cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
+                self.cantrip_checkbuttons[spell["name"]] = cb
+
+        # ── Level 1 Spells ────────────────────────────────────────
+        if has_spells:
+            _section_header(inner, "1st-Level")
+
+            for spell in sorted(level1_spells, key=lambda s: s["name"]):
+                var = tk.BooleanVar(value=spell["name"] in self.character.selected_spells)
+                var.trace_add("write", lambda *a, s=spell: self._on_spell_toggle(s))
+                self.spell_vars[spell["name"]] = {"var": var, "spell": spell}
+
+                text = f"{spell['name']} ({spell['school']}"
+                if spell.get("concentration"):
+                    text += ", C"
+                if spell.get("ritual"):
+                    text += ", R"
+                text += ")"
+
+                cb = ttk.Checkbutton(inner, text=text, variable=var)
+                cb.pack(anchor="w", pady=1, padx=(8, 0))
+                cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
+                self.spell_checkbuttons[spell["name"]] = cb
+
+        # Disable unchecked if already at max
+        self._update_cantrip_states()
+        self._update_spell_states()
+
+        # --- RIGHT: spell detail panel ---
+        detail_lf = ttk.LabelFrame(self.content_frame, text="Spell Details")
+        detail_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
+
+        self.spell_detail_text = tk.Text(
+            detail_lf, wrap=tk.WORD,
+            bg=COLORS["bg_light"], fg=COLORS["fg"],
+            font=FONTS["body"], borderwidth=0, state=tk.DISABLED,
+        )
+        self.spell_detail_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
     def _make_scrollable_list(self, parent_frame):
         """Create a scrollable canvas+inner frame inside parent_frame.
@@ -129,78 +213,7 @@ class SpellsStep(WizardStep):
 
         return canvas, inner
 
-    def _populate_cantrips(self):
-        for w in self.cantrip_list_frame.winfo_children():
-            w.destroy()
-        self.cantrip_vars.clear()
-        self.cantrip_checkbuttons.clear()
-
-        cls = self.character.character_class
-        if not cls:
-            return
-
-        class_name = cls["name"]
-        cantrips = self.data.cantrips_for_class(class_name)
-        cantrip_max = cls.get("cantrips_known", 0) or 0
-        current_count = len(self.character.selected_cantrips)
-
-        self.cantrip_count_label.configure(text=f"{current_count} / {cantrip_max} selected")
-
-        # Scrollable checkbox list
-        canvas, inner = self._make_scrollable_list(self.cantrip_list_frame)
-
-        for spell in sorted(cantrips, key=lambda s: s["name"]):
-            var = tk.BooleanVar(value=spell["name"] in self.character.selected_cantrips)
-            var.trace_add("write", lambda *a, s=spell: self._on_cantrip_toggle(s))
-            self.cantrip_vars[spell["name"]] = {"var": var, "spell": spell}
-            cb = ttk.Checkbutton(inner, text=f"{spell['name']} ({spell['school']})",
-                                 variable=var)
-            cb.pack(anchor="w", pady=1)
-            cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
-            self.cantrip_checkbuttons[spell["name"]] = cb
-
-        # Disable unchecked if already at max
-        self._update_cantrip_states()
-
-    def _populate_spells(self):
-        for w in self.spell_list_frame.winfo_children():
-            w.destroy()
-        self.spell_vars.clear()
-        self.spell_checkbuttons.clear()
-
-        cls = self.character.character_class
-        if not cls:
-            return
-
-        class_name = cls["name"]
-        spells = self.data.spells_for_class(class_name, max_level=1)
-        level1_spells = [s for s in spells if s["level"] == 1]
-        spell_max = cls.get("spells_prepared", 0) or 0
-        current_count = len(self.character.selected_spells)
-
-        self.spell_count_label.configure(text=f"{current_count} / {spell_max} selected")
-
-        canvas, inner = self._make_scrollable_list(self.spell_list_frame)
-
-        for spell in sorted(level1_spells, key=lambda s: s["name"]):
-            var = tk.BooleanVar(value=spell["name"] in self.character.selected_spells)
-            var.trace_add("write", lambda *a, s=spell: self._on_spell_toggle(s))
-            self.spell_vars[spell["name"]] = {"var": var, "spell": spell}
-
-            text = f"{spell['name']} ({spell['school']}"
-            if spell.get("concentration"):
-                text += ", C"
-            if spell.get("ritual"):
-                text += ", R"
-            text += ")"
-
-            cb = ttk.Checkbutton(inner, text=text, variable=var)
-            cb.pack(anchor="w", pady=1)
-            cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
-            self.spell_checkbuttons[spell["name"]] = cb
-
-        # Disable unchecked if already at max
-        self._update_spell_states()
+    # ── toggle handlers ──────────────────────────────────────────
 
     def _on_cantrip_toggle(self, spell):
         if self._updating_cantrips:
@@ -217,7 +230,7 @@ class SpellsStep(WizardStep):
                 selected = [name for name, d in self.cantrip_vars.items() if d["var"].get()]
 
             self.character.selected_cantrips = selected
-            self.cantrip_count_label.configure(text=f"{len(selected)} / {cantrip_max} selected")
+            self.cantrip_count_label.configure(text=f"{len(selected)} / {cantrip_max} cantrips selected")
             self._update_cantrip_states()
             self.notify_change()
         finally:
@@ -238,7 +251,7 @@ class SpellsStep(WizardStep):
                 selected = [name for name, d in self.spell_vars.items() if d["var"].get()]
 
             self.character.selected_spells = selected
-            self.spell_count_label.configure(text=f"{len(selected)} / {spell_max} selected")
+            self.spell_count_label.configure(text=f"{len(selected)} / {spell_max} spells selected")
             self._update_spell_states()
             self.notify_change()
         finally:
@@ -269,6 +282,8 @@ class SpellsStep(WizardStep):
                 cb.configure(state=tk.DISABLED)
             else:
                 cb.configure(state=tk.NORMAL)
+
+    # ── spell detail hover ───────────────────────────────────────
 
     def _show_detail(self, spell):
         self.spell_detail_text.configure(state=tk.NORMAL)
