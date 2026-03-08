@@ -236,9 +236,18 @@ class CharacterCreatorApp:
         # Top bar with back button + save/export buttons
         top = ttk.Frame(frame)
         top.pack(fill=tk.X, padx=8, pady=(6, 2))
+        if save_path:
+            # Edit mode: go back to the character viewer
+            back_text = "\u25c0  Back to Character"
+            back_cmd = lambda: self.show_viewer(character, save_path)
+        else:
+            # New character: go back to home
+            back_text = "\u25c0  Back to Menu"
+            back_cmd = self.show_home
+
         ttk.Button(
-            top, text="\u25c0  Back to Menu",
-            command=self.show_home,
+            top, text=back_text,
+            command=back_cmd,
         ).pack(side=tk.LEFT)
 
         ttk.Button(
@@ -335,7 +344,12 @@ class CharacterCreatorApp:
 
         path = save_character(self.character, characters_dir(), self.current_save_path)
         self.current_save_path = path
-        self.show_home()
+
+        if self.current_save_path:
+            # Edit mode: return to the character viewer
+            self.show_viewer(self.character, self.current_save_path)
+        else:
+            self.show_home()
 
     def _export_json(self):
         if not self.character:

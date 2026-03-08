@@ -6,7 +6,10 @@
   "size_choice": "Medium",
   "class_name": "Artificer",
   "background_name": "Inquisitive",
-  "selected_skills": [],
+  "selected_skills": [
+    "Arcana",
+    "Sleight of Hand"
+  ],
   "score_method": "standard_array",
   "ability_scores": {
     "Strength": 8,

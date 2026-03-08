@@ -27,7 +27,9 @@
   "feat_sub_choices": {},
   "selected_cantrips": [
     "Acid Splash",
-    "Blade Ward"
+    "Blade Ward",
+    "Chill Touch",
+    "Dancing Lights"
   ],
   "selected_spells": [
     "Burning Hands",
@@ -71,6 +73,16 @@
       "class_level": 4,
       "subclass_slug": null,
       "feat_choice": "Ability Score Improvement",
+      "new_cantrips": [],
+      "new_spells": [],
+      "hp_roll": 4,
+      "hit_die": 6
+    },
+    {
+      "class_slug": "sorcerer",
+      "class_level": 5,
+      "subclass_slug": null,
+      "feat_choice": null,
       "new_cantrips": [],
       "new_spells": [],
       "hp_roll": 4,
