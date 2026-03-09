@@ -126,7 +126,7 @@ class SpeciesStep(WizardStep):
         self.character.species = sp
         self.detail_name.configure(text=sp["name"])
         self.detail_source.configure(text=f"Source: {sp.get('source', 'Unknown')}")
-        self.detail_desc.configure(text=sp.get("description", "")[:300])
+        self.detail_desc.configure(text=sp.get("description", ""))
 
         # Stats
         for w in self.stats_frame.winfo_children():
@@ -183,7 +183,7 @@ class SpeciesStep(WizardStep):
                 tf.pack(fill=tk.X, pady=2)
                 ttk.Label(tf, text=f"  {trait['name']}.", font=FONTS["subheading"],
                           foreground=COLORS["accent"]).pack(anchor="w")
-                WrappingLabel(tf, text=f"    {trait.get('description', '')[:200]}",
+                WrappingLabel(tf, text=f"    {trait.get('description', '')}",
                           foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w")
 
         self.notify_change()

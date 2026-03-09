@@ -160,7 +160,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
         traits_frame.pack(fill=tk.X, pady=4)
         for trait in c.species["traits"]:
             WrappingLabel(traits_frame,
-                      text=f"  {trait['name']}: {trait.get('description', '')[:150]}",
+                      text=f"  {trait['name']}: {trait.get('description', '')}",
                       foreground=COLORS["fg_dim"]).pack(
                           fill=tk.X, anchor="w", padx=8, pady=1)
 
@@ -180,7 +180,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
                               anchor="w", padx=8)
                 if feat.get("description"):
                     WrappingLabel(feat_frame,
-                              text=f"    {feat['description'][:200]}",
+                              text=f"    {feat['description']}",
                               foreground=COLORS["fg_dim"]).pack(
                                   fill=tk.X, anchor="w", padx=8, pady=(0, 4))
         elif c.class_levels:
@@ -210,7 +210,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
                           anchor="w", padx=8)
             for b in c.feat.get("benefits", []):
                 WrappingLabel(feat_sec,
-                          text=f"    {b['name']}: {b.get('description', '')[:150]}",
+                          text=f"    {b['name']}: {b.get('description', '')}",
                           foreground=COLORS["fg_dim"]).pack(
                               fill=tk.X, anchor="w", padx=8, pady=1)
 
@@ -226,7 +226,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
                           anchor="w", padx=8)
             for b in c.species_origin_feat.get("benefits", []):
                 WrappingLabel(feat_sec,
-                          text=f"    {b['name']}: {b.get('description', '')[:150]}",
+                          text=f"    {b['name']}: {b.get('description', '')}",
                           foreground=COLORS["fg_dim"]).pack(
                               fill=tk.X, anchor="w", padx=8, pady=1)
 
@@ -248,14 +248,14 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
     if c.character_class:
         for opt in c.character_class.get("starting_equipment", []):
             if opt["option"] == c.equipment_choice_class:
-                WrappingLabel(equip_sec, text=f"  {opt['items'][:200]}",
+                WrappingLabel(equip_sec, text=f"  {opt['items']}",
                           foreground=COLORS["fg_dim"]).pack(
                               fill=tk.X, anchor="w", padx=8, pady=2)
                 has_equip = True
     if c.background:
         for opt in c.background.get("equipment", []):
             if opt["option"] == c.equipment_choice_background:
-                WrappingLabel(equip_sec, text=f"  {opt['items'][:200]}",
+                WrappingLabel(equip_sec, text=f"  {opt['items']}",
                           foreground=COLORS["fg_dim"]).pack(
                               fill=tk.X, anchor="w", padx=8, pady=2)
                 has_equip = True

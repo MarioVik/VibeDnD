@@ -436,8 +436,6 @@ class LevelUpWizard(tk.Toplevel):
                     desc = d["description"]
                     break
             if desc:
-                if len(desc) > 300:
-                    desc = desc[:297] + "..."
                 WrappingLabel(
                     frame, text=desc,
                     foreground=COLORS["fg_dim"], background=COLORS["bg_card"],
@@ -483,8 +481,6 @@ class LevelUpWizard(tk.Toplevel):
             ).pack(anchor="w", padx=8, pady=(4, 0))
             desc = feat.get("description", "")
             if desc:
-                if len(desc) > 300:
-                    desc = desc[:297] + "..."
                 WrappingLabel(
                     frame, text=desc,
                     foreground=COLORS["fg_dim"], background=COLORS["bg_card"],
@@ -590,7 +586,7 @@ class LevelUpWizard(tk.Toplevel):
             name = self.subclass_var.get().replace(" (PHB)", "")
             for sc in subclasses:
                 if sc["name"] == name:
-                    self.sub_desc_label.configure(text=sc.get("description", "")[:300])
+                    self.sub_desc_label.configure(text=sc.get("description", ""))
                     return
             self.sub_desc_label.configure(text="(Core subclass - feature data not available)")
 
@@ -882,12 +878,12 @@ class LevelUpWizard(tk.Toplevel):
             f"Duration: {'Concentration, ' if spell.get('concentration') else ''}"
             f"{spell.get('duration', '?')}",
             "",
-            spell.get("description", "")[:500],
+            spell.get("description", ""),
         ]
         if spell.get("higher_levels"):
-            lines.extend(["", f"At Higher Levels: {spell['higher_levels'][:200]}"])
+            lines.extend(["", f"At Higher Levels: {spell['higher_levels']}"])
         if spell.get("cantrip_upgrade"):
-            lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade'][:200]}"])
+            lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade']}"])
         self.spell_detail_text.insert("1.0", "\n".join(lines))
         self.spell_detail_text.configure(state=tk.DISABLED)
 
@@ -1101,12 +1097,12 @@ class LevelUpWizard(tk.Toplevel):
             f"Duration: {'Concentration, ' if spell.get('concentration') else ''}"
             f"{spell.get('duration', '?')}",
             "",
-            spell.get("description", "")[:500],
+            spell.get("description", ""),
         ]
         if spell.get("higher_levels"):
-            lines.extend(["", f"At Higher Levels: {spell['higher_levels'][:200]}"])
+            lines.extend(["", f"At Higher Levels: {spell['higher_levels']}"])
         if spell.get("cantrip_upgrade"):
-            lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade'][:200]}"])
+            lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade']}"])
         self.swap_detail_text.insert("1.0", "\n".join(lines))
         self.swap_detail_text.configure(state=tk.DISABLED)
 

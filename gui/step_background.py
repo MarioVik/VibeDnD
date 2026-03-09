@@ -119,7 +119,7 @@ class BackgroundStep(WizardStep):
         self.character.background = bg
         self.detail_name.configure(text=bg["name"])
         self.detail_source.configure(text=f"Source: {bg.get('source', 'Unknown')}")
-        self.detail_desc.configure(text=bg.get("description", "")[:400])
+        self.detail_desc.configure(text=bg.get("description", ""))
 
         # Info section
         for w in self.info_frame.winfo_children():
@@ -133,7 +133,7 @@ class BackgroundStep(WizardStep):
 
         equip = bg.get("equipment", [])
         if equip:
-            equip_text = " / ".join(f"({e['option']}) {e['items'][:80]}" for e in equip)
+            equip_text = " / ".join(f"({e['option']}) {e['items']}" for e in equip)
             info.append(("Equipment", equip_text))
 
         for label, value in info:

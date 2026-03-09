@@ -72,7 +72,7 @@ class EquipmentStep(WizardStep):
         for opt in equip_options:
             ttk.Radiobutton(
                 self.class_equip_frame,
-                text=f"({opt['option']}) {opt['items'][:120]}",
+                text=f"({opt['option']}) {opt['items']}",
                 variable=self.class_equip_var,
                 value=opt["option"],
             ).pack(anchor="w", padx=16, pady=2)
@@ -102,7 +102,7 @@ class EquipmentStep(WizardStep):
         for opt in equip_options:
             ttk.Radiobutton(
                 self.bg_equip_frame,
-                text=f"({opt['option']}) {opt['items'][:120]}",
+                text=f"({opt['option']}) {opt['items']}",
                 variable=self.bg_equip_var,
                 value=opt["option"],
             ).pack(anchor="w", padx=16, pady=2)

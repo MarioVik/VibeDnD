@@ -214,5 +214,5 @@ class FeatStep(WizardStep):
                       foreground=COLORS["accent"], font=FONTS["subheading"]).pack(anchor="w")
             desc = benefit.get("description", "")
             if desc:
-                WrappingLabel(bf, text=desc[:300],
+                WrappingLabel(bf, text=desc,
                           foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w", padx=(16, 0))

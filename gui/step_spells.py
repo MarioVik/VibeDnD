@@ -296,13 +296,13 @@ class SpellsStep(WizardStep):
             f"Range: {spell.get('range', '?')}",
             f"Duration: {'Concentration, ' if spell.get('concentration') else ''}{spell.get('duration', '?')}",
             "",
-            spell.get("description", "")[:500],
+            spell.get("description", ""),
         ]
 
         if spell.get("higher_levels"):
-            lines.extend(["", f"At Higher Levels: {spell['higher_levels'][:200]}"])
+            lines.extend(["", f"At Higher Levels: {spell['higher_levels']}"])
         if spell.get("cantrip_upgrade"):
-            lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade'][:200]}"])
+            lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade']}"])
 
         self.spell_detail_text.insert("1.0", "\n".join(lines))
         self.spell_detail_text.configure(state=tk.DISABLED)

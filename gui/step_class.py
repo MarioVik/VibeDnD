@@ -91,7 +91,7 @@ class ClassStep(WizardStep):
             self.character.class_levels = [ClassLevel(class_slug=slug, class_level=1, hit_die=hit_die)]
         self.detail_name.configure(text=cls["name"])
         self.detail_source.configure(text=f"Source: {cls.get('source', 'Unknown')}")
-        self.detail_desc.configure(text=cls.get("description", "")[:300])
+        self.detail_desc.configure(text=cls.get("description", ""))
 
         # Core traits
         for w in self.traits_frame.winfo_children():
@@ -158,7 +158,7 @@ class ClassStep(WizardStep):
                 ttk.Label(self.features_frame, text=f"  {feat['name']}",
                           foreground=COLORS["accent"], font=FONTS["subheading"]).pack(anchor="w")
                 if feat.get("description"):
-                    WrappingLabel(self.features_frame, text=f"    {feat['description'][:200]}",
+                    WrappingLabel(self.features_frame, text=f"    {feat['description']}",
                               foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w", pady=(0, 4))
 
         # Equipment
@@ -168,7 +168,7 @@ class ClassStep(WizardStep):
                       style="Subheading.TLabel").pack(anchor="w", pady=(8, 4))
             for opt in equip:
                 WrappingLabel(self.features_frame,
-                          text=f"  ({opt['option']}) {opt['items'][:120]}",
+                          text=f"  ({opt['option']}) {opt['items']}",
                           foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w")
 
         self.notify_change()
