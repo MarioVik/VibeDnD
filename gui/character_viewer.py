@@ -35,7 +35,6 @@ class CharacterViewer(ttk.Frame):
         if self.character.level < 20:
             ttk.Button(
                 top, text="Level Up",
-                style="Accent.TButton",
                 command=self._on_level_up,
             ).pack(side=tk.LEFT, padx=8)
 
@@ -55,7 +54,6 @@ class CharacterViewer(ttk.Frame):
 
         ttk.Button(
             top, text="Respec character",
-            style="Accent.TButton",
             command=self._on_edit,
         ).pack(side=tk.RIGHT, padx=8)
 
