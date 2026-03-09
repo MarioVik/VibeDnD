@@ -192,18 +192,80 @@ class LevelUpWizard(tk.Toplevel):
         )
 
         self.next_btn = ttk.Button(
-            self.btn_frame, text="Next: Spells →",
-            style="Accent.TButton", command=lambda: self._show_step(2),
+            self.btn_frame, text="Next: Spells \u2192",
+            style="Accent.TButton", command=lambda: self._try_go_next(2),
         )
 
         self.back_btn = ttk.Button(
-            self.btn_frame, text="← Back",
+            self.btn_frame, text="\u2190 Back",
             command=lambda: self._show_step(1),
         )
 
         # Build step 1 content and show it
         self._rebuild_content()
         self._show_step(1)
+
+    def _try_go_next(self, target_step: int):
+        if target_step == 2 or target_step == 3:
+            if not self._validate_step1():
+                return
+        if target_step == 3 and self._has_new_spell_options():
+            if not self._validate_step2():
+                return
+        self._show_step(target_step)
+
+    def _validate_step1(self) -> bool:
+        if (self.class_slug != self.primary_class_slug
+                and self.character.class_level_in(self.class_slug) == 0):
+            met, reason = self.character.multiclass_prereqs_met(self.class_slug)
+            if not met:
+                messagebox.showwarning(
+                    "Prerequisites Not Met",
+                    f"Cannot multiclass into {self.class_slug.title()}:\n{reason}",
+                    parent=self)
+                return False
+            pri_met, pri_reason = self.character.multiclass_prereqs_met(
+                self.primary_class_slug)
+            if not pri_met:
+                messagebox.showwarning(
+                    "Prerequisites Not Met",
+                    f"Cannot multiclass out of {self.primary_class_slug.title()}:\n{pri_reason}",
+                    parent=self)
+                return False
+
+        if self.level_data:
+            features = self.level_data.get("features", [])
+            if any("Ability Score Improvement" in f for f in features):
+                if not self.feat_var.get():
+                    messagebox.showwarning(
+                        "Missing Choice",
+                        "Please select a feat for your Ability Score Improvement.",
+                        parent=self)
+                    return False
+            if any("Subclass" in f and "Feature" not in f for f in features):
+                if not self.subclass_var.get():
+                    messagebox.showwarning(
+                        "Missing Choice", "Please select a subclass.",
+                        parent=self)
+                    return False
+        return True
+
+    def _validate_step2(self) -> bool:
+        if self._has_new_spell_options():
+            new_cantrips_max, new_prepared_max, _ = self._spell_deltas()
+            if new_cantrips_max > 0 and len(self.selected_new_cantrips) < new_cantrips_max:
+                messagebox.showwarning(
+                    "Missing Choice",
+                    f"Please select {new_cantrips_max} new cantrip(s) on the Spells step.",
+                    parent=self)
+                return False
+            if new_prepared_max > 0 and len(self.selected_new_spells) < new_prepared_max:
+                messagebox.showwarning(
+                    "Missing Choice",
+                    f"Please select {new_prepared_max} new spell(s) on the Spells step.",
+                    parent=self)
+                return False
+        return True
 
     def _show_step(self, step: int):
         """Show *step* (1, 2, or 3) and update bottom buttons."""
@@ -229,11 +291,11 @@ class LevelUpWizard(tk.Toplevel):
                                    fill=tk.BOTH, expand=True)
             if has_spells:
                 self.next_btn.configure(text="Next: Spells \u2192",
-                                        command=lambda: self._show_step(2))
+                                        command=lambda: self._try_go_next(2))
                 self.next_btn.pack(side=tk.RIGHT)
             elif has_swap:
                 self.next_btn.configure(text="Next: Swap Spells \u2192",
-                                        command=lambda: self._show_step(3))
+                                        command=lambda: self._try_go_next(3))
                 self.next_btn.pack(side=tk.RIGHT)
             else:
                 self.confirm_btn.pack(side=tk.RIGHT)
@@ -246,7 +308,7 @@ class LevelUpWizard(tk.Toplevel):
             self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
             if has_swap:
                 self.next_btn.configure(text="Next: Swap Spells \u2192",
-                                        command=lambda: self._show_step(3))
+                                        command=lambda: self._try_go_next(3))
                 self.next_btn.pack(side=tk.RIGHT)
             else:
                 self.confirm_btn.pack(side=tk.RIGHT)
@@ -993,9 +1055,22 @@ class LevelUpWizard(tk.Toplevel):
                     lambda e, s=spell: self._show_swap_detail(s))
 
         # ── trace changes to update swap state ────────────────────
+        right_rbs = [w for w in right_inner.winfo_children() if isinstance(w, ttk.Radiobutton)]
+
         def _on_change(*_):
             forget = forget_var.get() or None
+
+            # Enforce right-side readonly state if no forget is selected
+            if forget is None:
+                learn_var.set("")
+                for rb in right_rbs:
+                    rb.configure(state=tk.DISABLED)
+            else:
+                for rb in right_rbs:
+                    rb.configure(state=tk.NORMAL)
+
             learn = learn_var.get() or None
+
             if kind == "cantrip":
                 self.swap_out_cantrip = forget
                 self.swap_in_cantrip = learn
@@ -1005,6 +1080,9 @@ class LevelUpWizard(tk.Toplevel):
 
         forget_var.trace_add("write", _on_change)
         learn_var.trace_add("write", _on_change)
+        
+        # Enforce initial states
+        _on_change()
 
     def _find_spell(self, name: str, class_name: str) -> dict | None:
         """Find a spell dict by name from the class spell list."""
@@ -1045,59 +1123,10 @@ class LevelUpWizard(tk.Toplevel):
 
     def _confirm(self):
         """Validate choices, apply the level-up, and close."""
-        # ── multiclass prereqs ────────────────────────────────────
-        if (self.class_slug != self.primary_class_slug
-                and self.character.class_level_in(self.class_slug) == 0):
-            met, reason = self.character.multiclass_prereqs_met(self.class_slug)
-            if not met:
-                messagebox.showwarning(
-                    "Prerequisites Not Met",
-                    f"Cannot multiclass into {self.class_slug.title()}:\n{reason}",
-                    parent=self)
-                return
-            pri_met, pri_reason = self.character.multiclass_prereqs_met(
-                self.primary_class_slug)
-            if not pri_met:
-                messagebox.showwarning(
-                    "Prerequisites Not Met",
-                    f"Cannot multiclass out of {self.primary_class_slug.title()}:\n{pri_reason}",
-                    parent=self)
-                return
-
-        # ── required step-1 choices ───────────────────────────────
-        if self.level_data:
-            features = self.level_data.get("features", [])
-            if any("Ability Score Improvement" in f for f in features):
-                if not self.feat_var.get():
-                    messagebox.showwarning(
-                        "Missing Choice",
-                        "Please select a feat for your Ability Score Improvement.",
-                        parent=self)
-                    return
-            if any("Subclass" in f and "Feature" not in f for f in features):
-                if not self.subclass_var.get():
-                    messagebox.showwarning(
-                        "Missing Choice", "Please select a subclass.",
-                        parent=self)
-                    return
-
-        # ── required step-2 choices (spells) ──────────────────────
-        if self._has_new_spell_options():
-            new_cantrips_max, new_prepared_max, _ = self._spell_deltas()
-            if new_cantrips_max > 0 and len(self.selected_new_cantrips) < new_cantrips_max:
-                messagebox.showwarning(
-                    "Missing Choice",
-                    f"Please select {new_cantrips_max} new cantrip(s) on the Spells step.",
-                    parent=self)
-                self._show_step(2)
-                return
-            if new_prepared_max > 0 and len(self.selected_new_spells) < new_prepared_max:
-                messagebox.showwarning(
-                    "Missing Choice",
-                    f"Please select {new_prepared_max} new spell(s) on the Spells step.",
-                    parent=self)
-                self._show_step(2)
-                return
+        if not self._validate_step1():
+            return
+        if self._has_new_spell_options() and not self._validate_step2():
+            return
 
         # ── validate swap choices (incomplete = picked forget but not learn) ─
         if self.swap_out_cantrip and not self.swap_in_cantrip:
@@ -1113,6 +1142,14 @@ class LevelUpWizard(tk.Toplevel):
                 "You selected a spell to forget but didn't pick one to learn.",
                 parent=self)
             self._show_step(3)
+            return
+
+        # ── confirmation dialog ──────────────────────────────────
+        if not messagebox.askyesno(
+            "Confirm Level Up",
+            "Are you sure? These changes will be permanently saved.",
+            parent=self,
+        ):
             return
 
         # ── build ClassLevel ──────────────────────────────────────
