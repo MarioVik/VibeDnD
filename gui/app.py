@@ -256,11 +256,7 @@ class CharacterCreatorApp:
             command=self._save_and_finish,
         ).pack(side=tk.LEFT, padx=12)
 
-        ttk.Button(top, text="Export Character",
-                   command=self._export_json).pack(side=tk.RIGHT, padx=4)
 
-        ttk.Button(top, text="Export PDF",
-                   command=self._export_pdf).pack(side=tk.RIGHT, padx=4)
 
         # Main horizontal split: notebook (left) + summary (right)
         paned = ttk.PanedWindow(frame, orient=tk.HORIZONTAL)

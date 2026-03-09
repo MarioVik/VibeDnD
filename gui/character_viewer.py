@@ -31,11 +31,6 @@ class CharacterViewer(ttk.Frame):
             command=self._on_back,
         ).pack(side=tk.LEFT)
 
-        ttk.Button(
-            top, text="Edit Character",
-            style="Accent.TButton",
-            command=self._on_edit,
-        ).pack(side=tk.LEFT, padx=8)
 
         if self.character.level < 20:
             ttk.Button(
@@ -57,6 +52,12 @@ class CharacterViewer(ttk.Frame):
                    command=self._export_json).pack(side=tk.RIGHT, padx=4)
         ttk.Button(top, text="Export PDF",
                    command=self._export_pdf).pack(side=tk.RIGHT, padx=4)
+
+        ttk.Button(
+            top, text="Respec character",
+            style="Accent.TButton",
+            command=self._on_edit,
+        ).pack(side=tk.RIGHT, padx=8)
 
         # ── Character sheet ─────────────────────────────────────
         scroll = ScrollableFrame(self)
