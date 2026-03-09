@@ -62,6 +62,10 @@ def character_to_save_dict(character: Character) -> dict:
                 "feat_choice": cl.feat_choice,
                 "new_cantrips": list(cl.new_cantrips),
                 "new_spells": list(cl.new_spells),
+                "swapped_out_cantrip": cl.swapped_out_cantrip,
+                "swapped_in_cantrip": cl.swapped_in_cantrip,
+                "swapped_out_spell": cl.swapped_out_spell,
+                "swapped_in_spell": cl.swapped_in_spell,
                 "hp_roll": cl.hp_roll,
                 "hit_die": cl.hit_die,
             }
@@ -129,6 +133,10 @@ def save_dict_to_character(data: dict, game_data) -> Character:
                 feat_choice=cl.get("feat_choice"),
                 new_cantrips=cl.get("new_cantrips", []),
                 new_spells=cl.get("new_spells", []),
+                swapped_out_cantrip=cl.get("swapped_out_cantrip"),
+                swapped_in_cantrip=cl.get("swapped_in_cantrip"),
+                swapped_out_spell=cl.get("swapped_out_spell"),
+                swapped_in_spell=cl.get("swapped_in_spell"),
                 hp_roll=cl.get("hp_roll"),
                 hit_die=cl.get("hit_die", 0),
             )

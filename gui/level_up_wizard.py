@@ -18,6 +18,9 @@ _SLOT_ORDER = {
     "6th": 6, "7th": 7, "8th": 8, "9th": 9,
 }
 
+# Classes that can swap one cantrip/spell when gaining a level
+_SWAP_CLASSES = {"bard", "sorcerer", "warlock"}
+
 
 class LevelUpWizard(tk.Toplevel):
     """Modal dialog that walks the player through gaining one level."""
@@ -59,6 +62,12 @@ class LevelUpWizard(tk.Toplevel):
         self.spell_vars: dict[str, dict] = {}
         self.cantrip_checkbuttons: dict[str, ttk.Checkbutton] = {}
         self.spell_checkbuttons: dict[str, ttk.Checkbutton] = {}
+
+        # Swap-step state
+        self.swap_out_cantrip: str | None = None
+        self.swap_in_cantrip: str | None = None
+        self.swap_out_spell: str | None = None
+        self.swap_in_spell: str | None = None
 
         self._build_ui()
 
@@ -105,46 +114,57 @@ class LevelUpWizard(tk.Toplevel):
         new_cantrips, new_prepared, _ = self._spell_deltas()
         return new_cantrips > 0 or new_prepared > 0
 
+    def _can_swap(self) -> tuple[bool, bool]:
+        """Return (can_swap_cantrips, can_swap_spells)."""
+        if self.class_slug not in _SWAP_CLASSES:
+            return False, False
+        has_cantrips = len(self.character.selected_cantrips) > 0
+        has_spells = len(self.character.selected_spells) > 0
+        return has_cantrips, has_spells
+
+    def _has_swap_step(self) -> bool:
+        can_c, can_s = self._can_swap()
+        return can_c or can_s
+
     # ------------------------------------------------------------------
     # UI skeleton
     # ------------------------------------------------------------------
 
     def _build_ui(self):
         # ── Header ────────────────────────────────────────────────
-        header = ttk.Frame(self)
-        header.pack(fill=tk.X, padx=16, pady=(16, 8))
+        self.header_frame = ttk.Frame(self)
+        self.header_frame.pack(fill=tk.X, padx=16, pady=(16, 8))
 
         self.header_label = ttk.Label(
-            header, text=self._header_text(),
+            self.header_frame, text=self._header_text(),
             font=("Segoe UI", 16, "bold"), foreground=COLORS["accent"],
         )
         self.header_label.pack(side=tk.LEFT)
 
         ttk.Label(
-            header, text=f"(Total Level {self.new_total_level})",
+            self.header_frame, text=f"(Total Level {self.new_total_level})",
             font=FONTS["body"], foreground=COLORS["fg_dim"],
         ).pack(side=tk.LEFT, padx=8)
 
         # ── Multiclass selector ───────────────────────────────────
-        mc_frame = ttk.Frame(self)
-        mc_frame.pack(fill=tk.X, padx=16, pady=(0, 4))
+        self.mc_frame = ttk.Frame(self)
+        self.mc_frame.pack(fill=tk.X, padx=16, pady=(0, 4))
 
-        ttk.Label(mc_frame, text="Class:", foreground=COLORS["fg"]).pack(side=tk.LEFT)
+        ttk.Label(self.mc_frame, text="Class:", foreground=COLORS["fg"]).pack(side=tk.LEFT)
         class_options = [cls["slug"] for cls in self.data.classes]
         self.class_combo = ttk.Combobox(
-            mc_frame, textvariable=self.class_var,
+            self.mc_frame, textvariable=self.class_var,
             values=class_options, state="readonly", width=20,
         )
         self.class_combo.pack(side=tk.LEFT, padx=8)
 
-        self.prereq_label = ttk.Label(mc_frame, text="", foreground="#e74c3c")
+        self.prereq_label = ttk.Label(self.mc_frame, text="", foreground="#e74c3c")
         self.prereq_label.pack(side=tk.LEFT, padx=8)
 
         self.class_var.trace_add("write", self._on_class_change)
 
         # ── Content container (holds step frames) ─────────────────
         self.content_container = ttk.Frame(self)
-        self.content_container.pack(fill=tk.BOTH, expand=True, padx=16, pady=4)
 
         # Step 1 – features / HP / ASI / subclass
         self.step1_scroll = ScrollableFrame(self.content_container)
@@ -153,9 +173,15 @@ class LevelUpWizard(tk.Toplevel):
         # Step 2 – spell selection (built lazily)
         self.step2_frame = ttk.Frame(self.content_container)
 
-        # ── Bottom buttons ────────────────────────────────────────
+        # Step 3 – spell swap (built lazily)
+        self.step3_frame = ttk.Frame(self.content_container)
+
+        # ── Bottom buttons (pack BEFORE content so they always get space) ──
         self.btn_frame = ttk.Frame(self)
-        self.btn_frame.pack(fill=tk.X, padx=16, pady=(8, 16))
+        self.btn_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=16, pady=(8, 16))
+
+        # Now pack content container to fill remaining space
+        self.content_container.pack(fill=tk.BOTH, expand=True, padx=16, pady=4)
 
         self.cancel_btn = ttk.Button(self.btn_frame, text="Cancel", command=self.destroy)
         self.cancel_btn.pack(side=tk.LEFT)
@@ -180,24 +206,57 @@ class LevelUpWizard(tk.Toplevel):
         self._show_step(1)
 
     def _show_step(self, step: int):
-        """Show *step* (1 or 2) and update bottom buttons."""
+        """Show *step* (1, 2, or 3) and update bottom buttons."""
         self.step1_scroll.pack_forget()
         self.step2_frame.pack_forget()
+        self.step3_frame.pack_forget()
         self.confirm_btn.pack_forget()
         self.next_btn.pack_forget()
         self.back_btn.pack_forget()
 
+        # Only show multiclass selector on step 1
+        if step == 1:
+            self.mc_frame.pack(fill=tk.X, padx=16, pady=(0, 4),
+                               after=self.header_frame)
+        else:
+            self.mc_frame.pack_forget()
+
+        has_spells = self._has_new_spell_options()
+        has_swap = self._has_swap_step()
+
         if step == 1:
             self.step1_scroll.pack(in_=self.content_container,
                                    fill=tk.BOTH, expand=True)
-            if self._has_new_spell_options():
+            if has_spells:
+                self.next_btn.configure(text="Next: Spells \u2192",
+                                        command=lambda: self._show_step(2))
+                self.next_btn.pack(side=tk.RIGHT)
+            elif has_swap:
+                self.next_btn.configure(text="Next: Swap Spells \u2192",
+                                        command=lambda: self._show_step(3))
                 self.next_btn.pack(side=tk.RIGHT)
             else:
                 self.confirm_btn.pack(side=tk.RIGHT)
-        else:
+
+        elif step == 2:
             self._build_spell_step()
             self.step2_frame.pack(in_=self.content_container,
                                   fill=tk.BOTH, expand=True)
+            self.back_btn.configure(command=lambda: self._show_step(1))
+            self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
+            if has_swap:
+                self.next_btn.configure(text="Next: Swap Spells \u2192",
+                                        command=lambda: self._show_step(3))
+                self.next_btn.pack(side=tk.RIGHT)
+            else:
+                self.confirm_btn.pack(side=tk.RIGHT)
+
+        elif step == 3:
+            self._build_swap_step()
+            self.step3_frame.pack(in_=self.content_container,
+                                  fill=tk.BOTH, expand=True)
+            prev_step = 2 if has_spells else 1
+            self.back_btn.configure(command=lambda: self._show_step(prev_step))
             self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
             self.confirm_btn.pack(side=tk.RIGHT)
 
@@ -756,6 +815,231 @@ class LevelUpWizard(tk.Toplevel):
         self.spell_detail_text.configure(state=tk.DISABLED)
 
     # ------------------------------------------------------------------
+    # Step 3 – spell swap
+    # ------------------------------------------------------------------
+
+    def _build_swap_step(self):
+        """Build (or rebuild) the spell swap UI in step3_frame.
+
+        Split view: left = pick a spell to forget, right = pick a spell to learn.
+        Separate sections for cantrip swap and spell swap.
+        """
+        for w in self.step3_frame.winfo_children():
+            w.destroy()
+        self.swap_out_cantrip = None
+        self.swap_in_cantrip = None
+        self.swap_out_spell = None
+        self.swap_in_spell = None
+
+        can_swap_cantrips, can_swap_spells = self._can_swap()
+        class_name = (self.selected_class_data.get("name", "")
+                      if self.selected_class_data else "")
+        _, _, max_spell_level = self._spell_deltas()
+        if max_spell_level == 0 and self.level_data:
+            curr_slots = self.level_data.get("spell_slots") or {}
+            max_spell_level = max(
+                (_SLOT_ORDER.get(k, 0) for k in curr_slots), default=0)
+
+        # ── heading ───────────────────────────────────────────────
+        ttk.Label(
+            self.step3_frame, text="Swap Spells (optional)",
+            font=FONTS["heading"], foreground=COLORS["accent"],
+        ).pack(anchor="w", pady=(4, 2))
+        ttk.Label(
+            self.step3_frame,
+            text="You may replace one known spell with a different one.",
+            foreground=COLORS["fg"],
+        ).pack(anchor="w", padx=4, pady=(0, 4))
+
+        # Scrollable container for swap sections
+        swap_scroll_frame = ttk.Frame(self.step3_frame)
+        swap_scroll_frame.pack(fill=tk.BOTH, expand=True)
+
+        swap_canvas = tk.Canvas(swap_scroll_frame, bg=COLORS["bg"],
+                                highlightthickness=0, borderwidth=0)
+        swap_sb = ttk.Scrollbar(swap_scroll_frame, orient=tk.VERTICAL,
+                                command=swap_canvas.yview)
+        swap_inner = ttk.Frame(swap_canvas)
+        swap_inner.bind("<Configure>",
+                        lambda e: swap_canvas.configure(
+                            scrollregion=swap_canvas.bbox("all")))
+        cw = swap_canvas.create_window((0, 0), window=swap_inner, anchor="nw")
+        swap_canvas.configure(yscrollcommand=swap_sb.set)
+        swap_canvas.bind("<Configure>",
+                         lambda e, _cw=cw: swap_canvas.itemconfig(
+                             _cw, width=e.width))
+        swap_sb.pack(side=tk.RIGHT, fill=tk.Y)
+        swap_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        def _on_wheel(event):
+            swap_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        swap_inner.bind("<Enter>",
+                        lambda e: swap_canvas.bind_all("<MouseWheel>", _on_wheel))
+        swap_inner.bind("<Leave>",
+                        lambda e: swap_canvas.unbind_all("<MouseWheel>"))
+
+        def _section_header(parent, title):
+            ttk.Label(
+                parent, text=f"\u2500\u2500 {title} \u2500\u2500",
+                foreground=COLORS["accent"], font=FONTS["body"],
+            ).pack(anchor="w", pady=(6, 2))
+
+        # Shared spell detail panel at the bottom
+        self._swap_detail_var = None  # will be set after sections
+
+        # ── cantrip swap ──────────────────────────────────────────
+        if can_swap_cantrips:
+            _section_header(swap_inner, "Cantrip Swap (optional)")
+            self._build_swap_section(
+                swap_inner, "cantrip", class_name, max_spell_level)
+
+        # ── spell swap ────────────────────────────────────────────
+        if can_swap_spells:
+            _section_header(swap_inner, "Spell Swap (optional)")
+            self._build_swap_section(
+                swap_inner, "spell", class_name, max_spell_level)
+
+        # ── shared spell detail ───────────────────────────────────
+        detail_lf = ttk.LabelFrame(self.step3_frame, text="Spell Details")
+        detail_lf.pack(fill=tk.X, padx=0, pady=(4, 0))
+
+        self.swap_detail_text = tk.Text(
+            detail_lf, wrap=tk.WORD, height=6,
+            bg=COLORS["bg_light"], fg=COLORS["fg"],
+            font=FONTS["body"], borderwidth=0, state=tk.DISABLED,
+        )
+        self.swap_detail_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+
+    def _build_swap_section(self, parent, kind: str, class_name: str,
+                            max_spell_level: int):
+        """Build a single swap section (cantrip or spell).
+
+        *kind* is ``"cantrip"`` or ``"spell"``.
+        """
+        cols = ttk.Frame(parent)
+        cols.pack(fill=tk.X, pady=(2, 4), padx=4)
+        cols.columnconfigure(0, weight=1)
+        cols.columnconfigure(1, weight=1)
+
+        # ── Left: Forget ──────────────────────────────────────────
+        left_lf = ttk.LabelFrame(cols, text="Forget")
+        left_lf.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+
+        forget_var = tk.StringVar(value="")
+
+        left_outer = ttk.Frame(left_lf)
+        left_outer.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        left_canvas, left_inner = self._make_scrollable_list(left_outer)
+
+        ttk.Radiobutton(
+            left_inner, text="Don't swap", variable=forget_var, value="",
+        ).pack(anchor="w", pady=1)
+
+        if kind == "cantrip":
+            known = list(self.character.selected_cantrips)
+        else:
+            known = list(self.character.selected_spells)
+
+        for name in sorted(known):
+            rb = ttk.Radiobutton(
+                left_inner, text=name, variable=forget_var, value=name,
+            )
+            rb.pack(anchor="w", pady=1)
+            # Hover to show detail
+            spell_data = self._find_spell(name, class_name)
+            if spell_data:
+                rb.bind("<Enter>",
+                        lambda e, s=spell_data: self._show_swap_detail(s))
+
+        # ── Right: Learn ──────────────────────────────────────────
+        right_lf = ttk.LabelFrame(cols, text="Learn")
+        right_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
+
+        learn_var = tk.StringVar(value="")
+
+        right_outer = ttk.Frame(right_lf)
+        right_outer.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        right_canvas, right_inner = self._make_scrollable_list(right_outer)
+
+        if kind == "cantrip":
+            all_available = self.data.cantrips_for_class(class_name)
+            known_set = set(self.character.selected_cantrips)
+            # Also exclude cantrips being learned in step 2
+            known_set.update(self.selected_new_cantrips)
+        else:
+            all_available = self.data.spells_for_class(
+                class_name, max_level=max_spell_level)
+            all_available = [s for s in all_available if s.get("level", 0) >= 1]
+            known_set = set(self.character.selected_spells)
+            known_set.update(self.selected_new_spells)
+
+        available = [s for s in all_available if s["name"] not in known_set]
+        available.sort(key=lambda s: s["name"])
+
+        for spell in available:
+            text = f"{spell['name']} ({spell['school']}"
+            if kind == "spell":
+                if spell.get("concentration"):
+                    text += ", C"
+                if spell.get("ritual"):
+                    text += ", R"
+            text += ")"
+            rb = ttk.Radiobutton(
+                right_inner, text=text, variable=learn_var,
+                value=spell["name"],
+            )
+            rb.pack(anchor="w", pady=1)
+            rb.bind("<Enter>",
+                    lambda e, s=spell: self._show_swap_detail(s))
+
+        # ── trace changes to update swap state ────────────────────
+        def _on_change(*_):
+            forget = forget_var.get() or None
+            learn = learn_var.get() or None
+            if kind == "cantrip":
+                self.swap_out_cantrip = forget
+                self.swap_in_cantrip = learn
+            else:
+                self.swap_out_spell = forget
+                self.swap_in_spell = learn
+
+        forget_var.trace_add("write", _on_change)
+        learn_var.trace_add("write", _on_change)
+
+    def _find_spell(self, name: str, class_name: str) -> dict | None:
+        """Find a spell dict by name from the class spell list."""
+        for s in self.data.spells_for_class(class_name, max_level=9):
+            if s["name"] == name:
+                return s
+        for s in self.data.cantrips_for_class(class_name):
+            if s["name"] == name:
+                return s
+        return None
+
+    def _show_swap_detail(self, spell):
+        """Show spell detail in the swap step's detail panel."""
+        self.swap_detail_text.configure(state=tk.NORMAL)
+        self.swap_detail_text.delete("1.0", tk.END)
+        lines = [
+            spell["name"],
+            f"{'Cantrip' if spell['level'] == 0 else 'Level ' + str(spell['level'])} "
+            f"{spell['school']}",
+            f"Casting Time: {spell.get('casting_time', '?')}"
+            f"{'  (Ritual)' if spell.get('ritual') else ''}",
+            f"Range: {spell.get('range', '?')}",
+            f"Duration: {'Concentration, ' if spell.get('concentration') else ''}"
+            f"{spell.get('duration', '?')}",
+            "",
+            spell.get("description", "")[:500],
+        ]
+        if spell.get("higher_levels"):
+            lines.extend(["", f"At Higher Levels: {spell['higher_levels'][:200]}"])
+        if spell.get("cantrip_upgrade"):
+            lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade'][:200]}"])
+        self.swap_detail_text.insert("1.0", "\n".join(lines))
+        self.swap_detail_text.configure(state=tk.DISABLED)
+
+    # ------------------------------------------------------------------
     # Confirm
     # ------------------------------------------------------------------
 
@@ -815,6 +1099,22 @@ class LevelUpWizard(tk.Toplevel):
                 self._show_step(2)
                 return
 
+        # ── validate swap choices (incomplete = picked forget but not learn) ─
+        if self.swap_out_cantrip and not self.swap_in_cantrip:
+            messagebox.showwarning(
+                "Incomplete Swap",
+                "You selected a cantrip to forget but didn't pick one to learn.",
+                parent=self)
+            self._show_step(3)
+            return
+        if self.swap_out_spell and not self.swap_in_spell:
+            messagebox.showwarning(
+                "Incomplete Swap",
+                "You selected a spell to forget but didn't pick one to learn.",
+                parent=self)
+            self._show_step(3)
+            return
+
         # ── build ClassLevel ──────────────────────────────────────
         hit_die = (self.selected_class_data.get("hit_die", 8)
                    if self.selected_class_data else 8)
@@ -838,13 +1138,30 @@ class LevelUpWizard(tk.Toplevel):
         if self.feat_var.get():
             cl.feat_choice = self.feat_var.get()
 
-        # Store spell choices on the ClassLevel
         cl.new_cantrips = list(self.selected_new_cantrips)
         cl.new_spells = list(self.selected_new_spells)
 
-        # Merge into character's overall spell lists
+        # Store swap choices on the ClassLevel
+        if self.swap_out_cantrip and self.swap_in_cantrip:
+            cl.swapped_out_cantrip = self.swap_out_cantrip
+            cl.swapped_in_cantrip = self.swap_in_cantrip
+        if self.swap_out_spell and self.swap_in_spell:
+            cl.swapped_out_spell = self.swap_out_spell
+            cl.swapped_in_spell = self.swap_in_spell
+
+        # Merge new spells into character's overall spell lists
         self.character.selected_cantrips.extend(self.selected_new_cantrips)
         self.character.selected_spells.extend(self.selected_new_spells)
+
+        # Apply swaps to character's spell lists
+        if cl.swapped_out_cantrip and cl.swapped_in_cantrip:
+            if cl.swapped_out_cantrip in self.character.selected_cantrips:
+                self.character.selected_cantrips.remove(cl.swapped_out_cantrip)
+            self.character.selected_cantrips.append(cl.swapped_in_cantrip)
+        if cl.swapped_out_spell and cl.swapped_in_spell:
+            if cl.swapped_out_spell in self.character.selected_spells:
+                self.character.selected_spells.remove(cl.swapped_out_spell)
+            self.character.selected_spells.append(cl.swapped_in_spell)
 
         # Apply to character
         self.character.class_levels.append(cl)
