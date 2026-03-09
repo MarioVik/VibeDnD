@@ -22,137 +22,6 @@ from gui.home_screen import HomeScreen
 from gui.character_viewer import CharacterViewer
 
 
-class SummaryPanel(ttk.Frame):
-    """Live-updating summary panel on the right side of the wizard."""
-
-    def __init__(self, parent, character: Character):
-        super().__init__(parent, style="Card.TFrame")
-        self.character = character
-
-        self.scroll = ScrollableFrame(self)
-        self.scroll.pack(fill=tk.BOTH, expand=True)
-        self.inner = self.scroll.inner
-        self.inner.configure(style="Card.TFrame")
-        self.scroll.canvas.configure(bg=COLORS["bg_card"])
-
-        self._build()
-
-    def _build(self):
-        for w in self.inner.winfo_children():
-            w.destroy()
-
-        c = self.character
-
-        # Title
-        ttk.Label(self.inner, text="Character", style="CardHeading.TLabel").pack(
-            anchor="w", padx=8, pady=(8, 2))
-
-        self.summary_label = WrappingLabel(self.inner, text=c.summary_text(),
-                                        style="Card.TLabel")
-        self.summary_label.pack(fill=tk.X, anchor="w", padx=8)
-
-        ttk.Separator(self.inner, orient=tk.HORIZONTAL).pack(fill=tk.X, padx=4, pady=6)
-
-        # Stats
-        stats_frame = ttk.Frame(self.inner, style="Card.TFrame")
-        stats_frame.pack(fill=tk.X, padx=8)
-
-        self.stat_labels = {}
-        for label in ["HP", "AC", "Speed", "Init"]:
-            row = ttk.Frame(stats_frame, style="Card.TFrame")
-            row.pack(fill=tk.X, pady=1)
-            ttk.Label(row, text=f"{label}:", width=8,
-                      background=COLORS["bg_card"], foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
-            val_label = ttk.Label(row, text="\u2014", background=COLORS["bg_card"],
-                                  foreground=COLORS["fg_bright"], font=FONTS["subheading"])
-            val_label.pack(side=tk.LEFT)
-            self.stat_labels[label] = val_label
-
-        ttk.Separator(self.inner, orient=tk.HORIZONTAL).pack(fill=tk.X, padx=4, pady=6)
-
-        # Ability scores
-        ttk.Label(self.inner, text="Abilities", style="CardHeading.TLabel").pack(
-            anchor="w", padx=8, pady=(0, 2))
-
-        self.ability_labels = {}
-        ab_frame = ttk.Frame(self.inner, style="Card.TFrame")
-        ab_frame.pack(fill=tk.X, padx=8)
-
-        for ability_name in ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]:
-            row = ttk.Frame(ab_frame, style="Card.TFrame")
-            row.pack(fill=tk.X, pady=1)
-            short = ability_name[:3].upper()
-            ttk.Label(row, text=f"{short}:", width=6,
-                      background=COLORS["bg_card"], foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
-            val_label = ttk.Label(row, text="10 (+0)", background=COLORS["bg_card"],
-                                  foreground=COLORS["fg"])
-            val_label.pack(side=tk.LEFT)
-            self.ability_labels[ability_name] = val_label
-
-        ttk.Separator(self.inner, orient=tk.HORIZONTAL).pack(fill=tk.X, padx=4, pady=6)
-
-        # Selections summary
-        ttk.Label(self.inner, text="Choices", style="CardHeading.TLabel").pack(
-            anchor="w", padx=8, pady=(0, 2))
-
-        self.choices_frame = ttk.Frame(self.inner, style="Card.TFrame")
-        self.choices_frame.pack(fill=tk.X, padx=8)
-
-        self.choice_labels = {}
-        for label in ["Species", "Class", "Background", "Feat", "Skills"]:
-            row = ttk.Frame(self.choices_frame, style="Card.TFrame")
-            row.pack(fill=tk.X, pady=1)
-            ttk.Label(row, text=f"{label}:", width=10,
-                      background=COLORS["bg_card"], foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
-            val_label = WrappingLabel(row, text="\u2014", background=COLORS["bg_card"],
-                                  foreground=COLORS["fg"])
-            val_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
-            self.choice_labels[label] = val_label
-
-    def refresh(self):
-        """Update all labels from current character state."""
-        c = self.character
-
-        self.summary_label.configure(text=c.summary_text())
-
-        # Combat stats
-        if c.character_class:
-            self.stat_labels["HP"].configure(text=str(c.hit_points))
-            self.stat_labels["AC"].configure(text=str(c.armor_class))
-        else:
-            self.stat_labels["HP"].configure(text="\u2014")
-            self.stat_labels["AC"].configure(text="\u2014")
-
-        self.stat_labels["Speed"].configure(text=f"{c.speed} ft")
-        init = c.initiative
-        self.stat_labels["Init"].configure(text=f"+{init}" if init >= 0 else str(init))
-
-        # Abilities
-        for ability_name in ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]:
-            total = c.ability_scores.total(ability_name)
-            mod_str = c.ability_scores.modifier_str(ability_name)
-            self.ability_labels[ability_name].configure(text=f"{total} ({mod_str})")
-
-        # Choices
-        self.choice_labels["Species"].configure(
-            text=c.species_name + (f" ({c.species_sub_choice})" if c.species_sub_choice else ""))
-        self.choice_labels["Class"].configure(text=c.class_name)
-        self.choice_labels["Background"].configure(text=c.background_name)
-
-        feat_parts = []
-        if c.feat:
-            if c.background and c.background.get("feat"):
-                feat_parts.append(c.background["feat"])
-            else:
-                feat_parts.append(c.feat.get("name", "?"))
-        if c.species_origin_feat:
-            feat_parts.append(c.species_origin_feat.get("name", "?"))
-        self.choice_labels["Feat"].configure(text=", ".join(feat_parts) if feat_parts else "\u2014")
-
-        all_skills = sorted(c.all_skill_proficiencies)
-        self.choice_labels["Skills"].configure(text=", ".join(all_skills) if all_skills else "\u2014")
-
-
 class CharacterCreatorApp:
     """Main application window with screen management."""
 
@@ -230,7 +99,7 @@ class CharacterCreatorApp:
     # ── Wizard builder ──────────────────────────────────────────
 
     def _build_wizard(self, character, save_path=None):
-        """Create the wizard frame containing notebook + summary panel."""
+        """Create the wizard frame containing the step notebook."""
         frame = ttk.Frame(self.container)
 
         # Top bar with back button + save/export buttons
@@ -256,17 +125,9 @@ class CharacterCreatorApp:
             command=self._save_and_finish,
         ).pack(side=tk.LEFT, padx=12)
 
-
-
-        # Main horizontal split: notebook (left) + summary (right)
-        paned = ttk.PanedWindow(frame, orient=tk.HORIZONTAL)
-        paned.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
-
-        notebook = ttk.Notebook(paned)
-        summary = SummaryPanel(paned, character)
-
-        paned.add(notebook, weight=3)
-        paned.add(summary, weight=1)
+        # Notebook for wizard steps
+        notebook = ttk.Notebook(frame)
+        notebook.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
         # Create wizard steps
         steps = [
@@ -280,10 +141,6 @@ class CharacterCreatorApp:
             SummaryStep(notebook, character, self.data,
                         app=self, save_path=save_path),
         ]
-
-        # Register change callbacks
-        for step in steps:
-            step.on_change_callbacks.append(summary.refresh)
 
         # Tab change event
         def on_tab_change(event):
