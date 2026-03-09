@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import ScrollableFrame
+from gui.widgets import ScrollableFrame, ConfirmDialog, AlertDialog
 from models.character_store import list_saved_characters, delete_character
 from paths import characters_dir
 
@@ -149,7 +149,7 @@ class HomeScreen:
             save_path = save_character(character, characters_dir())
             self.app.show_viewer(character, save_path)
         except Exception as e:
-            messagebox.showerror("Import Error", f"Could not import character:\n{e}")
+            AlertDialog(self.frame, "Import Error", f"Could not import character:\n{e}")
 
     def _on_view(self, path):
         from models.character_store import load_character
@@ -157,10 +157,13 @@ class HomeScreen:
             character = load_character(path, self.app.data)
             self.app.show_viewer(character, path)
         except Exception as e:
-            messagebox.showerror("Load Error", f"Could not load character:\n{e}")
+            AlertDialog(self.frame, "Load Error", f"Could not load character:\n{e}")
 
     def _on_delete(self, path):
-        if messagebox.askyesno("Delete Character",
-                               "Are you sure you want to delete this character?"):
+        dlg = ConfirmDialog(
+            self.frame, "Delete Character",
+            "Are you sure you want to delete this character?"
+        )
+        if dlg.result:
             delete_character(path)
             self.refresh()

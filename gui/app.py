@@ -5,7 +5,7 @@ from tkinter import ttk, filedialog, messagebox
 
 from gui.theme import apply_theme, COLORS, FONTS
 from gui.data_loader import GameData
-from gui.widgets import ScrollableFrame, WrappingLabel
+from gui.widgets import ScrollableFrame, WrappingLabel, AlertDialog
 from models.character import Character
 from models.enums import ALL_SKILLS
 
@@ -299,8 +299,8 @@ class CharacterCreatorApp:
 
     def _save_and_finish(self):
         if not self.character or not self.character.name or self.character.name == "New Character":
-            messagebox.showwarning("Name Required",
-                                   "Please enter a character name on the Summary tab before saving.")
+            AlertDialog(self.root, "Name Required",
+                        "Please enter a character name on the Summary tab before saving.")
             return
 
         from models.character_store import save_character
@@ -329,7 +329,7 @@ class CharacterCreatorApp:
             data = character_to_save_dict(self.character)
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
-            messagebox.showinfo("Export", f"Character saved to {path}")
+            AlertDialog(self.root, "Export", f"Character saved to {path}")
 
     def _export_pdf(self):
         if not self.character:
@@ -343,9 +343,9 @@ class CharacterCreatorApp:
         if path:
             try:
                 export_pdf(self.character, path)
-                messagebox.showinfo("Export", f"PDF character sheet saved to {path}")
+                AlertDialog(self.root, "Export", f"PDF character sheet saved to {path}")
             except Exception as e:
-                messagebox.showerror("Export Error", f"Failed to generate PDF:\n{e}")
+                AlertDialog(self.root, "Export Error", f"Failed to generate PDF:\n{e}")
 
     def run(self):
         self.root.mainloop()

@@ -269,3 +269,121 @@ class StatDisplay(ttk.Frame):
             self.mod_label.configure(foreground=COLORS["negative"])
         else:
             self.mod_label.configure(foreground=COLORS["fg_dim"])
+
+
+class AlertDialog(tk.Toplevel):
+    """A custom centered alert/info dialog that matches the app theme."""
+    def __init__(self, parent, title, message):
+        super().__init__(parent)
+        self.title(title)
+        self.configure(bg=COLORS["bg"])
+        self.resizable(False, False)
+        
+        # Standard modal behavior
+        self.transient(parent)
+        self.grab_set()
+        
+        # UI
+        main_frame = ttk.Frame(self, padding=24)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        ttk.Label(
+            main_frame, text=message, wraplength=350, justify=tk.CENTER
+        ).pack(pady=(0, 24))
+        
+        btn_frame = ttk.Frame(main_frame)
+        btn_frame.pack(fill=tk.X)
+        
+        # OK button centered
+        self.ok_btn = ttk.Button(
+            btn_frame, text="OK", style="Accent.TButton", command=self.destroy
+        )
+        self.ok_btn.pack(side=tk.TOP, anchor="center")
+
+        # Centering logic
+        self.update_idletasks()
+        width = self.winfo_reqwidth()
+        height = self.winfo_reqheight()
+        
+        parent_x = parent.winfo_rootx()
+        parent_y = parent.winfo_rooty()
+        parent_width = parent.winfo_width()
+        parent_height = parent.winfo_height()
+        
+        x = parent_x + (parent_width // 2) - (width // 2)
+        y = parent_y + (parent_height // 2) - (height // 2)
+        
+        self.geometry(f"+{x}+{y}")
+        
+        self.bind("<Escape>", lambda e: self.destroy())
+        self.bind("<Return>", lambda e: self.destroy())
+        
+        self.ok_btn.focus_set()
+        self.wait_window(self)
+
+
+class ConfirmDialog(tk.Toplevel):
+    """A custom centered confirmation dialog that matches the app theme."""
+    def __init__(self, parent, title, message):
+        super().__init__(parent)
+        self.result = False
+        self.title(title)
+        self.configure(bg=COLORS["bg"])
+        self.resizable(False, False)
+        
+        # Standard modal behavior
+        self.transient(parent)
+        self.grab_set()
+        
+        # UI
+        main_frame = ttk.Frame(self, padding=24)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        ttk.Label(
+            main_frame, text=message, wraplength=350, justify=tk.CENTER
+        ).pack(pady=(0, 24))
+        
+        btn_frame = ttk.Frame(main_frame)
+        btn_frame.pack(fill=tk.X)
+        
+        # Cancel (No) is on the left, Confirm (Yes) is on the right
+        self.no_btn = ttk.Button(btn_frame, text="No", command=self._on_no)
+        self.no_btn.pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.yes_btn = ttk.Button(
+            btn_frame, text="Yes", style="Accent.TButton", command=self._on_yes
+        )
+        self.yes_btn.pack(side=tk.RIGHT)
+
+        # Centering logic
+        self.update_idletasks()
+        width = self.winfo_reqwidth()
+        height = self.winfo_reqheight()
+        
+        parent_x = parent.winfo_rootx()
+        parent_y = parent.winfo_rooty()
+        parent_width = parent.winfo_width()
+        parent_height = parent.winfo_height()
+        
+        x = parent_x + (parent_width // 2) - (width // 2)
+        y = parent_y + (parent_height // 2) - (height // 2)
+        
+        self.geometry(f"+{x}+{y}")
+        
+        self.bind("<Escape>", lambda e: self._on_no())
+        self.bind("<Return>", lambda e: self._on_yes())
+        
+        # Focus the Yes button by default
+        self.yes_btn.focus_set()
+        
+        self.wait_window(self)
+
+    def _on_yes(self):
+        self.result = True
+        self.destroy()
+
+    def _on_no(self):
+        self.result = False
+        self.destroy()
+
+

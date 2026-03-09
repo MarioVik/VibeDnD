@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import ScrollableFrame
+from gui.widgets import ScrollableFrame, AlertDialog
 from gui.sheet_builder import build_character_sheet
 from models.character_store import save_character
 from paths import characters_dir
@@ -96,7 +96,7 @@ class CharacterViewer(ttk.Frame):
             data = character_to_save_dict(self.character)
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
-            messagebox.showinfo("Export", f"Character saved to {path}")
+            AlertDialog(self.winfo_toplevel(), "Export", f"Character saved to {path}")
 
     def _export_pdf(self):
         from export.pdf_export import export_pdf
@@ -108,6 +108,6 @@ class CharacterViewer(ttk.Frame):
         if path:
             try:
                 export_pdf(self.character, path)
-                messagebox.showinfo("Export", f"PDF character sheet saved to {path}", parent=self.winfo_toplevel())
+                AlertDialog(self.winfo_toplevel(), "Export", f"PDF character sheet saved to {path}")
             except Exception as e:
-                messagebox.showerror("Export Error", f"Failed to generate PDF:\n{e}", parent=self.winfo_toplevel())
+                AlertDialog(self.winfo_toplevel(), "Export Error", f"Failed to generate PDF:\n{e}")

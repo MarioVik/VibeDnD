@@ -9,7 +9,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import ScrollableFrame, WrappingLabel
+from gui.widgets import ScrollableFrame, WrappingLabel, ConfirmDialog, AlertDialog
 from models.character import Character
 from models.class_level import ClassLevel
 
@@ -240,34 +240,30 @@ class LevelUpWizard(tk.Toplevel):
                 and self.character.class_level_in(self.class_slug) == 0):
             met, reason = self.character.multiclass_prereqs_met(self.class_slug)
             if not met:
-                messagebox.showwarning(
-                    "Prerequisites Not Met",
-                    f"Cannot multiclass into {self.class_slug.title()}:\n{reason}",
-                    parent=self)
+                AlertDialog(
+                    self, "Prerequisites Not Met",
+                    f"Cannot multiclass into {self.class_slug.title()}:\n{reason}")
                 return False
             pri_met, pri_reason = self.character.multiclass_prereqs_met(
                 self.primary_class_slug)
             if not pri_met:
-                messagebox.showwarning(
-                    "Prerequisites Not Met",
-                    f"Cannot multiclass out of {self.primary_class_slug.title()}:\n{pri_reason}",
-                    parent=self)
+                AlertDialog(
+                    self, "Prerequisites Not Met",
+                    f"Cannot multiclass out of {self.primary_class_slug.title()}:\n{pri_reason}")
                 return False
 
         if self.level_data:
             features = self.level_data.get("features", [])
             if any("Ability Score Improvement" in f for f in features):
                 if not self.feat_var.get():
-                    messagebox.showwarning(
-                        "Missing Choice",
-                        "Please select a feat for your Ability Score Improvement.",
-                        parent=self)
+                    AlertDialog(
+                        self, "Missing Choice",
+                        "Please select a feat for your Ability Score Improvement.")
                     return False
             if any("Subclass" in f and "Feature" not in f for f in features):
                 if not self.subclass_var.get():
-                    messagebox.showwarning(
-                        "Missing Choice", "Please select a subclass.",
-                        parent=self)
+                    AlertDialog(
+                        self, "Missing Choice", "Please select a subclass.")
                     return False
         return True
 
@@ -275,16 +271,14 @@ class LevelUpWizard(tk.Toplevel):
         if self._has_new_spell_options():
             new_cantrips_max, new_prepared_max, _ = self._spell_deltas()
             if new_cantrips_max > 0 and len(self.selected_new_cantrips) < new_cantrips_max:
-                messagebox.showwarning(
-                    "Missing Choice",
-                    f"Please select {new_cantrips_max} new cantrip(s) on the Spells step.",
-                    parent=self)
+                AlertDialog(
+                    self, "Missing Choice",
+                    f"Please select {new_cantrips_max} new cantrip(s) on the Spells step.")
                 return False
             if new_prepared_max > 0 and len(self.selected_new_spells) < new_prepared_max:
-                messagebox.showwarning(
-                    "Missing Choice",
-                    f"Please select {new_prepared_max} new spell(s) on the Spells step.",
-                    parent=self)
+                AlertDialog(
+                    self, "Missing Choice",
+                    f"Please select {new_prepared_max} new spell(s) on the Spells step.")
                 return False
         return True
 
@@ -1151,26 +1145,24 @@ class LevelUpWizard(tk.Toplevel):
 
         # ── validate swap choices (incomplete = picked forget but not learn) ─
         if self.swap_out_cantrip and not self.swap_in_cantrip:
-            messagebox.showwarning(
-                "Incomplete Swap",
-                "You selected a cantrip to forget but didn't pick one to learn.",
-                parent=self)
+            AlertDialog(
+                self, "Incomplete Swap",
+                "You selected a cantrip to forget but didn't pick one to learn.")
             self._show_step(3)
             return
         if self.swap_out_spell and not self.swap_in_spell:
-            messagebox.showwarning(
-                "Incomplete Swap",
-                "You selected a spell to forget but didn't pick one to learn.",
-                parent=self)
+            AlertDialog(
+                self, "Incomplete Swap",
+                "You selected a spell to forget but didn't pick one to learn.")
             self._show_step(3)
             return
 
         # ── confirmation dialog ──────────────────────────────────
-        if not messagebox.askyesno(
-            "Confirm Level Up",
-            "Are you sure? These changes will be permanently saved.",
-            parent=self,
-        ):
+        dlg = ConfirmDialog(
+            self, "Confirm Level Up", 
+            "Are you sure? These changes will be permanently saved."
+        )
+        if not dlg.result:
             return
 
         # ── build ClassLevel ──────────────────────────────────────
