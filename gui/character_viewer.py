@@ -108,6 +108,6 @@ class CharacterViewer(ttk.Frame):
         if path:
             try:
                 export_pdf(self.character, path)
-                messagebox.showinfo("Export", f"PDF character sheet saved to {path}")
+                messagebox.showinfo("Export", f"PDF character sheet saved to {path}", parent=self.winfo_toplevel())
             except Exception as e:
-                messagebox.showerror("Export Error", f"Failed to generate PDF:\n{e}")
+                messagebox.showerror("Export Error", f"Failed to generate PDF:\n{e}", parent=self.winfo_toplevel())

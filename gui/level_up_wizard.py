@@ -32,11 +32,32 @@ class LevelUpWizard(tk.Toplevel):
         self.on_complete = on_complete
 
         self.title(f"Level Up - {character.name}")
-        self.geometry("750x600")
+        # Center the window over the parent main window
+        self.update_idletasks()
+        width = 750
+        height = 600
+        
+        # Use winfo_toplevel() to get coordinates relative to the main app window
+        top = parent.winfo_toplevel()
+        parent_x = top.winfo_rootx()
+        parent_y = top.winfo_rooty()
+        parent_width = top.winfo_width()
+        parent_height = top.winfo_height()
+        
+        x = parent_x + (parent_width // 2) - (width // 2)
+        y = parent_y + (parent_height // 2) - (height // 2)
+        
+        # Ensure it's not off-screen
+        x = max(0, x)
+        y = max(0, y)
+        
+        self.geometry(f"{width}x{height}+{x}+{y}")
         self.minsize(650, 500)
         self.configure(bg=COLORS["bg"])
-        self.transient(parent)
+
+        self.transient(top)
         self.grab_set()
+        self.focus_set()
 
         # Determine what the next level will be
         self.new_total_level = character.level + 1
