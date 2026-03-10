@@ -188,6 +188,9 @@ class SpeciesStep(WizardStep):
 
         self.notify_change()
 
+    def is_valid(self) -> bool:
+        return self.character.species is not None
+
     def _on_size_change(self, *args):
         self.character.size_choice = self.size_var.get()
         self.notify_change()

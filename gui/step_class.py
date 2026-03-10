@@ -349,6 +349,11 @@ class ClassStep(WizardStep):
 
         self.notify_change()
 
+    def is_valid(self) -> bool:
+        if not self.character.character_class:
+            return False
+        return len(self.character.selected_skills) == self.skill_limit
+
     def _on_skill_change(self, *args):
         selected = [name for name, var in self.skill_vars.items() if var.get()]
 

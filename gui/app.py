@@ -154,6 +154,10 @@ class CharacterCreatorApp:
         
         # Add on_change callback to ClassStep index (1) to toggle spells tab
         self.wizard_steps[1].on_change_callbacks.append(self._update_spells_visibility)
+        
+        # Register nav updates for all steps
+        for step in self.wizard_steps:
+            step.on_change_callbacks.append(self._update_nav_buttons)
 
         # Hide all except first initially if new character
         if not save_path:
@@ -169,6 +173,8 @@ class CharacterCreatorApp:
             if 0 <= idx < len(self.wizard_steps):
                 self.wizard_steps[idx].on_enter()
                 # discovery
+                # Only show if valid? No, usually we allow clicking back to already discovered.
+                # But requirement is "visible when you step to them".
                 self.wizard_notebook.tab(idx, state="normal")
                 self._update_nav_buttons()
 
@@ -197,6 +203,9 @@ class CharacterCreatorApp:
 
     def _wizard_next(self):
         curr = self.wizard_notebook.index(self.wizard_notebook.select())
+        if not self.wizard_steps[curr].is_valid():
+            return
+
         if curr < len(self.wizard_steps) - 1:
             next_idx = curr + 1
             
@@ -224,10 +233,14 @@ class CharacterCreatorApp:
         curr = self.wizard_notebook.index(self.wizard_notebook.select())
         self.back_btn.configure(state=tk.NORMAL if curr > 0 else tk.DISABLED)
         
+        is_valid = self.wizard_steps[curr].is_valid()
+
         if curr == len(self.wizard_steps) - 1:
-            self.next_btn.configure(text="Finish \u2713", command=self._save_and_finish)
+            self.next_btn.configure(text="Finish \u2713", command=self._save_and_finish,
+                                   state=tk.NORMAL if is_valid else tk.DISABLED)
         else:
-            self.next_btn.configure(text="Next  \u25b6", command=self._wizard_next)
+            self.next_btn.configure(text="Next  \u25b6", command=self._wizard_next,
+                                   state=tk.NORMAL if is_valid else tk.DISABLED)
 
 
     # ── Save & Export ──────────────────────────────────────────

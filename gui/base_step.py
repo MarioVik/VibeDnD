@@ -27,6 +27,10 @@ class WizardStep(ABC):
         """Called when user navigates to this step. Override to refresh."""
         pass
 
+    def is_valid(self) -> bool:
+        """Return True if the step is complete and valid."""
+        return True
+
     def notify_change(self):
         """Notify that character data changed (update summary panel etc)."""
         for cb in self.on_change_callbacks:

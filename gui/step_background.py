@@ -216,6 +216,9 @@ class BackgroundStep(WizardStep):
 
         self._on_bonus_change()
 
+    def is_valid(self) -> bool:
+        return self.character.background is not None
+
     def _on_bonus_change(self, *args):
         self.character.ability_scores.clear_bonuses()
 

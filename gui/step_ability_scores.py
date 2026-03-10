@@ -203,6 +203,13 @@ class AbilityScoresStep(WizardStep):
             self.character.ability_scores.set_base(ab, val)
         self._update_display()
 
+    def is_valid(self) -> bool:
+        if self.method_var.get() == "point_buy":
+            return self.character.ability_scores.point_buy_total() == POINT_BUY_BUDGET
+        else:
+            # Standard array: simple check that all scores were assigned (already enforced by UI)
+            return True
+
     def _update_display(self):
         scores = self.character.ability_scores
 
