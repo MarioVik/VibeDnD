@@ -69,7 +69,11 @@ class EquipmentStep(WizardStep):
         ttk.Label(self.class_equip_frame, text=f"{cls['name']} Starting Equipment:",
                   style="Subheading.TLabel").pack(anchor="w", padx=8, pady=(4, 2))
 
-        for opt in equip_options:
+        for i, opt in enumerate(equip_options):
+            if i > 0:
+                ttk.Label(self.class_equip_frame, text="   or", 
+                         foreground=COLORS["fg_dim"], font=("Segoe UI", 9, "italic")).pack(anchor="w", padx=32)
+            
             ttk.Radiobutton(
                 self.class_equip_frame,
                 text=f"({opt['option']}) {opt['items']}",
@@ -99,7 +103,11 @@ class EquipmentStep(WizardStep):
         ttk.Label(self.bg_equip_frame, text=f"{bg['name']} Equipment:",
                   style="Subheading.TLabel").pack(anchor="w", padx=8, pady=(4, 2))
 
-        for opt in equip_options:
+        for i, opt in enumerate(equip_options):
+            if i > 0:
+                ttk.Label(self.bg_equip_frame, text="   or", 
+                         foreground=COLORS["fg_dim"], font=("Segoe UI", 9, "italic")).pack(anchor="w", padx=32)
+
             ttk.Radiobutton(
                 self.bg_equip_frame,
                 text=f"({opt['option']}) {opt['items']}",

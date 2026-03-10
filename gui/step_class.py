@@ -107,7 +107,11 @@ class ClassStep(WizardStep):
         if equip:
             ttk.Label(self.equip_frame, text="Starting Equipment",
                       style="Subheading.TLabel").pack(anchor="w", pady=(8, 4))
-            for opt in equip:
+            for i, opt in enumerate(equip):
+                if i > 0:
+                    ttk.Label(self.equip_frame, text="   or", 
+                             foreground=COLORS["fg_dim"], font=("Segoe UI", 9, "italic")).pack(anchor="w")
+                
                 WrappingLabel(self.equip_frame,
                           text=f"  ({opt['option']}) {opt['items']}",
                           foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w")
