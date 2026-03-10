@@ -40,6 +40,10 @@ class ClassStep(WizardStep):
 
         ttk.Separator(self.detail, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=8)
 
+        # Equipment - Top
+        self.equip_frame = ttk.Frame(self.detail)
+        self.equip_frame.pack(fill=tk.X)
+
         self.traits_frame = ttk.Frame(self.detail)
         self.traits_frame.pack(fill=tk.X)
 
@@ -93,9 +97,23 @@ class ClassStep(WizardStep):
         self.detail_source.configure(text=f"Source: {cls.get('source', 'Unknown')}")
         self.detail_desc.configure(text=cls.get("description", ""))
 
+        # Clear frames
+        for f in [self.equip_frame, self.traits_frame, self.skills_frame, self.features_frame]:
+            for w in f.winfo_children():
+                w.destroy()
+
+        # Equipment - Top
+        equip = cls.get("starting_equipment", [])
+        if equip:
+            ttk.Label(self.equip_frame, text="Starting Equipment",
+                      style="Subheading.TLabel").pack(anchor="w", pady=(8, 4))
+            for opt in equip:
+                WrappingLabel(self.equip_frame,
+                          text=f"  ({opt['option']}) {opt['items']}",
+                          foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w")
+            ttk.Separator(self.equip_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=16)
+
         # Core traits
-        for w in self.traits_frame.winfo_children():
-            w.destroy()
 
         info = [
             ("Hit Die", f"d{cls['hit_die']}"),
@@ -180,19 +198,19 @@ class ClassStep(WizardStep):
             
             # Initial setup of columns
             col_configs = [
-                {'id': 'lvl', 'text': 'Lvl', 'width': 35},
-                {'id': 'prof', 'text': 'PB', 'width': 35},
-                {'id': 'features', 'text': 'Features', 'width': 220, 'anchor': 'w', 'stretch': True},
+                {'id': 'lvl', 'text': 'Lvl', 'width': 40},
+                {'id': 'prof', 'text': 'Proficiency Bonus', 'width': 130},
+                {'id': 'features', 'text': 'Features', 'width': 350, 'anchor': 'w', 'stretch': True},
             ]
             if has_cantrips:
-                col_configs.append({'id': 'cantrips', 'text': 'Cntp', 'width': 40})
+                col_configs.append({'id': 'cantrips', 'text': 'Cntp', 'width': 50})
             if has_prepared:
-                col_configs.append({'id': 'prepared', 'text': 'Prep', 'width': 40})
+                col_configs.append({'id': 'prepared', 'text': 'Prep', 'width': 50})
             
             for s in sorted_slots:
-                col_configs.append({'id': s, 'text': s, 'width': 30})
+                col_configs.append({'id': s, 'text': s, 'width': 50})
             for e in sorted_extra:
-                col_configs.append({'id': e, 'text': e, 'width': 80})
+                col_configs.append({'id': e, 'text': e, 'width': 100})
             
             col_ids = [c['id'] for c in col_configs]
             
@@ -247,7 +265,7 @@ class ClassStep(WizardStep):
 
                 # Compose Level Header
                 prof = lvl_data.get("proficiency_bonus", 2)
-                header_text = f"Level {lvl}  [+{prof} PB]"
+                header_text = f"Level {lvl}  [+{prof} Proficiency Bonus]"
                 
                 extra = lvl_data.get("extra", {})
                 if extra:
@@ -288,17 +306,6 @@ class ClassStep(WizardStep):
                     if feat.get("description"):
                         WrappingLabel(self.features_frame, text=f"    {feat['description']}",
                                   foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w", pady=(0, 4))
-
-        # Equipment
-        equip = cls.get("starting_equipment", [])
-        if equip:
-            ttk.Separator(self.features_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=16)
-            ttk.Label(self.features_frame, text="Starting Equipment",
-                      style="Subheading.TLabel").pack(anchor="w", pady=(0, 4))
-            for opt in equip:
-                WrappingLabel(self.features_frame,
-                          text=f"  ({opt['option']}) {opt['items']}",
-                          foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w")
 
         self.notify_change()
 
