@@ -146,26 +146,79 @@ class ClassStep(WizardStep):
             cb = ttk.Checkbutton(cols_frame, text=skill_name, variable=var)
             cb.grid(row=row, column=col, sticky="w", padx=8, pady=1)
 
-        # Features
+        # Features - All Levels Roadmap
         for w in self.features_frame.winfo_children():
             w.destroy()
 
-        features = cls.get("level_1_features", [])
-        if features:
-            ttk.Label(self.features_frame, text="Level 1 Features",
-                      style="Subheading.TLabel").pack(anchor="w", pady=(0, 4))
-            for feat in features:
-                ttk.Label(self.features_frame, text=f"  {feat['name']}",
-                          foreground=COLORS["accent"], font=FONTS["subheading"]).pack(anchor="w")
-                if feat.get("description"):
-                    WrappingLabel(self.features_frame, text=f"    {feat['description']}",
-                              foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w", pady=(0, 4))
+        prog = self.data.get_progression(cls["slug"])
+        if prog and "levels" in prog:
+            ttk.Label(self.features_frame, text="Class Progression (Levels 1-20)",
+                      style="Heading.TLabel").pack(anchor="w", pady=(16, 8))
+            
+            for lvl_data in prog["levels"]:
+                lvl = lvl_data.get("level")
+                feats = lvl_data.get("feature_details", [])
+                all_feature_names = lvl_data.get("features", [])
+                
+                # Compose Level Header
+                prof = lvl_data.get("proficiency_bonus", 2)
+                header_text = f"Level {lvl}  [+{prof} PB]"
+                
+                extra = lvl_data.get("extra", {})
+                if extra:
+                    extra_parts = [f"{k}: {v}" for k, v in extra.items() if v is not None]
+                    if extra_parts:
+                        header_text += f" | {', '.join(extra_parts)}"
+                
+                # Check for spell slots to add to header for casters
+                slots = lvl_data.get("spell_slots", {})
+                if slots:
+                    high_slot = max([int(k[0]) for k in slots.keys() if k[0].isdigit()], default=0)
+                    if high_slot > 0:
+                        header_text += f" | Max Slot: {high_slot}"
+
+                ttk.Label(self.features_frame, text=header_text,
+                          style="Subheading.TLabel").pack(anchor="w", pady=(12, 4))
+                
+                # Display features
+                shown_feats = set()
+                if feats:
+                    for feat in feats:
+                        name = feat.get("name", "Feature")
+                        shown_feats.add(name.lower())
+                        ttk.Label(self.features_frame, text=f"  \u2022 {name}",
+                                  foreground=COLORS["accent"], font=FONTS["subheading"]).pack(anchor="w")
+                        if feat.get("description"):
+                            WrappingLabel(self.features_frame, text=f"    {feat['description']}",
+                                      foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w", pady=(0, 4))
+                
+                # Show named features that lacked descriptions
+                for f_name in all_feature_names:
+                    if f_name.lower() not in shown_feats and f_name not in ["-", "Ability Score Improvement"]:
+                        ttk.Label(self.features_frame, text=f"  \u2022 {f_name}",
+                                  foreground=COLORS["accent"], font=FONTS["subheading"]).pack(anchor="w")
+                    elif f_name == "Ability Score Improvement" and f_name.lower() not in shown_feats:
+                        ttk.Label(self.features_frame, text=f"  \u2022 {f_name}",
+                                  foreground=COLORS["fg_dim"], font=FONTS["body"]).pack(anchor="w")
+        else:
+            # Fallback to current simple feature display if no progression
+            features = cls.get("level_1_features", [])
+            if features:
+                ttk.Label(self.features_frame, text="Level 1 Features",
+                          style="Subheading.TLabel").pack(anchor="w", pady=(8, 4))
+                for feat in features:
+                    ttk.Label(self.features_frame, text=f"  {feat['name']}",
+                              foreground=COLORS["accent"], font=FONTS["subheading"]).pack(anchor="w")
+                    if feat.get("description"):
+                        WrappingLabel(self.features_frame, text=f"    {feat['description']}",
+                                  foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w", pady=(0, 4))
 
         # Equipment
         equip = cls.get("starting_equipment", [])
         if equip:
+            ttk.Separator(self.features_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=16)
             ttk.Label(self.features_frame, text="Starting Equipment",
-                      style="Subheading.TLabel").pack(anchor="w", pady=(8, 4))
+                      style="Subheading.TLabel").pack(anchor="w", pady=(0, 4))
             for opt in equip:
                 WrappingLabel(self.features_frame,
                           text=f"  ({opt['option']}) {opt['items']}",
