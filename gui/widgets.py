@@ -387,3 +387,41 @@ class ConfirmDialog(tk.Toplevel):
         self.destroy()
 
 
+class ThemedTable(ttk.Frame):
+    """A themed table using ttk.Treeview with scrollbars."""
+    def __init__(self, parent, columns, height=20, **kwargs):
+        super().__init__(parent, **kwargs)
+        
+        # We use a custom style to ensure the treeview fits the theme
+        self.tree = ttk.Treeview(self, columns=columns, show="headings", selectmode="none", height=height)
+        
+        ysb = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.tree.yview)
+        xsb = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.tree.xview)
+        self.tree.configure(yscrollcommand=ysb.set, xscrollcommand=xsb.set)
+        
+        self.tree.grid(row=0, column=0, sticky="nsew")
+        ysb.grid(row=0, column=1, sticky="ns")
+        xsb.grid(row=1, column=0, sticky="ew")
+        
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+        
+    def set_columns(self, column_configs: list[dict]):
+        """column_configs = [{'id': 'lvl', 'text': 'Level', 'width': 50}, ...]"""
+        # Re-initialize tree with new columns if needed? 
+        # Actually ttk.Treeview doesn't easily support changing the number of columns after creation.
+        # But we create it with all columns initially.
+        for cfg in column_configs:
+            col_id = cfg['id']
+            self.tree.heading(col_id, text=cfg.get('text', col_id))
+            self.tree.column(col_id, width=cfg.get('width', 100), 
+                            anchor=cfg.get('anchor', 'center'), stretch=cfg.get('stretch', False))
+            
+    def insert_row(self, values):
+        self.tree.insert("", tk.END, values=values)
+        
+    def clear(self):
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+

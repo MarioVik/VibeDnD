@@ -3,7 +3,7 @@
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.widgets import SearchableListbox, ScrollableFrame, WrappingLabel
+from gui.widgets import SearchableListbox, ScrollableFrame, WrappingLabel, ThemedTable
 from gui.theme import COLORS, FONTS
 
 
@@ -152,14 +152,99 @@ class ClassStep(WizardStep):
 
         prog = self.data.get_progression(cls["slug"])
         if prog and "levels" in prog:
-            ttk.Label(self.features_frame, text="Class Progression (Levels 1-20)",
+            ttk.Label(self.features_frame, text=f"{cls['name']} Progression Matrix",
+                      style="Heading.TLabel").pack(anchor="w", pady=(8, 8))
+
+            # 1. Gather all unique columns across all 20 levels
+            extra_keys = set()
+            all_slots = set()
+            has_cantrips = False
+            has_prepared = False
+            
+            for lvl_data in prog["levels"]:
+                # Class specific columns like Martial Arts, Focus Points, etc.
+                extra_keys.update(lvl_data.get("extra", {}).keys())
+                # Spell slots cols
+                slots = lvl_data.get("spell_slots", {})
+                if slots:
+                    all_slots.update(slots.keys())
+                if lvl_data.get("cantrips"):
+                    has_cantrips = True
+                if lvl_data.get("prepared_spells"):
+                    has_prepared = True
+
+            # Sort spell slots and other extras
+            _slot_order = {"1st": 1, "2nd": 2, "3rd": 3, "4th": 4, "5th": 5, "6th": 6, "7th": 7, "8th": 8, "9th": 9}
+            sorted_slots = sorted([s for s in all_slots if s in _slot_order], key=lambda x: _slot_order[x])
+            sorted_extra = sorted(list(extra_keys))
+            
+            # Initial setup of columns
+            col_configs = [
+                {'id': 'lvl', 'text': 'Lvl', 'width': 35},
+                {'id': 'prof', 'text': 'PB', 'width': 35},
+                {'id': 'features', 'text': 'Features', 'width': 220, 'anchor': 'w', 'stretch': True},
+            ]
+            if has_cantrips:
+                col_configs.append({'id': 'cantrips', 'text': 'Cntp', 'width': 40})
+            if has_prepared:
+                col_configs.append({'id': 'prepared', 'text': 'Prep', 'width': 40})
+            
+            for s in sorted_slots:
+                col_configs.append({'id': s, 'text': s, 'width': 30})
+            for e in sorted_extra:
+                col_configs.append({'id': e, 'text': e, 'width': 80})
+            
+            col_ids = [c['id'] for c in col_configs]
+            
+            # 2. Build and Populate Table
+            container = ttk.Frame(self.features_frame)
+            container.pack(fill=tk.X, pady=(0, 24))
+            
+            # Use a height of 20 to show all levels at once
+            table = ThemedTable(container, columns=col_ids, height=20)
+            table.pack(fill=tk.X, expand=True)
+            table.set_columns(col_configs)
+            
+            for lvl_data in prog["levels"]:
+                row_vals = []
+                for cid in col_ids:
+                    if cid == 'lvl':
+                        row_vals.append(lvl_data.get('level'))
+                    elif cid == 'prof':
+                        row_vals.append(f"+{lvl_data.get('proficiency_bonus')}")
+                    elif cid == 'features':
+                        # Only show specific names, exclude generic ones common to many levels
+                        f_list = [f for f in lvl_data.get('features', []) if f not in ["-", "Ability Score Improvement"]]
+                        if "Ability Score Improvement" in lvl_data.get('features', []):
+                            f_list.append("ASI")
+                        row_vals.append(", ".join(f_list) or "-")
+                    elif cid == 'cantrips':
+                        row_vals.append(lvl_data.get('cantrips') or "-")
+                    elif cid == 'prepared':
+                        row_vals.append(lvl_data.get('prepared_spells') or "-")
+                    elif cid in sorted_slots:
+                        slots = lvl_data.get('spell_slots', {})
+                        row_vals.append(slots.get(cid) or "-")
+                    elif cid in sorted_extra:
+                        extra = lvl_data.get('extra', {})
+                        val = extra.get(cid)
+                        row_vals.append(val if val is not None else "-")
+                table.insert_row(row_vals)
+
+            # 3. Add Roadmap Heading
+            ttk.Label(self.features_frame, text="Feature Descriptions Roadmap",
                       style="Heading.TLabel").pack(anchor="w", pady=(16, 8))
             
+            # Existing roadmap display logic follows...
             for lvl_data in prog["levels"]:
                 lvl = lvl_data.get("level")
                 feats = lvl_data.get("feature_details", [])
                 all_feature_names = lvl_data.get("features", [])
                 
+                # Filter for useful level display: only show levels that have features or interesting changes
+                if not feats and not [f for f in all_feature_names if f != "-"]:
+                    continue
+
                 # Compose Level Header
                 prof = lvl_data.get("proficiency_bonus", 2)
                 header_text = f"Level {lvl}  [+{prof} PB]"
@@ -170,17 +255,9 @@ class ClassStep(WizardStep):
                     if extra_parts:
                         header_text += f" | {', '.join(extra_parts)}"
                 
-                # Check for spell slots to add to header for casters
-                slots = lvl_data.get("spell_slots", {})
-                if slots:
-                    high_slot = max([int(k[0]) for k in slots.keys() if k[0].isdigit()], default=0)
-                    if high_slot > 0:
-                        header_text += f" | Max Slot: {high_slot}"
-
                 ttk.Label(self.features_frame, text=header_text,
                           style="Subheading.TLabel").pack(anchor="w", pady=(12, 4))
                 
-                # Display features
                 shown_feats = set()
                 if feats:
                     for feat in feats:
@@ -192,7 +269,6 @@ class ClassStep(WizardStep):
                             WrappingLabel(self.features_frame, text=f"    {feat['description']}",
                                       foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w", pady=(0, 4))
                 
-                # Show named features that lacked descriptions
                 for f_name in all_feature_names:
                     if f_name.lower() not in shown_feats and f_name not in ["-", "Ability Score Improvement"]:
                         ttk.Label(self.features_frame, text=f"  \u2022 {f_name}",
