@@ -31,6 +31,10 @@ SOURCE_TO_CATEGORY = {
         "Lorwyn - First Light": "Exotic",
         "Astarion's Book of Hungers": "Exotic",
     },
+    "classes": {
+        "Player's Handbook": "Common",
+        "Eberron - Forge of the Artificer": "Eberron",
+    },
 }
 
 # Display order for each context's categories
@@ -38,6 +42,7 @@ SECTION_ORDER = {
     "species": ["Common", "Eberron", "Exotic"],
     "backgrounds": ["Common", "Eberron", "Faerun", "Exotic"],
     "feats": ["Common", "Faerun", "Exotic"],
+    "classes": ["Common", "Eberron"],
 }
 
 

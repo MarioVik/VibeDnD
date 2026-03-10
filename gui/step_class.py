@@ -3,8 +3,9 @@
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.widgets import SearchableListbox, ScrollableFrame, WrappingLabel, ThemedTable
+from gui.widgets import SectionedListbox, ScrollableFrame, WrappingLabel, ThemedTable
 from gui.theme import COLORS, FONTS
+from gui.source_config import SECTION_ORDER, group_by_category, save_settings
 
 
 class ClassStep(WizardStep):
@@ -21,7 +22,14 @@ class ClassStep(WizardStep):
         left.grid_propagate(False)
 
         ttk.Label(left, text="Choose Class", style="Heading.TLabel").pack(anchor="w", pady=(0, 6))
-        self.class_list = SearchableListbox(left, on_select=self._on_select)
+        
+        # Source filter toggles
+        self.toggle_frame = ttk.Frame(left)
+        self.toggle_frame.pack(fill=tk.X, pady=(0, 4))
+        self.toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._build_toggles()
+
+        self.class_list = SectionedListbox(left, on_select=self._on_select)
         self.class_list.pack(fill=tk.BOTH, expand=True)
 
         # Right: detail
@@ -75,9 +83,37 @@ class ClassStep(WizardStep):
                     self.skill_vars[skill_name].set(True)
             self.character.selected_skills = saved_skills
 
+    def _build_toggles(self):
+        """Build source filter checkboxes."""
+        for w in self.toggle_frame.winfo_children():
+            w.destroy()
+        self.toggle_vars.clear()
+
+        filters = self.data.source_filters.get("classes", {})
+        sections = SECTION_ORDER["classes"]
+
+        for cat in sections:
+            var = tk.BooleanVar(value=filters.get(cat, True))
+            cb = ttk.Checkbutton(self.toggle_frame, text=cat, variable=var,
+                                 command=self._on_toggle_change)
+            cb.pack(side=tk.LEFT, padx=(0, 6))
+            self.toggle_vars[cat] = var
+
+    def _on_toggle_change(self):
+        """Update filters and rebuild list when a toggle changes."""
+        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
+        self.data.source_filters["classes"] = filters
+        save_settings(self.data.source_filters)
+        self._populate_list()
+
     def _populate_list(self):
-        names = sorted([c["name"] for c in self.data.classes])
-        self.class_list.set_items(names)
+        filters = self.data.source_filters.get("classes", {})
+        enabled = {cat for cat, on in filters.items() if on}
+
+        grouped = group_by_category(self.data.classes, "classes")
+        sections = [(cat, [c["name"] for c in items])
+                     for cat, items in grouped if cat in enabled]
+        self.class_list.set_sectioned_items(sections)
 
     def _on_select(self, name: str):
         cls = self.data.classes_by_name.get(name)

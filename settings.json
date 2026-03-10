@@ -15,6 +15,10 @@
       "Common": true,
       "Faerun": true,
       "Exotic": true
+    },
+    "classes": {
+      "Common": true,
+      "Eberron": true
     }
   }
 }
