@@ -125,32 +125,110 @@ class CharacterCreatorApp:
             command=self._save_and_finish,
         ).pack(side=tk.LEFT, padx=12)
 
+        # Navigation buttons at bottom
+        self.nav_frame = ttk.Frame(frame, padding=(12, 12))
+        self.nav_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        
+        self.back_btn = ttk.Button(self.nav_frame, text="\u25c0  Back", command=self._wizard_back)
+        self.back_btn.pack(side=tk.LEFT)
+        
+        self.next_btn = ttk.Button(self.nav_frame, text="Next  \u25b6", style="Accent.TButton", command=self._wizard_next)
+        self.next_btn.pack(side=tk.RIGHT)
+
         # Notebook for wizard steps
-        notebook = ttk.Notebook(frame)
-        notebook.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+        self.wizard_notebook = ttk.Notebook(frame)
+        self.wizard_notebook.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
         # Create wizard steps
-        steps = [
-            SpeciesStep(notebook, character, self.data),
-            ClassStep(notebook, character, self.data),
-            BackgroundStep(notebook, character, self.data),
-            AbilityScoresStep(notebook, character, self.data),
-            FeatStep(notebook, character, self.data),
-            SpellsStep(notebook, character, self.data),
-            EquipmentStep(notebook, character, self.data),
-            SummaryStep(notebook, character, self.data,
+        self.wizard_steps = [
+            SpeciesStep(self.wizard_notebook, character, self.data),
+            ClassStep(self.wizard_notebook, character, self.data),
+            BackgroundStep(self.wizard_notebook, character, self.data),
+            AbilityScoresStep(self.wizard_notebook, character, self.data),
+            FeatStep(self.wizard_notebook, character, self.data),
+            SpellsStep(self.wizard_notebook, character, self.data),
+            EquipmentStep(self.wizard_notebook, character, self.data),
+            SummaryStep(self.wizard_notebook, character, self.data,
                         app=self, save_path=save_path),
         ]
+        
+        # Add on_change callback to ClassStep index (1) to toggle spells tab
+        self.wizard_steps[1].on_change_callbacks.append(self._update_spells_visibility)
+
+        # Hide all except first initially if new character
+        if not save_path:
+            for i in range(1, len(self.wizard_steps)):
+                self.wizard_notebook.tab(i, state="hidden")
+        
+        # Initial spells visibility check
+        self._update_spells_visibility()
 
         # Tab change event
         def on_tab_change(event):
-            idx = notebook.index(notebook.select())
-            if 0 <= idx < len(steps):
-                steps[idx].on_enter()
+            idx = self.wizard_notebook.index(self.wizard_notebook.select())
+            if 0 <= idx < len(self.wizard_steps):
+                self.wizard_steps[idx].on_enter()
+                # discovery
+                self.wizard_notebook.tab(idx, state="normal")
+                self._update_nav_buttons()
 
-        notebook.bind("<<NotebookTabChanged>>", on_tab_change)
+        self.wizard_notebook.bind("<<NotebookTabChanged>>", on_tab_change)
+        self._update_nav_buttons()
 
         return frame
+
+    def _update_spells_visibility(self):
+        """Hide or show the spells tab based on caster status."""
+        if not hasattr(self, 'wizard_notebook'):
+            return
+        
+        SPELLS_INDEX = 5
+        curr = self.wizard_notebook.index(self.wizard_notebook.select())
+        
+        if self.character.is_caster:
+            # Only show if they have reached this step or are in edit mode
+            if self.current_save_path:
+                self.wizard_notebook.tab(SPELLS_INDEX, state="normal")
+        else:
+            self.wizard_notebook.tab(SPELLS_INDEX, state="hidden")
+            # If we were on the spells tab somehow, move back
+            if curr == SPELLS_INDEX:
+                self.wizard_notebook.select(4)
+
+    def _wizard_next(self):
+        curr = self.wizard_notebook.index(self.wizard_notebook.select())
+        if curr < len(self.wizard_steps) - 1:
+            next_idx = curr + 1
+            
+            # Skip Spells tab if not a caster
+            if next_idx == 5 and not self.character.is_caster:
+                next_idx += 1
+            
+            if next_idx < len(self.wizard_steps):
+                self.wizard_notebook.tab(next_idx, state="normal")
+                self.wizard_notebook.select(next_idx)
+
+    def _wizard_back(self):
+        curr = self.wizard_notebook.index(self.wizard_notebook.select())
+        if curr > 0:
+            prev_idx = curr - 1
+            
+            # Skip Spells tab if not a caster
+            if prev_idx == 5 and not self.character.is_caster:
+                prev_idx -= 1
+            
+            if prev_idx >= 0:
+                self.wizard_notebook.select(prev_idx)
+
+    def _update_nav_buttons(self):
+        curr = self.wizard_notebook.index(self.wizard_notebook.select())
+        self.back_btn.configure(state=tk.NORMAL if curr > 0 else tk.DISABLED)
+        
+        if curr == len(self.wizard_steps) - 1:
+            self.next_btn.configure(text="Finish \u2713", command=self._save_and_finish)
+        else:
+            self.next_btn.configure(text="Next  \u25b6", command=self._wizard_next)
+
 
     # ── Save & Export ──────────────────────────────────────────
 
