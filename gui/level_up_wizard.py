@@ -117,10 +117,18 @@ class LevelUpWizard(tk.Toplevel):
         if not prev:
             return 0, 0, 0
 
-        curr_cantrips = self.level_data.get("cantrips", 0) or 0
-        prev_cantrips = prev.get("cantrips", 0) or 0
-        curr_prepared = self.level_data.get("prepared_spells", 0) or 0
-        prev_prepared = prev.get("prepared_spells", 0) or 0
+        def to_int(v):
+            if not v: return 0
+            if isinstance(v, int): return v
+            s = str(v).strip()
+            if not s or s == '-': return 0
+            try: return int(s.replace('+', ''))
+            except: return 0
+
+        curr_cantrips = to_int(self.level_data.get("cantrips"))
+        prev_cantrips = to_int(prev.get("cantrips"))
+        curr_prepared = to_int(self.level_data.get("prepared_spells"))
+        prev_prepared = to_int(prev.get("prepared_spells"))
 
         curr_slots = self.level_data.get("spell_slots") or {}
         max_spell_level = max((_SLOT_ORDER.get(k, 0) for k in curr_slots), default=0)

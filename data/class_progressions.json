@@ -11,10 +11,10 @@
           "Spellcasting",
           "Tinker's Magic"
         ],
-        "cantrips": "2",
-        "prepared_spells": "2",
+        "cantrips": 2,
+        "prepared_spells": 2,
         "spell_slots": {
-          "1st": "2"
+          "1st": 2
         },
         "extra": {
           "Plans Known": null,
@@ -37,14 +37,14 @@
         "features": [
           "Replicate Magic Item"
         ],
-        "cantrips": "2",
-        "prepared_spells": "3",
+        "cantrips": 2,
+        "prepared_spells": 3,
         "spell_slots": {
-          "1st": "2"
+          "1st": 2
         },
         "extra": {
-          "Plans Known": "4",
-          "Magic Items": "2"
+          "Plans Known": 4,
+          "Magic Items": 2
         },
         "feature_details": [
           {
@@ -59,14 +59,14 @@
         "features": [
           "Artificer Subclass"
         ],
-        "cantrips": "2",
-        "prepared_spells": "4",
+        "cantrips": 2,
+        "prepared_spells": 4,
         "spell_slots": {
-          "1st": "3"
+          "1st": 3
         },
         "extra": {
-          "Plans Known": "4",
-          "Magic Items": "2"
+          "Plans Known": 4,
+          "Magic Items": 2
         },
         "feature_details": [
           {
@@ -81,14 +81,14 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "2",
-        "prepared_spells": "5",
+        "cantrips": 2,
+        "prepared_spells": 5,
         "spell_slots": {
-          "1st": "3"
+          "1st": 3
         },
         "extra": {
-          "Plans Known": "4",
-          "Magic Items": "2"
+          "Plans Known": 4,
+          "Magic Items": 2
         },
         "feature_details": [
           {
@@ -103,15 +103,15 @@
         "features": [
           "Subclass Feature"
         ],
-        "cantrips": "2",
-        "prepared_spells": "6",
+        "cantrips": 2,
+        "prepared_spells": 6,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "2"
+          "1st": 4,
+          "2nd": 2
         },
         "extra": {
-          "Plans Known": "4",
-          "Magic Items": "2"
+          "Plans Known": 4,
+          "Magic Items": 2
         }
       },
       {
@@ -120,15 +120,15 @@
         "features": [
           "Magic Item Tinker"
         ],
-        "cantrips": "2",
-        "prepared_spells": "6",
+        "cantrips": 2,
+        "prepared_spells": 6,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "2"
+          "1st": 4,
+          "2nd": 2
         },
         "extra": {
-          "Plans Known": "5",
-          "Magic Items": "3"
+          "Plans Known": 5,
+          "Magic Items": 3
         },
         "feature_details": [
           {
@@ -143,15 +143,15 @@
         "features": [
           "Flash of Genius"
         ],
-        "cantrips": "2",
-        "prepared_spells": "7",
+        "cantrips": 2,
+        "prepared_spells": 7,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3"
+          "1st": 4,
+          "2nd": 3
         },
         "extra": {
-          "Plans Known": "5",
-          "Magic Items": "3"
+          "Plans Known": 5,
+          "Magic Items": 3
         },
         "feature_details": [
           {
@@ -166,15 +166,15 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "2",
-        "prepared_spells": "7",
+        "cantrips": 2,
+        "prepared_spells": 7,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3"
+          "1st": 4,
+          "2nd": 3
         },
         "extra": {
-          "Plans Known": "5",
-          "Magic Items": "3"
+          "Plans Known": 5,
+          "Magic Items": 3
         }
       },
       {
@@ -183,16 +183,16 @@
         "features": [
           "Subclass Feature"
         ],
-        "cantrips": "2",
-        "prepared_spells": "9",
+        "cantrips": 2,
+        "prepared_spells": 9,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 2
         },
         "extra": {
-          "Plans Known": "5",
-          "Magic Items": "3"
+          "Plans Known": 5,
+          "Magic Items": 3
         }
       },
       {
@@ -201,16 +201,16 @@
         "features": [
           "Magic Item Adept"
         ],
-        "cantrips": "3",
-        "prepared_spells": "9",
+        "cantrips": 3,
+        "prepared_spells": 9,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 2
         },
         "extra": {
-          "Plans Known": "6",
-          "Magic Items": "4"
+          "Plans Known": 6,
+          "Magic Items": 4
         },
         "feature_details": [
           {
@@ -225,16 +225,16 @@
         "features": [
           "Spell-Storing Item"
         ],
-        "cantrips": "3",
-        "prepared_spells": "10",
+        "cantrips": 3,
+        "prepared_spells": 10,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3
         },
         "extra": {
-          "Plans Known": "6",
-          "Magic Items": "4"
+          "Plans Known": 6,
+          "Magic Items": 4
         },
         "feature_details": [
           {
@@ -249,16 +249,16 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "3",
-        "prepared_spells": "10",
+        "cantrips": 3,
+        "prepared_spells": 10,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3
         },
         "extra": {
-          "Plans Known": "6",
-          "Magic Items": "4"
+          "Plans Known": 6,
+          "Magic Items": 4
         }
       },
       {
@@ -267,17 +267,17 @@
         "features": [
           "-"
         ],
-        "cantrips": "3",
-        "prepared_spells": "11",
+        "cantrips": 3,
+        "prepared_spells": 11,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 1
         },
         "extra": {
-          "Plans Known": "6",
-          "Magic Items": "4"
+          "Plans Known": 6,
+          "Magic Items": 4
         }
       },
       {
@@ -286,17 +286,17 @@
         "features": [
           "Advanced Artifice"
         ],
-        "cantrips": "4",
-        "prepared_spells": "11",
+        "cantrips": 4,
+        "prepared_spells": 11,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 1
         },
         "extra": {
-          "Plans Known": "7",
-          "Magic Items": "5"
+          "Plans Known": 7,
+          "Magic Items": 5
         },
         "feature_details": [
           {
@@ -311,17 +311,17 @@
         "features": [
           "Subclass Feature"
         ],
-        "cantrips": "4",
-        "prepared_spells": "12",
+        "cantrips": 4,
+        "prepared_spells": 12,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 2
         },
         "extra": {
-          "Plans Known": "7",
-          "Magic Items": "5"
+          "Plans Known": 7,
+          "Magic Items": 5
         }
       },
       {
@@ -330,17 +330,17 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "4",
-        "prepared_spells": "12",
+        "cantrips": 4,
+        "prepared_spells": 12,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 2
         },
         "extra": {
-          "Plans Known": "7",
-          "Magic Items": "5"
+          "Plans Known": 7,
+          "Magic Items": 5
         }
       },
       {
@@ -349,18 +349,18 @@
         "features": [
           "-"
         ],
-        "cantrips": "4",
-        "prepared_spells": "14",
+        "cantrips": 4,
+        "prepared_spells": 14,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 1
         },
         "extra": {
-          "Plans Known": "7",
-          "Magic Items": "5"
+          "Plans Known": 7,
+          "Magic Items": 5
         }
       },
       {
@@ -369,18 +369,18 @@
         "features": [
           "Magic Item Master"
         ],
-        "cantrips": "4",
-        "prepared_spells": "14",
+        "cantrips": 4,
+        "prepared_spells": 14,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 1
         },
         "extra": {
-          "Plans Known": "8",
-          "Magic Items": "6"
+          "Plans Known": 8,
+          "Magic Items": 6
         },
         "feature_details": [
           {
@@ -395,18 +395,18 @@
         "features": [
           "Epic Boon"
         ],
-        "cantrips": "4",
-        "prepared_spells": "15",
+        "cantrips": 4,
+        "prepared_spells": 15,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2
         },
         "extra": {
-          "Plans Known": "8",
-          "Magic Items": "6"
+          "Plans Known": 8,
+          "Magic Items": 6
         },
         "feature_details": [
           {
@@ -421,18 +421,18 @@
         "features": [
           "Soul of Artifice"
         ],
-        "cantrips": "4",
-        "prepared_spells": "15",
+        "cantrips": 4,
+        "prepared_spells": 15,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3 2",
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 0,
           "5th": 2
         },
         "extra": {
-          "Plans Known": "8",
-          "Magic Items": "6"
+          "Plans Known": 8,
+          "Magic Items": 6
         },
         "feature_details": [
           {
@@ -478,9 +478,9 @@
           }
         ],
         "extra": {
-          "Rages": "2",
-          "Rage Damage": "+2",
-          "Weapon Mastery": "2"
+          "Rages": 2,
+          "Rage Damage": 2,
+          "Weapon Mastery": 2
         },
         "spell_slots": {}
       },
@@ -492,9 +492,9 @@
           "Reckless Attack"
         ],
         "extra": {
-          "Rages": "2",
-          "Rage Damage": "+2",
-          "Weapon Mastery": "2"
+          "Rages": 2,
+          "Rage Damage": 2,
+          "Weapon Mastery": 2
         },
         "feature_details": [
           {
@@ -516,9 +516,9 @@
           "Primal Knowledge"
         ],
         "extra": {
-          "Rages": "3",
-          "Rage Damage": "+2",
-          "Weapon Mastery": "2"
+          "Rages": 3,
+          "Rage Damage": 2,
+          "Weapon Mastery": 2
         },
         "feature_details": [
           {
@@ -539,9 +539,9 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Rages": "3",
-          "Rage Damage": "+2",
-          "Weapon Mastery": "3"
+          "Rages": 3,
+          "Rage Damage": 2,
+          "Weapon Mastery": 3
         },
         "feature_details": [
           {
@@ -559,9 +559,9 @@
           "Fast Movement"
         ],
         "extra": {
-          "Rages": "3",
-          "Rage Damage": "+2",
-          "Weapon Mastery": "3"
+          "Rages": 3,
+          "Rage Damage": 2,
+          "Weapon Mastery": 3
         },
         "feature_details": [
           {
@@ -582,9 +582,9 @@
           "Subclass feature"
         ],
         "extra": {
-          "Rages": "4",
-          "Rage Damage": "+2",
-          "Weapon Mastery": "3"
+          "Rages": 4,
+          "Rage Damage": 2,
+          "Weapon Mastery": 3
         },
         "spell_slots": {}
       },
@@ -596,9 +596,9 @@
           "Instinctive Pounce"
         ],
         "extra": {
-          "Rages": "4",
-          "Rage Damage": "+2",
-          "Weapon Mastery": "3"
+          "Rages": 4,
+          "Rage Damage": 2,
+          "Weapon Mastery": 3
         },
         "feature_details": [
           {
@@ -619,9 +619,9 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Rages": "4",
-          "Rage Damage": "+2",
-          "Weapon Mastery": "3"
+          "Rages": 4,
+          "Rage Damage": 2,
+          "Weapon Mastery": 3
         },
         "spell_slots": {}
       },
@@ -632,9 +632,9 @@
           "Brutal Strike"
         ],
         "extra": {
-          "Rages": "4",
-          "Rage Damage": "+3",
-          "Weapon Mastery": "3"
+          "Rages": 4,
+          "Rage Damage": 3,
+          "Weapon Mastery": 3
         },
         "feature_details": [
           {
@@ -651,9 +651,9 @@
           "Subclass feature"
         ],
         "extra": {
-          "Rages": "4",
-          "Rage Damage": "+3",
-          "Weapon Mastery": "4"
+          "Rages": 4,
+          "Rage Damage": 3,
+          "Weapon Mastery": 4
         },
         "spell_slots": {}
       },
@@ -664,9 +664,9 @@
           "Relentless Rage"
         ],
         "extra": {
-          "Rages": "4",
-          "Rage Damage": "+3",
-          "Weapon Mastery": "4"
+          "Rages": 4,
+          "Rage Damage": 3,
+          "Weapon Mastery": 4
         },
         "feature_details": [
           {
@@ -683,9 +683,9 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Rages": "5",
-          "Rage Damage": "+3",
-          "Weapon Mastery": "4"
+          "Rages": 5,
+          "Rage Damage": 3,
+          "Weapon Mastery": 4
         },
         "spell_slots": {}
       },
@@ -696,9 +696,9 @@
           "Improved Brutal Strike"
         ],
         "extra": {
-          "Rages": "5",
-          "Rage Damage": "+3",
-          "Weapon Mastery": "4"
+          "Rages": 5,
+          "Rage Damage": 3,
+          "Weapon Mastery": 4
         },
         "feature_details": [
           {
@@ -715,9 +715,9 @@
           "Subclass feature"
         ],
         "extra": {
-          "Rages": "5",
-          "Rage Damage": "+3",
-          "Weapon Mastery": "4"
+          "Rages": 5,
+          "Rage Damage": 3,
+          "Weapon Mastery": 4
         },
         "spell_slots": {}
       },
@@ -728,9 +728,9 @@
           "Persistent Rage"
         ],
         "extra": {
-          "Rages": "5",
-          "Rage Damage": "+3",
-          "Weapon Mastery": "4"
+          "Rages": 5,
+          "Rage Damage": 3,
+          "Weapon Mastery": 4
         },
         "feature_details": [
           {
@@ -747,9 +747,9 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Rages": "5",
-          "Rage Damage": "+4",
-          "Weapon Mastery": "4"
+          "Rages": 5,
+          "Rage Damage": 4,
+          "Weapon Mastery": 4
         },
         "spell_slots": {}
       },
@@ -760,9 +760,9 @@
           "Improved Brutal Strike"
         ],
         "extra": {
-          "Rages": "6",
-          "Rage Damage": "+4",
-          "Weapon Mastery": "4"
+          "Rages": 6,
+          "Rage Damage": 4,
+          "Weapon Mastery": 4
         },
         "feature_details": [
           {
@@ -779,9 +779,9 @@
           "Indomitable Might"
         ],
         "extra": {
-          "Rages": "6",
-          "Rage Damage": "+4",
-          "Weapon Mastery": "4"
+          "Rages": 6,
+          "Rage Damage": 4,
+          "Weapon Mastery": 4
         },
         "feature_details": [
           {
@@ -798,9 +798,9 @@
           "Epic Boon"
         ],
         "extra": {
-          "Rages": "6",
-          "Rage Damage": "+4",
-          "Weapon Mastery": "4"
+          "Rages": 6,
+          "Rage Damage": 4,
+          "Weapon Mastery": 4
         },
         "feature_details": [
           {
@@ -817,9 +817,9 @@
           "Primal Champion"
         ],
         "extra": {
-          "Rages": "6",
-          "Rage Damage": "+4",
-          "Weapon Mastery": "4"
+          "Rages": 6,
+          "Rage Damage": 4,
+          "Weapon Mastery": 4
         },
         "feature_details": [
           {
@@ -852,10 +852,10 @@
         "extra": {
           "Bardic Die": "D6"
         },
-        "cantrips": "2",
-        "prepared_spells": "4",
+        "cantrips": 2,
+        "prepared_spells": 4,
         "spell_slots": {
-          "1st": "2"
+          "1st": 2
         },
         "feature_details": [
           {
@@ -878,10 +878,10 @@
         "extra": {
           "Bardic Die": "D6"
         },
-        "cantrips": "2",
-        "prepared_spells": "5",
+        "cantrips": 2,
+        "prepared_spells": 5,
         "spell_slots": {
-          "1st": "3"
+          "1st": 3
         },
         "feature_details": [
           {
@@ -903,11 +903,11 @@
         "extra": {
           "Bardic Die": "D6"
         },
-        "cantrips": "2",
-        "prepared_spells": "6",
+        "cantrips": 2,
+        "prepared_spells": 6,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "2"
+          "1st": 4,
+          "2nd": 2
         },
         "feature_details": [
           {
@@ -925,11 +925,11 @@
         "extra": {
           "Bardic Die": "D6"
         },
-        "cantrips": "3",
-        "prepared_spells": "7",
+        "cantrips": 3,
+        "prepared_spells": 7,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3"
+          "1st": 4,
+          "2nd": 3
         },
         "feature_details": [
           {
@@ -947,12 +947,12 @@
         "extra": {
           "Bardic Die": "D8"
         },
-        "cantrips": "3",
-        "prepared_spells": "9",
+        "cantrips": 3,
+        "prepared_spells": 9,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 2
         },
         "feature_details": [
           {
@@ -970,12 +970,12 @@
         "extra": {
           "Bardic Die": "D8"
         },
-        "cantrips": "3",
-        "prepared_spells": "10",
+        "cantrips": 3,
+        "prepared_spells": 10,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3
         }
       },
       {
@@ -987,13 +987,13 @@
         "extra": {
           "Bardic Die": "D8"
         },
-        "cantrips": "3",
-        "prepared_spells": "11",
+        "cantrips": 3,
+        "prepared_spells": 11,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 1
         },
         "feature_details": [
           {
@@ -1011,13 +1011,13 @@
         "extra": {
           "Bardic Die": "D8"
         },
-        "cantrips": "3",
-        "prepared_spells": "12",
+        "cantrips": 3,
+        "prepared_spells": 12,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 2
         }
       },
       {
@@ -1029,14 +1029,14 @@
         "extra": {
           "Bardic Die": "D8"
         },
-        "cantrips": "3",
-        "prepared_spells": "14",
+        "cantrips": 3,
+        "prepared_spells": 14,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 1
         }
       },
       {
@@ -1048,14 +1048,14 @@
         "extra": {
           "Bardic Die": "D10"
         },
-        "cantrips": "4",
-        "prepared_spells": "15",
+        "cantrips": 4,
+        "prepared_spells": 15,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2
         },
         "feature_details": [
           {
@@ -1073,15 +1073,15 @@
         "extra": {
           "Bardic Die": "D10"
         },
-        "cantrips": "4",
-        "prepared_spells": "16",
+        "cantrips": 4,
+        "prepared_spells": 16,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1
         }
       },
       {
@@ -1093,15 +1093,15 @@
         "extra": {
           "Bardic Die": "D10"
         },
-        "cantrips": "4",
-        "prepared_spells": "16",
+        "cantrips": 4,
+        "prepared_spells": 16,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1
         }
       },
       {
@@ -1113,16 +1113,16 @@
         "extra": {
           "Bardic Die": "D10"
         },
-        "cantrips": "4",
-        "prepared_spells": "17",
+        "cantrips": 4,
+        "prepared_spells": 17,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1
         }
       },
       {
@@ -1134,16 +1134,16 @@
         "extra": {
           "Bardic Die": "D10"
         },
-        "cantrips": "4",
-        "prepared_spells": "17",
+        "cantrips": 4,
+        "prepared_spells": 17,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1
         }
       },
       {
@@ -1155,17 +1155,17 @@
         "extra": {
           "Bardic Die": "D12"
         },
-        "cantrips": "4",
-        "prepared_spells": "18",
+        "cantrips": 4,
+        "prepared_spells": 18,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1
         }
       },
       {
@@ -1177,17 +1177,17 @@
         "extra": {
           "Bardic Die": "D12"
         },
-        "cantrips": "4",
-        "prepared_spells": "18",
+        "cantrips": 4,
+        "prepared_spells": 18,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1
         }
       },
       {
@@ -1199,18 +1199,18 @@
         "extra": {
           "Bardic Die": "D12"
         },
-        "cantrips": "4",
-        "prepared_spells": "19",
+        "cantrips": 4,
+        "prepared_spells": 19,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         }
       },
       {
@@ -1222,18 +1222,18 @@
         "extra": {
           "Bardic Die": "D12"
         },
-        "cantrips": "4",
-        "prepared_spells": "20",
+        "cantrips": 4,
+        "prepared_spells": 20,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         },
         "feature_details": [
           {
@@ -1251,18 +1251,18 @@
         "extra": {
           "Bardic Die": "D12"
         },
-        "cantrips": "4",
-        "prepared_spells": "21",
+        "cantrips": 4,
+        "prepared_spells": 21,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "2",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 2,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         },
         "feature_details": [
           {
@@ -1280,18 +1280,18 @@
         "extra": {
           "Bardic Die": "D12"
         },
-        "cantrips": "4",
-        "prepared_spells": "22",
+        "cantrips": 4,
+        "prepared_spells": 22,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "2",
-          "7th": "2",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 2,
+          "7th": 2,
+          "8th": 1,
+          "9th": 1
         },
         "feature_details": [
           {
@@ -1321,10 +1321,10 @@
           "Spellcasting",
           "Divine Order"
         ],
-        "cantrips": "3",
-        "prepared_spells": "4",
+        "cantrips": 3,
+        "prepared_spells": 4,
         "spell_slots": {
-          "1st": "2"
+          "1st": 2
         },
         "extra": {
           "Channel Divinity": null
@@ -1346,13 +1346,13 @@
         "features": [
           "Channel Divinity"
         ],
-        "cantrips": "3",
-        "prepared_spells": "5",
+        "cantrips": 3,
+        "prepared_spells": 5,
         "spell_slots": {
-          "1st": "3"
+          "1st": 3
         },
         "extra": {
-          "Channel Divinity": "2"
+          "Channel Divinity": 2
         },
         "feature_details": [
           {
@@ -1367,14 +1367,14 @@
         "features": [
           "Cleric Subclass"
         ],
-        "cantrips": "3",
-        "prepared_spells": "6",
+        "cantrips": 3,
+        "prepared_spells": 6,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "2"
+          "1st": 4,
+          "2nd": 2
         },
         "extra": {
-          "Channel Divinity": "2"
+          "Channel Divinity": 2
         },
         "feature_details": [
           {
@@ -1389,14 +1389,14 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "4",
-        "prepared_spells": "7",
+        "cantrips": 4,
+        "prepared_spells": 7,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3"
+          "1st": 4,
+          "2nd": 3
         },
         "extra": {
-          "Channel Divinity": "2"
+          "Channel Divinity": 2
         },
         "feature_details": [
           {
@@ -1411,15 +1411,15 @@
         "features": [
           "Sear Undead"
         ],
-        "cantrips": "4",
-        "prepared_spells": "9",
+        "cantrips": 4,
+        "prepared_spells": 9,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 2
         },
         "extra": {
-          "Channel Divinity": "2"
+          "Channel Divinity": 2
         },
         "feature_details": [
           {
@@ -1434,15 +1434,15 @@
         "features": [
           "Subclass Feature"
         ],
-        "cantrips": "4",
-        "prepared_spells": "10",
+        "cantrips": 4,
+        "prepared_spells": 10,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -1451,16 +1451,16 @@
         "features": [
           "Blessed Strikes"
         ],
-        "cantrips": "4",
-        "prepared_spells": "11",
+        "cantrips": 4,
+        "prepared_spells": 11,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         },
         "feature_details": [
           {
@@ -1475,16 +1475,16 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "4",
-        "prepared_spells": "12",
+        "cantrips": 4,
+        "prepared_spells": 12,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 2
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -1493,17 +1493,17 @@
         "features": [
           "-"
         ],
-        "cantrips": "4",
-        "prepared_spells": "14",
+        "cantrips": 4,
+        "prepared_spells": 14,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -1512,17 +1512,17 @@
         "features": [
           "Divine Intervention"
         ],
-        "cantrips": "5",
-        "prepared_spells": "15",
+        "cantrips": 5,
+        "prepared_spells": 15,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         },
         "feature_details": [
           {
@@ -1537,18 +1537,18 @@
         "features": [
           "-"
         ],
-        "cantrips": "5",
-        "prepared_spells": "16",
+        "cantrips": 5,
+        "prepared_spells": 16,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -1557,18 +1557,18 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "5",
-        "prepared_spells": "16",
+        "cantrips": 5,
+        "prepared_spells": 16,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -1577,19 +1577,19 @@
         "features": [
           "-"
         ],
-        "cantrips": "5",
-        "prepared_spells": "17",
+        "cantrips": 5,
+        "prepared_spells": 17,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -1598,19 +1598,19 @@
         "features": [
           "Improved Blessed Strikes"
         ],
-        "cantrips": "5",
-        "prepared_spells": "17",
+        "cantrips": 5,
+        "prepared_spells": 17,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         },
         "feature_details": [
           {
@@ -1625,20 +1625,20 @@
         "features": [
           "-"
         ],
-        "cantrips": "5",
-        "prepared_spells": "18",
+        "cantrips": 5,
+        "prepared_spells": 18,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -1647,20 +1647,20 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "5",
-        "prepared_spells": "18",
+        "cantrips": 5,
+        "prepared_spells": 18,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -1669,21 +1669,21 @@
         "features": [
           "Subclass Feature"
         ],
-        "cantrips": "5",
-        "prepared_spells": "19",
+        "cantrips": 5,
+        "prepared_spells": 19,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -1692,21 +1692,21 @@
         "features": [
           "-"
         ],
-        "cantrips": "5",
-        "prepared_spells": "20",
+        "cantrips": 5,
+        "prepared_spells": 20,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         },
         "extra": {
-          "Channel Divinity": "4"
+          "Channel Divinity": 4
         }
       },
       {
@@ -1715,21 +1715,21 @@
         "features": [
           "Epic Boon"
         ],
-        "cantrips": "5",
-        "prepared_spells": "21",
+        "cantrips": 5,
+        "prepared_spells": 21,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "2",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 2,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         },
         "extra": {
-          "Channel Divinity": "4"
+          "Channel Divinity": 4
         },
         "feature_details": [
           {
@@ -1744,21 +1744,21 @@
         "features": [
           "Greater Divine Intervention"
         ],
-        "cantrips": "5",
-        "prepared_spells": "22",
+        "cantrips": 5,
+        "prepared_spells": 22,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "2",
-          "7th": "2",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 2,
+          "7th": 2,
+          "8th": 1,
+          "9th": 1
         },
         "extra": {
-          "Channel Divinity": "4"
+          "Channel Divinity": 4
         },
         "feature_details": [
           {
@@ -1789,10 +1789,10 @@
           "Druidic",
           "Primal Order"
         ],
-        "cantrips": "2",
-        "prepared_spells": "4",
+        "cantrips": 2,
+        "prepared_spells": 4,
         "spell_slots": {
-          "1st": "2"
+          "1st": 2
         },
         "extra": {
           "Wild Shape": null
@@ -1819,13 +1819,13 @@
           "Wild Shape",
           "Wild Companion"
         ],
-        "cantrips": "2",
-        "prepared_spells": "5",
+        "cantrips": 2,
+        "prepared_spells": 5,
         "spell_slots": {
-          "1st": "3"
+          "1st": 3
         },
         "extra": {
-          "Wild Shape": "2"
+          "Wild Shape": 2
         },
         "feature_details": [
           {
@@ -1844,14 +1844,14 @@
         "features": [
           "Druid Subclass"
         ],
-        "cantrips": "2",
-        "prepared_spells": "6",
+        "cantrips": 2,
+        "prepared_spells": 6,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "2"
+          "1st": 4,
+          "2nd": 2
         },
         "extra": {
-          "Wild Shape": "2"
+          "Wild Shape": 2
         },
         "feature_details": [
           {
@@ -1866,14 +1866,14 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "3",
-        "prepared_spells": "7",
+        "cantrips": 3,
+        "prepared_spells": 7,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3"
+          "1st": 4,
+          "2nd": 3
         },
         "extra": {
-          "Wild Shape": "2"
+          "Wild Shape": 2
         },
         "feature_details": [
           {
@@ -1888,15 +1888,15 @@
         "features": [
           "Wild Resurgence"
         ],
-        "cantrips": "3",
-        "prepared_spells": "9",
+        "cantrips": 3,
+        "prepared_spells": 9,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 2
         },
         "extra": {
-          "Wild Shape": "2"
+          "Wild Shape": 2
         },
         "feature_details": [
           {
@@ -1911,15 +1911,15 @@
         "features": [
           "Subclass Feature"
         ],
-        "cantrips": "3",
-        "prepared_spells": "10",
+        "cantrips": 3,
+        "prepared_spells": 10,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3
         },
         "extra": {
-          "Wild Shape": "3"
+          "Wild Shape": 3
         }
       },
       {
@@ -1928,16 +1928,16 @@
         "features": [
           "Elemental Fury"
         ],
-        "cantrips": "3",
-        "prepared_spells": "11",
+        "cantrips": 3,
+        "prepared_spells": 11,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 1
         },
         "extra": {
-          "Wild Shape": "3"
+          "Wild Shape": 3
         },
         "feature_details": [
           {
@@ -1952,16 +1952,16 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "3",
-        "prepared_spells": "12",
+        "cantrips": 3,
+        "prepared_spells": 12,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 2
         },
         "extra": {
-          "Wild Shape": "3"
+          "Wild Shape": 3
         }
       },
       {
@@ -1970,17 +1970,17 @@
         "features": [
           "-"
         ],
-        "cantrips": "3",
-        "prepared_spells": "14",
+        "cantrips": 3,
+        "prepared_spells": 14,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 1
         },
         "extra": {
-          "Wild Shape": "3"
+          "Wild Shape": 3
         }
       },
       {
@@ -1989,17 +1989,17 @@
         "features": [
           "Subclass Feature"
         ],
-        "cantrips": "4",
-        "prepared_spells": "15",
+        "cantrips": 4,
+        "prepared_spells": 15,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2
         },
         "extra": {
-          "Wild Shape": "3"
+          "Wild Shape": 3
         }
       },
       {
@@ -2008,18 +2008,18 @@
         "features": [
           "-"
         ],
-        "cantrips": "4",
-        "prepared_spells": "16",
+        "cantrips": 4,
+        "prepared_spells": 16,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1
         },
         "extra": {
-          "Wild Shape": "3"
+          "Wild Shape": 3
         }
       },
       {
@@ -2028,18 +2028,18 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "4",
-        "prepared_spells": "16",
+        "cantrips": 4,
+        "prepared_spells": 16,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1
         },
         "extra": {
-          "Wild Shape": "3"
+          "Wild Shape": 3
         }
       },
       {
@@ -2048,19 +2048,19 @@
         "features": [
           "-"
         ],
-        "cantrips": "4",
-        "prepared_spells": "17",
+        "cantrips": 4,
+        "prepared_spells": 17,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1
         },
         "extra": {
-          "Wild Shape": "3"
+          "Wild Shape": 3
         }
       },
       {
@@ -2069,19 +2069,19 @@
         "features": [
           "Subclass Feature"
         ],
-        "cantrips": "4",
-        "prepared_spells": "17",
+        "cantrips": 4,
+        "prepared_spells": 17,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1
         },
         "extra": {
-          "Wild Shape": "3"
+          "Wild Shape": 3
         }
       },
       {
@@ -2090,20 +2090,20 @@
         "features": [
           "Improved Elemental Fury"
         ],
-        "cantrips": "4",
-        "prepared_spells": "18",
+        "cantrips": 4,
+        "prepared_spells": 18,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1
         },
         "extra": {
-          "Wild Shape": "3"
+          "Wild Shape": 3
         },
         "feature_details": [
           {
@@ -2118,20 +2118,20 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "4",
-        "prepared_spells": "18",
+        "cantrips": 4,
+        "prepared_spells": 18,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1
         },
         "extra": {
-          "Wild Shape": "3"
+          "Wild Shape": 3
         }
       },
       {
@@ -2140,21 +2140,21 @@
         "features": [
           "-"
         ],
-        "cantrips": "4",
-        "prepared_spells": "19",
+        "cantrips": 4,
+        "prepared_spells": 19,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         },
         "extra": {
-          "Wild Shape": "4"
+          "Wild Shape": 4
         }
       },
       {
@@ -2163,21 +2163,21 @@
         "features": [
           "Beast Spells"
         ],
-        "cantrips": "4",
-        "prepared_spells": "20",
+        "cantrips": 4,
+        "prepared_spells": 20,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         },
         "extra": {
-          "Wild Shape": "4"
+          "Wild Shape": 4
         },
         "feature_details": [
           {
@@ -2192,21 +2192,21 @@
         "features": [
           "Epic Boon"
         ],
-        "cantrips": "4",
-        "prepared_spells": "21",
+        "cantrips": 4,
+        "prepared_spells": 21,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "2",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 2,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         },
         "extra": {
-          "Wild Shape": "4"
+          "Wild Shape": 4
         },
         "feature_details": [
           {
@@ -2221,21 +2221,21 @@
         "features": [
           "Archdruid"
         ],
-        "cantrips": "4",
-        "prepared_spells": "22",
+        "cantrips": 4,
+        "prepared_spells": 22,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "2",
-          "7th": "2",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 2,
+          "7th": 2,
+          "8th": 1,
+          "9th": 1
         },
         "extra": {
-          "Wild Shape": "4"
+          "Wild Shape": 4
         },
         "feature_details": [
           {
@@ -2266,8 +2266,8 @@
           "Weapon Mastery"
         ],
         "extra": {
-          "Second Wind": "2",
-          "Weapon Mastery": "3"
+          "Second Wind": 2,
+          "Weapon Mastery": 3
         },
         "feature_details": [
           {
@@ -2293,8 +2293,8 @@
           "Tactical Mind"
         ],
         "extra": {
-          "Second Wind": "2",
-          "Weapon Mastery": "3"
+          "Second Wind": 2,
+          "Weapon Mastery": 3
         },
         "feature_details": [
           {
@@ -2315,8 +2315,8 @@
           "Fighter Subclass"
         ],
         "extra": {
-          "Second Wind": "2",
-          "Weapon Mastery": "3"
+          "Second Wind": 2,
+          "Weapon Mastery": 3
         },
         "feature_details": [
           {
@@ -2333,8 +2333,8 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Second Wind": "3",
-          "Weapon Mastery": "4"
+          "Second Wind": 3,
+          "Weapon Mastery": 4
         },
         "feature_details": [
           {
@@ -2352,8 +2352,8 @@
           "Tactical Shift"
         ],
         "extra": {
-          "Second Wind": "3",
-          "Weapon Mastery": "4"
+          "Second Wind": 3,
+          "Weapon Mastery": 4
         },
         "feature_details": [
           {
@@ -2374,8 +2374,8 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Second Wind": "3",
-          "Weapon Mastery": "4"
+          "Second Wind": 3,
+          "Weapon Mastery": 4
         },
         "spell_slots": {}
       },
@@ -2386,8 +2386,8 @@
           "Subclass Feature"
         ],
         "extra": {
-          "Second Wind": "3",
-          "Weapon Mastery": "4"
+          "Second Wind": 3,
+          "Weapon Mastery": 4
         },
         "spell_slots": {}
       },
@@ -2398,8 +2398,8 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Second Wind": "3",
-          "Weapon Mastery": "4"
+          "Second Wind": 3,
+          "Weapon Mastery": 4
         },
         "spell_slots": {}
       },
@@ -2411,8 +2411,8 @@
           "Tactical Master"
         ],
         "extra": {
-          "Second Wind": "3",
-          "Weapon Mastery": "4"
+          "Second Wind": 3,
+          "Weapon Mastery": 4
         },
         "feature_details": [
           {
@@ -2433,8 +2433,8 @@
           "Subclass Feature"
         ],
         "extra": {
-          "Second Wind": "4",
-          "Weapon Mastery": "5"
+          "Second Wind": 4,
+          "Weapon Mastery": 5
         },
         "spell_slots": {}
       },
@@ -2445,8 +2445,8 @@
           "Two Extra Attacks"
         ],
         "extra": {
-          "Second Wind": "4",
-          "Weapon Mastery": "5"
+          "Second Wind": 4,
+          "Weapon Mastery": 5
         },
         "feature_details": [
           {
@@ -2463,8 +2463,8 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Second Wind": "4",
-          "Weapon Mastery": "5"
+          "Second Wind": 4,
+          "Weapon Mastery": 5
         },
         "spell_slots": {}
       },
@@ -2476,8 +2476,8 @@
           "Studied Attacks"
         ],
         "extra": {
-          "Second Wind": "4",
-          "Weapon Mastery": "5"
+          "Second Wind": 4,
+          "Weapon Mastery": 5
         },
         "feature_details": [
           {
@@ -2494,8 +2494,8 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Second Wind": "4",
-          "Weapon Mastery": "5"
+          "Second Wind": 4,
+          "Weapon Mastery": 5
         },
         "spell_slots": {}
       },
@@ -2506,8 +2506,8 @@
           "Subclass Feature"
         ],
         "extra": {
-          "Second Wind": "4",
-          "Weapon Mastery": "5"
+          "Second Wind": 4,
+          "Weapon Mastery": 5
         },
         "spell_slots": {}
       },
@@ -2518,8 +2518,8 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Second Wind": "4",
-          "Weapon Mastery": "6"
+          "Second Wind": 4,
+          "Weapon Mastery": 6
         },
         "spell_slots": {}
       },
@@ -2531,8 +2531,8 @@
           "Indomitable (Three Uses)"
         ],
         "extra": {
-          "Second Wind": "4",
-          "Weapon Mastery": "6"
+          "Second Wind": 4,
+          "Weapon Mastery": 6
         },
         "spell_slots": {}
       },
@@ -2543,8 +2543,8 @@
           "Subclass Feature"
         ],
         "extra": {
-          "Second Wind": "4",
-          "Weapon Mastery": "6"
+          "Second Wind": 4,
+          "Weapon Mastery": 6
         },
         "spell_slots": {}
       },
@@ -2555,8 +2555,8 @@
           "Epic Boon"
         ],
         "extra": {
-          "Second Wind": "4",
-          "Weapon Mastery": "6"
+          "Second Wind": 4,
+          "Weapon Mastery": 6
         },
         "feature_details": [
           {
@@ -2573,8 +2573,8 @@
           "Three Extra Attacks"
         ],
         "extra": {
-          "Second Wind": "4",
-          "Weapon Mastery": "6"
+          "Second Wind": 4,
+          "Weapon Mastery": 6
         },
         "feature_details": [
           {
@@ -2632,7 +2632,7 @@
         ],
         "extra": {
           "Martial Arts": "1d6",
-          "Focus Points": "2",
+          "Focus Points": 2,
           "Unarmored Movement": "+10 ft"
         },
         "feature_details": [
@@ -2660,7 +2660,7 @@
         ],
         "extra": {
           "Martial Arts": "1d6",
-          "Focus Points": "3",
+          "Focus Points": 3,
           "Unarmored Movement": "+10 ft"
         },
         "feature_details": [
@@ -2684,7 +2684,7 @@
         ],
         "extra": {
           "Martial Arts": "1d6",
-          "Focus Points": "4",
+          "Focus Points": 4,
           "Unarmored Movement": "+10 ft"
         },
         "feature_details": [
@@ -2708,7 +2708,7 @@
         ],
         "extra": {
           "Martial Arts": "1d8",
-          "Focus Points": "5",
+          "Focus Points": 5,
           "Unarmored Movement": "+10 ft"
         },
         "feature_details": [
@@ -2732,7 +2732,7 @@
         ],
         "extra": {
           "Martial Arts": "1d8",
-          "Focus Points": "6",
+          "Focus Points": 6,
           "Unarmored Movement": "+15 ft"
         },
         "feature_details": [
@@ -2751,7 +2751,7 @@
         ],
         "extra": {
           "Martial Arts": "1d8",
-          "Focus Points": "7",
+          "Focus Points": 7,
           "Unarmored Movement": "+15 ft"
         },
         "feature_details": [
@@ -2770,7 +2770,7 @@
         ],
         "extra": {
           "Martial Arts": "1d8",
-          "Focus Points": "8",
+          "Focus Points": 8,
           "Unarmored Movement": "+15 ft"
         },
         "spell_slots": {}
@@ -2783,7 +2783,7 @@
         ],
         "extra": {
           "Martial Arts": "1d8",
-          "Focus Points": "9",
+          "Focus Points": 9,
           "Unarmored Movement": "+15 ft"
         },
         "feature_details": [
@@ -2803,7 +2803,7 @@
         ],
         "extra": {
           "Martial Arts": "1d8",
-          "Focus Points": "10",
+          "Focus Points": 10,
           "Unarmored Movement": "+20 ft"
         },
         "feature_details": [
@@ -2826,7 +2826,7 @@
         ],
         "extra": {
           "Martial Arts": "1d10",
-          "Focus Points": "11",
+          "Focus Points": 11,
           "Unarmored Movement": "+20 ft"
         },
         "spell_slots": {}
@@ -2839,7 +2839,7 @@
         ],
         "extra": {
           "Martial Arts": "1d10",
-          "Focus Points": "12",
+          "Focus Points": 12,
           "Unarmored Movement": "+20 ft"
         },
         "spell_slots": {}
@@ -2852,7 +2852,7 @@
         ],
         "extra": {
           "Martial Arts": "1d10",
-          "Focus Points": "13",
+          "Focus Points": 13,
           "Unarmored Movement": "+20 ft"
         },
         "feature_details": [
@@ -2871,7 +2871,7 @@
         ],
         "extra": {
           "Martial Arts": "1d10",
-          "Focus Points": "14",
+          "Focus Points": 14,
           "Unarmored Movement": "+25 ft"
         },
         "feature_details": [
@@ -2890,7 +2890,7 @@
         ],
         "extra": {
           "Martial Arts": "1d10",
-          "Focus Points": "15",
+          "Focus Points": 15,
           "Unarmored Movement": "+25 ft"
         },
         "feature_details": [
@@ -2909,7 +2909,7 @@
         ],
         "extra": {
           "Martial Arts": "1d10",
-          "Focus Points": "16",
+          "Focus Points": 16,
           "Unarmored Movement": "+25 ft"
         },
         "spell_slots": {}
@@ -2922,7 +2922,7 @@
         ],
         "extra": {
           "Martial Arts": "1d12",
-          "Focus Points": "17",
+          "Focus Points": 17,
           "Unarmored Movement": "+25 ft"
         },
         "spell_slots": {}
@@ -2935,7 +2935,7 @@
         ],
         "extra": {
           "Martial Arts": "1d12",
-          "Focus Points": "18",
+          "Focus Points": 18,
           "Unarmored Movement": "+30 ft"
         },
         "feature_details": [
@@ -2954,7 +2954,7 @@
         ],
         "extra": {
           "Martial Arts": "1d12",
-          "Focus Points": "19",
+          "Focus Points": 19,
           "Unarmored Movement": "+30 ft"
         },
         "feature_details": [
@@ -2973,7 +2973,7 @@
         ],
         "extra": {
           "Martial Arts": "1d12",
-          "Focus Points": "20",
+          "Focus Points": 20,
           "Unarmored Movement": "+30 ft"
         },
         "feature_details": [
@@ -3005,9 +3005,9 @@
           "Spellcasting",
           "Weapon Mastery"
         ],
-        "prepared_spells": "2",
+        "prepared_spells": 2,
         "spell_slots": {
-          "1st": "2"
+          "1st": 2
         },
         "extra": {
           "Channel Divinity": null
@@ -3034,9 +3034,9 @@
           "Fighting Style",
           "Paladin's Smite"
         ],
-        "prepared_spells": "3",
+        "prepared_spells": 3,
         "spell_slots": {
-          "1st": "2"
+          "1st": 2
         },
         "extra": {
           "Channel Divinity": null
@@ -3059,12 +3059,12 @@
           "Channel Divinity",
           "Paladin Subclass"
         ],
-        "prepared_spells": "4",
+        "prepared_spells": 4,
         "spell_slots": {
-          "1st": "3"
+          "1st": 3
         },
         "extra": {
-          "Channel Divinity": "2"
+          "Channel Divinity": 2
         },
         "feature_details": [
           {
@@ -3083,12 +3083,12 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "prepared_spells": "5",
+        "prepared_spells": 5,
         "spell_slots": {
-          "1st": "3"
+          "1st": 3
         },
         "extra": {
-          "Channel Divinity": "2"
+          "Channel Divinity": 2
         },
         "feature_details": [
           {
@@ -3104,13 +3104,13 @@
           "Extra Attack",
           "Faithful Steed"
         ],
-        "prepared_spells": "6",
+        "prepared_spells": 6,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "2"
+          "1st": 4,
+          "2nd": 2
         },
         "extra": {
-          "Channel Divinity": "2"
+          "Channel Divinity": 2
         },
         "feature_details": [
           {
@@ -3129,13 +3129,13 @@
         "features": [
           "Aura of Protection"
         ],
-        "prepared_spells": "6",
+        "prepared_spells": 6,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "2"
+          "1st": 4,
+          "2nd": 2
         },
         "extra": {
-          "Channel Divinity": "2"
+          "Channel Divinity": 2
         },
         "feature_details": [
           {
@@ -3150,13 +3150,13 @@
         "features": [
           "Subclass Feature"
         ],
-        "prepared_spells": "7",
+        "prepared_spells": 7,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3"
+          "1st": 4,
+          "2nd": 3
         },
         "extra": {
-          "Channel Divinity": "2"
+          "Channel Divinity": 2
         }
       },
       {
@@ -3165,13 +3165,13 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "prepared_spells": "7",
+        "prepared_spells": 7,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3"
+          "1st": 4,
+          "2nd": 3
         },
         "extra": {
-          "Channel Divinity": "2"
+          "Channel Divinity": 2
         }
       },
       {
@@ -3180,14 +3180,14 @@
         "features": [
           "Abjure Foes"
         ],
-        "prepared_spells": "9",
+        "prepared_spells": 9,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 2
         },
         "extra": {
-          "Channel Divinity": "2"
+          "Channel Divinity": 2
         },
         "feature_details": [
           {
@@ -3202,14 +3202,14 @@
         "features": [
           "Aura of Courage"
         ],
-        "prepared_spells": "9",
+        "prepared_spells": 9,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 2
         },
         "extra": {
-          "Channel Divinity": "2"
+          "Channel Divinity": 2
         },
         "feature_details": [
           {
@@ -3224,14 +3224,14 @@
         "features": [
           "Radiant Strikes"
         ],
-        "prepared_spells": "10",
+        "prepared_spells": 10,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         },
         "feature_details": [
           {
@@ -3246,14 +3246,14 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "prepared_spells": "10",
+        "prepared_spells": 10,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -3262,15 +3262,15 @@
         "features": [
           "-"
         ],
-        "prepared_spells": "11",
+        "prepared_spells": 11,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -3279,15 +3279,15 @@
         "features": [
           "Restoring Touch"
         ],
-        "prepared_spells": "11",
+        "prepared_spells": 11,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         },
         "feature_details": [
           {
@@ -3302,15 +3302,15 @@
         "features": [
           "Subclass Feature"
         ],
-        "prepared_spells": "12",
+        "prepared_spells": 12,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 2
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -3319,15 +3319,15 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "prepared_spells": "12",
+        "prepared_spells": 12,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 2
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -3336,16 +3336,16 @@
         "features": [
           "-"
         ],
-        "prepared_spells": "14",
+        "prepared_spells": 14,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       },
       {
@@ -3354,16 +3354,16 @@
         "features": [
           "Aura Expansion"
         ],
-        "prepared_spells": "14",
+        "prepared_spells": 14,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3 1",
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 0,
           "5th": 1
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         },
         "feature_details": [
           {
@@ -3378,16 +3378,16 @@
         "features": [
           "Epic Boon"
         ],
-        "prepared_spells": "15",
+        "prepared_spells": 15,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         },
         "feature_details": [
           {
@@ -3402,16 +3402,16 @@
         "features": [
           "Subclass Feature"
         ],
-        "prepared_spells": "15",
+        "prepared_spells": 15,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2
         },
         "extra": {
-          "Channel Divinity": "3"
+          "Channel Divinity": 3
         }
       }
     ],
@@ -3436,12 +3436,12 @@
           "Favored Enemy",
           "Weapon Mastery"
         ],
-        "prepared_spells": "2",
+        "prepared_spells": 2,
         "spell_slots": {
-          "1st": "2"
+          "1st": 2
         },
         "extra": {
-          "Favored Enemy": "2"
+          "Favored Enemy": 2
         },
         "feature_details": [
           {
@@ -3465,12 +3465,12 @@
           "Deft Explorer",
           "Fighting Style"
         ],
-        "prepared_spells": "3",
+        "prepared_spells": 3,
         "spell_slots": {
-          "1st": "2"
+          "1st": 2
         },
         "extra": {
-          "Favored Enemy": "2"
+          "Favored Enemy": 2
         },
         "feature_details": [
           {
@@ -3489,12 +3489,12 @@
         "features": [
           "Ranger Subclass"
         ],
-        "prepared_spells": "4",
+        "prepared_spells": 4,
         "spell_slots": {
-          "1st": "3"
+          "1st": 3
         },
         "extra": {
-          "Favored Enemy": "2"
+          "Favored Enemy": 2
         },
         "feature_details": [
           {
@@ -3509,12 +3509,12 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "prepared_spells": "5",
+        "prepared_spells": 5,
         "spell_slots": {
-          "1st": "3"
+          "1st": 3
         },
         "extra": {
-          "Favored Enemy": "2"
+          "Favored Enemy": 2
         },
         "feature_details": [
           {
@@ -3529,13 +3529,13 @@
         "features": [
           "Extra Attack"
         ],
-        "prepared_spells": "6",
+        "prepared_spells": 6,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "2"
+          "1st": 4,
+          "2nd": 2
         },
         "extra": {
-          "Favored Enemy": "3"
+          "Favored Enemy": 3
         },
         "feature_details": [
           {
@@ -3550,13 +3550,13 @@
         "features": [
           "Roving"
         ],
-        "prepared_spells": "6",
+        "prepared_spells": 6,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "2"
+          "1st": 4,
+          "2nd": 2
         },
         "extra": {
-          "Favored Enemy": "3"
+          "Favored Enemy": 3
         },
         "feature_details": [
           {
@@ -3571,13 +3571,13 @@
         "features": [
           "Subclass Feature"
         ],
-        "prepared_spells": "7",
+        "prepared_spells": 7,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3"
+          "1st": 4,
+          "2nd": 3
         },
         "extra": {
-          "Favored Enemy": "3"
+          "Favored Enemy": 3
         }
       },
       {
@@ -3586,13 +3586,13 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "prepared_spells": "7",
+        "prepared_spells": 7,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3"
+          "1st": 4,
+          "2nd": 3
         },
         "extra": {
-          "Favored Enemy": "3"
+          "Favored Enemy": 3
         }
       },
       {
@@ -3601,14 +3601,14 @@
         "features": [
           "Expertise"
         ],
-        "prepared_spells": "9",
+        "prepared_spells": 9,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 2
         },
         "extra": {
-          "Favored Enemy": "4"
+          "Favored Enemy": 4
         },
         "feature_details": [
           {
@@ -3623,14 +3623,14 @@
         "features": [
           "Tireless"
         ],
-        "prepared_spells": "9",
+        "prepared_spells": 9,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 2
         },
         "extra": {
-          "Favored Enemy": "4"
+          "Favored Enemy": 4
         },
         "feature_details": [
           {
@@ -3645,14 +3645,14 @@
         "features": [
           "Subclass Feature"
         ],
-        "prepared_spells": "10",
+        "prepared_spells": 10,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3
         },
         "extra": {
-          "Favored Enemy": "4"
+          "Favored Enemy": 4
         }
       },
       {
@@ -3661,14 +3661,14 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "prepared_spells": "10",
+        "prepared_spells": 10,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3
         },
         "extra": {
-          "Favored Enemy": "4"
+          "Favored Enemy": 4
         }
       },
       {
@@ -3677,15 +3677,15 @@
         "features": [
           "Relentless Hunter"
         ],
-        "prepared_spells": "11",
+        "prepared_spells": 11,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 1
         },
         "extra": {
-          "Favored Enemy": "5"
+          "Favored Enemy": 5
         },
         "feature_details": [
           {
@@ -3700,15 +3700,15 @@
         "features": [
           "Nature's Veil"
         ],
-        "prepared_spells": "11",
+        "prepared_spells": 11,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 1
         },
         "extra": {
-          "Favored Enemy": "5"
+          "Favored Enemy": 5
         },
         "feature_details": [
           {
@@ -3723,15 +3723,15 @@
         "features": [
           "Subclass Feature"
         ],
-        "prepared_spells": "12",
+        "prepared_spells": 12,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 2
         },
         "extra": {
-          "Favored Enemy": "5"
+          "Favored Enemy": 5
         }
       },
       {
@@ -3740,15 +3740,15 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "prepared_spells": "12",
+        "prepared_spells": 12,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 2
         },
         "extra": {
-          "Favored Enemy": "5"
+          "Favored Enemy": 5
         }
       },
       {
@@ -3757,16 +3757,16 @@
         "features": [
           "Precise Hunter"
         ],
-        "prepared_spells": "14",
+        "prepared_spells": 14,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 1
         },
         "extra": {
-          "Favored Enemy": "6"
+          "Favored Enemy": 6
         },
         "feature_details": [
           {
@@ -3781,16 +3781,16 @@
         "features": [
           "Feral Senses"
         ],
-        "prepared_spells": "14",
+        "prepared_spells": 14,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 1
         },
         "extra": {
-          "Favored Enemy": "6"
+          "Favored Enemy": 6
         },
         "feature_details": [
           {
@@ -3805,16 +3805,16 @@
         "features": [
           "Epic Boon"
         ],
-        "prepared_spells": "15",
+        "prepared_spells": 15,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2
         },
         "extra": {
-          "Favored Enemy": "6"
+          "Favored Enemy": 6
         },
         "feature_details": [
           {
@@ -3829,16 +3829,16 @@
         "features": [
           "Foe Slayer"
         ],
-        "prepared_spells": "15",
+        "prepared_spells": 15,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2
         },
         "extra": {
-          "Favored Enemy": "6"
+          "Favored Enemy": 6
         },
         "feature_details": [
           {
@@ -4205,10 +4205,10 @@
           "Innate Sorcery"
         ],
         "extra": {},
-        "cantrips": "4",
-        "prepared_spells": "2",
+        "cantrips": 4,
+        "prepared_spells": 2,
         "spell_slots": {
-          "1st": "2"
+          "1st": 2
         },
         "feature_details": [
           {
@@ -4229,12 +4229,12 @@
           "Metamagic"
         ],
         "extra": {
-          "Sorcery Points": "2"
+          "Sorcery Points": 2
         },
-        "cantrips": "4",
-        "prepared_spells": "4",
+        "cantrips": 4,
+        "prepared_spells": 4,
         "spell_slots": {
-          "1st": "3"
+          "1st": 3
         },
         "feature_details": [
           {
@@ -4254,13 +4254,13 @@
           "Sorcerer Subclass"
         ],
         "extra": {
-          "Sorcery Points": "3"
+          "Sorcery Points": 3
         },
-        "cantrips": "4",
-        "prepared_spells": "6",
+        "cantrips": 4,
+        "prepared_spells": 6,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "2"
+          "1st": 4,
+          "2nd": 2
         },
         "feature_details": [
           {
@@ -4276,13 +4276,13 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Sorcery Points": "4"
+          "Sorcery Points": 4
         },
-        "cantrips": "5",
-        "prepared_spells": "7",
+        "cantrips": 5,
+        "prepared_spells": 7,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3"
+          "1st": 4,
+          "2nd": 3
         },
         "feature_details": [
           {
@@ -4298,14 +4298,14 @@
           "Sorcerous Restoration"
         ],
         "extra": {
-          "Sorcery Points": "5"
+          "Sorcery Points": 5
         },
-        "cantrips": "5",
-        "prepared_spells": "9",
+        "cantrips": 5,
+        "prepared_spells": 9,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 2
         },
         "feature_details": [
           {
@@ -4321,14 +4321,14 @@
           "Subclass feature"
         ],
         "extra": {
-          "Sorcery Points": "6"
+          "Sorcery Points": 6
         },
-        "cantrips": "5",
-        "prepared_spells": "10",
+        "cantrips": 5,
+        "prepared_spells": 10,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3
         }
       },
       {
@@ -4338,15 +4338,15 @@
           "Sorcery Incarnate"
         ],
         "extra": {
-          "Sorcery Points": "7"
+          "Sorcery Points": 7
         },
-        "cantrips": "5",
-        "prepared_spells": "11",
+        "cantrips": 5,
+        "prepared_spells": 11,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 1
         },
         "feature_details": [
           {
@@ -4362,15 +4362,15 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Sorcery Points": "8"
+          "Sorcery Points": 8
         },
-        "cantrips": "5",
-        "prepared_spells": "12",
+        "cantrips": 5,
+        "prepared_spells": 12,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 2
         }
       },
       {
@@ -4380,16 +4380,16 @@
           "-"
         ],
         "extra": {
-          "Sorcery Points": "9"
+          "Sorcery Points": 9
         },
-        "cantrips": "5",
-        "prepared_spells": "14",
+        "cantrips": 5,
+        "prepared_spells": 14,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 1
         }
       },
       {
@@ -4399,16 +4399,16 @@
           "Metamagic"
         ],
         "extra": {
-          "Sorcery Points": "10"
+          "Sorcery Points": 10
         },
-        "cantrips": "6",
-        "prepared_spells": "15",
+        "cantrips": 6,
+        "prepared_spells": 15,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2
         }
       },
       {
@@ -4418,17 +4418,17 @@
           "-"
         ],
         "extra": {
-          "Sorcery Points": "11"
+          "Sorcery Points": 11
         },
-        "cantrips": "6",
-        "prepared_spells": "16",
+        "cantrips": 6,
+        "prepared_spells": 16,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1
         }
       },
       {
@@ -4438,17 +4438,17 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Sorcery Points": "12"
+          "Sorcery Points": 12
         },
-        "cantrips": "6",
-        "prepared_spells": "16",
+        "cantrips": 6,
+        "prepared_spells": 16,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1
         }
       },
       {
@@ -4458,18 +4458,18 @@
           "-"
         ],
         "extra": {
-          "Sorcery Points": "13"
+          "Sorcery Points": 13
         },
-        "cantrips": "6",
-        "prepared_spells": "17",
+        "cantrips": 6,
+        "prepared_spells": 17,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1
         }
       },
       {
@@ -4479,18 +4479,18 @@
           "Subclass feature"
         ],
         "extra": {
-          "Sorcery Points": "14"
+          "Sorcery Points": 14
         },
-        "cantrips": "6",
-        "prepared_spells": "17",
+        "cantrips": 6,
+        "prepared_spells": 17,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3 2",
-          "5th": "1",
-          "6th": "1",
-          "7th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 0,
+          "5th": 1,
+          "6th": 1,
+          "7th": 1
         }
       },
       {
@@ -4500,19 +4500,19 @@
           "-"
         ],
         "extra": {
-          "Sorcery Points": "15"
+          "Sorcery Points": 15
         },
-        "cantrips": "6",
-        "prepared_spells": "18",
+        "cantrips": 6,
+        "prepared_spells": 18,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1
         }
       },
       {
@@ -4522,19 +4522,19 @@
           "Ability Score Improvement"
         ],
         "extra": {
-          "Sorcery Points": "16"
+          "Sorcery Points": 16
         },
-        "cantrips": "6",
-        "prepared_spells": "18",
+        "cantrips": 6,
+        "prepared_spells": 18,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1
         }
       },
       {
@@ -4544,20 +4544,20 @@
           "Metamagic"
         ],
         "extra": {
-          "Sorcery Points": "17"
+          "Sorcery Points": 17
         },
-        "cantrips": "6",
-        "prepared_spells": "19",
+        "cantrips": 6,
+        "prepared_spells": 19,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         }
       },
       {
@@ -4567,20 +4567,20 @@
           "Subclass feature"
         ],
         "extra": {
-          "Sorcery Points": "18"
+          "Sorcery Points": 18
         },
-        "cantrips": "6",
-        "prepared_spells": "20",
+        "cantrips": 6,
+        "prepared_spells": 20,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         }
       },
       {
@@ -4590,20 +4590,20 @@
           "Epic Boon"
         ],
         "extra": {
-          "Sorcery Points": "19"
+          "Sorcery Points": 19
         },
-        "cantrips": "6",
-        "prepared_spells": "21",
+        "cantrips": 6,
+        "prepared_spells": 21,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "2",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 2,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         },
         "feature_details": [
           {
@@ -4619,20 +4619,20 @@
           "Arcane Apotheosis"
         ],
         "extra": {
-          "Sorcery Points": "20"
+          "Sorcery Points": 20
         },
-        "cantrips": "6",
-        "prepared_spells": "22",
+        "cantrips": 6,
+        "prepared_spells": 22,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "2",
-          "7th": "2",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 2,
+          "7th": 2,
+          "8th": 1,
+          "9th": 1
         },
         "feature_details": [
           {
@@ -4662,14 +4662,14 @@
           "Eldritch Invocations",
           "Pact Magic"
         ],
-        "cantrips": "2",
-        "prepared_spells": "2",
+        "cantrips": 2,
+        "prepared_spells": 2,
         "pact_slots": 1,
         "pact_slot_level": 1,
         "extra": {
-          "Eldritch Invocations": "1",
-          "Spell Slots": "1",
-          "Slot Level": "1"
+          "Eldritch Invocations": 1,
+          "Spell Slots": 1,
+          "Slot Level": 1
         },
         "feature_details": [
           {
@@ -4689,14 +4689,14 @@
         "features": [
           "Magical Cunning"
         ],
-        "cantrips": "2",
-        "prepared_spells": "3",
+        "cantrips": 2,
+        "prepared_spells": 3,
         "pact_slots": 2,
         "pact_slot_level": 1,
         "extra": {
-          "Eldritch Invocations": "3",
-          "Spell Slots": "2",
-          "Slot Level": "1"
+          "Eldritch Invocations": 3,
+          "Spell Slots": 2,
+          "Slot Level": 1
         },
         "feature_details": [
           {
@@ -4712,14 +4712,14 @@
         "features": [
           "Warlock Subclass"
         ],
-        "cantrips": "2",
-        "prepared_spells": "4",
+        "cantrips": 2,
+        "prepared_spells": 4,
         "pact_slots": 2,
         "pact_slot_level": 2,
         "extra": {
-          "Eldritch Invocations": "3",
-          "Spell Slots": "2",
-          "Slot Level": "2"
+          "Eldritch Invocations": 3,
+          "Spell Slots": 2,
+          "Slot Level": 2
         },
         "feature_details": [
           {
@@ -4735,14 +4735,14 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "3",
-        "prepared_spells": "5",
+        "cantrips": 3,
+        "prepared_spells": 5,
         "pact_slots": 2,
         "pact_slot_level": 2,
         "extra": {
-          "Eldritch Invocations": "3",
-          "Spell Slots": "2",
-          "Slot Level": "2"
+          "Eldritch Invocations": 3,
+          "Spell Slots": 2,
+          "Slot Level": 2
         },
         "feature_details": [
           {
@@ -4758,14 +4758,14 @@
         "features": [
           "-"
         ],
-        "cantrips": "3",
-        "prepared_spells": "6",
+        "cantrips": 3,
+        "prepared_spells": 6,
         "pact_slots": 2,
         "pact_slot_level": 3,
         "extra": {
-          "Eldritch Invocations": "5",
-          "Spell Slots": "2",
-          "Slot Level": "3"
+          "Eldritch Invocations": 5,
+          "Spell Slots": 2,
+          "Slot Level": 3
         },
         "spell_slots": {}
       },
@@ -4775,14 +4775,14 @@
         "features": [
           "Subclass Feature"
         ],
-        "cantrips": "3",
-        "prepared_spells": "7",
+        "cantrips": 3,
+        "prepared_spells": 7,
         "pact_slots": 2,
         "pact_slot_level": 3,
         "extra": {
-          "Eldritch Invocations": "5",
-          "Spell Slots": "2",
-          "Slot Level": "3"
+          "Eldritch Invocations": 5,
+          "Spell Slots": 2,
+          "Slot Level": 3
         },
         "spell_slots": {}
       },
@@ -4792,14 +4792,14 @@
         "features": [
           "-"
         ],
-        "cantrips": "3",
-        "prepared_spells": "8",
+        "cantrips": 3,
+        "prepared_spells": 8,
         "pact_slots": 2,
         "pact_slot_level": 4,
         "extra": {
-          "Eldritch Invocations": "6",
-          "Spell Slots": "2",
-          "Slot Level": "4"
+          "Eldritch Invocations": 6,
+          "Spell Slots": 2,
+          "Slot Level": 4
         },
         "spell_slots": {}
       },
@@ -4809,14 +4809,14 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "3",
-        "prepared_spells": "9",
+        "cantrips": 3,
+        "prepared_spells": 9,
         "pact_slots": 2,
         "pact_slot_level": 4,
         "extra": {
-          "Eldritch Invocations": "6",
-          "Spell Slots": "2",
-          "Slot Level": "4"
+          "Eldritch Invocations": 6,
+          "Spell Slots": 2,
+          "Slot Level": 4
         },
         "spell_slots": {}
       },
@@ -4826,14 +4826,14 @@
         "features": [
           "Contact Patron"
         ],
-        "cantrips": "3",
-        "prepared_spells": "10",
+        "cantrips": 3,
+        "prepared_spells": 10,
         "pact_slots": 2,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": "7",
-          "Spell Slots": "2",
-          "Slot Level": "5"
+          "Eldritch Invocations": 7,
+          "Spell Slots": 2,
+          "Slot Level": 5
         },
         "feature_details": [
           {
@@ -4849,14 +4849,14 @@
         "features": [
           "Subclass Feature"
         ],
-        "cantrips": "4",
-        "prepared_spells": "10",
+        "cantrips": 4,
+        "prepared_spells": 10,
         "pact_slots": 2,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": "7",
-          "Spell Slots": "2",
-          "Slot Level": "5"
+          "Eldritch Invocations": 7,
+          "Spell Slots": 2,
+          "Slot Level": 5
         },
         "spell_slots": {}
       },
@@ -4866,14 +4866,14 @@
         "features": [
           "Mystic Arcanum (Level 6 Spell)"
         ],
-        "cantrips": "4",
-        "prepared_spells": "11",
+        "cantrips": 4,
+        "prepared_spells": 11,
         "pact_slots": 3,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": "7",
-          "Spell Slots": "3",
-          "Slot Level": "5"
+          "Eldritch Invocations": 7,
+          "Spell Slots": 3,
+          "Slot Level": 5
         },
         "feature_details": [
           {
@@ -4889,14 +4889,14 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "4",
-        "prepared_spells": "11",
+        "cantrips": 4,
+        "prepared_spells": 11,
         "pact_slots": 3,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": "8",
-          "Spell Slots": "3",
-          "Slot Level": "5"
+          "Eldritch Invocations": 8,
+          "Spell Slots": 3,
+          "Slot Level": 5
         },
         "spell_slots": {}
       },
@@ -4906,14 +4906,14 @@
         "features": [
           "Mystic Arcanum (Level 7 Spell)"
         ],
-        "cantrips": "4",
-        "prepared_spells": "12",
+        "cantrips": 4,
+        "prepared_spells": 12,
         "pact_slots": 3,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": "8",
-          "Spell Slots": "3",
-          "Slot Level": "5"
+          "Eldritch Invocations": 8,
+          "Spell Slots": 3,
+          "Slot Level": 5
         },
         "spell_slots": {}
       },
@@ -4923,14 +4923,14 @@
         "features": [
           "Subclass Feature"
         ],
-        "cantrips": "4",
-        "prepared_spells": "12",
+        "cantrips": 4,
+        "prepared_spells": 12,
         "pact_slots": 3,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": "8",
-          "Spell Slots": "3",
-          "Slot Level": "5"
+          "Eldritch Invocations": 8,
+          "Spell Slots": 3,
+          "Slot Level": 5
         },
         "spell_slots": {}
       },
@@ -4940,14 +4940,14 @@
         "features": [
           "Mystic Arcanum (Level 8 Spell)"
         ],
-        "cantrips": "4",
-        "prepared_spells": "13",
+        "cantrips": 4,
+        "prepared_spells": 13,
         "pact_slots": 3,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": "9",
-          "Spell Slots": "3",
-          "Slot Level": "5"
+          "Eldritch Invocations": 9,
+          "Spell Slots": 3,
+          "Slot Level": 5
         },
         "spell_slots": {}
       },
@@ -4957,14 +4957,14 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "4",
-        "prepared_spells": "13",
+        "cantrips": 4,
+        "prepared_spells": 13,
         "pact_slots": 3,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": "9",
-          "Spell Slots": "3",
-          "Slot Level": "5"
+          "Eldritch Invocations": 9,
+          "Spell Slots": 3,
+          "Slot Level": 5
         },
         "spell_slots": {}
       },
@@ -4974,14 +4974,14 @@
         "features": [
           "Mystic Arcanum (Level 9 Spell)"
         ],
-        "cantrips": "4",
-        "prepared_spells": "14",
+        "cantrips": 4,
+        "prepared_spells": 14,
         "pact_slots": 4,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": "9",
-          "Spell Slots": "4",
-          "Slot Level": "5"
+          "Eldritch Invocations": 9,
+          "Spell Slots": 4,
+          "Slot Level": 5
         },
         "spell_slots": {}
       },
@@ -4991,14 +4991,14 @@
         "features": [
           "-"
         ],
-        "cantrips": "4",
-        "prepared_spells": "14",
+        "cantrips": 4,
+        "prepared_spells": 14,
         "pact_slots": 4,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": "10",
-          "Spell Slots": "4",
-          "Slot Level": "5"
+          "Eldritch Invocations": 10,
+          "Spell Slots": 4,
+          "Slot Level": 5
         },
         "spell_slots": {}
       },
@@ -5008,14 +5008,14 @@
         "features": [
           "Epic Boon"
         ],
-        "cantrips": "4",
-        "prepared_spells": "15",
+        "cantrips": 4,
+        "prepared_spells": 15,
         "pact_slots": 4,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": "10",
-          "Spell Slots": "4",
-          "Slot Level": "5"
+          "Eldritch Invocations": 10,
+          "Spell Slots": 4,
+          "Slot Level": 5
         },
         "feature_details": [
           {
@@ -5031,14 +5031,14 @@
         "features": [
           "Eldritch Master"
         ],
-        "cantrips": "4",
-        "prepared_spells": "15",
+        "cantrips": 4,
+        "prepared_spells": 15,
         "pact_slots": 4,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": "10",
-          "Spell Slots": "4",
-          "Slot Level": "5"
+          "Eldritch Invocations": 10,
+          "Spell Slots": 4,
+          "Slot Level": 5
         },
         "feature_details": [
           {
@@ -5069,10 +5069,10 @@
           "Ritual Adept",
           "Arcane Recovery"
         ],
-        "cantrips": "3",
-        "prepared_spells": "4",
+        "cantrips": 3,
+        "prepared_spells": 4,
         "spell_slots": {
-          "1st": "2"
+          "1st": 2
         },
         "feature_details": [
           {
@@ -5096,10 +5096,10 @@
         "features": [
           "Scholar"
         ],
-        "cantrips": "3",
-        "prepared_spells": "5",
+        "cantrips": 3,
+        "prepared_spells": 5,
         "spell_slots": {
-          "1st": "3"
+          "1st": 3
         },
         "feature_details": [
           {
@@ -5115,11 +5115,11 @@
         "features": [
           "Wizard Subclass"
         ],
-        "cantrips": "3",
-        "prepared_spells": "6",
+        "cantrips": 3,
+        "prepared_spells": 6,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "2"
+          "1st": 4,
+          "2nd": 2
         },
         "feature_details": [
           {
@@ -5135,11 +5135,11 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "4",
-        "prepared_spells": "7",
+        "cantrips": 4,
+        "prepared_spells": 7,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3"
+          "1st": 4,
+          "2nd": 3
         },
         "feature_details": [
           {
@@ -5155,12 +5155,12 @@
         "features": [
           "Memorize Spell"
         ],
-        "cantrips": "4",
-        "prepared_spells": "9",
+        "cantrips": 4,
+        "prepared_spells": 9,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 2
         },
         "feature_details": [
           {
@@ -5176,12 +5176,12 @@
         "features": [
           "Subclass feature"
         ],
-        "cantrips": "4",
-        "prepared_spells": "10",
+        "cantrips": 4,
+        "prepared_spells": 10,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3
         },
         "extra": {}
       },
@@ -5191,13 +5191,13 @@
         "features": [
           "-"
         ],
-        "cantrips": "4",
-        "prepared_spells": "11",
+        "cantrips": 4,
+        "prepared_spells": 11,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 1
         },
         "extra": {}
       },
@@ -5207,13 +5207,13 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "4",
-        "prepared_spells": "12",
+        "cantrips": 4,
+        "prepared_spells": 12,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 2
         },
         "extra": {}
       },
@@ -5223,14 +5223,14 @@
         "features": [
           "-"
         ],
-        "cantrips": "4",
-        "prepared_spells": "14",
+        "cantrips": 4,
+        "prepared_spells": 14,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 1
         },
         "extra": {}
       },
@@ -5240,14 +5240,14 @@
         "features": [
           "Subclass feature"
         ],
-        "cantrips": "5",
-        "prepared_spells": "15",
+        "cantrips": 5,
+        "prepared_spells": 15,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2
         },
         "extra": {}
       },
@@ -5257,15 +5257,15 @@
         "features": [
           "-"
         ],
-        "cantrips": "5",
-        "prepared_spells": "16",
+        "cantrips": 5,
+        "prepared_spells": 16,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1
         },
         "extra": {}
       },
@@ -5275,15 +5275,15 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "5",
-        "prepared_spells": "16",
+        "cantrips": 5,
+        "prepared_spells": 16,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1
         },
         "extra": {}
       },
@@ -5293,16 +5293,16 @@
         "features": [
           "-"
         ],
-        "cantrips": "5",
-        "prepared_spells": "17",
+        "cantrips": 5,
+        "prepared_spells": 17,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1
         },
         "extra": {}
       },
@@ -5312,16 +5312,16 @@
         "features": [
           "Subclass feature"
         ],
-        "cantrips": "5",
-        "prepared_spells": "18",
+        "cantrips": 5,
+        "prepared_spells": 18,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1
         },
         "extra": {}
       },
@@ -5331,17 +5331,17 @@
         "features": [
           "-"
         ],
-        "cantrips": "5",
-        "prepared_spells": "19",
+        "cantrips": 5,
+        "prepared_spells": 19,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1
         },
         "extra": {}
       },
@@ -5351,17 +5351,17 @@
         "features": [
           "Ability Score Improvement"
         ],
-        "cantrips": "5",
-        "prepared_spells": "21",
+        "cantrips": 5,
+        "prepared_spells": 21,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1
         },
         "extra": {}
       },
@@ -5371,18 +5371,18 @@
         "features": [
           "-"
         ],
-        "cantrips": "5",
-        "prepared_spells": "22",
+        "cantrips": 5,
+        "prepared_spells": 22,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "2",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 2,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         },
         "extra": {}
       },
@@ -5392,18 +5392,18 @@
         "features": [
           "Spell Mastery"
         ],
-        "cantrips": "5",
-        "prepared_spells": "23",
+        "cantrips": 5,
+        "prepared_spells": 23,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "1",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 1,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         },
         "feature_details": [
           {
@@ -5419,18 +5419,18 @@
         "features": [
           "Epic Boon"
         ],
-        "cantrips": "5",
-        "prepared_spells": "24",
+        "cantrips": 5,
+        "prepared_spells": 24,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "2",
-          "7th": "1",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 2,
+          "7th": 1,
+          "8th": 1,
+          "9th": 1
         },
         "feature_details": [
           {
@@ -5446,18 +5446,18 @@
         "features": [
           "Signature Spells"
         ],
-        "cantrips": "5",
-        "prepared_spells": "25",
+        "cantrips": 5,
+        "prepared_spells": 25,
         "spell_slots": {
-          "1st": "4",
-          "2nd": "3",
-          "3rd": "3",
-          "4th": "3",
-          "5th": "3",
-          "6th": "2",
-          "7th": "2",
-          "8th": "1",
-          "9th": "1"
+          "1st": 4,
+          "2nd": 3,
+          "3rd": 3,
+          "4th": 3,
+          "5th": 3,
+          "6th": 2,
+          "7th": 2,
+          "8th": 1,
+          "9th": 1
         },
         "feature_details": [
           {
