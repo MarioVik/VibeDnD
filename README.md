@@ -10,6 +10,13 @@ A desktop character creation tool for Dungeons & Dragons 2024 rules, built with 
 - Export to PDF, JSON, or plain text
 - Dark parchment-themed UI
 
+## AI Development Guidelines
+
+If you are using an AI agent (like Cursor, Claude, or Copilot) to work on this repository:
+- Please refer to [AI_README.md](AI_README.md) for data schemas and token optimization guidelines.
+- Use the `.cursorrules` file for automated AI behavior settings.
+- **Do not** have the AI read the large JSON files in the `data/` directory or the root `dnd2024_data.json` file, as this will consume a significant amount of tokens. Use the provided schemas instead.
+
 ## Running from Source
 
 ### Prerequisites

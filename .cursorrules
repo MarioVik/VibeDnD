@@ -1,0 +1,18 @@
+# AI Context & Token Optimization
+
+## Critical: Data Files
+This repository contains large JSON files in the `data/` directory and `dnd2024_data.json` in the root.
+- **Do not read these files in their entirety.**
+- Refer to `AI_README.md` for the schemas of these files.
+- If you need specific data, use `grep_search` to find a specific entry instead of `view_file`.
+
+## Project Structure
+- `gui/`: UI logic.
+- `models/`: Domain models (Character, AbilityScores, etc.).
+- `parsers/`: Scrapers and data cleaning scripts.
+- `paths.py`: Use this for reliable path resolution.
+
+## Coding Style
+- Follow Python PEP 8.
+- Use the models in `models/` for data manipulation rather than raw dictionary access where possible.
+- If modifying UI, check `gui/app.py` first.
