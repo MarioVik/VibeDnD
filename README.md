@@ -37,6 +37,8 @@ uv sync
 python -m venv .venv
 .venv/Scripts/activate      # Windows
 source .venv/bin/activate    # macOS / Linux
+pip install .
+# or:
 pip install -r requirements.txt
 ```
 
@@ -57,9 +59,9 @@ You can package VibeDnD into a standalone executable that does not require Pytho
 Install the build dependencies into your virtual environment:
 
 ```bash
-pip install pyinstaller fpdf2
+pip install ".[build]"
 # or with uv:
-uv pip install pyinstaller fpdf2
+uv sync --extra build
 ```
 
 ### Building
@@ -110,7 +112,7 @@ No Python installation is needed on the target machine.
    ```
 3. Install build dependencies:
    ```powershell
-   pip install pyinstaller fpdf2
+   pip install ".[build]"
    ```
 4. Build:
    ```powershell
@@ -142,7 +144,7 @@ No Python installation is needed on the target machine.
    ```
 3. Install runtime and build dependencies:
    ```bash
-   pip install fpdf2 pyinstaller
+   pip install ".[build]"
    ```
 4. Build:
    ```bash
@@ -171,7 +173,7 @@ No Python installation is needed on the target machine.
    ```
 3. Install runtime and build dependencies:
    ```bash
-   pip install fpdf2 pyinstaller
+   pip install ".[build]"
    ```
 4. Build:
    ```bash
