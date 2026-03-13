@@ -814,8 +814,11 @@ class CharacterSheetPDF(FPDF):
                 self._sans("", 5.7)
                 self.set_text_color(*C_BLACK)
                 cx = x + 2
+                name = r.get("name", "")
+                if r.get("kind") == "weapon" and r.get("true_strike_active"):
+                    name = f"{name} (True Strike)"
                 vals = [
-                    r.get("name", ""),
+                    name,
                     r.get("attack", ""),
                     r.get("damage", ""),
                     r.get("notes", ""),
