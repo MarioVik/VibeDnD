@@ -40,8 +40,8 @@ class CharacterCreatorApp:
 
         # Screen references
         self.home_screen = HomeScreen(self.container, self)
-        self.wizard_frame = None   # built lazily
-        self.viewer_frame = None   # built lazily
+        self.wizard_frame = None  # built lazily
+        self.viewer_frame = None  # built lazily
 
         # State
         self.character = None
@@ -86,7 +86,8 @@ class CharacterCreatorApp:
         if self.viewer_frame:
             self.viewer_frame.destroy()
         self.viewer_frame = CharacterViewer(
-            self.container, character, save_path, self.data, self)
+            self.container, character, save_path, self.data, self
+        )
         self.viewer_frame.pack(fill=tk.BOTH, expand=True)
 
     def _hide_all(self):
@@ -115,12 +116,14 @@ class CharacterCreatorApp:
             back_cmd = self.show_home
 
         ttk.Button(
-            top, text=back_text,
+            top,
+            text=back_text,
             command=back_cmd,
         ).pack(side=tk.LEFT)
 
         ttk.Button(
-            top, text="Save & Finish",
+            top,
+            text="Save & Finish",
             style="Accent.TButton",
             command=self._save_and_finish,
         ).pack(side=tk.LEFT, padx=12)
@@ -128,11 +131,18 @@ class CharacterCreatorApp:
         # Navigation buttons at bottom
         self.nav_frame = ttk.Frame(frame, padding=(12, 12))
         self.nav_frame.pack(side=tk.BOTTOM, fill=tk.X)
-        
-        self.back_btn = ttk.Button(self.nav_frame, text="\u25c0  Back", command=self._wizard_back)
+
+        self.back_btn = ttk.Button(
+            self.nav_frame, text="\u25c0  Back", command=self._wizard_back
+        )
         self.back_btn.pack(side=tk.LEFT)
-        
-        self.next_btn = ttk.Button(self.nav_frame, text="Next  \u25b6", style="Accent.TButton", command=self._wizard_next)
+
+        self.next_btn = ttk.Button(
+            self.nav_frame,
+            text="Next  \u25b6",
+            style="Accent.TButton",
+            command=self._wizard_next,
+        )
         self.next_btn.pack(side=tk.RIGHT)
 
         # Notebook for wizard steps
@@ -148,13 +158,18 @@ class CharacterCreatorApp:
             FeatStep(self.wizard_notebook, character, self.data),
             SpellsStep(self.wizard_notebook, character, self.data),
             EquipmentStep(self.wizard_notebook, character, self.data),
-            SummaryStep(self.wizard_notebook, character, self.data,
-                        app=self, save_path=save_path),
+            SummaryStep(
+                self.wizard_notebook,
+                character,
+                self.data,
+                app=self,
+                save_path=save_path,
+            ),
         ]
-        
+
         # Add on_change callback to ClassStep index (1) to toggle spells tab
         self.wizard_steps[1].on_change_callbacks.append(self._update_spells_visibility)
-        
+
         # Register nav updates for all steps
         for step in self.wizard_steps:
             step.on_change_callbacks.append(self._update_nav_buttons)
@@ -163,7 +178,7 @@ class CharacterCreatorApp:
         if not save_path:
             for i in range(1, len(self.wizard_steps)):
                 self.wizard_notebook.tab(i, state="hidden")
-        
+
         # Initial spells visibility check
         self._update_spells_visibility()
 
@@ -185,12 +200,12 @@ class CharacterCreatorApp:
 
     def _update_spells_visibility(self):
         """Hide or show the spells tab based on caster status."""
-        if not hasattr(self, 'wizard_notebook'):
+        if not hasattr(self, "wizard_notebook"):
             return
-        
+
         SPELLS_INDEX = 5
         curr = self.wizard_notebook.index(self.wizard_notebook.select())
-        
+
         if self.character.is_caster:
             # Only show if they have reached this step or are in edit mode
             if self.current_save_path:
@@ -203,16 +218,27 @@ class CharacterCreatorApp:
 
     def _wizard_next(self):
         curr = self.wizard_notebook.index(self.wizard_notebook.select())
-        if not self.wizard_steps[curr].is_valid():
+        step = self.wizard_steps[curr]
+        if not step.is_valid():
+            if isinstance(step, ClassStep):
+                required = getattr(step, "skill_limit", 0)
+                chosen = len(self.character.selected_skills) if self.character else 0
+                skill_word = "skill" if required == 1 else "skills"
+                AlertDialog(
+                    self.root,
+                    "Skill Selection Required",
+                    f"Choose {required} class {skill_word} before moving on. "
+                    f"({chosen}/{required} selected)",
+                )
             return
 
         if curr < len(self.wizard_steps) - 1:
             next_idx = curr + 1
-            
+
             # Skip Spells tab if not a caster
             if next_idx == 5 and not self.character.is_caster:
                 next_idx += 1
-            
+
             if next_idx < len(self.wizard_steps):
                 self.wizard_notebook.tab(next_idx, state="normal")
                 self.wizard_notebook.select(next_idx)
@@ -221,34 +247,50 @@ class CharacterCreatorApp:
         curr = self.wizard_notebook.index(self.wizard_notebook.select())
         if curr > 0:
             prev_idx = curr - 1
-            
+
             # Skip Spells tab if not a caster
             if prev_idx == 5 and not self.character.is_caster:
                 prev_idx -= 1
-            
+
             if prev_idx >= 0:
                 self.wizard_notebook.select(prev_idx)
 
     def _update_nav_buttons(self):
         curr = self.wizard_notebook.index(self.wizard_notebook.select())
         self.back_btn.configure(state=tk.NORMAL if curr > 0 else tk.DISABLED)
-        
-        is_valid = self.wizard_steps[curr].is_valid()
+
+        # Class step keeps Next clickable; validation is handled on click with dialog.
+        if isinstance(self.wizard_steps[curr], ClassStep):
+            is_valid = True
+        else:
+            is_valid = self.wizard_steps[curr].is_valid()
 
         if curr == len(self.wizard_steps) - 1:
-            self.next_btn.configure(text="Finish \u2713", command=self._save_and_finish,
-                                   state=tk.NORMAL if is_valid else tk.DISABLED)
+            self.next_btn.configure(
+                text="Finish \u2713",
+                command=self._save_and_finish,
+                state=tk.NORMAL if is_valid else tk.DISABLED,
+            )
         else:
-            self.next_btn.configure(text="Next  \u25b6", command=self._wizard_next,
-                                   state=tk.NORMAL if is_valid else tk.DISABLED)
-
+            self.next_btn.configure(
+                text="Next  \u25b6",
+                command=self._wizard_next,
+                state=tk.NORMAL if is_valid else tk.DISABLED,
+            )
 
     # ── Save & Export ──────────────────────────────────────────
 
     def _save_and_finish(self):
-        if not self.character or not self.character.name or self.character.name == "New Character":
-            AlertDialog(self.root, "Name Required",
-                        "Please enter a character name on the Summary tab before saving.")
+        if (
+            not self.character
+            or not self.character.name
+            or self.character.name == "New Character"
+        ):
+            AlertDialog(
+                self.root,
+                "Name Required",
+                "Please enter a character name on the Summary tab before saving.",
+            )
             return
 
         from models.character_store import save_character
@@ -268,6 +310,7 @@ class CharacterCreatorApp:
             return
         from models.character_store import character_to_save_dict
         import json
+
         path = filedialog.asksaveasfilename(
             defaultextension=".json",
             filetypes=[("JSON files", "*.json")],
@@ -283,6 +326,7 @@ class CharacterCreatorApp:
         if not self.character:
             return
         from export.pdf_export import export_pdf
+
         path = filedialog.asksaveasfilename(
             defaultextension=".pdf",
             filetypes=[("PDF files", "*.pdf")],
