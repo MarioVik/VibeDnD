@@ -4,6 +4,7 @@ from fpdf import FPDF
 from fpdf.enums import RenderStyle, Corner
 from models.character import Character
 from models.enums import ALL_SKILLS
+from models.standard_actions import build_standard_actions
 
 
 # Layout constants (all in mm, A4 = 210 x 297)
@@ -751,7 +752,9 @@ class CharacterSheetPDF(FPDF):
 
     def _draw_weapons_section(self, x, y, w):
         """Draw weapons & damage / cantrips table."""
-        total_h_est = 32
+        rows = build_standard_actions(self.c, self._get_spell_data())
+        row_count = max(4, len(rows))
+        total_h_est = 12 + row_count * 5
         self._section_box(x, y, w, total_h_est, "WEAPONS & DAMAGE CANTRIPS")
         inner = y + 6
         ty = inner + 1
@@ -771,7 +774,7 @@ class CharacterSheetPDF(FPDF):
         self.set_line_width(0.15)
         self.line(x + 2, ty - 0.5, x + w - 2, ty - 0.5)
 
-        for _ in range(4):
+        for _ in range(row_count):
             ty += 5
             self.set_draw_color(*C_LIGHT_GRAY)
             self.set_line_width(0.1)
@@ -800,7 +803,24 @@ class CharacterSheetPDF(FPDF):
         self.set_draw_color(*C_LIGHT_GRAY)
         self.set_line_width(0.15)
         self.line(x + 2, ty2 - 0.5, x + w - 2, ty2 - 0.5)
-        for _ in range(4):
+        for i in range(row_count):
+            if i < len(rows):
+                r = rows[i]
+                cy = ty2 + 0.2
+                self._sans("", 5.7)
+                self.set_text_color(*C_BLACK)
+                cx = x + 2
+                vals = [
+                    r.get("name", ""),
+                    r.get("attack", ""),
+                    r.get("damage", ""),
+                    r.get("notes", ""),
+                ]
+                limits = [22, 14, 22, 18]
+                for col_idx, val in enumerate(vals):
+                    self.set_xy(cx, cy)
+                    self.cell(col_widths[col_idx], 4.2, str(val)[: limits[col_idx]])
+                    cx += col_widths[col_idx]
             ty2 += 5
             self.set_draw_color(*C_LIGHT_GRAY)
             self.set_line_width(0.1)

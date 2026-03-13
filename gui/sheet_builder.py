@@ -7,6 +7,7 @@ from tkinter import ttk
 
 from gui.theme import COLORS, FONTS
 from models.enums import ALL_SKILLS
+from models.standard_actions import build_standard_actions
 from gui.widgets import WrappingLabel
 from gui.equipment_utils import extract_gp, gp_to_coins, strip_wealth
 
@@ -294,6 +295,38 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
             WrappingLabel(
                 spell_sec, text=f"  Level 1: {', '.join(c.selected_spells)}"
             ).pack(fill=tk.X, anchor="w", padx=8, pady=2)
+
+    # ── Standard Actions ────────────────────────────────────────
+    actions = build_standard_actions(c)
+    actions_sec = ttk.LabelFrame(parent, text="Standard Actions")
+    actions_sec.pack(fill=tk.X, pady=4)
+
+    if actions:
+        ttk.Label(
+            actions_sec,
+            text="  Name                    Atk/DC   Damage                 Notes",
+            foreground=COLORS["fg_dim"],
+            font=FONTS["mono"],
+        ).pack(anchor="w", padx=8, pady=(2, 0))
+        for a in actions:
+            line = (
+                f"  {a['name'][:22]:22}  "
+                f"{a['attack'][:7]:7}  "
+                f"{a['damage'][:21]:21}  "
+                f"{a['notes']}"
+            )
+            ttk.Label(
+                actions_sec,
+                text=line,
+                foreground=COLORS["fg"],
+                font=FONTS["mono"],
+            ).pack(anchor="w", padx=8, pady=1)
+    else:
+        ttk.Label(
+            actions_sec,
+            text="  No standard attack actions detected.",
+            style="Dim.TLabel",
+        ).pack(anchor="w", padx=8, pady=2)
 
     # ── Equipment ───────────────────────────────────────────────
     equip_sec = ttk.LabelFrame(parent, text="Equipment")
