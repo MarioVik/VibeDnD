@@ -55,6 +55,9 @@ def character_to_save_dict(character: Character) -> dict:
         "equipped_weapons": list(c.equipped_weapons)
         if c.equipped_weapons is not None
         else None,
+        "equipped_armor": list(c.equipped_armor)
+        if c.equipped_armor is not None
+        else None,
     }
 
     # Serialize class_levels
@@ -129,6 +132,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.equipment_choice_background = data.get("equipment_choice_background", "A")
     c.standard_action_options = data.get("standard_action_options", {})
     c.equipped_weapons = data.get("equipped_weapons")
+    c.equipped_armor = data.get("equipped_armor")
 
     # Load class_levels (v2) or construct from v1 data
     if "class_levels" in data:
@@ -266,6 +270,7 @@ def import_character_from_export(filepath: str, game_data) -> Character:
     save["equipment_choice_background"] = data.get("equipment_choice_background", "A")
     save["standard_action_options"] = data.get("standard_action_options", {})
     save["equipped_weapons"] = data.get("equipped_weapons")
+    save["equipped_armor"] = data.get("equipped_armor")
 
     return save_dict_to_character(save, game_data)
 

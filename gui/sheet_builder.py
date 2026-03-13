@@ -9,6 +9,7 @@ from gui.theme import COLORS, FONTS
 from models.enums import ALL_SKILLS
 from models.standard_actions import (
     build_standard_actions,
+    get_selected_armor_counts,
     get_selected_non_weapon_items,
     get_selected_weapon_counts,
 )
@@ -88,16 +89,19 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
         ("Prof. Bonus", f"+{c.proficiency_bonus}"),
     ]
 
+    stat_value_labels: dict[str, ttk.Label] = {}
     for label, value in stats:
         sf = ttk.Frame(combat, style="Card.TFrame")
         sf.pack(side=tk.LEFT, padx=16, pady=4)
-        ttk.Label(
+        value_lbl = ttk.Label(
             sf,
             text=value,
             font=FONTS["stat"],
             foreground=COLORS["fg_bright"],
             background=COLORS["bg_card"],
-        ).pack()
+        )
+        value_lbl.pack()
+        stat_value_labels[label] = value_lbl
         ttk.Label(
             sf, text=label, foreground=COLORS["fg_dim"], background=COLORS["bg_card"]
         ).pack()
@@ -314,6 +318,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
                 break
 
     weapon_counts = get_selected_weapon_counts(c)
+    armor_counts = get_selected_armor_counts(c)
     inventory_items = get_selected_non_weapon_items(c)
 
     # Default: all weapons are equipped unless character has explicitly set state.
@@ -321,6 +326,20 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
         c.equipped_weapons = sorted(weapon_counts.keys())
     else:
         c.equipped_weapons = [w for w in c.equipped_weapons if w in weapon_counts]
+    if c.equipped_armor is None:
+        default_armor = []
+        if "shield" in armor_counts:
+            default_armor.append("shield")
+        body_armor = sorted(a for a in armor_counts.keys() if a != "shield")
+        if body_armor:
+            default_armor.append(body_armor[0])
+        c.equipped_armor = default_armor
+    else:
+        c.equipped_armor = [a for a in c.equipped_armor if a in armor_counts]
+        body = [a for a in c.equipped_armor if a != "shield"]
+        c.equipped_armor = (["shield"] if "shield" in c.equipped_armor else []) + body[
+            :1
+        ]
 
     equip_sec = ttk.LabelFrame(parent, text="Equipment")
     equip_sec.pack(fill=tk.X, pady=4)
@@ -333,6 +352,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
     ttk.Label(header, text="Item", style="Dim.TLabel").pack(side=tk.LEFT)
 
     equip_vars: dict[str, tk.BooleanVar] = {}
+    armor_vars: dict[str, tk.BooleanVar] = {}
 
     for weapon_key in sorted(weapon_counts.keys()):
         qty = weapon_counts[weapon_key]
@@ -347,9 +367,28 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
             label += f" (x{qty})"
         ttk.Label(row, text=label, foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
 
-    if not weapon_counts:
+    for armor_key in sorted(armor_counts.keys()):
+        qty = armor_counts[armor_key]
+        var = tk.BooleanVar(value=armor_key in set(c.equipped_armor or []))
+        armor_vars[armor_key] = var
+
+        row = ttk.Frame(equip_rows)
+        row.pack(fill=tk.X, pady=1)
+        ttk.Checkbutton(
+            row,
+            variable=var,
+            command=lambda k=armor_key: _on_armor_toggle(k),
+        ).pack(side=tk.LEFT)
+        label = armor_key.title()
+        if qty > 1:
+            label += f" (x{qty})"
+        ttk.Label(row, text=label, foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
+
+    if not weapon_counts and not armor_counts:
         ttk.Label(
-            equip_rows, text="No weapons in selected equipment.", style="Dim.TLabel"
+            equip_rows,
+            text="No weapon or armor in selected equipment.",
+            style="Dim.TLabel",
         ).pack(anchor="w")
 
     inv_sec = ttk.LabelFrame(parent, text="Inventory")
@@ -385,8 +424,25 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
     def _equipped_keys() -> set[str]:
         return {k for k, v in equip_vars.items() if v.get()}
 
-    def _sync_equipped_keys():
+    def _equipped_armor_keys() -> set[str]:
+        return {k for k, v in armor_vars.items() if v.get()}
+
+    def _sync_equipped_state():
         c.equipped_weapons = sorted(_equipped_keys())
+        c.equipped_armor = sorted(_equipped_armor_keys())
+        ac_lbl = stat_value_labels.get("AC")
+        if ac_lbl is not None:
+            ac_lbl.configure(text=str(c.armor_class))
+
+    def _on_armor_toggle(changed_key: str):
+        """Allow only one body armor at a time; shield is independent."""
+        if changed_key != "shield":
+            changed_var = armor_vars.get(changed_key)
+            if changed_var is not None and changed_var.get():
+                for key, var in armor_vars.items():
+                    if key != changed_key and key != "shield" and var.get():
+                        var.set(False)
+        _render_action_rows()
 
     def _weapon_options() -> dict[str, dict]:
         out: dict[str, dict] = {}
@@ -461,7 +517,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
         for w in rows_frame.winfo_children():
             w.destroy()
 
-        _sync_equipped_keys()
+        _sync_equipped_state()
         actions = build_standard_actions(
             c,
             weapon_options=_weapon_options(),

@@ -26,6 +26,14 @@ _MULTICLASS_PREREQUISITES = {
 # Classes that need only ONE of the listed abilities at 13+
 _MULTICLASS_OR_CLASSES = {"fighter"}
 
+_ARMOR_STATS = {
+    "leather armor": {"base": 11, "dex_cap": None, "shield": False},
+    "studded leather armor": {"base": 12, "dex_cap": None, "shield": False},
+    "chain shirt": {"base": 13, "dex_cap": 2, "shield": False},
+    "chain mail": {"base": 16, "dex_cap": 0, "shield": False},
+    "shield": {"base": 2, "dex_cap": None, "shield": True},
+}
+
 
 @dataclass
 class Character:
@@ -60,6 +68,7 @@ class Character:
     equipment_choice_background: str = "A"
     standard_action_options: dict[str, dict[str, bool]] = field(default_factory=dict)
     equipped_weapons: list[str] | None = None
+    equipped_armor: list[str] | None = None
 
     # Level progression
     class_levels: list[ClassLevel] = field(default_factory=list)
@@ -115,15 +124,33 @@ class Character:
     def armor_class(self) -> int:
         """Unarmored AC = 10 + DEX mod."""
         dex_mod = self.ability_scores.modifier("Dexterity")
-        # Special: Barbarian Unarmored Defense = 10 + DEX + CON
+
+        # Unarmored baseline (including class features)
+        unarmored_ac = 10 + dex_mod
         if self.character_class and self.character_class.get("slug") == "barbarian":
             con_mod = self.ability_scores.modifier("Constitution")
-            return 10 + dex_mod + con_mod
-        # Special: Monk Unarmored Defense = 10 + DEX + WIS
+            unarmored_ac = 10 + dex_mod + con_mod
         if self.character_class and self.character_class.get("slug") == "monk":
             wis_mod = self.ability_scores.modifier("Wisdom")
-            return 10 + dex_mod + wis_mod
-        return 10 + dex_mod
+            unarmored_ac = 10 + dex_mod + wis_mod
+
+        equipped = set((self.equipped_armor or []))
+        if not equipped:
+            return unarmored_ac
+
+        shield_bonus = 2 if "shield" in equipped else 0
+        body_ac_options = []
+        for armor_name in equipped:
+            stats = _ARMOR_STATS.get(armor_name)
+            if not stats or stats.get("shield"):
+                continue
+            cap = stats.get("dex_cap")
+            dex_part = dex_mod if cap is None else min(dex_mod, cap)
+            body_ac_options.append(stats.get("base", 10) + dex_part)
+
+        if body_ac_options:
+            return max(body_ac_options) + shield_bonus
+        return unarmored_ac + shield_bonus
 
     @property
     def initiative(self) -> int:

@@ -155,6 +155,19 @@ WEAPON_DATA = {
     },
 }
 
+ARMOR_DATA = {
+    "leather armor": {"base": 11, "dex_cap": None, "heavy": False, "shield": False},
+    "studded leather armor": {
+        "base": 12,
+        "dex_cap": None,
+        "heavy": False,
+        "shield": False,
+    },
+    "chain shirt": {"base": 13, "dex_cap": 2, "heavy": False, "shield": False},
+    "chain mail": {"base": 16, "dex_cap": 0, "heavy": True, "shield": False},
+    "shield": {"base": 2, "dex_cap": None, "heavy": False, "shield": True},
+}
+
 
 def _modifier_str(mod: int) -> str:
     return f"+{mod}" if mod >= 0 else str(mod)
@@ -202,6 +215,18 @@ def get_selected_weapon_counts(character) -> dict[str, int]:
     return _weapon_counts_from_texts(_selected_equipment_texts(character))
 
 
+def get_selected_armor_counts(character) -> dict[str, int]:
+    """Get armor and shield counts from currently selected equipment."""
+    counts: dict[str, int] = {}
+    for normalized, qty, _original in _split_equipment_parts(
+        _selected_equipment_texts(character)
+    ):
+        for armor_name in ARMOR_DATA:
+            if armor_name in normalized:
+                counts[armor_name] = counts.get(armor_name, 0) + qty
+    return counts
+
+
 def get_selected_non_weapon_items(character) -> list[str]:
     """Get non-weapon equipment lines from currently selected bundles."""
     items: list[str] = []
@@ -209,6 +234,8 @@ def get_selected_non_weapon_items(character) -> list[str]:
         _selected_equipment_texts(character)
     ):
         if any(w in normalized for w in WEAPON_DATA):
+            continue
+        if any(a in normalized for a in ARMOR_DATA):
             continue
         text = re.sub(r"\s+", " ", original).strip()
         if not text:
