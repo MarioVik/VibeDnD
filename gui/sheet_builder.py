@@ -7,9 +7,13 @@ from tkinter import ttk
 
 from gui.theme import COLORS, FONTS
 from models.enums import ALL_SKILLS
-from models.standard_actions import build_standard_actions
+from models.standard_actions import (
+    build_standard_actions,
+    get_selected_non_weapon_items,
+    get_selected_weapon_counts,
+)
 from gui.widgets import WrappingLabel
-from gui.equipment_utils import extract_gp, gp_to_coins, strip_wealth
+from gui.equipment_utils import extract_gp, gp_to_coins
 
 
 def _show_level_features(parent: tk.Widget, character, game_data=None):
@@ -296,18 +300,93 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
                 spell_sec, text=f"  Level 1: {', '.join(c.selected_spells)}"
             ).pack(fill=tk.X, anchor="w", padx=8, pady=2)
 
+    # Totals and parsed equipment/inventory
+    total_gp = Decimal("0")
+    if c.character_class:
+        for opt in c.character_class.get("starting_equipment", []):
+            if opt["option"] == c.equipment_choice_class:
+                total_gp += extract_gp(opt["items"])
+                break
+    if c.background:
+        for opt in c.background.get("equipment", []):
+            if opt["option"] == c.equipment_choice_background:
+                total_gp += extract_gp(opt["items"])
+                break
+
+    weapon_counts = get_selected_weapon_counts(c)
+    inventory_items = get_selected_non_weapon_items(c)
+
+    # Default: all weapons are equipped unless character has explicitly set state.
+    if c.equipped_weapons is None:
+        c.equipped_weapons = sorted(weapon_counts.keys())
+    else:
+        c.equipped_weapons = [w for w in c.equipped_weapons if w in weapon_counts]
+
+    equip_sec = ttk.LabelFrame(parent, text="Equipment")
+    equip_sec.pack(fill=tk.X, pady=4)
+    equip_rows = ttk.Frame(equip_sec)
+    equip_rows.pack(fill=tk.X, padx=8, pady=4)
+
+    header = ttk.Frame(equip_rows)
+    header.pack(fill=tk.X)
+    ttk.Label(header, text="Equiped", style="Dim.TLabel", width=9).pack(side=tk.LEFT)
+    ttk.Label(header, text="Item", style="Dim.TLabel").pack(side=tk.LEFT)
+
+    equip_vars: dict[str, tk.BooleanVar] = {}
+
+    for weapon_key in sorted(weapon_counts.keys()):
+        qty = weapon_counts[weapon_key]
+        var = tk.BooleanVar(value=weapon_key in set(c.equipped_weapons or []))
+        equip_vars[weapon_key] = var
+
+        row = ttk.Frame(equip_rows)
+        row.pack(fill=tk.X, pady=1)
+        ttk.Checkbutton(row, variable=var).pack(side=tk.LEFT)
+        label = weapon_key.title()
+        if qty > 1:
+            label += f" (x{qty})"
+        ttk.Label(row, text=label, foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
+
+    if not weapon_counts:
+        ttk.Label(
+            equip_rows, text="No weapons in selected equipment.", style="Dim.TLabel"
+        ).pack(anchor="w")
+
+    inv_sec = ttk.LabelFrame(parent, text="Inventory")
+    inv_sec.pack(fill=tk.X, pady=4)
+    if inventory_items:
+        for item in inventory_items:
+            WrappingLabel(inv_sec, text=f"  {item}", foreground=COLORS["fg_dim"]).pack(
+                fill=tk.X, anchor="w", padx=8, pady=1
+            )
+    else:
+        ttk.Label(inv_sec, text="  No inventory items.", style="Dim.TLabel").pack(
+            anchor="w", padx=8
+        )
+
     # ── Standard Actions ────────────────────────────────────────
-    base_actions = build_standard_actions(c)
     actions_sec = ttk.LabelFrame(parent, text="Standard Actions")
     actions_sec.pack(fill=tk.X, pady=4)
-
     rows_frame = ttk.Frame(actions_sec)
     rows_frame.pack(fill=tk.X, padx=8, pady=(2, 2))
+    options_frame = ttk.Frame(actions_sec)
+    options_frame.pack(fill=tk.X, padx=8, pady=(0, 2))
 
     option_vars: dict[str, dict[str, tk.BooleanVar]] = {}
     saved_opts = (
         c.standard_action_options if isinstance(c.standard_action_options, dict) else {}
     )
+    all_weapon_actions = build_standard_actions(
+        c,
+        weapon_options=saved_opts,
+        equipped_weapon_keys=set(weapon_counts.keys()),
+    )
+
+    def _equipped_keys() -> set[str]:
+        return {k for k, v in equip_vars.items() if v.get()}
+
+    def _sync_equipped_keys():
+        c.equipped_weapons = sorted(_equipped_keys())
 
     def _weapon_options() -> dict[str, dict]:
         out: dict[str, dict] = {}
@@ -327,18 +406,75 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
     def _persist_weapon_options():
         c.standard_action_options = _weapon_options()
 
+    def _render_weapon_option_rows():
+        for w in options_frame.winfo_children():
+            w.destroy()
+
+        configurable_weapons = [
+            a
+            for a in all_weapon_actions
+            if a.get("kind") == "weapon"
+            and (a.get("can_true_strike") or a.get("versatile"))
+        ]
+        if not configurable_weapons:
+            return
+
+        ttk.Separator(options_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=4)
+        ttk.Label(options_frame, text="Weapon Options", style="Subheading.TLabel").pack(
+            anchor="w"
+        )
+
+        for a in configurable_weapons:
+            key = a.get("weapon_key", "")
+            vars_for_weapon = option_vars.setdefault(key, {})
+            row = ttk.Frame(options_frame)
+            row.pack(fill=tk.X, pady=1)
+            ttk.Label(row, text=a["name"], foreground=COLORS["fg_dim"]).pack(
+                side=tk.LEFT
+            )
+
+            if a.get("can_true_strike") and "true_strike" not in vars_for_weapon:
+                vars_for_weapon["true_strike"] = tk.BooleanVar(
+                    value=bool(saved_opts.get(key, {}).get("true_strike", False))
+                )
+            if a.get("versatile") and "two_handed" not in vars_for_weapon:
+                vars_for_weapon["two_handed"] = tk.BooleanVar(
+                    value=bool(saved_opts.get(key, {}).get("two_handed", False))
+                )
+
+            if a.get("can_true_strike"):
+                ttk.Checkbutton(
+                    row,
+                    text="Use True Strike",
+                    variable=vars_for_weapon["true_strike"],
+                    command=lambda: (_persist_weapon_options(), _render_action_rows()),
+                ).pack(side=tk.LEFT, padx=(12, 6))
+            if a.get("versatile"):
+                ttk.Checkbutton(
+                    row,
+                    text="Use Two Hands",
+                    variable=vars_for_weapon["two_handed"],
+                    command=lambda: (_persist_weapon_options(), _render_action_rows()),
+                ).pack(side=tk.LEFT, padx=6)
+
     def _render_action_rows():
         for w in rows_frame.winfo_children():
             w.destroy()
 
-        options = _weapon_options()
-        actions = build_standard_actions(c, weapon_options=options)
+        _sync_equipped_keys()
+        actions = build_standard_actions(
+            c,
+            weapon_options=_weapon_options(),
+            equipped_weapon_keys=_equipped_keys(),
+        )
+
         if not actions:
             ttk.Label(
                 rows_frame,
                 text="No standard attack actions detected.",
                 style="Dim.TLabel",
             ).pack(anchor="w", pady=2)
+            _render_weapon_option_rows()
             return
 
         ttk.Label(
@@ -349,101 +485,18 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
         ).pack(anchor="w")
 
         for a in actions:
-            line = (
-                f"{a['name'][:22]:22}  "
-                f"{a['attack'][:7]:7}  "
-                f"{a['damage'][:21]:21}  "
-                f"{a['notes']}"
-            )
+            line = f"{a['name'][:22]:22}  {a['attack'][:7]:7}  {a['damage'][:21]:21}  {a['notes']}"
             ttk.Label(
-                rows_frame,
-                text=line,
-                foreground=COLORS["fg"],
-                font=FONTS["mono"],
+                rows_frame, text=line, foreground=COLORS["fg"], font=FONTS["mono"]
             ).pack(anchor="w", pady=1)
 
-    configurable_weapons = [
-        a
-        for a in base_actions
-        if a.get("kind") == "weapon"
-        and (a.get("can_true_strike") or a.get("versatile"))
-    ]
-    if configurable_weapons:
-        ttk.Separator(actions_sec, orient=tk.HORIZONTAL).pack(fill=tk.X, padx=8, pady=4)
-        ttk.Label(
-            actions_sec,
-            text="Weapon Options",
-            style="Subheading.TLabel",
-        ).pack(anchor="w", padx=8)
+        _render_weapon_option_rows()
 
-        for a in configurable_weapons:
-            key = a.get("weapon_key", "")
-            vars_for_weapon = option_vars.setdefault(key, {})
+    for weapon_key, var in equip_vars.items():
+        # bind after creation so each checkbox updates standard actions immediately
+        var.trace_add("write", lambda *_: _render_action_rows())
 
-            row = ttk.Frame(actions_sec)
-            row.pack(fill=tk.X, padx=8, pady=1)
-            ttk.Label(row, text=a["name"], foreground=COLORS["fg_dim"]).pack(
-                side=tk.LEFT
-            )
-
-            if a.get("can_true_strike"):
-                vars_for_weapon["true_strike"] = tk.BooleanVar(value=False)
-                if isinstance(saved_opts.get(key), dict):
-                    vars_for_weapon["true_strike"].set(
-                        bool(saved_opts[key].get("true_strike", False))
-                    )
-                ttk.Checkbutton(
-                    row,
-                    text="Use True Strike",
-                    variable=vars_for_weapon["true_strike"],
-                    command=lambda: (_persist_weapon_options(), _render_action_rows()),
-                ).pack(side=tk.LEFT, padx=(12, 6))
-
-            if a.get("versatile"):
-                vars_for_weapon["two_handed"] = tk.BooleanVar(value=False)
-                if isinstance(saved_opts.get(key), dict):
-                    vars_for_weapon["two_handed"].set(
-                        bool(saved_opts[key].get("two_handed", False))
-                    )
-                ttk.Checkbutton(
-                    row,
-                    text="Use Two Hands",
-                    variable=vars_for_weapon["two_handed"],
-                    command=lambda: (_persist_weapon_options(), _render_action_rows()),
-                ).pack(side=tk.LEFT, padx=6)
-
-    _persist_weapon_options()
     _render_action_rows()
-
-    # ── Equipment ───────────────────────────────────────────────
-    equip_sec = ttk.LabelFrame(parent, text="Equipment")
-    equip_sec.pack(fill=tk.X, pady=4)
-    has_equip = False
-    total_gp = Decimal("0")
-    if c.character_class:
-        for opt in c.character_class.get("starting_equipment", []):
-            if opt["option"] == c.equipment_choice_class:
-                total_gp += extract_gp(opt["items"])
-                items_text = strip_wealth(opt["items"])
-                if items_text:
-                    WrappingLabel(
-                        equip_sec, text=f"  {items_text}", foreground=COLORS["fg_dim"]
-                    ).pack(fill=tk.X, anchor="w", padx=8, pady=2)
-                    has_equip = True
-    if c.background:
-        for opt in c.background.get("equipment", []):
-            if opt["option"] == c.equipment_choice_background:
-                total_gp += extract_gp(opt["items"])
-                items_text = strip_wealth(opt["items"])
-                if items_text:
-                    WrappingLabel(
-                        equip_sec, text=f"  {items_text}", foreground=COLORS["fg_dim"]
-                    ).pack(fill=tk.X, anchor="w", padx=8, pady=2)
-                    has_equip = True
-    if not has_equip:
-        ttk.Label(equip_sec, text="  No equipment selected", style="Dim.TLabel").pack(
-            anchor="w", padx=8
-        )
 
     # ── Wealth ──────────────────────────────────────────────────
     wealth_sec = ttk.LabelFrame(parent, text="Wealth")

@@ -178,6 +178,47 @@ def _selected_equipment_texts(character) -> list[str]:
     return texts
 
 
+def _split_equipment_parts(texts: list[str]) -> list[tuple[str, int, str]]:
+    """Return parsed parts as (normalized, qty, original)."""
+    parsed: list[tuple[str, int, str]] = []
+    for text in texts:
+        if not text:
+            continue
+        cleaned = text.replace(";", " ")
+        parts = [p.strip() for p in cleaned.split(",") if p.strip()]
+        for part in parts:
+            lower = part.lower()
+            if " gp" in lower:
+                continue
+            lower_no_parens = re.sub(r"\([^)]*\)", "", lower)
+            qty_match = re.match(r"^(\d+)\s+", lower_no_parens)
+            qty = int(qty_match.group(1)) if qty_match else 1
+            parsed.append((lower_no_parens.strip(), qty, part))
+    return parsed
+
+
+def get_selected_weapon_counts(character) -> dict[str, int]:
+    """Get weapon counts from currently selected class/background equipment."""
+    return _weapon_counts_from_texts(_selected_equipment_texts(character))
+
+
+def get_selected_non_weapon_items(character) -> list[str]:
+    """Get non-weapon equipment lines from currently selected bundles."""
+    items: list[str] = []
+    for normalized, qty, original in _split_equipment_parts(
+        _selected_equipment_texts(character)
+    ):
+        if any(w in normalized for w in WEAPON_DATA):
+            continue
+        text = re.sub(r"\s+", " ", original).strip()
+        if not text:
+            continue
+        if qty > 1 and not re.match(r"^\d+\s+", text):
+            text = f"{qty} {text}"
+        items.append(text)
+    return items
+
+
 def _weapon_counts_from_texts(texts: list[str]) -> dict[str, int]:
     counts: dict[str, int] = {}
 
@@ -235,11 +276,15 @@ def _weapon_ability_mod(character, weapon_meta: dict) -> int:
     return str_mod
 
 
-def _weapon_actions(character) -> list[dict]:
+def _weapon_actions(
+    character, equipped_weapon_keys: set[str] | None = None
+) -> list[dict]:
     rows: list[dict] = []
     counts = _weapon_counts_from_texts(_selected_equipment_texts(character))
 
     for weapon_name, qty in sorted(counts.items()):
+        if equipped_weapon_keys is not None and weapon_name not in equipped_weapon_keys:
+            continue
         meta = WEAPON_DATA.get(weapon_name)
         if not meta:
             continue
@@ -372,6 +417,7 @@ def build_standard_actions(
     character,
     spells_by_name: dict[str, dict] | None = None,
     weapon_options: dict[str, dict] | None = None,
+    equipped_weapon_keys: set[str] | None = None,
 ) -> list[dict]:
     """Build standard action rows for weapons and attack cantrips."""
     spells = spells_by_name or _load_spells()
@@ -388,7 +434,13 @@ def build_standard_actions(
         name.lower() == "true strike" for name in character.selected_cantrips
     )
 
-    weapons = _weapon_actions(character)
+    effective_equipped_keys = equipped_weapon_keys
+    if effective_equipped_keys is None and hasattr(character, "equipped_weapons"):
+        ew = getattr(character, "equipped_weapons", None)
+        if ew is not None:
+            effective_equipped_keys = set(ew)
+
+    weapons = _weapon_actions(character, equipped_weapon_keys=effective_equipped_keys)
     upgraded = []
     for row in weapons:
         key = row.get("weapon_key", "")

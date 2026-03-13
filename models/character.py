@@ -59,6 +59,7 @@ class Character:
     equipment_choice_class: str = "A"
     equipment_choice_background: str = "A"
     standard_action_options: dict[str, dict[str, bool]] = field(default_factory=dict)
+    equipped_weapons: list[str] | None = None
 
     # Level progression
     class_levels: list[ClassLevel] = field(default_factory=list)

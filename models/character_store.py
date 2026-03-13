@@ -52,6 +52,9 @@ def character_to_save_dict(character: Character) -> dict:
         "equipment_choice_class": c.equipment_choice_class,
         "equipment_choice_background": c.equipment_choice_background,
         "standard_action_options": dict(c.standard_action_options),
+        "equipped_weapons": list(c.equipped_weapons)
+        if c.equipped_weapons is not None
+        else None,
     }
 
     # Serialize class_levels
@@ -89,7 +92,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     if sp_name:
         c.species = game_data.species_by_name.get(sp_name)
     c.species_sub_choice = data.get("species_sub_choice")
-    c.size_choice = data.get("size_choice")
+    c.size_choice = str(data.get("size_choice") or "Medium")
 
     # Resolve class
     cls_name = data.get("class_name")
@@ -125,6 +128,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.equipment_choice_class = data.get("equipment_choice_class", "A")
     c.equipment_choice_background = data.get("equipment_choice_background", "A")
     c.standard_action_options = data.get("standard_action_options", {})
+    c.equipped_weapons = data.get("equipped_weapons")
 
     # Load class_levels (v2) or construct from v1 data
     if "class_levels" in data:
@@ -261,6 +265,7 @@ def import_character_from_export(filepath: str, game_data) -> Character:
     save["equipment_choice_class"] = data.get("equipment_choice_class", "A")
     save["equipment_choice_background"] = data.get("equipment_choice_background", "A")
     save["standard_action_options"] = data.get("standard_action_options", {})
+    save["equipped_weapons"] = data.get("equipped_weapons")
 
     return save_dict_to_character(save, game_data)
 
