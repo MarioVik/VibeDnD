@@ -23,20 +23,21 @@ def extract_name_from_url(url: str) -> str:
 def extract_source(content: str) -> str:
     """Extract 'Source: X' from first line."""
     lines = content.strip().split("\n")
-    for line in lines[:3]:
+    for i, line in enumerate(lines[:3]):
         line = line.strip()
         if line.startswith("Source:"):
-            return line[len("Source:"):].strip()
+            value = line[len("Source:"):].strip()
+            if value:
+                return value
+            # "Source:" on its own line — value is on the next line
+            if i + 1 < len(lines) and lines[i + 1].strip():
+                return lines[i + 1].strip()
         if line.startswith("Source"):
-            # "Source: X" or just "Source\nX"
             rest = line[len("Source"):].strip().lstrip(":")
             if rest:
                 return rest.strip()
-    # Check if second line is the source value
-    if len(lines) >= 2 and lines[0].strip() == "Source:":
-        return lines[1].strip()
-    if len(lines) >= 2 and lines[0].strip().startswith("Source"):
-        return lines[1].strip()
+            if i + 1 < len(lines) and lines[i + 1].strip():
+                return lines[i + 1].strip()
     return "Unknown"
 
 

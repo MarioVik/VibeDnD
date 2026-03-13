@@ -3,22 +3,35 @@
     "species": {
       "Common": true,
       "Eberron": true,
-      "Exotic": true
+      "Exotic": true,
+      "Unearthed Arcana": false
     },
     "backgrounds": {
       "Common": true,
       "Eberron": true,
       "Faerun": true,
-      "Exotic": true
+      "Exotic": true,
+      "Unearthed Arcana": false
     },
     "feats": {
       "Common": true,
       "Faerun": true,
-      "Exotic": true
+      "Exotic": true,
+      "Unearthed Arcana": false
     },
     "classes": {
       "Common": true,
-      "Eberron": true
+      "Eberron": true,
+      "Faerun": true,
+      "Exotic": true,
+      "Unearthed Arcana": true
+    },
+    "subclasses": {
+      "Common": true,
+      "Eberron": true,
+      "Faerun": true,
+      "Exotic": true,
+      "Unearthed Arcana": true
     }
   }
 }

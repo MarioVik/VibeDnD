@@ -5,7 +5,13 @@ from tkinter import ttk
 from gui.base_step import WizardStep
 from gui.widgets import SectionedListbox, ScrollableFrame, WrappingLabel
 from gui.theme import COLORS, FONTS
-from gui.source_config import SECTION_ORDER, group_by_category, save_settings
+from gui.source_config import (
+    SECTION_ORDER,
+    UA_CATEGORY,
+    group_by_category,
+    handle_ua_toggle,
+    save_settings,
+)
 
 
 class BackgroundStep(WizardStep):
@@ -21,12 +27,15 @@ class BackgroundStep(WizardStep):
         left.grid(row=0, column=0, sticky="nsew", padx=(8, 4), pady=8)
         left.grid_propagate(False)
 
-        ttk.Label(left, text="Choose Background", style="Heading.TLabel").pack(anchor="w", pady=(0, 4))
+        ttk.Label(left, text="Choose Background", style="Heading.TLabel").pack(
+            anchor="w", pady=(0, 4)
+        )
 
         # Source filter toggles
         self.toggle_frame = ttk.Frame(left)
         self.toggle_frame.pack(fill=tk.X, pady=(0, 4))
         self.toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._ua_prev_enabled = False
         self._build_toggles()
 
         self.bg_list = SectionedListbox(left, on_select=self._on_select)
@@ -37,7 +46,9 @@ class BackgroundStep(WizardStep):
         right.grid(row=0, column=1, sticky="nsew", padx=(4, 8), pady=8)
         self.detail = right.inner
 
-        self.detail_name = ttk.Label(self.detail, text="Select a background", style="Heading.TLabel")
+        self.detail_name = ttk.Label(
+            self.detail, text="Select a background", style="Heading.TLabel"
+        )
         self.detail_name.pack(anchor="w", pady=(0, 4))
 
         self.detail_source = ttk.Label(self.detail, text="", style="Dim.TLabel")
@@ -69,7 +80,7 @@ class BackgroundStep(WizardStep):
             self.bg_list.select_item(name)
             self._on_select(name)
             # Restore bonus mode and assignments
-            if hasattr(self, 'bonus_mode'):
+            if hasattr(self, "bonus_mode"):
                 self.bonus_mode.set(saved_mode)
                 self._update_bonus_ui()
                 if saved_mode == "2/1":
@@ -87,18 +98,30 @@ class BackgroundStep(WizardStep):
 
         filters = self.data.source_filters.get("backgrounds", {})
         sections = SECTION_ORDER["backgrounds"]
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
 
         for cat in sections:
-            var = tk.BooleanVar(value=filters.get(cat, True))
-            cb = ttk.Checkbutton(self.toggle_frame, text=cat, variable=var,
-                                 command=self._on_toggle_change)
+            label = "UA" if cat == UA_CATEGORY else cat
+            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
+            cb = ttk.Checkbutton(
+                self.toggle_frame,
+                text=label,
+                variable=var,
+                command=self._on_toggle_change,
+            )
             cb.pack(side=tk.LEFT, padx=(0, 6))
             self.toggle_vars[cat] = var
 
     def _on_toggle_change(self):
         """Update filters and rebuild list when a toggle changes."""
+        ua_var = self.toggle_vars.get(UA_CATEGORY)
+        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
+        if not proceed:
+            return
+
         filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
         self.data.source_filters["backgrounds"] = filters
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
         save_settings(self.data.source_filters)
         self._populate_list()
 
@@ -107,8 +130,11 @@ class BackgroundStep(WizardStep):
         enabled = {cat for cat, on in filters.items() if on}
 
         grouped = group_by_category(self.data.backgrounds, "backgrounds")
-        sections = [(cat, [b["name"] for b in items])
-                     for cat, items in grouped if cat in enabled]
+        sections = [
+            (cat, [b["name"] for b in items])
+            for cat, items in grouped
+            if cat in enabled
+        ]
         self.bg_list.set_sectioned_items(sections)
 
     def _on_select(self, name: str):
@@ -139,9 +165,17 @@ class BackgroundStep(WizardStep):
         for label, value in info:
             row = ttk.Frame(self.info_frame)
             row.pack(fill=tk.X, pady=1)
-            ttk.Label(row, text=f"{label}:", foreground=COLORS["accent"],
-                      font=FONTS["body"], width=12, anchor="e").pack(side=tk.LEFT)
-            WrappingLabel(row, text=f"  {value}").pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(4, 0))
+            ttk.Label(
+                row,
+                text=f"{label}:",
+                foreground=COLORS["accent"],
+                font=FONTS["body"],
+                width=12,
+                anchor="e",
+            ).pack(side=tk.LEFT)
+            WrappingLabel(row, text=f"  {value}").pack(
+                side=tk.LEFT, fill=tk.X, expand=True, padx=(4, 0)
+            )
 
         # Ability bonus assignment
         for w in self.bonus_frame.winfo_children():
@@ -149,18 +183,30 @@ class BackgroundStep(WizardStep):
 
         abilities = bg.get("ability_scores", [])
         if abilities:
-            ttk.Label(self.bonus_frame,
-                      text=f"Distribute bonuses among: {', '.join(abilities)}",
-                      style="Dim.TLabel").pack(anchor="w", padx=4, pady=(4, 2))
+            ttk.Label(
+                self.bonus_frame,
+                text=f"Distribute bonuses among: {', '.join(abilities)}",
+                style="Dim.TLabel",
+            ).pack(anchor="w", padx=4, pady=(4, 2))
 
             # Mode selection
             mode_frame = ttk.Frame(self.bonus_frame)
             mode_frame.pack(fill=tk.X, padx=4)
             self.bonus_mode = tk.StringVar(value="2/1")
-            ttk.Radiobutton(mode_frame, text="+2 / +1", variable=self.bonus_mode,
-                            value="2/1", command=self._update_bonus_ui).pack(side=tk.LEFT, padx=8)
-            ttk.Radiobutton(mode_frame, text="+1 / +1 / +1", variable=self.bonus_mode,
-                            value="1/1/1", command=self._update_bonus_ui).pack(side=tk.LEFT, padx=8)
+            ttk.Radiobutton(
+                mode_frame,
+                text="+2 / +1",
+                variable=self.bonus_mode,
+                value="2/1",
+                command=self._update_bonus_ui,
+            ).pack(side=tk.LEFT, padx=8)
+            ttk.Radiobutton(
+                mode_frame,
+                text="+1 / +1 / +1",
+                variable=self.bonus_mode,
+                value="1/1/1",
+                command=self._update_bonus_ui,
+            ).pack(side=tk.LEFT, padx=8)
 
             # Assignment combos
             self.assign_frame = ttk.Frame(self.bonus_frame)
@@ -193,7 +239,9 @@ class BackgroundStep(WizardStep):
             row1.pack(fill=tk.X, pady=2)
             ttk.Label(row1, text="+2 to:", width=8).pack(side=tk.LEFT)
             var2 = tk.StringVar(value=abilities[0] if abilities else "")
-            combo2 = ttk.Combobox(row1, textvariable=var2, values=abilities, state="readonly", width=15)
+            combo2 = ttk.Combobox(
+                row1, textvariable=var2, values=abilities, state="readonly", width=15
+            )
             combo2.pack(side=tk.LEFT, padx=4)
             self.bonus_combos["+2"] = var2
 
@@ -202,7 +250,9 @@ class BackgroundStep(WizardStep):
             ttk.Label(row2, text="+1 to:", width=8).pack(side=tk.LEFT)
             remaining = [a for a in abilities if a != abilities[0]] if abilities else []
             var1 = tk.StringVar(value=remaining[0] if remaining else "")
-            combo1 = ttk.Combobox(row2, textvariable=var1, values=abilities, state="readonly", width=15)
+            combo1 = ttk.Combobox(
+                row2, textvariable=var1, values=abilities, state="readonly", width=15
+            )
             combo1.pack(side=tk.LEFT, padx=4)
             self.bonus_combos["+1"] = var1
 
@@ -211,8 +261,11 @@ class BackgroundStep(WizardStep):
 
         else:
             # Three abilities each get +1
-            ttk.Label(self.assign_frame, text=f"Each gets +1: {', '.join(abilities)}",
-                      style="Dim.TLabel").pack(anchor="w")
+            ttk.Label(
+                self.assign_frame,
+                text=f"Each gets +1: {', '.join(abilities)}",
+                style="Dim.TLabel",
+            ).pack(anchor="w")
 
         self._on_bonus_change()
 

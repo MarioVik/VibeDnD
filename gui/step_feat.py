@@ -6,7 +6,13 @@ from tkinter import ttk
 from gui.base_step import WizardStep
 from gui.widgets import ScrollableFrame, SectionedListbox, WrappingLabel
 from gui.theme import COLORS, FONTS
-from gui.source_config import SECTION_ORDER, group_by_category, save_settings
+from gui.source_config import (
+    SECTION_ORDER,
+    UA_CATEGORY,
+    group_by_category,
+    handle_ua_toggle,
+    save_settings,
+)
 
 
 class FeatStep(WizardStep):
@@ -17,10 +23,13 @@ class FeatStep(WizardStep):
         self.frame.rowconfigure(1, weight=1)
 
         ttk.Label(self.frame, text="Feats", style="Heading.TLabel").pack(
-            anchor="w", padx=12, pady=(12, 4))
-        ttk.Label(self.frame,
-                  text="Your background grants a feat. Some species (Human) also grant an origin feat.",
-                  style="Dim.TLabel").pack(anchor="w", padx=12)
+            anchor="w", padx=12, pady=(12, 4)
+        )
+        ttk.Label(
+            self.frame,
+            text="Your background grants a feat. Some species (Human) also grant an origin feat.",
+            style="Dim.TLabel",
+        ).pack(anchor="w", padx=12)
 
         self.content = ScrollableFrame(self.frame)
         self.content.pack(fill=tk.BOTH, expand=True, padx=12, pady=8)
@@ -30,8 +39,9 @@ class FeatStep(WizardStep):
         self.bg_section = ttk.LabelFrame(self.inner, text="From Background")
         self.bg_section.pack(fill=tk.X, pady=(0, 12))
 
-        self.bg_feat_label = ttk.Label(self.bg_section, text="No background selected",
-                                        style="Subheading.TLabel")
+        self.bg_feat_label = ttk.Label(
+            self.bg_section, text="No background selected", style="Subheading.TLabel"
+        )
         self.bg_feat_label.pack(anchor="w", padx=8, pady=(4, 0))
 
         self.bg_feat_source = ttk.Label(self.bg_section, text="", style="Dim.TLabel")
@@ -44,7 +54,9 @@ class FeatStep(WizardStep):
         self.bg_note_frame.pack(fill=tk.X, padx=8, pady=(0, 8))
 
         # Section 2: Species feat (Human Versatile)
-        self.sp_section = ttk.LabelFrame(self.inner, text="From Species (Human — Versatile)")
+        self.sp_section = ttk.LabelFrame(
+            self.inner, text="From Species (Human — Versatile)"
+        )
         # Not packed by default — only shown for Human
 
         self.sp_top = ttk.Frame(self.sp_section)
@@ -57,24 +69,29 @@ class FeatStep(WizardStep):
         self.sp_list_frame.grid(row=0, column=0, sticky="nsew", padx=(4, 4), pady=4)
         self.sp_list_frame.grid_propagate(False)
 
-        ttk.Label(self.sp_list_frame, text="Choose an Origin Feat:",
-                  style="Dim.TLabel").pack(anchor="w", pady=(0, 2))
+        ttk.Label(
+            self.sp_list_frame, text="Choose an Origin Feat:", style="Dim.TLabel"
+        ).pack(anchor="w", pady=(0, 2))
 
         # Source filter toggles for origin feats
         self.feat_toggle_frame = ttk.Frame(self.sp_list_frame)
         self.feat_toggle_frame.pack(fill=tk.X, pady=(0, 4))
         self.feat_toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._ua_prev_enabled = False
         self._build_feat_toggles()
 
-        self.origin_feat_list = SectionedListbox(self.sp_list_frame, on_select=self._on_species_feat_select)
+        self.origin_feat_list = SectionedListbox(
+            self.sp_list_frame, on_select=self._on_species_feat_select
+        )
         self.origin_feat_list.pack(fill=tk.BOTH, expand=True)
 
         # Right: detail panel for selected origin feat
         self.sp_detail = ttk.Frame(self.sp_top)
         self.sp_detail.grid(row=0, column=1, sticky="nsew", padx=(4, 4), pady=4)
 
-        self.sp_feat_label = ttk.Label(self.sp_detail, text="Select a feat",
-                                        style="Subheading.TLabel")
+        self.sp_feat_label = ttk.Label(
+            self.sp_detail, text="Select a feat", style="Subheading.TLabel"
+        )
         self.sp_feat_label.pack(anchor="w", pady=(0, 2))
 
         self.sp_feat_source = ttk.Label(self.sp_detail, text="", style="Dim.TLabel")
@@ -91,18 +108,30 @@ class FeatStep(WizardStep):
 
         filters = self.data.source_filters.get("feats", {})
         sections = SECTION_ORDER["feats"]
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
 
         for cat in sections:
-            var = tk.BooleanVar(value=filters.get(cat, True))
-            cb = ttk.Checkbutton(self.feat_toggle_frame, text=cat, variable=var,
-                                 command=self._on_feat_toggle_change)
+            label = "UA" if cat == UA_CATEGORY else cat
+            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
+            cb = ttk.Checkbutton(
+                self.feat_toggle_frame,
+                text=label,
+                variable=var,
+                command=self._on_feat_toggle_change,
+            )
             cb.pack(side=tk.LEFT, padx=(0, 4))
             self.feat_toggle_vars[cat] = var
 
     def _on_feat_toggle_change(self):
         """Update filters and rebuild origin feat list."""
+        ua_var = self.feat_toggle_vars.get(UA_CATEGORY)
+        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
+        if not proceed:
+            return
+
         filters = {cat: var.get() for cat, var in self.feat_toggle_vars.items()}
         self.data.source_filters["feats"] = filters
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
         save_settings(self.data.source_filters)
         self._populate_origin_feats()
 
@@ -113,8 +142,11 @@ class FeatStep(WizardStep):
 
         origin_feats = [f for f in self.data.feats if f.get("category") == "origin"]
         grouped = group_by_category(origin_feats, "feats")
-        sections = [(cat, [f["name"] for f in items])
-                     for cat, items in grouped if cat in enabled]
+        sections = [
+            (cat, [f["name"] for f in items])
+            for cat, items in grouped
+            if cat in enabled
+        ]
         self.origin_feat_list.set_sectioned_items(sections)
 
     def on_enter(self):
@@ -141,18 +173,22 @@ class FeatStep(WizardStep):
 
         self.bg_feat_label.configure(text=feat_name)
         if feat:
-            self.bg_feat_source.configure(text=f"Source: {feat.get('source', 'Unknown')}")
+            self.bg_feat_source.configure(
+                text=f"Source: {feat.get('source', 'Unknown')}"
+            )
             self._render_benefits(feat, self.bg_benefits_frame)
 
             # Magic Initiate note
             if "Magic Initiate" in feat_name:
-                m = re.search(r'\((\w+)\)', feat_name)
+                m = re.search(r"\((\w+)\)", feat_name)
                 if m:
                     spell_class = m.group(1)
-                    WrappingLabel(self.bg_note_frame,
-                              text=f"This grants 2 cantrips and 1 level 1 spell from the {spell_class} list. "
-                                   f"Select them in the Spells tab.",
-                              foreground=COLORS["accent"]).pack(fill=tk.X, anchor="w")
+                    WrappingLabel(
+                        self.bg_note_frame,
+                        text=f"This grants 2 cantrips and 1 level 1 spell from the {spell_class} list. "
+                        f"Select them in the Spells tab.",
+                        foreground=COLORS["accent"],
+                    ).pack(fill=tk.X, anchor="w")
         else:
             self.bg_feat_source.configure(text="(Feat data not found)")
 
@@ -184,7 +220,9 @@ class FeatStep(WizardStep):
 
             # Re-select if we already had one
             if self.character.species_origin_feat:
-                self.origin_feat_list.select_item(self.character.species_origin_feat.get("name", ""))
+                self.origin_feat_list.select_item(
+                    self.character.species_origin_feat.get("name", "")
+                )
         else:
             self.sp_section.pack_forget()
             self.character.species_origin_feat = None
@@ -210,9 +248,14 @@ class FeatStep(WizardStep):
         for benefit in feat.get("benefits", []):
             bf = ttk.Frame(parent)
             bf.pack(fill=tk.X, pady=2)
-            ttk.Label(bf, text=benefit.get("name", ""),
-                      foreground=COLORS["accent"], font=FONTS["subheading"]).pack(anchor="w")
+            ttk.Label(
+                bf,
+                text=benefit.get("name", ""),
+                foreground=COLORS["accent"],
+                font=FONTS["subheading"],
+            ).pack(anchor="w")
             desc = benefit.get("description", "")
             if desc:
-                WrappingLabel(bf, text=desc,
-                          foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w", padx=(16, 0))
+                WrappingLabel(bf, text=desc, foreground=COLORS["fg_dim"]).pack(
+                    fill=tk.X, anchor="w", padx=(16, 0)
+                )

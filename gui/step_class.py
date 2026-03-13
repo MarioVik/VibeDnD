@@ -5,7 +5,14 @@ from tkinter import ttk
 from gui.base_step import WizardStep
 from gui.widgets import SectionedListbox, ScrollableFrame, WrappingLabel, ThemedTable
 from gui.theme import COLORS, FONTS
-from gui.source_config import SECTION_ORDER, group_by_category, save_settings
+from gui.source_config import (
+    SECTION_ORDER,
+    UA_CATEGORY,
+    group_by_category,
+    get_category,
+    handle_ua_toggle,
+    save_settings,
+)
 
 
 class ClassStep(WizardStep):
@@ -17,16 +24,19 @@ class ClassStep(WizardStep):
         self.frame.rowconfigure(0, weight=1)
 
         # Left: class list
-        left = ttk.Frame(self.frame, width=220)
+        left = ttk.Frame(self.frame, width=280)
         left.grid(row=0, column=0, sticky="nsew", padx=(8, 4), pady=8)
         left.grid_propagate(False)
 
-        ttk.Label(left, text="Choose Class", style="Heading.TLabel").pack(anchor="w", pady=(0, 6))
-        
+        ttk.Label(left, text="Choose Class", style="Heading.TLabel").pack(
+            anchor="w", pady=(0, 6)
+        )
+
         # Source filter toggles
         self.toggle_frame = ttk.Frame(left)
         self.toggle_frame.pack(fill=tk.X, pady=(0, 4))
         self.toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._ua_prev_enabled = False
         self._build_toggles()
 
         self.class_list = SectionedListbox(left, on_select=self._on_select)
@@ -37,7 +47,9 @@ class ClassStep(WizardStep):
         right.grid(row=0, column=1, sticky="nsew", padx=(4, 8), pady=8)
         self.detail = right.inner
 
-        self.detail_name = ttk.Label(self.detail, text="Select a class", style="Heading.TLabel")
+        self.detail_name = ttk.Label(
+            self.detail, text="Select a class", style="Heading.TLabel"
+        )
         self.detail_name.pack(anchor="w", pady=(0, 4))
 
         self.detail_source = ttk.Label(self.detail, text="", style="Dim.TLabel")
@@ -84,25 +96,46 @@ class ClassStep(WizardStep):
             self.character.selected_skills = saved_skills
 
     def _build_toggles(self):
-        """Build source filter checkboxes."""
+        """Build source filter checkboxes for classes and subclasses."""
         for w in self.toggle_frame.winfo_children():
             w.destroy()
         self.toggle_vars.clear()
 
         filters = self.data.source_filters.get("classes", {})
         sections = SECTION_ORDER["classes"]
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
 
         for cat in sections:
-            var = tk.BooleanVar(value=filters.get(cat, True))
-            cb = ttk.Checkbutton(self.toggle_frame, text=cat, variable=var,
-                                 command=self._on_toggle_change)
+            label = "UA" if cat == UA_CATEGORY else cat
+            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
+            cb = ttk.Checkbutton(
+                self.toggle_frame,
+                text=label,
+                variable=var,
+                command=self._on_toggle_change,
+            )
             cb.pack(side=tk.LEFT, padx=(0, 6))
             self.toggle_vars[cat] = var
 
+        # Ensure subclass filters are initialized to match
+        if "subclasses" not in self.data.source_filters:
+            self.data.source_filters["subclasses"] = {
+                cat: filters.get(cat, cat != UA_CATEGORY) for cat in sections
+            }
+
     def _on_toggle_change(self):
         """Update filters and rebuild list when a toggle changes."""
+        # Intercept UA enable with confirmation dialog
+        ua_var = self.toggle_vars.get(UA_CATEGORY)
+        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
+        if not proceed:
+            return
+
         filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
         self.data.source_filters["classes"] = filters
+        # Sync subclass filters with same toggle state
+        self.data.source_filters["subclasses"] = dict(filters)
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
         save_settings(self.data.source_filters)
         self._populate_list()
 
@@ -111,9 +144,32 @@ class ClassStep(WizardStep):
         enabled = {cat for cat, on in filters.items() if on}
 
         grouped = group_by_category(self.data.classes, "classes")
-        sections = [(cat, [c["name"] for c in items])
-                     for cat, items in grouped if cat in enabled]
-        self.class_list.set_sectioned_items(sections)
+        sections = [
+            (cat, [c["name"] for c in items])
+            for cat, items in grouped
+            if cat in enabled
+        ]
+
+        # Build sub-items: subclass names listed under each class, filtered by source
+        sub_filters = self.data.source_filters.get("subclasses", {})
+        enabled_sub_cats = {cat for cat, on in sub_filters.items() if on}
+        sub_items: dict[str, list[str]] = {}
+        for cls in self.data.classes:
+            slug = cls.get("slug", "")
+            subs = self.data.get_subclasses_for_class(slug)
+            if subs:
+                visible = [
+                    sc
+                    for sc in subs
+                    if get_category("subclasses", sc.get("source", ""))
+                    in enabled_sub_cats
+                ]
+                if visible:
+                    sub_items[cls["name"]] = [
+                        sc["name"] for sc in sorted(visible, key=lambda s: s["name"])
+                    ]
+
+        self.class_list.set_sectioned_items(sections, sub_items=sub_items)
 
     def _on_select(self, name: str):
         cls = self.data.classes_by_name.get(name)
@@ -125,33 +181,53 @@ class ClassStep(WizardStep):
 
         # Initialize class_levels with level 1 entry
         from models.class_level import ClassLevel
+
         slug = cls.get("slug", "")
-        if not self.character.class_levels or self.character.class_levels[0].class_slug != slug:
+        if (
+            not self.character.class_levels
+            or self.character.class_levels[0].class_slug != slug
+        ):
             hit_die = cls.get("hit_die", 8)
-            self.character.class_levels = [ClassLevel(class_slug=slug, class_level=1, hit_die=hit_die)]
+            self.character.class_levels = [
+                ClassLevel(class_slug=slug, class_level=1, hit_die=hit_die)
+            ]
         self.detail_name.configure(text=cls["name"])
         self.detail_source.configure(text=f"Source: {cls.get('source', 'Unknown')}")
         self.detail_desc.configure(text=cls.get("description", ""))
 
         # Clear frames
-        for f in [self.equip_frame, self.traits_frame, self.skills_frame, self.features_frame]:
+        for f in [
+            self.equip_frame,
+            self.traits_frame,
+            self.skills_frame,
+            self.features_frame,
+        ]:
             for w in f.winfo_children():
                 w.destroy()
 
         # Equipment - Top
         equip = cls.get("starting_equipment", [])
         if equip:
-            ttk.Label(self.equip_frame, text="Starting Equipment",
-                      style="Subheading.TLabel").pack(anchor="w", pady=(8, 4))
+            ttk.Label(
+                self.equip_frame, text="Starting Equipment", style="Subheading.TLabel"
+            ).pack(anchor="w", pady=(8, 4))
             for i, opt in enumerate(equip):
                 if i > 0:
-                    ttk.Label(self.equip_frame, text="   or", 
-                             foreground=COLORS["fg_dim"], font=("Segoe UI", 9, "italic")).pack(anchor="w")
-                
-                WrappingLabel(self.equip_frame,
-                          text=f"  ({opt['option']}) {opt['items']}",
-                          foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w")
-            ttk.Separator(self.equip_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=16)
+                    ttk.Label(
+                        self.equip_frame,
+                        text="   or",
+                        foreground=COLORS["fg_dim"],
+                        font=("Segoe UI", 9, "italic"),
+                    ).pack(anchor="w")
+
+                WrappingLabel(
+                    self.equip_frame,
+                    text=f"  ({opt['option']}) {opt['items']}",
+                    foreground=COLORS["fg_dim"],
+                ).pack(fill=tk.X, anchor="w")
+            ttk.Separator(self.equip_frame, orient=tk.HORIZONTAL).pack(
+                fill=tk.X, pady=16
+            )
 
         # Core traits
 
@@ -164,20 +240,33 @@ class ClassStep(WizardStep):
         ]
 
         if cls.get("caster_type"):
-            info.append(("Spellcasting", f"{cls['spellcasting_ability']} ({cls['caster_type']} caster)"))
+            info.append(
+                (
+                    "Spellcasting",
+                    f"{cls['spellcasting_ability']} ({cls['caster_type']} caster)",
+                )
+            )
             if cls.get("cantrips_known"):
                 info.append(("Cantrips at Lvl 1", str(cls["cantrips_known"])))
             if cls.get("spells_prepared"):
                 info.append(("Prepared Spells", str(cls["spells_prepared"])))
             if cls.get("spell_slots"):
-                slots_str = ", ".join(f"{k}: {v}" for k, v in cls["spell_slots"].items())
+                slots_str = ", ".join(
+                    f"{k}: {v}" for k, v in cls["spell_slots"].items()
+                )
                 info.append(("Spell Slots", slots_str))
 
         for label, value in info:
             row = ttk.Frame(self.traits_frame)
             row.pack(fill=tk.X, pady=1)
-            ttk.Label(row, text=f"{label}:", foreground=COLORS["accent"],
-                      font=FONTS["body"], width=20, anchor="e").pack(side=tk.LEFT)
+            ttk.Label(
+                row,
+                text=f"{label}:",
+                foreground=COLORS["accent"],
+                font=FONTS["body"],
+                width=20,
+                anchor="e",
+            ).pack(side=tk.LEFT)
             ttk.Label(row, text=f"  {value}").pack(side=tk.LEFT, padx=(4, 0))
 
         # Skills
@@ -189,8 +278,9 @@ class ClassStep(WizardStep):
         self.skill_limit = skill_choices.get("count", 2)
         options = skill_choices.get("options", [])
 
-        ttk.Label(self.skills_frame, text=f"Choose {self.skill_limit}:",
-                  style="Dim.TLabel").pack(anchor="w", padx=4)
+        ttk.Label(
+            self.skills_frame, text=f"Choose {self.skill_limit}:", style="Dim.TLabel"
+        ).pack(anchor="w", padx=4)
 
         cols_frame = ttk.Frame(self.skills_frame)
         cols_frame.pack(fill=tk.X, padx=4, pady=4)
@@ -210,15 +300,18 @@ class ClassStep(WizardStep):
 
         prog = self.data.get_progression(cls["slug"])
         if prog and "levels" in prog:
-            ttk.Label(self.features_frame, text=f"{cls['name']} Progression Matrix",
-                      style="Heading.TLabel").pack(anchor="w", pady=(8, 8))
+            ttk.Label(
+                self.features_frame,
+                text=f"{cls['name']} Progression Matrix",
+                style="Heading.TLabel",
+            ).pack(anchor="w", pady=(8, 8))
 
             # 1. Gather all unique columns across all 20 levels
             extra_keys = set()
             all_slots = set()
             has_cantrips = False
             has_prepared = False
-            
+
             for lvl_data in prog["levels"]:
                 # Class specific columns like Martial Arts, Focus Points, etc.
                 extra_keys.update(lvl_data.get("extra", {}).keys())
@@ -232,73 +325,98 @@ class ClassStep(WizardStep):
                     has_prepared = True
 
             # Sort spell slots and other extras
-            _slot_order = {"1st": 1, "2nd": 2, "3rd": 3, "4th": 4, "5th": 5, "6th": 6, "7th": 7, "8th": 8, "9th": 9}
-            sorted_slots = sorted([s for s in all_slots if s in _slot_order], key=lambda x: _slot_order[x])
+            _slot_order = {
+                "1st": 1,
+                "2nd": 2,
+                "3rd": 3,
+                "4th": 4,
+                "5th": 5,
+                "6th": 6,
+                "7th": 7,
+                "8th": 8,
+                "9th": 9,
+            }
+            sorted_slots = sorted(
+                [s for s in all_slots if s in _slot_order], key=lambda x: _slot_order[x]
+            )
             sorted_extra = sorted(list(extra_keys))
-            
+
             # Initial setup of columns
             col_configs = [
-                {'id': 'lvl', 'text': 'Lvl', 'width': 40},
-                {'id': 'prof', 'text': 'Proficiency Bonus', 'width': 130},
-                {'id': 'features', 'text': 'Features', 'width': 350, 'anchor': 'w', 'stretch': True},
+                {"id": "lvl", "text": "Lvl", "width": 40},
+                {"id": "prof", "text": "Proficiency Bonus", "width": 130},
+                {
+                    "id": "features",
+                    "text": "Features",
+                    "width": 350,
+                    "anchor": "w",
+                    "stretch": True,
+                },
             ]
             if has_cantrips:
-                col_configs.append({'id': 'cantrips', 'text': 'Cntp', 'width': 50})
+                col_configs.append({"id": "cantrips", "text": "Cntp", "width": 50})
             if has_prepared:
-                col_configs.append({'id': 'prepared', 'text': 'Prep', 'width': 50})
-            
+                col_configs.append({"id": "prepared", "text": "Prep", "width": 50})
+
             for s in sorted_slots:
-                col_configs.append({'id': s, 'text': s, 'width': 50})
+                col_configs.append({"id": s, "text": s, "width": 50})
             for e in sorted_extra:
-                col_configs.append({'id': e, 'text': e, 'width': 100})
-            
-            col_ids = [c['id'] for c in col_configs]
-            
+                col_configs.append({"id": e, "text": e, "width": 100})
+
+            col_ids = [c["id"] for c in col_configs]
+
             # 2. Build and Populate Table
             container = ttk.Frame(self.features_frame)
             container.pack(fill=tk.X, pady=(0, 24))
-            
+
             # Use a height of 20 to show all levels at once
             table = ThemedTable(container, columns=col_ids, height=20)
             table.pack(fill=tk.X, expand=True)
             table.set_columns(col_configs)
-            
+
             for lvl_data in prog["levels"]:
                 row_vals = []
                 for cid in col_ids:
-                    if cid == 'lvl':
-                        row_vals.append(lvl_data.get('level'))
-                    elif cid == 'prof':
+                    if cid == "lvl":
+                        row_vals.append(lvl_data.get("level"))
+                    elif cid == "prof":
                         row_vals.append(f"+{lvl_data.get('proficiency_bonus')}")
-                    elif cid == 'features':
+                    elif cid == "features":
                         # Only show specific names, exclude generic ones common to many levels
-                        f_list = [f for f in lvl_data.get('features', []) if f not in ["-", "Ability Score Improvement"]]
-                        if "Ability Score Improvement" in lvl_data.get('features', []):
+                        f_list = [
+                            f
+                            for f in lvl_data.get("features", [])
+                            if f not in ["-", "Ability Score Improvement"]
+                        ]
+                        if "Ability Score Improvement" in lvl_data.get("features", []):
                             f_list.append("ASI")
                         row_vals.append(", ".join(f_list) or "-")
-                    elif cid == 'cantrips':
-                        row_vals.append(lvl_data.get('cantrips') or "-")
-                    elif cid == 'prepared':
-                        row_vals.append(lvl_data.get('prepared_spells') or "-")
+                    elif cid == "cantrips":
+                        row_vals.append(lvl_data.get("cantrips") or "-")
+                    elif cid == "prepared":
+                        row_vals.append(lvl_data.get("prepared_spells") or "-")
                     elif cid in sorted_slots:
-                        slots = lvl_data.get('spell_slots', {})
+                        slots = lvl_data.get("spell_slots", {})
                         row_vals.append(slots.get(cid) or "-")
                     elif cid in sorted_extra:
-                        extra = lvl_data.get('extra', {})
+                        extra = lvl_data.get("extra", {})
                         val = extra.get(cid)
                         row_vals.append(val if val is not None else "-")
                 table.insert_row(row_vals)
 
             # 3. Add Roadmap Heading
-            ttk.Label(self.features_frame, text="Feature Descriptions Roadmap",
-                      style="Heading.TLabel").pack(anchor="w", pady=(16, 8))
-            
+            ttk.Label(
+                self.features_frame,
+                text="Feature Descriptions Roadmap",
+                style="Heading.TLabel",
+            ).pack(anchor="w", pady=(16, 8))
+
             # Existing roadmap display logic follows...
             for lvl_data in prog["levels"]:
                 lvl = lvl_data.get("level")
                 feats = lvl_data.get("feature_details", [])
                 all_feature_names = lvl_data.get("features", [])
-                
+
                 # Filter for useful level display: only show levels that have features or interesting changes
                 if not feats and not [f for f in all_feature_names if f != "-"]:
                     continue
@@ -306,46 +424,80 @@ class ClassStep(WizardStep):
                 # Compose Level Header
                 prof = lvl_data.get("proficiency_bonus", 2)
                 header_text = f"Level {lvl}  [+{prof} Proficiency Bonus]"
-                
+
                 extra = lvl_data.get("extra", {})
                 if extra:
-                    extra_parts = [f"{k}: {v}" for k, v in extra.items() if v is not None]
+                    extra_parts = [
+                        f"{k}: {v}" for k, v in extra.items() if v is not None
+                    ]
                     if extra_parts:
                         header_text += f" | {', '.join(extra_parts)}"
-                
-                ttk.Label(self.features_frame, text=header_text,
-                          style="Subheading.TLabel").pack(anchor="w", pady=(12, 4))
-                
+
+                ttk.Label(
+                    self.features_frame, text=header_text, style="Subheading.TLabel"
+                ).pack(anchor="w", pady=(12, 4))
+
                 shown_feats = set()
                 if feats:
                     for feat in feats:
                         name = feat.get("name", "Feature")
                         shown_feats.add(name.lower())
-                        ttk.Label(self.features_frame, text=f"  \u2022 {name}",
-                                  foreground=COLORS["accent"], font=FONTS["subheading"]).pack(anchor="w")
+                        ttk.Label(
+                            self.features_frame,
+                            text=f"  \u2022 {name}",
+                            foreground=COLORS["accent"],
+                            font=FONTS["subheading"],
+                        ).pack(anchor="w")
                         if feat.get("description"):
-                            WrappingLabel(self.features_frame, text=f"    {feat['description']}",
-                                      foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w", pady=(0, 4))
-                
+                            WrappingLabel(
+                                self.features_frame,
+                                text=f"    {feat['description']}",
+                                foreground=COLORS["fg_dim"],
+                            ).pack(fill=tk.X, anchor="w", pady=(0, 4))
+
                 for f_name in all_feature_names:
-                    if f_name.lower() not in shown_feats and f_name not in ["-", "Ability Score Improvement"]:
-                        ttk.Label(self.features_frame, text=f"  \u2022 {f_name}",
-                                  foreground=COLORS["accent"], font=FONTS["subheading"]).pack(anchor="w")
-                    elif f_name == "Ability Score Improvement" and f_name.lower() not in shown_feats:
-                        ttk.Label(self.features_frame, text=f"  \u2022 {f_name}",
-                                  foreground=COLORS["fg_dim"], font=FONTS["body"]).pack(anchor="w")
+                    if f_name.lower() not in shown_feats and f_name not in [
+                        "-",
+                        "Ability Score Improvement",
+                    ]:
+                        ttk.Label(
+                            self.features_frame,
+                            text=f"  \u2022 {f_name}",
+                            foreground=COLORS["accent"],
+                            font=FONTS["subheading"],
+                        ).pack(anchor="w")
+                    elif (
+                        f_name == "Ability Score Improvement"
+                        and f_name.lower() not in shown_feats
+                    ):
+                        ttk.Label(
+                            self.features_frame,
+                            text=f"  \u2022 {f_name}",
+                            foreground=COLORS["fg_dim"],
+                            font=FONTS["body"],
+                        ).pack(anchor="w")
         else:
             # Fallback to current simple feature display if no progression
             features = cls.get("level_1_features", [])
             if features:
-                ttk.Label(self.features_frame, text="Level 1 Features",
-                          style="Subheading.TLabel").pack(anchor="w", pady=(8, 4))
+                ttk.Label(
+                    self.features_frame,
+                    text="Level 1 Features",
+                    style="Subheading.TLabel",
+                ).pack(anchor="w", pady=(8, 4))
                 for feat in features:
-                    ttk.Label(self.features_frame, text=f"  {feat['name']}",
-                              foreground=COLORS["accent"], font=FONTS["subheading"]).pack(anchor="w")
+                    ttk.Label(
+                        self.features_frame,
+                        text=f"  {feat['name']}",
+                        foreground=COLORS["accent"],
+                        font=FONTS["subheading"],
+                    ).pack(anchor="w")
                     if feat.get("description"):
-                        WrappingLabel(self.features_frame, text=f"    {feat['description']}",
-                                  foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w", pady=(0, 4))
+                        WrappingLabel(
+                            self.features_frame,
+                            text=f"    {feat['description']}",
+                            foreground=COLORS["fg_dim"],
+                        ).pack(fill=tk.X, anchor="w", pady=(0, 4))
 
         self.notify_change()
 

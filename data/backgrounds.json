@@ -17,7 +17,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Calligrapher’s Supplies, Book (prayers), Holy Symbol, Parchment (10 sheets), Robe, 8 GP"
+        "items": "Calligrapher’s Supplies, Book (prayers), Holy Symbol, Parchment (10 sheets), Robe, 8 GP; or"
       },
       {
         "option": "B",
@@ -43,7 +43,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Artisan's Tools (same as above), 2 Pouches, Traveler’s Clothes, 32 GP"
+        "items": "Artisan's Tools (same as above), 2 Pouches, Traveler’s Clothes, 32 GP; or"
       },
       {
         "option": "B",
@@ -69,7 +69,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Forgery Kit, Costume, Fine Clothes, 15 GP"
+        "items": "Forgery Kit, Costume, Fine Clothes, 15 GP; or"
       },
       {
         "option": "B",
@@ -95,7 +95,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "2 Daggers, Thieves' Tools, Crowbar, 2 Pouches, Traveler's Clothes, 16 GP"
+        "items": "2 Daggers, Thieves' Tools, Crowbar, 2 Pouches, Traveler's Clothes, 16 GP; or"
       },
       {
         "option": "B",
@@ -121,7 +121,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Musical Instrument (same as above), 2 Costumes, Mirror, Perfume, Traveler’s Clothes, 11 GP"
+        "items": "Musical Instrument (same as above), 2 Costumes, Mirror, Perfume, Traveler’s Clothes, 11 GP; or"
       },
       {
         "option": "B",
@@ -147,7 +147,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Sickle, Carpenter's Tools, Healer's Kit, Iron Pot, Shovel, Traveler's Clothes, 30 GP"
+        "items": "Sickle, Carpenter's Tools, Healer's Kit, Iron Pot, Shovel, Traveler's Clothes, 30 GP; or"
       },
       {
         "option": "B",
@@ -173,7 +173,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Spear, Light Crossbow, 20 Bolts, Gaming Set (same as above), Hooded Lantern, Manacles, Quiver, Traveler’s Clothes, 12 GP"
+        "items": "Spear, Light Crossbow, 20 Bolts, Gaming Set (same as above), Hooded Lantern, Manacles, Quiver, Traveler’s Clothes, 12 GP; or"
       },
       {
         "option": "B",
@@ -199,7 +199,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Shortbow, 20 Arrows, Cartographer’s Tools, Bedroll, Quiver, Tent, Traveler's Clothes, 3 GP"
+        "items": "Shortbow, 20 Arrows, Cartographer’s Tools, Bedroll, Quiver, Tent, Traveler's Clothes, 3 GP; or"
       },
       {
         "option": "B",
@@ -225,7 +225,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Quarterstaff, Herbalism Kit, Bedroll, Book (philosophy), Lamp, Oil (3 flasks), Traveler's Clothes, 16 GP"
+        "items": "Quarterstaff, Herbalism Kit, Bedroll, Book (philosophy), Lamp, Oil (3 flasks), Traveler's Clothes, 16 GP; or"
       },
       {
         "option": "B",
@@ -251,7 +251,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Navigator’s Tools, 2 Pouches, Traveler's Clothes, 22 GP"
+        "items": "Navigator’s Tools, 2 Pouches, Traveler's Clothes, 22 GP; or"
       },
       {
         "option": "B",
@@ -277,7 +277,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Gaming Set (same as above), Fine Clothes, Perfume, 29 GP"
+        "items": "Gaming Set (same as above), Fine Clothes, Perfume, 29 GP; or"
       },
       {
         "option": "B",
@@ -303,7 +303,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Quarterstaff, Calligrapher's Supplies, Book (history), Parchment (8 sheets), Robe, 8 GP"
+        "items": "Quarterstaff, Calligrapher's Supplies, Book (history), Parchment (8 sheets), Robe, 8 GP; or"
       },
       {
         "option": "B",
@@ -329,7 +329,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Dagger, Navigator's Tools, Rope, Traveler's Clothes, 20 GP"
+        "items": "Dagger, Navigator's Tools, Rope, Traveler's Clothes, 20 GP; or"
       },
       {
         "option": "B",
@@ -355,7 +355,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Calligrapher’s Supplies, Fine Clothes, Lamp, Oil (3 flasks), Parchment (12 sheets), 23 GP"
+        "items": "Calligrapher’s Supplies, Fine Clothes, Lamp, Oil (3 flasks), Parchment (12 sheets), 23 GP; or"
       },
       {
         "option": "B",
@@ -381,7 +381,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Spear, Shortbow, 20 Arrows, Gaming Set (same as above), Healer's Kit, Quiver, Traveler’s Clothes, 14 GP"
+        "items": "Spear, Shortbow, 20 Arrows, Gaming Set (same as above), Healer's Kit, Quiver, Traveler’s Clothes, 14 GP; or"
       },
       {
         "option": "B",
@@ -407,7 +407,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "2 Daggers, Thieves' Tools, Gaming Set (any), Bedroll, 2 Pouches, Traveler's Clothes, 16 GP"
+        "items": "2 Daggers, Thieves' Tools, Gaming Set (any), Bedroll, 2 Pouches, Traveler's Clothes, 16 GP; or"
       },
       {
         "option": "B",
@@ -433,7 +433,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Dagger, Disguise Kit, Costume, Traveler’s Clothes, 16 GP"
+        "items": "Dagger, Disguise Kit, Costume, Traveler’s Clothes, 16 GP; or"
       },
       {
         "option": "B",
@@ -459,7 +459,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Cartographer’s Tools, Bullseye Lantern, Map, Map or Scroll Case, Shovel, Tent, Traveler’s Clothes, 17 GP"
+        "items": "Cartographer’s Tools, Bullseye Lantern, Map, Map or Scroll Case, Shovel, Tent, Traveler’s Clothes, 17 GP; or"
       },
       {
         "option": "B",
@@ -485,7 +485,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Artisan’s Tools (same as above), Fine Clothes, 20 GP"
+        "items": "Artisan’s Tools (same as above), Fine Clothes, 20 GP; or"
       },
       {
         "option": "B",
@@ -511,7 +511,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Artisan’s Tools (same as above), Crowbar, Fine Clothes, 2 Pouches, 17 GP"
+        "items": "Artisan’s Tools (same as above), Crowbar, Fine Clothes, 2 Pouches, 17 GP; or"
       },
       {
         "option": "B",
@@ -537,7 +537,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Spear, Shortbow, 20 Arrows, Gaming Set (same as above), Fine Clothes, Healer’s Kit, Quiver, 1 GP"
+        "items": "Spear, Shortbow, 20 Arrows, Gaming Set (same as above), Fine Clothes, Healer’s Kit, Quiver, 1 GP; or"
       },
       {
         "option": "B",
@@ -563,7 +563,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Cook’s Utensils, Fine Clothes, Iron Pot, Lamp, Oil (5 flasks), Perfume, 26 GP"
+        "items": "Cook’s Utensils, Fine Clothes, Iron Pot, Lamp, Oil (5 flasks), Perfume, 26 GP; or"
       },
       {
         "option": "B",
@@ -589,7 +589,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Herbalism Kit, Fine Clothes, Healer’s Kit, 25 GP"
+        "items": "Herbalism Kit, Fine Clothes, Healer’s Kit, 25 GP; or"
       },
       {
         "option": "B",
@@ -615,7 +615,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Thieves’ Tools, Fine Clothes, 10 GP"
+        "items": "Thieves’ Tools, Fine Clothes, 10 GP; or"
       },
       {
         "option": "B",
@@ -641,7 +641,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Navigator’s Tools, Fine Clothes, 10 GP"
+        "items": "Navigator’s Tools, Fine Clothes, 10 GP; or"
       },
       {
         "option": "B",
@@ -667,7 +667,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Disguise Kit, Fine Clothes, 10 GP"
+        "items": "Disguise Kit, Fine Clothes, 10 GP; or"
       },
       {
         "option": "B",
@@ -693,7 +693,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Cartographer’s Tools, Fine Clothes, Map, Map or Scroll Case, 18 GP"
+        "items": "Cartographer’s Tools, Fine Clothes, Map, Map or Scroll Case, 18 GP; or"
       },
       {
         "option": "B",
@@ -719,7 +719,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Disguise Kit, Fine Clothes, 10 GP"
+        "items": "Disguise Kit, Fine Clothes, 10 GP; or"
       },
       {
         "option": "B",
@@ -745,7 +745,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Calligrapher’s Supplies, Fine Clothes, Ink, 5 Ink Pens, Paper (30 sheets), Parchment (9 sheets), 8 GP"
+        "items": "Calligrapher’s Supplies, Fine Clothes, Ink, 5 Ink Pens, Paper (30 sheets), Parchment (9 sheets), 8 GP; or"
       },
       {
         "option": "B",
@@ -771,7 +771,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Gaming Set (same as above), Climber’s Kit, Fine Clothes, Hunting Trap, Manacles, 2 GP"
+        "items": "Gaming Set (same as above), Climber’s Kit, Fine Clothes, Hunting Trap, Manacles, 2 GP; or"
       },
       {
         "option": "B",
@@ -797,7 +797,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Musical Instrument (same as above), Costume, Fine Clothes, 13 GP"
+        "items": "Musical Instrument (same as above), Costume, Fine Clothes, 13 GP; or"
       },
       {
         "option": "B",
@@ -823,7 +823,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Herbalism Kit, Fine Clothes, Net, 29 GP"
+        "items": "Herbalism Kit, Fine Clothes, Net, 29 GP; or"
       },
       {
         "option": "B",
@@ -849,7 +849,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Thieves’ Tools, Bullseye Lantern, Crowbar, Oil (10 flasks), Traveler’s Clothes, 10 GP"
+        "items": "Thieves’ Tools, Bullseye Lantern, Crowbar, Oil (10 flasks), Traveler’s Clothes, 10 GP; or"
       },
       {
         "option": "B",
@@ -875,7 +875,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Dagger, Weaver’s Tools, Backpack, Ball Bearings, Basket, Bedroll, Bucket, Rations (3 days’ worth), Rope, Signal Whistle, Traveler’s Clothes, 38 GP"
+        "items": "Dagger, Weaver’s Tools, Backpack, Ball Bearings, Basket, Bedroll, Bucket, Rations (3 days’ worth), Rope, Signal Whistle, Traveler’s Clothes, 38 GP; or"
       },
       {
         "option": "B",
@@ -901,7 +901,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Greatclub, Leatherworker’s Tools, Bedroll, Blanket, Healer’s Kit, Pole, Rations (3 days’ worth), Tent, Tinderbox, 5 Torches, Traveler’s Clothes, Waterskin, 32 GP"
+        "items": "Greatclub, Leatherworker’s Tools, Bedroll, Blanket, Healer’s Kit, Pole, Rations (3 days’ worth), Tent, Tinderbox, 5 Torches, Traveler’s Clothes, Waterskin, 32 GP; or"
       },
       {
         "option": "B",
@@ -927,7 +927,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Calligrapher’s Supplies, Dagger, Glass Bottle, Lamp, Manacles, Oil (5 flasks), 2 Pouches, Robe, Rope, 30 GP"
+        "items": "Calligrapher’s Supplies, Dagger, Glass Bottle, Lamp, Manacles, Oil (5 flasks), 2 Pouches, Robe, Rope, 30 GP; or"
       },
       {
         "option": "B",
@@ -953,7 +953,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Shortbow, 20 Arrows, Herbalism Kit, Bedroll, Blanket, Pouch, Tent, Traveler’s Clothes, 13 GP"
+        "items": "Shortbow, 20 Arrows, Herbalism Kit, Bedroll, Blanket, Pouch, Tent, Traveler’s Clothes, 13 GP; or"
       },
       {
         "option": "B",
@@ -979,7 +979,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Mace, Smith’s Tools, Fine Clothes, Manacles, Portable Ram, 4 GP"
+        "items": "Mace, Smith’s Tools, Fine Clothes, Manacles, Portable Ram, 4 GP; or"
       },
       {
         "option": "B",
@@ -1005,7 +1005,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Light Hammer, Glassblower’s Tools, Fine Clothes, Lamp, Oil (3 flasks), Waterskin, 2 GP"
+        "items": "Light Hammer, Glassblower’s Tools, Fine Clothes, Lamp, Oil (3 flasks), Waterskin, 2 GP; or"
       },
       {
         "option": "B",
@@ -1031,7 +1031,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Disguise Kit, Bedroll, Costume, Grappling Hook, Rope, Traveler’s Clothes, 14 GP"
+        "items": "Disguise Kit, Bedroll, Costume, Grappling Hook, Rope, Traveler’s Clothes, 14 GP; or"
       },
       {
         "option": "B",
@@ -1057,7 +1057,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Woodcarver’s Tools, Basket, Block and Tackle, Bucket, Chain, Hunting Trap, Net, Pole, Rations (3 days’ worth), Rope, Traveler’s Clothes, 32 GP"
+        "items": "Woodcarver’s Tools, Basket, Block and Tackle, Bucket, Chain, Hunting Trap, Net, Pole, Rations (3 days’ worth), Rope, Traveler’s Clothes, 32 GP; or"
       },
       {
         "option": "B",
@@ -1083,7 +1083,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Spear, Smith’s Tools, Bullseye Lantern, Holy Symbol, Manacles, Oil (5 flasks), Tinderbox, Traveler’s Clothes, 9 GP"
+        "items": "Spear, Smith’s Tools, Bullseye Lantern, Holy Symbol, Manacles, Oil (5 flasks), Tinderbox, Traveler’s Clothes, 9 GP; or"
       },
       {
         "option": "B",
@@ -1109,7 +1109,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "2 Javelins, Calligrapher’s Supplies, Fine Clothes, Ink, 5 Ink Pens, Parchment (9 sheets), 13 GP"
+        "items": "2 Javelins, Calligrapher’s Supplies, Fine Clothes, Ink, 5 Ink Pens, Parchment (9 sheets), 13 GP; or"
       },
       {
         "option": "B",
@@ -1135,7 +1135,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Quarterstaff, Painter’s Supplies, Bedroll, Bell, Pouch, Robe, String, Traveler’s Clothes, Waterskin, 34 GP"
+        "items": "Quarterstaff, Painter’s Supplies, Bedroll, Bell, Pouch, Robe, String, Traveler’s Clothes, Waterskin, 34 GP; or"
       },
       {
         "option": "B",
@@ -1161,7 +1161,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Dagger, Light Hammer, Mason’s Tools, Backpack, Bedroll, Crowbar, Ladder, Pole, 2 Pouches, Rope, String, Tinderbox, 5 Torches, Traveler’s Clothes, Waterskin, 26 GP"
+        "items": "Dagger, Light Hammer, Mason’s Tools, Backpack, Bedroll, Crowbar, Ladder, Pole, 2 Pouches, Rope, String, Tinderbox, 5 Torches, Traveler’s Clothes, Waterskin, 26 GP; or"
       },
       {
         "option": "B",
@@ -1187,7 +1187,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Quarterstaff, Jeweler’s Tools, Perfume, Pouch, Robe, Shovel, String, Waterskin, 16 GP"
+        "items": "Quarterstaff, Jeweler’s Tools, Perfume, Pouch, Robe, Shovel, String, Waterskin, 16 GP; or"
       },
       {
         "option": "B",
@@ -1213,7 +1213,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Spear, Navigator’s Tools, Fine Clothes, 9 GP"
+        "items": "Spear, Navigator’s Tools, Fine Clothes, 9 GP; or"
       },
       {
         "option": "B",
@@ -1239,7 +1239,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Cartographer’s Tools, Backpack, Bedroll, Hooded Lantern, Oil (3 flasks), Rope, Tinderbox, Traveler’s Clothes, Waterskin, 23 GP"
+        "items": "Cartographer’s Tools, Backpack, Bedroll, Hooded Lantern, Oil (3 flasks), Rope, Tinderbox, Traveler’s Clothes, Waterskin, 23 GP; or"
       },
       {
         "option": "B",
@@ -1261,7 +1261,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "2 Daggers, Thieves’ Tools, Caltrops, Costume, Grappling Hook, Iron Spikes, Mirror, 2 Pouches, Rope, Traveler’s Clothes, 3 GP"
+        "items": "2 Daggers, Thieves’ Tools, Caltrops, Costume, Grappling Hook, Iron Spikes, Mirror, 2 Pouches, Rope, Traveler’s Clothes, 3 GP; or"
       },
       {
         "option": "B",
@@ -1287,7 +1287,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Gaming Set (same as above), Arcane Focus (Crystal or Wand), 2 Pouches, Traveler’s Clothes, 36 GP"
+        "items": "Gaming Set (same as above), Arcane Focus (Crystal or Wand), 2 Pouches, Traveler’s Clothes, 36 GP; or"
       },
       {
         "option": "B",
@@ -1313,7 +1313,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Club, Dagger, Forgery Kit, Fine Clothes, Hooded Lantern, Oil (3 flasks), 2 Pouches, String, Tinderbox, 11 GP"
+        "items": "Club, Dagger, Forgery Kit, Fine Clothes, Hooded Lantern, Oil (3 flasks), 2 Pouches, String, Tinderbox, 11 GP; or"
       },
       {
         "option": "B",
@@ -1339,7 +1339,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Dagger, Gaming Set (same as above), Fine Clothes, Glass Bottle, Mirror, Perfume, Pouch, Tinderbox, 19 GP"
+        "items": "Dagger, Gaming Set (same as above), Fine Clothes, Glass Bottle, Mirror, Perfume, Pouch, Tinderbox, 19 GP; or"
       },
       {
         "option": "B",
@@ -1365,7 +1365,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Quarterstaff, Cartographer’s Tools, Backpack, Basket, Parchment (4 sheets), Rope, Traveler’s Clothes, 29 GP"
+        "items": "Quarterstaff, Cartographer’s Tools, Backpack, Basket, Parchment (4 sheets), Rope, Traveler’s Clothes, 29 GP; or"
       },
       {
         "option": "B",
@@ -1391,7 +1391,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Dagger, Glassblower’s Tools, Backpack, Hunting Trap, Lamp, Oil (3 flasks), Traveler’s Clothes, Waterskin, 8 GP"
+        "items": "Dagger, Glassblower’s Tools, Backpack, Hunting Trap, Lamp, Oil (3 flasks), Traveler’s Clothes, Waterskin, 8 GP; or"
       },
       {
         "option": "B",
@@ -1417,7 +1417,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Cook’s Utensils, Fine Clothes, 2 Glass Bottles, Healer’s Kit, Perfume, Lamp, Oil (3 flasks), Waterskin, 19 GP"
+        "items": "Cook’s Utensils, Fine Clothes, 2 Glass Bottles, Healer’s Kit, Perfume, Lamp, Oil (3 flasks), Waterskin, 19 GP; or"
       },
       {
         "option": "B",
@@ -1443,7 +1443,7 @@
     "equipment": [
       {
         "option": "A",
-        "items": "Woodcarver’s Tools, Crowbar, Hooded Lantern, Holy Symbol (reliquary), Holy Water, Mirror, Oil (3 flasks), Tinderbox, Traveler’s Clothes, Waterskin, 4 GP"
+        "items": "Woodcarver’s Tools, Crowbar, Hooded Lantern, Holy Symbol (reliquary), Holy Water, Mirror, Oil (3 flasks), Tinderbox, Traveler’s Clothes, Waterskin, 4 GP; or"
       },
       {
         "option": "B",

@@ -264,9 +264,7 @@
       {
         "level": 13,
         "proficiency_bonus": 5,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 3,
         "prepared_spells": 11,
         "spell_slots": {
@@ -346,9 +344,7 @@
       {
         "level": 17,
         "proficiency_bonus": 6,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 4,
         "prepared_spells": 14,
         "spell_slots": {
@@ -427,7 +423,7 @@
           "1st": 4,
           "2nd": 3,
           "3rd": 3,
-          "4th": 0,
+          "4th": 3,
           "5th": 2
         },
         "extra": {
@@ -476,18 +472,15 @@
             "name": "Weapon Mastery",
             "description": "Your training with weapons allows you to use the mastery properties of two kinds of Simple or Martial Melee weapons of your choice, such as Greataxes and Handaxes. Whenever you finish a Long Rest, you can practice weapon drills and change one of those weapon choices. When you reach certain Barbarian levels, you gain the ability to use the mastery properties of more kinds of weapons, as shown in the Weapon Mastery column of the Barbarian Features table."
           }
-        ],
-        "extra": {
-          "Rages": 2,
-          "Rage Damage": 2,
-          "Weapon Mastery": 2
-        },
-        "spell_slots": {}
+        ]
       },
       {
         "level": 2,
         "proficiency_bonus": 2,
         "features": [
+          "2",
+          "2",
+          "+2",
           "Danger Sense",
           "Reckless Attack"
         ],
@@ -505,8 +498,7 @@
             "name": "Reckless Attack",
             "description": "You can throw aside all concern for defense to attack with increased ferocity. When you make your first attack roll on your turn, you can decide to attack recklessly. Doing so gives you Advantage on attack rolls using Strength until the start of your next turn, but attack rolls against you have Advantage during that time."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 3,
@@ -529,8 +521,7 @@
             "name": "Primal Knowledge",
             "description": "You gain proficiency in another skill of your choice from the skill list available to Barbarians at level 1. In addition, while your Rage is active, you can channel primal power when you attempt certain tasks; whenever you make an ability check using one of the following skills, you can make it as a Strength check even if it normally uses a different ability: Acrobatics, Intimidation, Perception, Stealth, or Survival. When you use this ability, your Strength represents primal power coursing through you, honing your agility, bearing, and senses."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 4,
@@ -548,8 +539,7 @@
             "name": "Ability Score Improvement",
             "description": "You gain the Ability Score Improvement feat or another feat of your choice for which you qualify. You gain this feature again at Barbarian levels 8, 12, and 16."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 5,
@@ -572,8 +562,7 @@
             "name": "Fast Movement",
             "description": "Your speed increases by 10 feet while you aren't wearing Heavy armor."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 6,
@@ -585,8 +574,7 @@
           "Rages": 4,
           "Rage Damage": 2,
           "Weapon Mastery": 3
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 7,
@@ -609,8 +597,7 @@
             "name": "Instinctive Pounce",
             "description": "As part of the Bonus Action you take to enter your Rage, you can move up to half your Speed."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 8,
@@ -622,8 +609,7 @@
           "Rages": 4,
           "Rage Damage": 2,
           "Weapon Mastery": 3
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 9,
@@ -641,8 +627,7 @@
             "name": "Brutal Strike",
             "description": "If you use Reckless Attack, you can forgo any Advantage on one Strength-based attack roll of your choice on your turn. The chosen attack roll mustn't have Disadvantage. If the chosen attack roll hits, the target takes an extra 1d10 damage of the same type dealt by the weapon or Unarmed Strike, and you can cause one Brutal Strike effect of your choice. You have the following effect options. Forceful Blow. The target is pushed 15 feet straight away from you. You can then move up to half your Speed straight toward the target without provoking Opportunity Attacks. Hamstring Blow. The target’s Speed is reduced by 15 feet until the start of your next turn. A target can be affected by only one Hamstring Blow at a time— the most recent one."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 10,
@@ -654,8 +639,7 @@
           "Rages": 4,
           "Rage Damage": 3,
           "Weapon Mastery": 4
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 11,
@@ -673,8 +657,7 @@
             "name": "Relentless Rage",
             "description": "Your Rage can keep you fighting despite grievous wounds. If you drop to 0 Hit Points while your Rage is active and don't die outright, you can make a DC 10 Constitution saving throw. If you succeed, your Hit Points instead change to a number equal to twice your Barbarian level. Each time you use this feature after the first, the DC increases by 5. When you finish a Short or Long Rest, the DC resets to 10."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 12,
@@ -686,8 +669,7 @@
           "Rages": 5,
           "Rage Damage": 3,
           "Weapon Mastery": 4
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 13,
@@ -705,8 +687,7 @@
             "name": "Improved Brutal Strike",
             "description": "You have honed new ways to attack furiously. The following effects are now among your Brutal Strike options. Staggering Blow. The target has Disadvantage on the next saving throw it makes, and it can’t make Opportunity Attacks until the start of your next turn. Sundering Blow. Before the start of your next turn, the next attack roll made by another creature against the target gains a +5 bonus to the roll. An attack roll can gain only one Sundering Blow bonus."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 14,
@@ -718,8 +699,7 @@
           "Rages": 5,
           "Rage Damage": 3,
           "Weapon Mastery": 4
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 15,
@@ -737,8 +717,7 @@
             "name": "Persistent Rage",
             "description": "When you roll Initiative, you can regain all expended uses of Rage. After you regain uses of Rage in this way, you can’t do so again until you finish a Long Rest. In addition, your Rage is so fierce that it now lasts for 10 minutes without you needing to do anything to extend it from round to round. Your Rage ends early if you have the Unconscious condition (not just the Incapacitated condition) or don Heavy armor."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 16,
@@ -750,8 +729,7 @@
           "Rages": 5,
           "Rage Damage": 4,
           "Weapon Mastery": 4
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 17,
@@ -769,8 +747,7 @@
             "name": "Improved Brutal Strike",
             "description": "The extra damage of your Brutal Strike increases to 2d10. In addition, you can use two different Brutal Strike effects whenever you use your Brutal Strike feature."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 18,
@@ -788,8 +765,7 @@
             "name": "Indomitable Might",
             "description": "If your total for a Strength check or Strength saving throw is less than your Strength score, you can use that score in place of the total."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 19,
@@ -807,8 +783,7 @@
             "name": "Epic Boon",
             "description": "You gain an Epic Boon feat or another feat of your choice for which you qualify. Boon of Irresistible Offense is recommended."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 20,
@@ -826,8 +801,7 @@
             "name": "Primal Champion",
             "description": "You embody primal power. Your Strength and Constitution scores increase by 4, to a maximum of 25."
           }
-        ],
-        "spell_slots": {}
+        ]
       }
     ],
     "subclass_names": [
@@ -1067,9 +1041,7 @@
       {
         "level": 11,
         "proficiency_bonus": 4,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "extra": {
           "Bardic Die": "D10"
         },
@@ -1107,9 +1079,7 @@
       {
         "level": 13,
         "proficiency_bonus": 5,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "extra": {
           "Bardic Die": "D10"
         },
@@ -1149,9 +1119,7 @@
       {
         "level": 15,
         "proficiency_bonus": 5,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "extra": {
           "Bardic Die": "D12"
         },
@@ -1193,9 +1161,7 @@
       {
         "level": 17,
         "proficiency_bonus": 6,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "extra": {
           "Bardic Die": "D12"
         },
@@ -1490,9 +1456,7 @@
       {
         "level": 9,
         "proficiency_bonus": 4,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 4,
         "prepared_spells": 14,
         "spell_slots": {
@@ -1534,9 +1498,7 @@
       {
         "level": 11,
         "proficiency_bonus": 4,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 5,
         "prepared_spells": 16,
         "spell_slots": {
@@ -1574,9 +1536,7 @@
       {
         "level": 13,
         "proficiency_bonus": 5,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 5,
         "prepared_spells": 17,
         "spell_slots": {
@@ -1622,9 +1582,7 @@
       {
         "level": 15,
         "proficiency_bonus": 5,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 5,
         "prepared_spells": 18,
         "spell_slots": {
@@ -1689,9 +1647,7 @@
       {
         "level": 18,
         "proficiency_bonus": 6,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 5,
         "prepared_spells": 20,
         "spell_slots": {
@@ -1967,9 +1923,7 @@
       {
         "level": 9,
         "proficiency_bonus": 4,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 3,
         "prepared_spells": 14,
         "spell_slots": {
@@ -2005,9 +1959,7 @@
       {
         "level": 11,
         "proficiency_bonus": 4,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 4,
         "prepared_spells": 16,
         "spell_slots": {
@@ -2045,9 +1997,7 @@
       {
         "level": 13,
         "proficiency_bonus": 5,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 4,
         "prepared_spells": 17,
         "spell_slots": {
@@ -2137,9 +2087,7 @@
       {
         "level": 17,
         "proficiency_bonus": 6,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 4,
         "prepared_spells": 19,
         "spell_slots": {
@@ -2282,8 +2230,7 @@
             "name": "Weapon Mastery",
             "description": "Your training with weapons allows you to use the mastery properties of three kinds of Simple or Martial weapons of your choice. Whenever you finish a Long Rest, you can practice weapon drills and change one of those weapon choices. When you reach certain Fighter levels, you gain the ability to use the mastery properties of more kinds of weapons, as shown in the Weapon Mastery column of the Fighter Features table."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 2,
@@ -2305,8 +2252,7 @@
             "name": "Tactical Mind",
             "description": "You have a mind for tactics on and off the battlefield. When you fail an ability check, you can expend a use of your Second Wind to push yourself toward success. Rather than regaining Hit Points, you roll 1d10 and add the number rolled to the ability check, potentially turning it into a success. If the check still fails, this use of Second Wind isn’t expended."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 3,
@@ -2323,8 +2269,7 @@
             "name": "Fighter Subclass",
             "description": "You gain a Fighter subclass of your choice. The Battle Master, Champion, Eldritch Knight, and Psi Warrior subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Fighter levels. For the rest of your career, you gain each of your subclass’s features that are of your Fighter level or lower. Fighter Subclasses Name Banneret Battle Master Champion Eldritch Knight Psi Warrior"
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 4,
@@ -2341,8 +2286,7 @@
             "name": "Ability Score Improvement",
             "description": "You gain the Ability Score Improvement feat or another feat of your choice for which you qualify. You gain this feature again at Fighter levels 6, 8, 12, 14, and 16."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 5,
@@ -2364,8 +2308,7 @@
             "name": "Tactical Shift",
             "description": "Whenever you activate your Second Wind with a Bonus Action, you can move up to half your Speed without provoking Opportunity Attacks."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 6,
@@ -2376,8 +2319,7 @@
         "extra": {
           "Second Wind": 3,
           "Weapon Mastery": 4
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 7,
@@ -2388,8 +2330,7 @@
         "extra": {
           "Second Wind": 3,
           "Weapon Mastery": 4
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 8,
@@ -2400,8 +2341,7 @@
         "extra": {
           "Second Wind": 3,
           "Weapon Mastery": 4
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 9,
@@ -2423,8 +2363,7 @@
             "name": "Tactical Master",
             "description": "When you attack with a weapon whose mastery property you can use, you can replace that property with the Push, Sap, or Slow property for that attack."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 10,
@@ -2435,8 +2374,7 @@
         "extra": {
           "Second Wind": 4,
           "Weapon Mastery": 5
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 11,
@@ -2453,8 +2391,7 @@
             "name": "Two Extra Attacks",
             "description": "You can attack three times instead of once whenever you take the Attack action on your turn."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 12,
@@ -2465,8 +2402,7 @@
         "extra": {
           "Second Wind": 4,
           "Weapon Mastery": 5
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 13,
@@ -2484,8 +2420,7 @@
             "name": "Studied Attacks",
             "description": "You study your opponents and learn from each attack you make. If you make an attack roll against a creature and miss, you have Advantage on your next attack roll against that creature before the end of your next turn."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 14,
@@ -2496,8 +2431,7 @@
         "extra": {
           "Second Wind": 4,
           "Weapon Mastery": 5
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 15,
@@ -2508,8 +2442,7 @@
         "extra": {
           "Second Wind": 4,
           "Weapon Mastery": 5
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 16,
@@ -2520,8 +2453,7 @@
         "extra": {
           "Second Wind": 4,
           "Weapon Mastery": 6
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 17,
@@ -2533,8 +2465,7 @@
         "extra": {
           "Second Wind": 4,
           "Weapon Mastery": 6
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 18,
@@ -2545,8 +2476,7 @@
         "extra": {
           "Second Wind": 4,
           "Weapon Mastery": 6
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 19,
@@ -2563,8 +2493,7 @@
             "name": "Epic Boon",
             "description": "You gain an Epic Boon feat or another feat of your choice for which you qualify. Boon of Combat Prowess is recommended."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 20,
@@ -2581,8 +2510,7 @@
             "name": "Three Extra Attacks",
             "description": "You can attack four times instead of once whenever you take the Attack action on your turn."
           }
-        ],
-        "spell_slots": {}
+        ]
       }
     ],
     "subclass_names": [
@@ -2619,8 +2547,7 @@
             "name": "Unarmored Defense",
             "description": "While you aren’t wearing armor or wielding a Shield, your base Armor Class equals 10 plus your Dexterity and Wisdom modifiers."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 2,
@@ -2648,8 +2575,7 @@
             "name": "Uncanny Metabolism",
             "description": "When you roll Initiative, you can regain all expended Focus Points. When you do so, roll your Martial Arts die, and regain a number of Hit Points equal to your Monk level plus the number rolled. Once you use this feature, you can’t use it again until you finish a Long Rest."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 3,
@@ -2672,8 +2598,7 @@
             "name": "Monk Subclass",
             "description": "You gain a Monk subclass of your choice. The Warrior of Mercy, Warrior of Shadow, Warrior of the Elements, and Warrior of the Open Hand subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Monk levels. For the rest of your career, you gain each of your subclass’s features that are of your Monk level or lower. Monk Subclasses Name Warrior of Mercy Warrior of Shadow Warrior of the Elements Warrior of the Open Hand"
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 4,
@@ -2696,8 +2621,7 @@
             "name": "Slow Fall",
             "description": "You can take a Reaction when you fall to reduce any damage you take from the fall by an amount equal to five times your Monk level."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 5,
@@ -2720,8 +2644,7 @@
             "name": "Stunning Strike",
             "description": "Once per turn when you hit a creature with a Monk weapon or an Unarmed Strike, you can expend 1 Focus Point to attempt a stunning strike. The target must make a Constitution saving throw. On a failed save, the target has the Stunned condition until the start of your next turn. On a successful save, the target’s Speed is halved until the start of your next turn, and the next attack roll made against the target before then has Advantage."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 6,
@@ -2740,8 +2663,7 @@
             "name": "Empowered Strikes",
             "description": "Whenever you deal damage with your Unarmed Strike, it can deal your choice of Force damage or its normal damage type."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 7,
@@ -2759,8 +2681,7 @@
             "name": "Evasion",
             "description": "When you’re subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you instead take no damage if you succeed on the saving throw and only half damage if you fail. You don’t benefit from this feature if you have the Incapacitated condition."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 8,
@@ -2772,8 +2693,7 @@
           "Martial Arts": "1d8",
           "Focus Points": 8,
           "Unarmored Movement": "+15 ft"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 9,
@@ -2791,8 +2711,7 @@
             "name": "Acrobatic Movement",
             "description": "While you aren’t wearing armor or wielding a Shield, you gain the ability to move along vertical surfaces and across liquids on your turn without falling during the movement."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 10,
@@ -2815,8 +2734,7 @@
             "name": "Self-Restoration",
             "description": "Through sheer force of will, you can remove one of the following conditions from yourself at the end of each of your turns: Charmed, Frightened, or Poisoned. In addition, forgoing food and drink doesn’t give you levels of Exhaustion."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 11,
@@ -2828,8 +2746,7 @@
           "Martial Arts": "1d10",
           "Focus Points": 11,
           "Unarmored Movement": "+20 ft"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 12,
@@ -2841,8 +2758,7 @@
           "Martial Arts": "1d10",
           "Focus Points": 12,
           "Unarmored Movement": "+20 ft"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 13,
@@ -2860,8 +2776,7 @@
             "name": "Deflect Energy",
             "description": "You can now use your Deflect Attacks feature against attacks that deal any damage type, not just Bludgeoning, Piercing, or Slashing."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 14,
@@ -2879,8 +2794,7 @@
             "name": "Disciplined Survivor",
             "description": "Your physical and mental discipline grant you proficiency in all saving throws. Additionally, whenever you make a saving throw and fail, you can expend 1 Focus Point to reroll it, and you must use the new roll."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 15,
@@ -2898,8 +2812,7 @@
             "name": "Perfect Focus",
             "description": "When you roll Initiative and don’t use Uncanny Metabolism, you regain expended Focus Points until you have 4 if you have 3 or fewer."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 16,
@@ -2911,8 +2824,7 @@
           "Martial Arts": "1d10",
           "Focus Points": 16,
           "Unarmored Movement": "+25 ft"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 17,
@@ -2924,8 +2836,7 @@
           "Martial Arts": "1d12",
           "Focus Points": 17,
           "Unarmored Movement": "+25 ft"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 18,
@@ -2943,8 +2854,7 @@
             "name": "Superior Defense",
             "description": "At the start of your turn, you can expend 3 Focus Points to bolster yourself against harm for 1 minute or until you have the Incapacitated condition. During that time, you have Resistance to all damage except Force damage."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 19,
@@ -2962,8 +2872,7 @@
             "name": "Epic Boon",
             "description": "You gain an Epic Boon feat or another feat of your choice for which you qualify. Boon of Irresistible Offense is recommended."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 20,
@@ -2981,8 +2890,7 @@
             "name": "Body and Mind",
             "description": "You have developed your body and mind to new heights. Your Dexterity and Wisdom scores increase by 4, to a maximum of 25."
           }
-        ],
-        "spell_slots": {}
+        ]
       }
     ],
     "subclass_names": [
@@ -3259,9 +3167,7 @@
       {
         "level": 13,
         "proficiency_bonus": 5,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "prepared_spells": 11,
         "spell_slots": {
           "1st": 4,
@@ -3333,9 +3239,7 @@
       {
         "level": 17,
         "proficiency_bonus": 6,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "prepared_spells": 14,
         "spell_slots": {
           "1st": 4,
@@ -3359,7 +3263,7 @@
           "1st": 4,
           "2nd": 3,
           "3rd": 3,
-          "4th": 0,
+          "4th": 3,
           "5th": 1
         },
         "extra": {
@@ -3890,8 +3794,7 @@
             "name": "Weapon Mastery",
             "description": "Your training with weapons allows you to use the mastery properties of two kinds of weapons of your choice with which you have proficiency, such as Daggers and Shortbows. Whenever you finish a Long Rest, you can change the kinds of weapons you chose. For example, you could switch to using the mastery properties of Scimitars and Shortswords."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 2,
@@ -3907,8 +3810,7 @@
             "name": "Cunning Action",
             "description": "Your quick thinking and agility allow you to move and act quickly. On your turn, you can take one of the following actions as a Bonus Action: Dash, Disengage, or Hide."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 3,
@@ -3929,8 +3831,7 @@
             "name": "Steady Aim",
             "description": "As a Bonus Action, you give yourself Advantage on your next attack roll on your current turn. You can use this feature only if you haven't moved during this turn, and after you use it, your Speed is 0 until the end of the current turn."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 4,
@@ -3946,8 +3847,7 @@
             "name": "Ability Score Improvement",
             "description": "You gain the Ability Score Improvement feat or another feat of your choice for which you qualify. You gain this feature again at Rogue levels 8, 10, 12, and 16."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 5,
@@ -3968,8 +3868,7 @@
             "name": "Uncanny Dodge",
             "description": "When an attacker that you can see hits you with an attack roll, you can take a Reaction to halve the attack's damage against you (round down)."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 6,
@@ -3979,8 +3878,7 @@
         ],
         "extra": {
           "Sneak Attack": "3d6"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 7,
@@ -4001,8 +3899,7 @@
             "name": "Reliable Talent",
             "description": "Whenever you make an ability check that uses one of your skill or tool proficiencies, you can treat a d20 roll of 9 or lower as a 10."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 8,
@@ -4012,8 +3909,7 @@
         ],
         "extra": {
           "Sneak Attack": "4d6"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 9,
@@ -4023,8 +3919,7 @@
         ],
         "extra": {
           "Sneak Attack": "5d6"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 10,
@@ -4034,8 +3929,7 @@
         ],
         "extra": {
           "Sneak Attack": "5d6"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 11,
@@ -4051,8 +3945,7 @@
             "name": "Improved Cunning Strike",
             "description": "You can use up to two Cunning Strike effects when you deal Sneak Attack damage, paying the die cost for each effect."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 12,
@@ -4062,8 +3955,7 @@
         ],
         "extra": {
           "Sneak Attack": "6d6"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 13,
@@ -4073,8 +3965,7 @@
         ],
         "extra": {
           "Sneak Attack": "7d6"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 14,
@@ -4090,8 +3981,7 @@
             "name": "Devious Strikes",
             "description": "You've practiced new ways to use your Sneak Attack deviously. The following effects are now among your Cunning Strike options. Daze (Cost: 2d6). The target must succeed on a Constitution saving throw, or on its next turn, it can do only one of the following: move or take an action or a Bonus Action. Knock Out (Cost: 6d6). The target must succeed on a Constitution saving throw, or it has the Unconscious condition for 1 minute or until it takes any damage. The Unconscious target repeats the save at the end of its turns, ending the effect on itself on a success. Obscure (Cost: 3d6). The target must succeed on a Dexterity saving throw, or it has the Blinded condition until the end of its next turn."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 15,
@@ -4107,8 +3997,7 @@
             "name": "Slippery Mind",
             "description": "Your mind is exceptionally difficult to control. You gain proficiency in Wisdom and Charisma saving throws."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 16,
@@ -4118,8 +4007,7 @@
         ],
         "extra": {
           "Sneak Attack": "8d6"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 17,
@@ -4129,8 +4017,7 @@
         ],
         "extra": {
           "Sneak Attack": "9d6"
-        },
-        "spell_slots": {}
+        }
       },
       {
         "level": 18,
@@ -4146,8 +4033,7 @@
             "name": "Elusive",
             "description": "You're so evasive that attackers rarely gain the upper hand against you. No attack roll can have advantage against you unless you have the Incapacitated condition."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 19,
@@ -4163,8 +4049,7 @@
             "name": "Epic Boon",
             "description": "You gain an Epic Boon feat or another feat of your choice for which you qualify. Boon of the Night Spirit is recommended."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 20,
@@ -4180,8 +4065,7 @@
             "name": "Stroke of Luck",
             "description": "You have a marvelous knack for succeeding when you need to. If you fail a d20 Test, you can turn the roll into a 20. Once you use this feature, you can't use it again until you finish a Short or Long Rest."
           }
-        ],
-        "spell_slots": {}
+        ]
       }
     ],
     "subclass_names": [
@@ -4204,7 +4088,9 @@
           "Spellcasting",
           "Innate Sorcery"
         ],
-        "extra": {},
+        "extra": {
+          "Sorcery Points": null
+        },
         "cantrips": 4,
         "prepared_spells": 2,
         "spell_slots": {
@@ -4376,9 +4262,7 @@
       {
         "level": 9,
         "proficiency_bonus": 4,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "extra": {
           "Sorcery Points": 9
         },
@@ -4414,9 +4298,7 @@
       {
         "level": 11,
         "proficiency_bonus": 4,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "extra": {
           "Sorcery Points": 11
         },
@@ -4454,9 +4336,7 @@
       {
         "level": 13,
         "proficiency_bonus": 5,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "extra": {
           "Sorcery Points": 13
         },
@@ -4487,8 +4367,8 @@
           "1st": 4,
           "2nd": 3,
           "3rd": 3,
-          "4th": 0,
-          "5th": 1,
+          "4th": 3,
+          "5th": 2,
           "6th": 1,
           "7th": 1
         }
@@ -4496,9 +4376,7 @@
       {
         "level": 15,
         "proficiency_bonus": 5,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "extra": {
           "Sorcery Points": 15
         },
@@ -4667,9 +4545,7 @@
         "pact_slots": 1,
         "pact_slot_level": 1,
         "extra": {
-          "Eldritch Invocations": 1,
-          "Spell Slots": 1,
-          "Slot Level": 1
+          "Eldritch Invocations": 1
         },
         "feature_details": [
           {
@@ -4680,8 +4556,7 @@
             "name": "Pact Magic",
             "description": "Through occult ceremony, you have formed a pact with a mysterious entity to gain magical powers. The entity is a voice in the shadows—its identity unclear—but its boon to you is concrete: the ability to cast spells. See chapter 7 for the rules on spellcasting. The information below details how you use those rules with Warlock spells, which appear in the Warlock spell list later in the class’s description. Cantrips. You know two Warlock cantrips of your choice. Eldritch Blast and Prestidigitation are recommended. Whenever you gain a Warlock level, you can replace one of your cantrips from this feature with another Warlock cantrip of your choice. When you reach Warlock levels 4 and 10, you learn another Warlock cantrip of your choice, as shown in the Cantrips column of the Warlock Features table. Spell Slots. The Warlock Features table shows how many spell slots you have to cast your Warlock spells of levels 1–5. The table also shows the level of those slots, all of which are the same level. You regain all expended Pact Magic spell slots when you finish a Short or Long Rest. For example, when you’re a level 5 Warlock, you have two level 3 spell slots. To cast the level 1 spell Witch Bolt , you must spend one of those slots, and you cast it as a level 3 spell. Prepared Spells of Level 1+. You prepare the list of level 1+ spells that are available for you to cast with this feature. To start, choose two level 1 Warlock spells. Charm Person and Hex are recommended. The number of spells on your list increases as you gain Warlock levels, as shown in the Prepared Spells column of the Warlock Features table. Whenever that number increases, choose additional Warlock spells until the number of spells on your list matches the number in the table. The chosen spells must be of a level no higher than what’s shown in the table’s Slot Level column for your level. When you reach level 6, for example, you learn a new Warlock spell, which can be of levels 1–3. If another Warlock feature gives you spells that you always have prepared, those spells don’t count against the number of spells you can prepare with this feature, but those spells otherwise count as Warlock spells for you. Changing Your Prepared Spells. Whenever you gain a Warlock level, you can replace one spell on your list with another Warlock spell of an eligible level. Spellcasting Ability. Charisma is the spellcasting ability for your Warlock spells. Spellcasting Focus. You can use an Arcane Focus as a Spellcasting Focus for your Warlock spells."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 2,
@@ -4694,17 +4569,14 @@
         "pact_slots": 2,
         "pact_slot_level": 1,
         "extra": {
-          "Eldritch Invocations": 3,
-          "Spell Slots": 2,
-          "Slot Level": 1
+          "Eldritch Invocations": 3
         },
         "feature_details": [
           {
             "name": "Magical Cunning",
             "description": "You can perform an esoteric rite for 1 minute. At the end of it, you regain expended Pact Magic spell slots but no more than a number equal to half your maximum (round up). Once you use this feature, you can’t do so again until you finish a Long Rest."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 3,
@@ -4717,17 +4589,14 @@
         "pact_slots": 2,
         "pact_slot_level": 2,
         "extra": {
-          "Eldritch Invocations": 3,
-          "Spell Slots": 2,
-          "Slot Level": 2
+          "Eldritch Invocations": 3
         },
         "feature_details": [
           {
             "name": "Warlock Subclass",
             "description": "You gain a Warlock subclass of your choice. The Archfey Patron, Celestial Patron, Fiend Patron, and Great Old One Patron subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Warlock levels. For the rest of your career, you gain each of your subclass’s features that are of your Warlock level or lower. Warlock Subclasses Name Archfey Patron Celestial Patron Fiend Patron Great Old One Patron"
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 4,
@@ -4740,34 +4609,26 @@
         "pact_slots": 2,
         "pact_slot_level": 2,
         "extra": {
-          "Eldritch Invocations": 3,
-          "Spell Slots": 2,
-          "Slot Level": 2
+          "Eldritch Invocations": 3
         },
         "feature_details": [
           {
             "name": "Ability Score Improvement",
             "description": "You gain the Ability Score Improvement feat or another feat of your choice for which you qualify. You gain this feature again at Warlock levels 8, 12, and 16."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 5,
         "proficiency_bonus": 3,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 3,
         "prepared_spells": 6,
         "pact_slots": 2,
         "pact_slot_level": 3,
         "extra": {
-          "Eldritch Invocations": 5,
-          "Spell Slots": 2,
-          "Slot Level": 3
-        },
-        "spell_slots": {}
+          "Eldritch Invocations": 5
+        }
       },
       {
         "level": 6,
@@ -4780,28 +4641,20 @@
         "pact_slots": 2,
         "pact_slot_level": 3,
         "extra": {
-          "Eldritch Invocations": 5,
-          "Spell Slots": 2,
-          "Slot Level": 3
-        },
-        "spell_slots": {}
+          "Eldritch Invocations": 5
+        }
       },
       {
         "level": 7,
         "proficiency_bonus": 3,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 3,
         "prepared_spells": 8,
         "pact_slots": 2,
         "pact_slot_level": 4,
         "extra": {
-          "Eldritch Invocations": 6,
-          "Spell Slots": 2,
-          "Slot Level": 4
-        },
-        "spell_slots": {}
+          "Eldritch Invocations": 6
+        }
       },
       {
         "level": 8,
@@ -4814,11 +4667,8 @@
         "pact_slots": 2,
         "pact_slot_level": 4,
         "extra": {
-          "Eldritch Invocations": 6,
-          "Spell Slots": 2,
-          "Slot Level": 4
-        },
-        "spell_slots": {}
+          "Eldritch Invocations": 6
+        }
       },
       {
         "level": 9,
@@ -4831,17 +4681,14 @@
         "pact_slots": 2,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": 7,
-          "Spell Slots": 2,
-          "Slot Level": 5
+          "Eldritch Invocations": 7
         },
         "feature_details": [
           {
             "name": "Contact Patron",
             "description": "In the past, you usually contacted your patron through intermediaries. Now you can communicate directly; you always have the Contact Other Plane spell prepared. With this feature, you can cast the spell without expending a spell slot to contact your patron, and you automatically succeed on the spell’s saving throw. Once you cast the spell with this feature, you can’t do so in this way again until you finish a Long Rest."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 10,
@@ -4854,11 +4701,8 @@
         "pact_slots": 2,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": 7,
-          "Spell Slots": 2,
-          "Slot Level": 5
-        },
-        "spell_slots": {}
+          "Eldritch Invocations": 7
+        }
       },
       {
         "level": 11,
@@ -4871,17 +4715,14 @@
         "pact_slots": 3,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": 7,
-          "Spell Slots": 3,
-          "Slot Level": 5
+          "Eldritch Invocations": 7
         },
         "feature_details": [
           {
             "name": "Mystic Arcanum",
             "description": "Your patron grants you a magical secret called an arcanum. Choose one level 6 Warlock spell as this arcanum. You can cast your arcanum spell once without expending a spell slot, and you must finish a Long Rest before you can cast it in this way again. As shown in the Warlock Features table, you gain another Warlock spell of your choice that can be cast in this way when you reach Warlock levels 13 (level 7 spell), 15 (level 8 spell), and 17 (level 9 spell). You regain all uses of your Mystic Arcanum when you finish a Long Rest. Whenever you gain a Warlock level, you can replace one of your arcanum spells with another Warlock spell of the same level."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 12,
@@ -4894,11 +4735,8 @@
         "pact_slots": 3,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": 8,
-          "Spell Slots": 3,
-          "Slot Level": 5
-        },
-        "spell_slots": {}
+          "Eldritch Invocations": 8
+        }
       },
       {
         "level": 13,
@@ -4911,11 +4749,8 @@
         "pact_slots": 3,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": 8,
-          "Spell Slots": 3,
-          "Slot Level": 5
-        },
-        "spell_slots": {}
+          "Eldritch Invocations": 8
+        }
       },
       {
         "level": 14,
@@ -4928,11 +4763,8 @@
         "pact_slots": 3,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": 8,
-          "Spell Slots": 3,
-          "Slot Level": 5
-        },
-        "spell_slots": {}
+          "Eldritch Invocations": 8
+        }
       },
       {
         "level": 15,
@@ -4945,11 +4777,8 @@
         "pact_slots": 3,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": 9,
-          "Spell Slots": 3,
-          "Slot Level": 5
-        },
-        "spell_slots": {}
+          "Eldritch Invocations": 9
+        }
       },
       {
         "level": 16,
@@ -4962,11 +4791,8 @@
         "pact_slots": 3,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": 9,
-          "Spell Slots": 3,
-          "Slot Level": 5
-        },
-        "spell_slots": {}
+          "Eldritch Invocations": 9
+        }
       },
       {
         "level": 17,
@@ -4979,28 +4805,20 @@
         "pact_slots": 4,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": 9,
-          "Spell Slots": 4,
-          "Slot Level": 5
-        },
-        "spell_slots": {}
+          "Eldritch Invocations": 9
+        }
       },
       {
         "level": 18,
         "proficiency_bonus": 6,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 4,
         "prepared_spells": 14,
         "pact_slots": 4,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": 10,
-          "Spell Slots": 4,
-          "Slot Level": 5
-        },
-        "spell_slots": {}
+          "Eldritch Invocations": 10
+        }
       },
       {
         "level": 19,
@@ -5013,17 +4831,14 @@
         "pact_slots": 4,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": 10,
-          "Spell Slots": 4,
-          "Slot Level": 5
+          "Eldritch Invocations": 10
         },
         "feature_details": [
           {
             "name": "Epic Boon",
             "description": "You gain an Epic Boon feat or another feat of your choice for which you qualify. Boon of Fate is recommended."
           }
-        ],
-        "spell_slots": {}
+        ]
       },
       {
         "level": 20,
@@ -5036,17 +4851,14 @@
         "pact_slots": 4,
         "pact_slot_level": 5,
         "extra": {
-          "Eldritch Invocations": 10,
-          "Spell Slots": 4,
-          "Slot Level": 5
+          "Eldritch Invocations": 10
         },
         "feature_details": [
           {
             "name": "Eldritch Master",
             "description": "When you use your Magical Cunning feature, you regain all your expended Pact Magic spell slots."
           }
-        ],
-        "spell_slots": {}
+        ]
       }
     ],
     "subclass_names": [
@@ -5087,8 +4899,7 @@
             "name": "Arcane Recovery",
             "description": "You can regain some of your magical energy by studying your spellbook. When you finish a Short Rest, you can choose expended spell slots to recover. The spell slots can have a combined level equal to no more than half your Wizard level (round up), and none of the slots can be level 6 or higher. For example, if you're a level 4 Wizard, you can recover up to two levels’ worth of spell slots, regaining either one level 2 spell slot or two level 1 spell slots. Once you use this feature, you can't do so again until you finish a Long Rest."
           }
-        ],
-        "extra": {}
+        ]
       },
       {
         "level": 2,
@@ -5106,8 +4917,7 @@
             "name": "Scholar",
             "description": "While studying magic, you also specialized in another field of study. Choose one of the following skills in which you have proficiency: Arcana, History, Investigation, Medicine, Nature, or Religion. You have Expertise in the chosen skill."
           }
-        ],
-        "extra": {}
+        ]
       },
       {
         "level": 3,
@@ -5126,8 +4936,7 @@
             "name": "Arcane Tradition",
             "description": "You gain a Wizard subclass of your choice. The Abjurer, Diviner, Evoker, and Illusionist subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Wizard levels. For the rest of your career, you gain each of your subclass’s features that are of your Wizard level or lower. Wizard Subclasses Name Abjurer Bladesinger Diviner Evoker Illusionist"
           }
-        ],
-        "extra": {}
+        ]
       },
       {
         "level": 4,
@@ -5146,8 +4955,7 @@
             "name": "Ability Score Improvement",
             "description": "You gain the Ability Score Improvement feat or another feat of your choice for which you qualify. You gain this feature again at Wizard levels 8, 12, and 16."
           }
-        ],
-        "extra": {}
+        ]
       },
       {
         "level": 5,
@@ -5167,8 +4975,7 @@
             "name": "Memorize Spell",
             "description": "Whenever you finish a Short Rest, you can study your spellbook and replace one of the level 1+ Wizard spells you have prepared for your Spellcasting feature with another level 1+ spell from the book."
           }
-        ],
-        "extra": {}
+        ]
       },
       {
         "level": 6,
@@ -5182,15 +4989,12 @@
           "1st": 4,
           "2nd": 3,
           "3rd": 3
-        },
-        "extra": {}
+        }
       },
       {
         "level": 7,
         "proficiency_bonus": 3,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 4,
         "prepared_spells": 11,
         "spell_slots": {
@@ -5198,8 +5002,7 @@
           "2nd": 3,
           "3rd": 3,
           "4th": 1
-        },
-        "extra": {}
+        }
       },
       {
         "level": 8,
@@ -5214,15 +5017,12 @@
           "2nd": 3,
           "3rd": 3,
           "4th": 2
-        },
-        "extra": {}
+        }
       },
       {
         "level": 9,
         "proficiency_bonus": 4,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 4,
         "prepared_spells": 14,
         "spell_slots": {
@@ -5231,8 +5031,7 @@
           "3rd": 3,
           "4th": 3,
           "5th": 1
-        },
-        "extra": {}
+        }
       },
       {
         "level": 10,
@@ -5248,15 +5047,12 @@
           "3rd": 3,
           "4th": 3,
           "5th": 2
-        },
-        "extra": {}
+        }
       },
       {
         "level": 11,
         "proficiency_bonus": 4,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 5,
         "prepared_spells": 16,
         "spell_slots": {
@@ -5266,8 +5062,7 @@
           "4th": 3,
           "5th": 2,
           "6th": 1
-        },
-        "extra": {}
+        }
       },
       {
         "level": 12,
@@ -5284,15 +5079,12 @@
           "4th": 3,
           "5th": 2,
           "6th": 1
-        },
-        "extra": {}
+        }
       },
       {
         "level": 13,
         "proficiency_bonus": 5,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 5,
         "prepared_spells": 17,
         "spell_slots": {
@@ -5303,8 +5095,7 @@
           "5th": 2,
           "6th": 1,
           "7th": 1
-        },
-        "extra": {}
+        }
       },
       {
         "level": 14,
@@ -5322,15 +5113,12 @@
           "5th": 2,
           "6th": 1,
           "7th": 1
-        },
-        "extra": {}
+        }
       },
       {
         "level": 15,
         "proficiency_bonus": 5,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 5,
         "prepared_spells": 19,
         "spell_slots": {
@@ -5342,8 +5130,7 @@
           "6th": 1,
           "7th": 1,
           "8th": 1
-        },
-        "extra": {}
+        }
       },
       {
         "level": 16,
@@ -5362,15 +5149,12 @@
           "6th": 1,
           "7th": 1,
           "8th": 1
-        },
-        "extra": {}
+        }
       },
       {
         "level": 17,
         "proficiency_bonus": 6,
-        "features": [
-          "-"
-        ],
+        "features": [],
         "cantrips": 5,
         "prepared_spells": 22,
         "spell_slots": {
@@ -5383,8 +5167,7 @@
           "7th": 1,
           "8th": 1,
           "9th": 1
-        },
-        "extra": {}
+        }
       },
       {
         "level": 18,
@@ -5410,8 +5193,7 @@
             "name": "Spell Mastery",
             "description": "You have achieved such mastery over certain spells that you can cast them at will. Choose a level 1 and a level 2 spell in your spellbook that have a casting time of an action. You always have those spells prepared, and you can cast them at their lowest level without expending a spell slot. To cast either spell at a higher level, you must expend a spell slot. Whenever you finish a Long Rest, you can study your spellbook and replace one of those spells with an eligible spell of the same level from the book."
           }
-        ],
-        "extra": {}
+        ]
       },
       {
         "level": 19,
@@ -5437,8 +5219,7 @@
             "name": "Epic Boon",
             "description": "You gain an Epic Boon feat or another feat of your choice for which you qualify. Boon of Spell Recall is recommended."
           }
-        ],
-        "extra": {}
+        ]
       },
       {
         "level": 20,
@@ -5464,8 +5245,7 @@
             "name": "Signature Spells",
             "description": "Choose two level 3 spells in your spellbook as your signature spells. You always have these spells prepared, and you can cast each of them once at level 3 without expending a spell slot. When you do so, you can't cast them in this way again until you finish a Short or Long Rest. To cast either spell at a higher level, you must expend a spell slot."
           }
-        ],
-        "extra": {}
+        ]
       }
     ],
     "subclass_names": [

@@ -35,7 +35,7 @@
     "starting_equipment": [
       {
         "option": "A",
-        "items": "Studded Leather Armor, Dagger, Thieves’ Tools, Tinker’s Tools, Dungeoneer’s Pack, and 16 GP"
+        "items": "Studded Leather Armor, Dagger, Thieves’ Tools, Tinker’s Tools, Dungeoneer’s Pack, and 16 GP; or"
       },
       {
         "option": "B",
@@ -87,7 +87,7 @@
     "starting_equipment": [
       {
         "option": "A",
-        "items": "Greataxe, 4 Handaxes, Explorer’s Pack, and 15 GP"
+        "items": "Greataxe, 4 Handaxes, Explorer’s Pack, and 15 GP; or"
       },
       {
         "option": "B",
@@ -129,7 +129,7 @@
     "starting_equipment": [
       {
         "option": "A",
-        "items": "Leather Armor, 2 Daggers, Musical Instrument of your choice, Entertainer’s Pack, and 19 GP"
+        "items": "Leather Armor, 2 Daggers, Musical Instrument of your choice, Entertainer’s Pack, and 19 GP; or"
       },
       {
         "option": "B",
@@ -204,7 +204,7 @@
     "starting_equipment": [
       {
         "option": "A",
-        "items": "Chain Shirt, Shield, Mace, Holy Symbol, Priest's Pack, and 7 GP"
+        "items": "Chain Shirt, Shield, Mace, Holy Symbol, Priest's Pack, and 7 GP; or"
       },
       {
         "option": "B",
@@ -265,7 +265,7 @@
     "starting_equipment": [
       {
         "option": "A",
-        "items": "Leather Armor, Shield, Sickle, Druidic Focus (Quarterstaff), Explorer's Pack, Herbalism Kit, and 9 GP"
+        "items": "Leather Armor, Shield, Sickle, Druidic Focus (Quarterstaff), Explorer's Pack, Herbalism Kit, and 9 GP; or"
       },
       {
         "option": "B",
@@ -335,7 +335,7 @@
       },
       {
         "option": "B",
-        "items": "Studded Leather Armor, Scimitar, Shortsword, Longbow, 20 Arrows, Quiver, Dungeoneer's Pack and 11 GP"
+        "items": "Studded Leather Armor, Scimitar, Shortsword, Longbow, 20 Arrows, Quiver, Dungeoneer's Pack and 11 GP; or"
       },
       {
         "option": "C",
@@ -382,7 +382,7 @@
     "starting_equipment": [
       {
         "option": "A",
-        "items": "Spear, 5 Daggers, Artisan's Tools or Musical Instrument chosen for the tool proficiency above, Explorer's Pack and 11 GP"
+        "items": "Spear, 5 Daggers, Artisan's Tools or Musical Instrument chosen for the tool proficiency above, Explorer's Pack and 11 GP; or"
       },
       {
         "option": "B",
@@ -434,7 +434,7 @@
     "starting_equipment": [
       {
         "option": "A",
-        "items": "Chain Mail, Shield, Longsword, 6 Javelins, Holy Symbol, Priest's Pack and 9 GP"
+        "items": "Chain Mail, Shield, Longsword, 6 Javelins, Holy Symbol, Priest's Pack and 9 GP; or"
       },
       {
         "option": "B",
@@ -489,7 +489,7 @@
     "starting_equipment": [
       {
         "option": "A",
-        "items": "Studded Leather Armor, Scimitar, Shortsword, Longbow, 20 Arrows, Quiver, Druidic Focus (sprig of mistletoe), Explorer's Pack and 7 GP"
+        "items": "Studded Leather Armor, Scimitar, Shortsword, Longbow, 20 Arrows, Quiver, Druidic Focus (sprig of mistletoe), Explorer's Pack and 7 GP; or"
       },
       {
         "option": "B",
@@ -544,7 +544,7 @@
     "starting_equipment": [
       {
         "option": "A",
-        "items": "Leather Armor, 2 Daggers, Shortsword, Shortbow, 20 Arrows, Quiver, Thieves' Tools, Burglar's Pack and 8 GP"
+        "items": "Leather Armor, 2 Daggers, Shortsword, Shortbow, 20 Arrows, Quiver, Thieves' Tools, Burglar's Pack and 8 GP; or"
       },
       {
         "option": "B",
@@ -589,7 +589,7 @@
     "starting_equipment": [
       {
         "option": "A",
-        "items": "Spear, 2 Daggers, Arcane Focus (crystal), Dungeoneer's Pack, and 28 GP"
+        "items": "Spear, 2 Daggers, Arcane Focus (crystal), Dungeoneer's Pack, and 28 GP; or"
       },
       {
         "option": "B",
@@ -639,7 +639,7 @@
     "starting_equipment": [
       {
         "option": "A",
-        "items": "Leather Armor, Sickle, 2 Daggers, Arcane Focus (orb), Book (occult lore), Scholar's Pack and 15 GP"
+        "items": "Leather Armor, Sickle, 2 Daggers, Arcane Focus (orb), Book (occult lore), Scholar's Pack and 15 GP; or"
       },
       {
         "option": "B",
@@ -712,7 +712,7 @@
     "starting_equipment": [
       {
         "option": "A",
-        "items": "2 Daggers, Arcane Focus (Quarterstaff), Robe, Spellbook, Scholar's Pack, and 5 GP"
+        "items": "2 Daggers, Arcane Focus (Quarterstaff), Robe, Spellbook, Scholar's Pack, and 5 GP; or"
       },
       {
         "option": "B",

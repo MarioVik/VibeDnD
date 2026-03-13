@@ -94,16 +94,25 @@ class SearchableListbox(ttk.Frame):
 
 
 class SectionedListbox(ttk.Frame):
-    """A listbox with search, grouped by sections with non-selectable headers."""
+    """A listbox with search, grouped by sections with non-selectable headers.
+
+    Items can optionally have sub-items (displayed as indented, non-selectable
+    dim rows beneath each item).  Pass them via ``set_sectioned_items`` using
+    the ``sub_items`` dict mapping item names to lists of sub-item strings.
+    """
 
     HEADER_PREFIX = "\u2500\u2500 "  # ── prefix for section headers
     HEADER_SUFFIX = " \u2500\u2500"
+    SUB_ITEM_HEADER = "    \u25B8 Subclasses (level 3)"  # ▸ header for sub-items
+    SUB_ITEM_PREFIX = "       "  # indented prefix for sub-items
 
     def __init__(self, parent, on_select=None, **kwargs):
         super().__init__(parent, **kwargs)
         self.on_select = on_select
         self.sections: list[tuple[str, list[str]]] = []  # [(section_name, [items])]
+        self.sub_items: dict[str, list[str]] = {}  # item_name -> [sub-item texts]
         self._header_indices: set[int] = set()  # listbox indices that are headers
+        self._sub_item_indices: set[int] = set()  # listbox indices that are sub-items
 
         # Search entry
         self.search_var = tk.StringVar()
@@ -130,20 +139,33 @@ class SectionedListbox(ttk.Frame):
 
         self.listbox.bind("<<ListboxSelect>>", self._on_select)
 
-    def set_sectioned_items(self, sections: list[tuple[str, list[str]]]):
-        """Set items grouped by section. sections = [(section_name, [item_names])]"""
+    def set_sectioned_items(self, sections: list[tuple[str, list[str]]],
+                            sub_items: dict[str, list[str]] | None = None):
+        """Set items grouped by section.
+
+        Args:
+            sections: [(section_name, [item_names])]
+            sub_items: optional dict mapping item names to lists of sub-item
+                       display strings shown beneath that item.
+        """
         self.sections = sections
+        self.sub_items = sub_items or {}
         self._populate()
 
     def _populate(self):
         self.listbox.delete(0, tk.END)
         self._header_indices.clear()
+        self._sub_item_indices.clear()
         query = self.search_var.get().lower()
         idx = 0
 
         for section_name, items in self.sections:
-            # Filter items by search query
-            visible = [it for it in items if not query or query in it.lower()]
+            # Filter items by search query (also match on sub-item names)
+            visible = []
+            for it in items:
+                subs = self.sub_items.get(it, [])
+                if not query or query in it.lower() or any(query in s.lower() for s in subs):
+                    visible.append(it)
             if not visible:
                 continue
 
@@ -155,25 +177,45 @@ class SectionedListbox(ttk.Frame):
             self._header_indices.add(idx)
             idx += 1
 
-            # Insert items
+            # Insert items and their sub-items
             for item in visible:
                 self.listbox.insert(tk.END, f"  {item}")
                 idx += 1
 
+                subs = self.sub_items.get(item, [])
+                if subs:
+                    # Sub-item group header
+                    self.listbox.insert(tk.END, self.SUB_ITEM_HEADER)
+                    self.listbox.itemconfig(idx, fg=COLORS["fg_dim"],
+                                            selectbackground=COLORS["bg_light"],
+                                            selectforeground=COLORS["fg_dim"])
+                    self._sub_item_indices.add(idx)
+                    idx += 1
+                    for sub in subs:
+                        self.listbox.insert(tk.END, f"{self.SUB_ITEM_PREFIX}{sub}")
+                        self.listbox.itemconfig(idx, fg=COLORS["fg_dim"],
+                                                selectbackground=COLORS["bg_light"],
+                                                selectforeground=COLORS["fg_dim"])
+                        self._sub_item_indices.add(idx)
+                        idx += 1
+
     def _filter(self, *args):
         self._populate()
+
+    def _is_non_selectable(self, index: int) -> bool:
+        return index in self._header_indices or index in self._sub_item_indices
 
     def _on_select(self, event):
         sel = self.listbox.curselection()
         if not sel:
             return
         i = sel[0]
-        if i in self._header_indices:
-            # Clicked a header — deselect and select next real item instead
+        if self._is_non_selectable(i):
+            # Clicked a header or sub-item — deselect and select next real item
             self.listbox.selection_clear(i)
-            # Find next non-header item
+            # Find next selectable item
             for j in range(i + 1, self.listbox.size()):
-                if j not in self._header_indices:
+                if not self._is_non_selectable(j):
                     self.listbox.selection_set(j)
                     self.listbox.see(j)
                     if self.on_select:
@@ -187,14 +229,14 @@ class SectionedListbox(ttk.Frame):
 
     def get_selection(self) -> str | None:
         sel = self.listbox.curselection()
-        if sel and sel[0] not in self._header_indices:
+        if sel and not self._is_non_selectable(sel[0]):
             return self.listbox.get(sel[0]).strip()
         return None
 
     def select_item(self, name: str):
         """Programmatically select an item by name."""
         for i in range(self.listbox.size()):
-            if i not in self._header_indices and self.listbox.get(i).strip() == name:
+            if not self._is_non_selectable(i) and self.listbox.get(i).strip() == name:
                 self.listbox.selection_clear(0, tk.END)
                 self.listbox.selection_set(i)
                 self.listbox.see(i)

@@ -5,7 +5,13 @@ from tkinter import ttk
 from gui.base_step import WizardStep
 from gui.widgets import SectionedListbox, ScrollableFrame, WrappingLabel
 from gui.theme import COLORS, FONTS
-from gui.source_config import SECTION_ORDER, group_by_category, save_settings
+from gui.source_config import (
+    SECTION_ORDER,
+    UA_CATEGORY,
+    group_by_category,
+    handle_ua_toggle,
+    save_settings,
+)
 
 
 class SpeciesStep(WizardStep):
@@ -21,12 +27,15 @@ class SpeciesStep(WizardStep):
         left.grid(row=0, column=0, sticky="nsew", padx=(8, 4), pady=8)
         left.grid_propagate(False)
 
-        ttk.Label(left, text="Choose Species", style="Heading.TLabel").pack(anchor="w", pady=(0, 4))
+        ttk.Label(left, text="Choose Species", style="Heading.TLabel").pack(
+            anchor="w", pady=(0, 4)
+        )
 
         # Source filter toggles
         self.toggle_frame = ttk.Frame(left)
         self.toggle_frame.pack(fill=tk.X, pady=(0, 4))
         self.toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._ua_prev_enabled = False
         self._build_toggles()
 
         self.species_list = SectionedListbox(left, on_select=self._on_select)
@@ -37,7 +46,9 @@ class SpeciesStep(WizardStep):
         right.grid(row=0, column=1, sticky="nsew", padx=(4, 8), pady=8)
         self.detail = right.inner
 
-        self.detail_name = ttk.Label(self.detail, text="Select a species", style="Heading.TLabel")
+        self.detail_name = ttk.Label(
+            self.detail, text="Select a species", style="Heading.TLabel"
+        )
         self.detail_name.pack(anchor="w", pady=(0, 4))
 
         self.detail_source = ttk.Label(self.detail, text="", style="Dim.TLabel")
@@ -93,18 +104,30 @@ class SpeciesStep(WizardStep):
 
         filters = self.data.source_filters.get("species", {})
         sections = SECTION_ORDER["species"]
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
 
         for cat in sections:
-            var = tk.BooleanVar(value=filters.get(cat, True))
-            cb = ttk.Checkbutton(self.toggle_frame, text=cat, variable=var,
-                                 command=self._on_toggle_change)
+            label = "UA" if cat == UA_CATEGORY else cat
+            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
+            cb = ttk.Checkbutton(
+                self.toggle_frame,
+                text=label,
+                variable=var,
+                command=self._on_toggle_change,
+            )
             cb.pack(side=tk.LEFT, padx=(0, 6))
             self.toggle_vars[cat] = var
 
     def _on_toggle_change(self):
         """Update filters and rebuild list when a toggle changes."""
+        ua_var = self.toggle_vars.get(UA_CATEGORY)
+        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
+        if not proceed:
+            return
+
         filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
         self.data.source_filters["species"] = filters
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
         save_settings(self.data.source_filters)
         self._populate_list()
 
@@ -114,8 +137,11 @@ class SpeciesStep(WizardStep):
 
         # Group species by category, only include enabled sections
         grouped = group_by_category(self.data.species, "species")
-        sections = [(cat, [s["name"] for s in items])
-                     for cat, items in grouped if cat in enabled]
+        sections = [
+            (cat, [s["name"] for s in items])
+            for cat, items in grouped
+            if cat in enabled
+        ]
         self.species_list.set_sectioned_items(sections)
 
     def _on_select(self, name: str):
@@ -133,7 +159,9 @@ class SpeciesStep(WizardStep):
             w.destroy()
 
         stats_text = f"Type: {sp.get('creature_type', 'Humanoid')}  |  Speed: {sp.get('speed', 30)} ft"
-        ttk.Label(self.stats_frame, text=stats_text, style="Subheading.TLabel").pack(anchor="w")
+        ttk.Label(self.stats_frame, text=stats_text, style="Subheading.TLabel").pack(
+            anchor="w"
+        )
 
         # Size choice
         for w in self.size_frame.winfo_children():
@@ -144,13 +172,21 @@ class SpeciesStep(WizardStep):
         size_options = size_data.get("options", ["Medium"])
         if len(size_options) > 1:
             self.size_frame.pack(fill=tk.X, pady=(8, 0))
-            ttk.Label(self.size_frame, text="Size:", style="Subheading.TLabel").pack(anchor="w")
+            ttk.Label(self.size_frame, text="Size:", style="Subheading.TLabel").pack(
+                anchor="w"
+            )
             for opt in size_options:
-                ttk.Radiobutton(self.size_frame, text=opt, variable=self.size_var, value=opt).pack(anchor="w", padx=16)
+                ttk.Radiobutton(
+                    self.size_frame, text=opt, variable=self.size_var, value=opt
+                ).pack(anchor="w", padx=16)
             self.size_var.set(size_options[0])
         else:
             self.character.size_choice = size_options[0]
-            ttk.Label(self.stats_frame, text=f"  |  Size: {size_options[0]}", style="Subheading.TLabel").pack(side=tk.LEFT)
+            ttk.Label(
+                self.stats_frame,
+                text=f"  |  Size: {size_options[0]}",
+                style="Subheading.TLabel",
+            ).pack(side=tk.LEFT)
 
         # Sub-choices
         for w in self.sub_frame.winfo_children():
@@ -162,10 +198,19 @@ class SpeciesStep(WizardStep):
             choices = sp["sub_choices"]
             if choices and isinstance(choices[0], dict):
                 first_key = list(choices[0].keys())[0]
-                ttk.Label(self.sub_frame, text=f"Choose {first_key}:", style="Subheading.TLabel").pack(anchor="w")
+                ttk.Label(
+                    self.sub_frame,
+                    text=f"Choose {first_key}:",
+                    style="Subheading.TLabel",
+                ).pack(anchor="w")
                 choice_names = [c.get(first_key, "Unknown") for c in choices]
-                combo = ttk.Combobox(self.sub_frame, textvariable=self.sub_var,
-                                     values=choice_names, state="readonly", width=30)
+                combo = ttk.Combobox(
+                    self.sub_frame,
+                    textvariable=self.sub_var,
+                    values=choice_names,
+                    state="readonly",
+                    width=30,
+                )
                 combo.pack(anchor="w", padx=16, pady=4)
                 if choice_names:
                     self.sub_var.set(choice_names[0])
@@ -177,14 +222,23 @@ class SpeciesStep(WizardStep):
 
         traits = sp.get("traits", [])
         if traits:
-            ttk.Label(self.traits_frame, text="Traits", style="Subheading.TLabel").pack(anchor="w", pady=(0, 4))
+            ttk.Label(self.traits_frame, text="Traits", style="Subheading.TLabel").pack(
+                anchor="w", pady=(0, 4)
+            )
             for trait in traits:
                 tf = ttk.Frame(self.traits_frame)
                 tf.pack(fill=tk.X, pady=2)
-                ttk.Label(tf, text=f"  {trait['name']}.", font=FONTS["subheading"],
-                          foreground=COLORS["accent"]).pack(anchor="w")
-                WrappingLabel(tf, text=f"    {trait.get('description', '')}",
-                          foreground=COLORS["fg_dim"]).pack(fill=tk.X, anchor="w")
+                ttk.Label(
+                    tf,
+                    text=f"  {trait['name']}.",
+                    font=FONTS["subheading"],
+                    foreground=COLORS["accent"],
+                ).pack(anchor="w")
+                WrappingLabel(
+                    tf,
+                    text=f"    {trait.get('description', '')}",
+                    foreground=COLORS["fg_dim"],
+                ).pack(fill=tk.X, anchor="w")
 
         self.notify_change()
 

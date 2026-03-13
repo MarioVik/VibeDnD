@@ -15,8 +15,12 @@ from parsers.feat_parser import parse_feats
 from parsers.progression_parser import parse_progressions
 from parsers.subclass_parser import parse_subclasses
 
-DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dnd2024_data.json")
-OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+DATA_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dnd2024_data.json"
+)
+OUTPUT_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data"
+)
 
 
 def load_raw_data():
@@ -47,15 +51,31 @@ def validate(spells, classes, species, backgrounds, feats):
             # Normalize: "Magic Initiate (Cleric)" -> check "Magic Initiate"
             feat_base = bg["feat"].split("(")[0].strip().lower()
             if feat_base not in feat_names:
-                warnings.append(f"Background '{bg['name']}' references feat '{bg['feat']}' not found in feats data")
+                warnings.append(
+                    f"Background '{bg['name']}' references feat '{bg['feat']}' not found in feats data"
+                )
 
     # Check: spell classes should be known classes
-    known_class_names = {"artificer", "bard", "cleric", "druid", "fighter", "monk",
-                         "paladin", "ranger", "rogue", "sorcerer", "warlock", "wizard"}
+    known_class_names = {
+        "artificer",
+        "bard",
+        "cleric",
+        "druid",
+        "fighter",
+        "monk",
+        "paladin",
+        "ranger",
+        "rogue",
+        "sorcerer",
+        "warlock",
+        "wizard",
+    }
     for spell in spells:
         for cls in spell["classes"]:
             if cls.lower() not in known_class_names:
-                warnings.append(f"Spell '{spell['name']}' references unknown class '{cls}'")
+                warnings.append(
+                    f"Spell '{spell['name']}' references unknown class '{cls}'"
+                )
 
     return warnings
 
@@ -90,7 +110,11 @@ def main():
     print(f"  Parsed {len(progressions)} class progressions (levels 1-20)")
 
     print("\n--- Parsing Subclasses ---")
-    subclasses = parse_subclasses(raw.get("ua", []))
+    subclasses = parse_subclasses(
+        raw.get("ua", []),
+        class_data=raw.get("classes", []),
+        class_subclass_data=raw.get("class_subclasses", []),
+    )
     print(f"  Parsed {len(subclasses)} subclasses")
 
     # Save output
@@ -128,39 +152,59 @@ def main():
     print(f"  Species:      {len(species)}")
     print(f"  Backgrounds:  {len(backgrounds)}")
     print(f"  Feats:        {len(feats)}")
-    total = len(spells) + len(classes) + len(species) + len(backgrounds) + len(feats) + len(progressions) + len(subclasses)
+    total = (
+        len(spells)
+        + len(classes)
+        + len(species)
+        + len(backgrounds)
+        + len(feats)
+        + len(progressions)
+        + len(subclasses)
+    )
     print(f"  Total:        {total}")
 
     # Spot checks
     print(f"\n=== Spot Checks ===")
     for s in spells:
         if s["name"].lower() == "fireball":
-            print(f"  Fireball: level={s['level']}, school={s['school']}, classes={s['classes']}")
+            print(
+                f"  Fireball: level={s['level']}, school={s['school']}, classes={s['classes']}"
+            )
             break
 
     for c in classes:
         if c["name"].lower() == "fighter":
-            print(f"  Fighter: hit_die=d{c['hit_die']}, saves={c['saving_throws']}, caster={c['caster_type']}")
+            print(
+                f"  Fighter: hit_die=d{c['hit_die']}, saves={c['saving_throws']}, caster={c['caster_type']}"
+            )
             break
 
     for c in classes:
         if c["name"].lower() == "wizard":
-            print(f"  Wizard: hit_die=d{c['hit_die']}, cantrips={c['cantrips_known']}, prepared={c['spells_prepared']}, slots={c['spell_slots']}")
+            print(
+                f"  Wizard: hit_die=d{c['hit_die']}, cantrips={c['cantrips_known']}, prepared={c['spells_prepared']}, slots={c['spell_slots']}"
+            )
             break
 
     for bg in backgrounds:
         if bg["name"].lower() == "acolyte":
-            print(f"  Acolyte: abilities={bg['ability_scores']}, feat={bg['feat']}, skills={bg['skill_proficiencies']}")
+            print(
+                f"  Acolyte: abilities={bg['ability_scores']}, feat={bg['feat']}, skills={bg['skill_proficiencies']}"
+            )
             break
 
     for sp in species:
         if sp["name"].lower() == "human":
-            print(f"  Human: size={sp['size']}, speed={sp['speed']}, traits={len(sp['traits'])}")
+            print(
+                f"  Human: size={sp['size']}, speed={sp['speed']}, traits={len(sp['traits'])}"
+            )
             break
 
     for sp in species:
         if sp["name"].lower() == "elf":
-            print(f"  Elf: sub_choices={'Yes' if sp['sub_choices'] else 'No'}, traits={len(sp['traits'])}")
+            print(
+                f"  Elf: sub_choices={'Yes' if sp['sub_choices'] else 'No'}, traits={len(sp['traits'])}"
+            )
             break
 
 
