@@ -112,15 +112,17 @@ class SectionedListbox(ttk.Frame):
     SUB_ITEM_HEADER_TEXT = "Subclass options (unlocks at level 3)"
     SUB_ITEM_PREFIX = "         - "
 
-    def __init__(self, parent, on_select=None, **kwargs):
+    def __init__(self, parent, on_select=None, on_sub_select=None, **kwargs):
         super().__init__(parent, **kwargs)
         self.on_select = on_select
+        self.on_sub_select = on_sub_select
         self.sections: list[tuple[str, list[str]]] = []  # [(section_name, [items])]
         self.sub_items: dict[str, list[str]] = {}  # item_name -> [sub-item texts]
         self._sub_items_expanded: dict[str, bool] = {}  # item_name -> expanded state
         self._header_indices: set[int] = set()  # listbox indices that are headers
         self._sub_item_indices: set[int] = set()  # listbox indices that are sub-items
         self._sub_header_indices: dict[int, str] = {}  # listbox idx -> parent item name
+        self._sub_leaf_indices: dict[int, tuple[str, str]] = {}
 
         # Search entry
         self.search_var = tk.StringVar()
@@ -182,6 +184,7 @@ class SectionedListbox(ttk.Frame):
         self._header_indices.clear()
         self._sub_item_indices.clear()
         self._sub_header_indices.clear()
+        self._sub_leaf_indices.clear()
         query = self.search_var.get().lower()
         idx = 0
 
@@ -241,10 +244,11 @@ class SectionedListbox(ttk.Frame):
                             self.listbox.itemconfig(
                                 idx,
                                 fg=COLORS["fg_dim"],
-                                selectbackground=COLORS["bg_light"],
-                                selectforeground=COLORS["fg_dim"],
+                                selectbackground=COLORS["select_bg"],
+                                selectforeground=COLORS["select_fg"],
                             )
                             self._sub_item_indices.add(idx)
+                            self._sub_leaf_indices[idx] = (item, sub)
                             idx += 1
 
     def _filter(self, *args):
@@ -270,6 +274,12 @@ class SectionedListbox(ttk.Frame):
         if not sel:
             return
         i = sel[0]
+
+        if i in self._sub_leaf_indices:
+            parent_item, sub_item = self._sub_leaf_indices[i]
+            if self.on_sub_select:
+                self.on_sub_select(parent_item, sub_item)
+            return
 
         if self._is_non_selectable(i):
             # Clicked a header or sub-item — deselect and select next real item

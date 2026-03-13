@@ -1,5 +1,6 @@
 """Step 2: Class selection."""
 
+import re
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
@@ -39,8 +40,13 @@ class ClassStep(WizardStep):
         self._ua_prev_enabled = False
         self._build_toggles()
 
-        self.class_list = SectionedListbox(left, on_select=self._on_select)
+        self.class_list = SectionedListbox(
+            left,
+            on_select=self._on_select,
+            on_sub_select=self._on_sub_select,
+        )
         self.class_list.pack(fill=tk.BOTH, expand=True)
+        self._subclass_lookup_by_class: dict[str, dict[str, dict]] = {}
 
         # Right: detail
         right = ScrollableFrame(self.frame)
@@ -78,6 +84,34 @@ class ClassStep(WizardStep):
         self.features_frame.pack(fill=tk.X, pady=(8, 0))
 
         self._populate_list()
+
+    def _show_class_panels(self):
+        """Show normal class detail sections."""
+        self.equip_frame.pack_forget()
+        self.traits_frame.pack_forget()
+        self.skills_frame.pack_forget()
+        self.features_frame.pack_forget()
+
+        self.equip_frame.pack(fill=tk.X)
+        self.traits_frame.pack(fill=tk.X)
+        self.skills_frame.pack(fill=tk.X, pady=(8, 0))
+        self.features_frame.pack(fill=tk.X, pady=(8, 0))
+
+    def _show_subclass_panels(self):
+        """Hide class-only sections while previewing subclass details."""
+        self.equip_frame.pack_forget()
+        self.traits_frame.pack_forget()
+        self.skills_frame.pack_forget()
+        if not self.features_frame.winfo_manager():
+            self.features_frame.pack(fill=tk.X, pady=(8, 0))
+
+    def _subclass_summary(self, subclass: dict) -> str:
+        """Keep intro summary only, avoid repeating all level feature text."""
+        desc = (subclass.get("description") or "").strip()
+        if not desc:
+            return ""
+        parts = re.split(r"\bLevel\s+\d+\s*:", desc, maxsplit=1)
+        return parts[0].strip()
 
     def on_enter(self):
         """Pre-select class and skills when editing an existing character."""
@@ -153,6 +187,7 @@ class ClassStep(WizardStep):
         sub_filters = self.data.source_filters.get("subclasses", {})
         enabled_sub_cats = {cat for cat, on in sub_filters.items() if on}
         sub_items: dict[str, list[str]] = {}
+        sub_lookup: dict[str, dict[str, dict]] = {}
         for cls in self.data.classes:
             slug = cls.get("slug", "")
             subs = self.data.get_subclasses_for_class(slug)
@@ -165,6 +200,7 @@ class ClassStep(WizardStep):
                 ]
                 if visible:
                     names = []
+                    class_lookup: dict[str, dict] = {}
                     for sc in sorted(visible, key=lambda s: s["name"]):
                         name = sc["name"]
                         if (
@@ -173,14 +209,96 @@ class ClassStep(WizardStep):
                         ):
                             name = f"[UA] {name}"
                         names.append(name)
+                        class_lookup[name] = sc
                     sub_items[cls["name"]] = names
+                    sub_lookup[cls["name"]] = class_lookup
 
+        self._subclass_lookup_by_class = sub_lookup
         self.class_list.set_sectioned_items(sections, sub_items=sub_items)
+
+    def _clear_detail_frames(self):
+        for f in [
+            self.equip_frame,
+            self.traits_frame,
+            self.skills_frame,
+            self.features_frame,
+        ]:
+            for w in f.winfo_children():
+                w.destroy()
+
+    def _on_sub_select(self, class_name: str, sub_label: str):
+        subclass = self._subclass_lookup_by_class.get(class_name, {}).get(sub_label)
+        if not subclass:
+            return
+
+        self._show_subclass_panels()
+
+        self.detail_name.configure(text=subclass.get("name", "Subclass"))
+        self.detail_source.configure(
+            text=f"Source: {subclass.get('source', 'Unknown')}"
+        )
+
+        preview_note = (
+            "Previewing subclass details — class selection remains unchanged."
+        )
+        desc = self._subclass_summary(subclass)
+        self.detail_desc.configure(
+            text=f"{preview_note}\n\n{desc}" if desc else preview_note
+        )
+
+        self._clear_detail_frames()
+
+        ttk.Label(
+            self.features_frame,
+            text="Subclass Features",
+            style="Subheading.TLabel",
+        ).pack(anchor="w", pady=(8, 4))
+
+        features_by_level = subclass.get("features", {})
+        if not features_by_level:
+            ttk.Label(
+                self.features_frame,
+                text="No detailed subclass features available.",
+                style="Dim.TLabel",
+            ).pack(anchor="w")
+            return
+
+        def _lvl_key(level_str: str):
+            try:
+                return int(level_str)
+            except TypeError, ValueError:
+                return 99
+
+        for lvl in sorted(features_by_level.keys(), key=_lvl_key):
+            ttk.Label(
+                self.features_frame,
+                text=f"Level {lvl}",
+                style="Subheading.TLabel",
+            ).pack(anchor="w", pady=(8, 2))
+
+            for feat in features_by_level.get(lvl, []):
+                feat_name = feat.get("name", "Feature")
+                ttk.Label(
+                    self.features_frame,
+                    text=f"  • {feat_name}",
+                    foreground=COLORS["accent"],
+                    font=FONTS["body"],
+                ).pack(anchor="w")
+
+                feat_desc = feat.get("description", "")
+                if feat_desc:
+                    WrappingLabel(
+                        self.features_frame,
+                        text=f"    {feat_desc}",
+                        foreground=COLORS["fg_dim"],
+                    ).pack(fill=tk.X, anchor="w", pady=(0, 4))
 
     def _on_select(self, name: str):
         cls = self.data.classes_by_name.get(name)
         if not cls:
             return
+
+        self._show_class_panels()
 
         self.character.character_class = cls
         self.character.selected_skills = []
@@ -201,15 +319,7 @@ class ClassStep(WizardStep):
         self.detail_source.configure(text=f"Source: {cls.get('source', 'Unknown')}")
         self.detail_desc.configure(text=cls.get("description", ""))
 
-        # Clear frames
-        for f in [
-            self.equip_frame,
-            self.traits_frame,
-            self.skills_frame,
-            self.features_frame,
-        ]:
-            for w in f.winfo_children():
-                w.destroy()
+        self._clear_detail_frames()
 
         # Equipment - Top
         equip = cls.get("starting_equipment", [])
