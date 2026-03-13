@@ -44,12 +44,18 @@ class SearchableListbox(ttk.Frame):
 
         self.listbox = tk.Listbox(
             list_frame,
-            bg=COLORS["bg_light"], fg=COLORS["fg"],
-            selectbackground=COLORS["select_bg"], selectforeground=COLORS["select_fg"],
-            font=FONTS["body"], borderwidth=0, highlightthickness=0,
+            bg=COLORS["bg_light"],
+            fg=COLORS["fg"],
+            selectbackground=COLORS["select_bg"],
+            selectforeground=COLORS["select_fg"],
+            font=FONTS["body"],
+            borderwidth=0,
+            highlightthickness=0,
             activestyle="none",
         )
-        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.listbox.yview)
+        scrollbar = ttk.Scrollbar(
+            list_frame, orient=tk.VERTICAL, command=self.listbox.yview
+        )
         self.listbox.configure(yscrollcommand=scrollbar.set)
 
         self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -103,7 +109,7 @@ class SectionedListbox(ttk.Frame):
 
     HEADER_PREFIX = "\u2500\u2500 "  # ── prefix for section headers
     HEADER_SUFFIX = " \u2500\u2500"
-    SUB_ITEM_HEADER = "    \u25B8 Subclasses (level 3)"  # ▸ header for sub-items
+    SUB_ITEM_HEADER_TEXT = "Subclasses (level 3)"
     SUB_ITEM_PREFIX = "       "  # indented prefix for sub-items
 
     def __init__(self, parent, on_select=None, **kwargs):
@@ -111,8 +117,10 @@ class SectionedListbox(ttk.Frame):
         self.on_select = on_select
         self.sections: list[tuple[str, list[str]]] = []  # [(section_name, [items])]
         self.sub_items: dict[str, list[str]] = {}  # item_name -> [sub-item texts]
+        self._sub_items_expanded: dict[str, bool] = {}  # item_name -> expanded state
         self._header_indices: set[int] = set()  # listbox indices that are headers
         self._sub_item_indices: set[int] = set()  # listbox indices that are sub-items
+        self._sub_header_indices: dict[int, str] = {}  # listbox idx -> parent item name
 
         # Search entry
         self.search_var = tk.StringVar()
@@ -126,21 +134,31 @@ class SectionedListbox(ttk.Frame):
 
         self.listbox = tk.Listbox(
             list_frame,
-            bg=COLORS["bg_light"], fg=COLORS["fg"],
-            selectbackground=COLORS["select_bg"], selectforeground=COLORS["select_fg"],
-            font=FONTS["body"], borderwidth=0, highlightthickness=0,
+            bg=COLORS["bg_light"],
+            fg=COLORS["fg"],
+            selectbackground=COLORS["select_bg"],
+            selectforeground=COLORS["select_fg"],
+            font=FONTS["body"],
+            borderwidth=0,
+            highlightthickness=0,
             activestyle="none",
         )
-        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.listbox.yview)
+        scrollbar = ttk.Scrollbar(
+            list_frame, orient=tk.VERTICAL, command=self.listbox.yview
+        )
         self.listbox.configure(yscrollcommand=scrollbar.set)
 
         self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
+        self.listbox.bind("<Button-1>", self._on_click)
         self.listbox.bind("<<ListboxSelect>>", self._on_select)
 
-    def set_sectioned_items(self, sections: list[tuple[str, list[str]]],
-                            sub_items: dict[str, list[str]] | None = None):
+    def set_sectioned_items(
+        self,
+        sections: list[tuple[str, list[str]]],
+        sub_items: dict[str, list[str]] | None = None,
+    ):
         """Set items grouped by section.
 
         Args:
@@ -150,12 +168,20 @@ class SectionedListbox(ttk.Frame):
         """
         self.sections = sections
         self.sub_items = sub_items or {}
+
+        # Keep expansion state for existing items, default to collapsed for new items.
+        next_expanded: dict[str, bool] = {}
+        for item_name in self.sub_items:
+            next_expanded[item_name] = self._sub_items_expanded.get(item_name, False)
+        self._sub_items_expanded = next_expanded
+
         self._populate()
 
     def _populate(self):
         self.listbox.delete(0, tk.END)
         self._header_indices.clear()
         self._sub_item_indices.clear()
+        self._sub_header_indices.clear()
         query = self.search_var.get().lower()
         idx = 0
 
@@ -164,7 +190,11 @@ class SectionedListbox(ttk.Frame):
             visible = []
             for it in items:
                 subs = self.sub_items.get(it, [])
-                if not query or query in it.lower() or any(query in s.lower() for s in subs):
+                if (
+                    not query
+                    or query in it.lower()
+                    or any(query in s.lower() for s in subs)
+                ):
                     visible.append(it)
             if not visible:
                 continue
@@ -172,8 +202,12 @@ class SectionedListbox(ttk.Frame):
             # Insert section header
             header_text = f"{self.HEADER_PREFIX}{section_name}{self.HEADER_SUFFIX}"
             self.listbox.insert(tk.END, header_text)
-            self.listbox.itemconfig(idx, fg=COLORS["accent"], selectbackground=COLORS["bg_light"],
-                                    selectforeground=COLORS["accent"])
+            self.listbox.itemconfig(
+                idx,
+                fg=COLORS["accent"],
+                selectbackground=COLORS["bg_light"],
+                selectforeground=COLORS["accent"],
+            )
             self._header_indices.add(idx)
             idx += 1
 
@@ -184,23 +218,49 @@ class SectionedListbox(ttk.Frame):
 
                 subs = self.sub_items.get(item, [])
                 if subs:
-                    # Sub-item group header
-                    self.listbox.insert(tk.END, self.SUB_ITEM_HEADER)
-                    self.listbox.itemconfig(idx, fg=COLORS["fg_dim"],
-                                            selectbackground=COLORS["bg_light"],
-                                            selectforeground=COLORS["fg_dim"])
+                    # Sub-item group header (click to expand/collapse)
+                    show_expanded = self._sub_items_expanded.get(item, False)
+                    if query:
+                        show_expanded = True
+                    marker = "\u25be" if show_expanded else "\u25b8"  # ▾ / ▸
+                    self.listbox.insert(
+                        tk.END, f"    {marker} {self.SUB_ITEM_HEADER_TEXT}"
+                    )
+                    self.listbox.itemconfig(
+                        idx,
+                        fg=COLORS["fg_dim"],
+                        selectbackground=COLORS["bg_light"],
+                        selectforeground=COLORS["fg_dim"],
+                    )
                     self._sub_item_indices.add(idx)
+                    self._sub_header_indices[idx] = item
                     idx += 1
-                    for sub in subs:
-                        self.listbox.insert(tk.END, f"{self.SUB_ITEM_PREFIX}{sub}")
-                        self.listbox.itemconfig(idx, fg=COLORS["fg_dim"],
-                                                selectbackground=COLORS["bg_light"],
-                                                selectforeground=COLORS["fg_dim"])
-                        self._sub_item_indices.add(idx)
-                        idx += 1
+                    if show_expanded:
+                        for sub in subs:
+                            self.listbox.insert(tk.END, f"{self.SUB_ITEM_PREFIX}{sub}")
+                            self.listbox.itemconfig(
+                                idx,
+                                fg=COLORS["fg_dim"],
+                                selectbackground=COLORS["bg_light"],
+                                selectforeground=COLORS["fg_dim"],
+                            )
+                            self._sub_item_indices.add(idx)
+                            idx += 1
 
     def _filter(self, *args):
         self._populate()
+
+    def _on_click(self, event):
+        """Toggle subclass groups immediately when sub-header rows are clicked."""
+        idx = self.listbox.index(f"@{event.x},{event.y}")
+        if idx in self._sub_header_indices:
+            item = self._sub_header_indices[idx]
+            self._sub_items_expanded[item] = not self._sub_items_expanded.get(
+                item, False
+            )
+            self.listbox.selection_clear(0, tk.END)
+            self._populate()
+            return "break"
 
     def _is_non_selectable(self, index: int) -> bool:
         return index in self._header_indices or index in self._sub_item_indices
@@ -210,6 +270,7 @@ class SectionedListbox(ttk.Frame):
         if not sel:
             return
         i = sel[0]
+
         if self._is_non_selectable(i):
             # Clicked a header or sub-item — deselect and select next real item
             self.listbox.selection_clear(i)
@@ -249,12 +310,19 @@ class ScrollableFrame(ttk.Frame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
 
-        self.canvas = tk.Canvas(self, bg=COLORS["bg"], highlightthickness=0, borderwidth=0)
+        self.canvas = tk.Canvas(
+            self, bg=COLORS["bg"], highlightthickness=0, borderwidth=0
+        )
         scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.canvas.yview)
         self.inner = ttk.Frame(self.canvas)
 
-        self.inner.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
-        self.canvas_window = self.canvas.create_window((0, 0), window=self.inner, anchor="nw")
+        self.inner.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")),
+        )
+        self.canvas_window = self.canvas.create_window(
+            (0, 0), window=self.inner, anchor="nw"
+        )
         self.canvas.configure(yscrollcommand=scrollbar.set)
 
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -292,19 +360,27 @@ class StatDisplay(ttk.Frame):
         self.label.pack()
 
         self.score_var = tk.StringVar(value="10")
-        self.score_label = ttk.Label(self, textvariable=self.score_var, style="Stat.TLabel")
+        self.score_label = ttk.Label(
+            self, textvariable=self.score_var, style="Stat.TLabel"
+        )
         self.score_label.configure(background=COLORS["bg_card"])
         self.score_label.pack()
 
         self.mod_var = tk.StringVar(value="+0")
-        self.mod_label = ttk.Label(self, textvariable=self.mod_var, style="StatMod.TLabel")
+        self.mod_label = ttk.Label(
+            self, textvariable=self.mod_var, style="StatMod.TLabel"
+        )
         self.mod_label.configure(background=COLORS["bg_card"])
         self.mod_label.pack()
 
     def update_values(self, score: int, modifier: str):
         self.score_var.set(str(score))
         self.mod_var.set(modifier)
-        mod_val = int(modifier.replace("+", "")) if modifier.startswith("+") else int(modifier)
+        mod_val = (
+            int(modifier.replace("+", ""))
+            if modifier.startswith("+")
+            else int(modifier)
+        )
         if mod_val > 0:
             self.mod_label.configure(foreground=COLORS["positive"])
         elif mod_val < 0:
@@ -315,27 +391,28 @@ class StatDisplay(ttk.Frame):
 
 class AlertDialog(tk.Toplevel):
     """A custom centered alert/info dialog that matches the app theme."""
+
     def __init__(self, parent, title, message):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=COLORS["bg"])
         self.resizable(False, False)
-        
+
         # Standard modal behavior
         self.transient(parent)
         self.grab_set()
-        
+
         # UI
         main_frame = ttk.Frame(self, padding=24)
         main_frame.pack(fill=tk.BOTH, expand=True)
-        
-        ttk.Label(
-            main_frame, text=message, wraplength=350, justify=tk.CENTER
-        ).pack(pady=(0, 24))
-        
+
+        ttk.Label(main_frame, text=message, wraplength=350, justify=tk.CENTER).pack(
+            pady=(0, 24)
+        )
+
         btn_frame = ttk.Frame(main_frame)
         btn_frame.pack(fill=tk.X)
-        
+
         # OK button centered
         self.ok_btn = ttk.Button(
             btn_frame, text="OK", style="Accent.TButton", command=self.destroy
@@ -346,52 +423,53 @@ class AlertDialog(tk.Toplevel):
         self.update_idletasks()
         width = self.winfo_reqwidth()
         height = self.winfo_reqheight()
-        
+
         parent_x = parent.winfo_rootx()
         parent_y = parent.winfo_rooty()
         parent_width = parent.winfo_width()
         parent_height = parent.winfo_height()
-        
+
         x = parent_x + (parent_width // 2) - (width // 2)
         y = parent_y + (parent_height // 2) - (height // 2)
-        
+
         self.geometry(f"+{x}+{y}")
-        
+
         self.bind("<Escape>", lambda e: self.destroy())
         self.bind("<Return>", lambda e: self.destroy())
-        
+
         self.ok_btn.focus_set()
         self.wait_window(self)
 
 
 class ConfirmDialog(tk.Toplevel):
     """A custom centered confirmation dialog that matches the app theme."""
+
     def __init__(self, parent, title, message):
         super().__init__(parent)
         self.result = False
         self.title(title)
         self.configure(bg=COLORS["bg"])
         self.resizable(False, False)
-        
+
         # Standard modal behavior
         self.transient(parent)
         self.grab_set()
-        
+
         # UI
         main_frame = ttk.Frame(self, padding=24)
         main_frame.pack(fill=tk.BOTH, expand=True)
-        
-        ttk.Label(
-            main_frame, text=message, wraplength=350, justify=tk.CENTER
-        ).pack(pady=(0, 24))
-        
+
+        ttk.Label(main_frame, text=message, wraplength=350, justify=tk.CENTER).pack(
+            pady=(0, 24)
+        )
+
         btn_frame = ttk.Frame(main_frame)
         btn_frame.pack(fill=tk.X)
-        
+
         # Cancel (No) is on the left, Confirm (Yes) is on the right
         self.no_btn = ttk.Button(btn_frame, text="No", command=self._on_no)
         self.no_btn.pack(side=tk.LEFT, padx=(0, 10))
-        
+
         self.yes_btn = ttk.Button(
             btn_frame, text="Yes", style="Accent.TButton", command=self._on_yes
         )
@@ -401,23 +479,23 @@ class ConfirmDialog(tk.Toplevel):
         self.update_idletasks()
         width = self.winfo_reqwidth()
         height = self.winfo_reqheight()
-        
+
         parent_x = parent.winfo_rootx()
         parent_y = parent.winfo_rooty()
         parent_width = parent.winfo_width()
         parent_height = parent.winfo_height()
-        
+
         x = parent_x + (parent_width // 2) - (width // 2)
         y = parent_y + (parent_height // 2) - (height // 2)
-        
+
         self.geometry(f"+{x}+{y}")
-        
+
         self.bind("<Escape>", lambda e: self._on_no())
         self.bind("<Return>", lambda e: self._on_yes())
-        
+
         # Focus the Yes button by default
         self.yes_btn.focus_set()
-        
+
         self.wait_window(self)
 
     def _on_yes(self):
@@ -431,39 +509,44 @@ class ConfirmDialog(tk.Toplevel):
 
 class ThemedTable(ttk.Frame):
     """A themed table using ttk.Treeview with scrollbars."""
+
     def __init__(self, parent, columns, height=20, **kwargs):
         super().__init__(parent, **kwargs)
-        
+
         # We use a custom style to ensure the treeview fits the theme
-        self.tree = ttk.Treeview(self, columns=columns, show="headings", selectmode="none", height=height)
-        
+        self.tree = ttk.Treeview(
+            self, columns=columns, show="headings", selectmode="none", height=height
+        )
+
         ysb = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.tree.yview)
         xsb = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.tree.xview)
         self.tree.configure(yscrollcommand=ysb.set, xscrollcommand=xsb.set)
-        
+
         self.tree.grid(row=0, column=0, sticky="nsew")
         ysb.grid(row=0, column=1, sticky="ns")
         xsb.grid(row=1, column=0, sticky="ew")
-        
+
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
-        
+
     def set_columns(self, column_configs: list[dict]):
         """column_configs = [{'id': 'lvl', 'text': 'Level', 'width': 50}, ...]"""
-        # Re-initialize tree with new columns if needed? 
+        # Re-initialize tree with new columns if needed?
         # Actually ttk.Treeview doesn't easily support changing the number of columns after creation.
         # But we create it with all columns initially.
         for cfg in column_configs:
-            col_id = cfg['id']
-            self.tree.heading(col_id, text=cfg.get('text', col_id))
-            self.tree.column(col_id, width=cfg.get('width', 100), 
-                            anchor=cfg.get('anchor', 'center'), stretch=cfg.get('stretch', False))
-            
+            col_id = cfg["id"]
+            self.tree.heading(col_id, text=cfg.get("text", col_id))
+            self.tree.column(
+                col_id,
+                width=cfg.get("width", 100),
+                anchor=cfg.get("anchor", "center"),
+                stretch=cfg.get("stretch", False),
+            )
+
     def insert_row(self, values):
         self.tree.insert("", tk.END, values=values)
-        
+
     def clear(self):
         for item in self.tree.get_children():
             self.tree.delete(item)
-
-
