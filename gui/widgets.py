@@ -109,8 +109,8 @@ class SectionedListbox(ttk.Frame):
 
     HEADER_PREFIX = "\u2500\u2500 "  # ── prefix for section headers
     HEADER_SUFFIX = " \u2500\u2500"
-    SUB_ITEM_HEADER_TEXT = "Subclasses (level 3)"
-    SUB_ITEM_PREFIX = "       "  # indented prefix for sub-items
+    SUB_ITEM_HEADER_TEXT = "Subclass options (unlocks at level 3)"
+    SUB_ITEM_PREFIX = "         - "
 
     def __init__(self, parent, on_select=None, **kwargs):
         super().__init__(parent, **kwargs)
@@ -222,15 +222,15 @@ class SectionedListbox(ttk.Frame):
                     show_expanded = self._sub_items_expanded.get(item, False)
                     if query:
                         show_expanded = True
-                    marker = "\u25be" if show_expanded else "\u25b8"  # ▾ / ▸
+                    marker = "\u25bc" if show_expanded else "\u25b6"  # ▼ / ▶
                     self.listbox.insert(
                         tk.END, f"    {marker} {self.SUB_ITEM_HEADER_TEXT}"
                     )
                     self.listbox.itemconfig(
                         idx,
-                        fg=COLORS["fg_dim"],
+                        fg=COLORS["accent"],
                         selectbackground=COLORS["bg_light"],
-                        selectforeground=COLORS["fg_dim"],
+                        selectforeground=COLORS["accent"],
                     )
                     self._sub_item_indices.add(idx)
                     self._sub_header_indices[idx] = item
