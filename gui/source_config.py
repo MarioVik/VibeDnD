@@ -54,10 +54,10 @@ SOURCE_TO_CATEGORY = {
 
 # Display order for each context's categories
 SECTION_ORDER = {
-    "species": ["Common", "Eberron", "Exotic", "Unearthed Arcana"],
-    "backgrounds": ["Common", "Eberron", "Faerun", "Exotic", "Unearthed Arcana"],
-    "feats": ["Common", "Faerun", "Exotic", "Unearthed Arcana"],
-    "classes": ["Common", "Eberron", "Faerun", "Exotic", "Unearthed Arcana"],
+    "species": ["Common", "Eberron", "Exotic"],
+    "backgrounds": ["Common", "Eberron", "Faerun", "Exotic"],
+    "feats": ["Common", "Faerun", "Exotic"],
+    "classes": ["Common", "Eberron", "Faerun", "Unearthed Arcana"],
 }
 
 # Category name for UA playtest content
@@ -148,6 +148,11 @@ def load_settings() -> dict[str, dict[str, bool]]:
                 for cat, enabled in cats.items():
                     if cat not in filters[context]:
                         filters[context][cat] = enabled
+                # Drop removed/unused categories so hidden stale toggles don't linger
+                filters[context] = {
+                    cat: filters[context].get(cat, enabled)
+                    for cat, enabled in cats.items()
+                }
         return filters
     except json.JSONDecodeError, OSError:
         return defaults
