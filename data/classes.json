@@ -115,9 +115,26 @@
       "Charisma"
     ],
     "skill_choices": {
-      "count": 2,
+      "count": 3,
       "options": [
-        "Choose any 3 skills"
+        "Acrobatics",
+        "Animal Handling",
+        "Arcana",
+        "Athletics",
+        "Deception",
+        "History",
+        "Insight",
+        "Intimidation",
+        "Investigation",
+        "Medicine",
+        "Nature",
+        "Perception",
+        "Performance",
+        "Persuasion",
+        "Religion",
+        "Sleight of Hand",
+        "Stealth",
+        "Survival"
       ]
     },
     "weapon_proficiencies": [

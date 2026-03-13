@@ -2,14 +2,29 @@
 
 import re
 from parsers.base_parser import (
-    extract_name_from_url, extract_source, extract_field,
-    extract_description, split_comma_list, parse_choose_pattern,
+    extract_name_from_url,
+    extract_source,
+    extract_field,
+    extract_description,
+    split_comma_list,
+    parse_choose_pattern,
 )
 
 # Known main classes (by URL slug before :main)
 MAIN_CLASSES = {
-    "artificer", "barbarian", "bard", "cleric", "druid", "fighter",
-    "monk", "paladin", "ranger", "rogue", "sorcerer", "warlock", "wizard",
+    "artificer",
+    "barbarian",
+    "bard",
+    "cleric",
+    "druid",
+    "fighter",
+    "monk",
+    "paladin",
+    "ranger",
+    "rogue",
+    "sorcerer",
+    "warlock",
+    "wizard",
 }
 
 # Caster type classification
@@ -37,6 +52,27 @@ SPELLCASTING_ABILITIES = {
     "warlock": "Charisma",
 }
 
+ALL_SKILLS = [
+    "Acrobatics",
+    "Animal Handling",
+    "Arcana",
+    "Athletics",
+    "Deception",
+    "History",
+    "Insight",
+    "Intimidation",
+    "Investigation",
+    "Medicine",
+    "Nature",
+    "Perception",
+    "Performance",
+    "Persuasion",
+    "Religion",
+    "Sleight of Hand",
+    "Stealth",
+    "Survival",
+]
+
 
 def parse_core_traits(content: str, class_name: str) -> dict:
     """Parse the Core X Traits block."""
@@ -52,7 +88,7 @@ def parse_core_traits(content: str, class_name: str) -> dict:
     # Hit Point Die
     hpd = extract_field(content, "Hit Point Die")
     if hpd:
-        m = re.search(r'D(\d+)', hpd, re.IGNORECASE)
+        m = re.search(r"D(\d+)", hpd, re.IGNORECASE)
         traits["hit_die"] = int(m.group(1)) if m else 8
     else:
         traits["hit_die"] = 8
@@ -71,7 +107,19 @@ def parse_core_traits(content: str, class_name: str) -> dict:
         if choice:
             traits["skill_choices"] = choice
         else:
-            traits["skill_choices"] = {"count": 2, "options": split_comma_list(skills_raw)}
+            any_skills = re.match(
+                r"Choose\s+any\s+(\d+)\s+skills?", skills_raw, re.IGNORECASE
+            )
+            if any_skills:
+                traits["skill_choices"] = {
+                    "count": int(any_skills.group(1)),
+                    "options": list(ALL_SKILLS),
+                }
+            else:
+                traits["skill_choices"] = {
+                    "count": 2,
+                    "options": split_comma_list(skills_raw),
+                }
     else:
         traits["skill_choices"] = {"count": 0, "options": []}
 
@@ -97,17 +145,17 @@ def parse_equipment_options(text: str) -> list[dict]:
     """Parse equipment options like 'Choose A or B: (A) items; or (B) GP'."""
     options = []
     # Pattern: (A) items; or (B) items; or (C) items
-    parts = re.split(r'\(([A-C])\)\s*', text)
+    parts = re.split(r"\(([A-C])\)\s*", text)
     current_label = None
     for part in parts:
         part = part.strip().rstrip(";").strip()
         if not part:
             continue
-        if re.match(r'^[A-C]$', part):
+        if re.match(r"^[A-C]$", part):
             current_label = part
         elif current_label:
-            clean = re.sub(r'^or\s+', '', part).strip()
-            clean = re.sub(r'\s*;?\s*$', '', clean)
+            clean = re.sub(r"^or\s+", "", part).strip()
+            clean = re.sub(r"\s*;?\s*$", "", clean)
             if clean:
                 options.append({"option": current_label, "items": clean})
             current_label = None
@@ -129,7 +177,9 @@ def _find_all_level_tables(lines: list[str]) -> list[int]:
     return indices
 
 
-def _read_table_header_and_row1(lines: list[str], header_idx: int) -> tuple[list[str], list[str]]:
+def _read_table_header_and_row1(
+    lines: list[str], header_idx: int
+) -> tuple[list[str], list[str]]:
     """Read header lines and level 1 row values from a table starting at header_idx."""
     header_lines = []
     data_start = None
@@ -195,7 +245,7 @@ def parse_features_table(content: str, class_name_lower: str) -> dict:
 
         slot_levels = []
         for hl in header_lines:
-            if re.match(r'^(1st|2nd|3rd|[4-9]th)$', hl.strip()):
+            if re.match(r"^(1st|2nd|3rd|[4-9]th)$", hl.strip()):
                 slot_levels.append(hl.strip())
 
         is_spell_table = has_cantrips or has_prepared or len(slot_levels) > 0
@@ -215,11 +265,17 @@ def parse_features_table(content: str, class_name_lower: str) -> dict:
             for hl in header_lines:
                 if hl in ("Level", "Proficiency Bonus", "Features", "Class Features"):
                     continue
-                if hl in ("Cantrips", "Prepared Spells") or re.match(r'^(1st|2nd|3rd|[4-9]th)$', hl):
+                if hl in ("Cantrips", "Prepared Spells") or re.match(
+                    r"^(1st|2nd|3rd|[4-9]th)$", hl
+                ):
                     continue
                 num_extra_cols += 1
 
-            num_spell_cols = (1 if has_cantrips else 0) + (1 if has_prepared else 0) + len(slot_levels)
+            num_spell_cols = (
+                (1 if has_cantrips else 0)
+                + (1 if has_prepared else 0)
+                + len(slot_levels)
+            )
             total_trailing = num_extra_cols + num_spell_cols
 
             if total_trailing > 0 and len(rest) >= total_trailing:
@@ -259,11 +315,17 @@ def parse_features_table(content: str, class_name_lower: str) -> dict:
             for hl in header_lines:
                 if hl in ("Level",):
                     continue
-                if hl in ("Cantrips", "Prepared Spells") or re.match(r'^(1st|2nd|3rd|[4-9]th)$', hl):
+                if hl in ("Cantrips", "Prepared Spells") or re.match(
+                    r"^(1st|2nd|3rd|[4-9]th)$", hl
+                ):
                     continue
                 num_extra_b += 1
 
-            num_spell_cols = (1 if has_cantrips else 0) + (1 if has_prepared else 0) + len(slot_levels)
+            num_spell_cols = (
+                (1 if has_cantrips else 0)
+                + (1 if has_prepared else 0)
+                + len(slot_levels)
+            )
 
             if num_extra_b + num_spell_cols <= len(rest):
                 spell_data = rest[num_extra_b:]
@@ -323,35 +385,50 @@ def parse_level_1_features(content: str, feature_names: list[str]) -> list[dict]
             continue
 
         # Check if this line is a feature header (ends with period, short, title case)
-        if (stripped.endswith(".") and len(stripped) < 60 and
-                not stripped[0].islower() and stripped[:-1].replace("'", "").replace(" ", "").isalpha()):
+        if (
+            stripped.endswith(".")
+            and len(stripped) < 60
+            and not stripped[0].islower()
+            and stripped[:-1].replace("'", "").replace(" ", "").isalpha()
+        ):
             # Save previous feature
             if current_name:
-                features.append({
-                    "name": current_name,
-                    "description": " ".join(current_desc_lines).strip(),
-                })
+                features.append(
+                    {
+                        "name": current_name,
+                        "description": " ".join(current_desc_lines).strip(),
+                    }
+                )
             current_name = stripped.rstrip(".")
             current_desc_lines = []
         elif current_name:
             current_desc_lines.append(stripped)
         # Also check for "Feature Name" without period as header
-        elif any(stripped.lower().startswith(fn.lower().split(",")[0].strip().split("(")[0].strip())
-                 for fn in feature_names if fn != "-"):
+        elif any(
+            stripped.lower().startswith(
+                fn.lower().split(",")[0].strip().split("(")[0].strip()
+            )
+            for fn in feature_names
+            if fn != "-"
+        ):
             if current_name:
-                features.append({
-                    "name": current_name,
-                    "description": " ".join(current_desc_lines).strip(),
-                })
+                features.append(
+                    {
+                        "name": current_name,
+                        "description": " ".join(current_desc_lines).strip(),
+                    }
+                )
             current_name = stripped.rstrip(".")
             current_desc_lines = []
 
     # Save last feature
     if current_name:
-        features.append({
-            "name": current_name,
-            "description": " ".join(current_desc_lines).strip(),
-        })
+        features.append(
+            {
+                "name": current_name,
+                "description": " ".join(current_desc_lines).strip(),
+            }
+        )
 
     return features
 
@@ -374,7 +451,7 @@ def parse_classes(raw_data: list[dict]) -> list[dict]:
         content = entry["content"]
 
         # Extract class name from Core X Traits
-        name_match = re.search(r'Core\s+(\w+)\s+Traits', content)
+        name_match = re.search(r"Core\s+(\w+)\s+Traits", content)
         name = name_match.group(1) if name_match else slug.title()
 
         source = extract_source(content)
@@ -391,39 +468,63 @@ def parse_classes(raw_data: list[dict]) -> list[dict]:
         spellcasting_ability = SPELLCASTING_ABILITIES.get(slug)
 
         # Parse level 1 feature descriptions
-        level_1_features = parse_level_1_features(content, table_data["level_1_features_names"])
+        level_1_features = parse_level_1_features(
+            content, table_data["level_1_features_names"]
+        )
 
-        classes.append({
-            "name": name,
-            "slug": slug,
-            "source": source,
-            "description": description,
-            "primary_ability": traits["primary_ability"],
-            "hit_die": traits["hit_die"],
-            "saving_throws": traits["saving_throws"],
-            "skill_choices": traits["skill_choices"],
-            "weapon_proficiencies": traits["weapon_proficiencies"],
-            "armor_proficiencies": traits["armor_proficiencies"],
-            "starting_equipment": traits["starting_equipment"],
-            "caster_type": caster_type,
-            "spellcasting_ability": spellcasting_ability,
-            "cantrips_known": table_data["cantrips_known"],
-            "spells_prepared": table_data["spells_prepared"],
-            "spell_slots": table_data["spell_slots"],
-            "level_1_features": level_1_features,
-        })
+        classes.append(
+            {
+                "name": name,
+                "slug": slug,
+                "source": source,
+                "description": description,
+                "primary_ability": traits["primary_ability"],
+                "hit_die": traits["hit_die"],
+                "saving_throws": traits["saving_throws"],
+                "skill_choices": traits["skill_choices"],
+                "weapon_proficiencies": traits["weapon_proficiencies"],
+                "armor_proficiencies": traits["armor_proficiencies"],
+                "starting_equipment": traits["starting_equipment"],
+                "caster_type": caster_type,
+                "spellcasting_ability": spellcasting_ability,
+                "cantrips_known": table_data["cantrips_known"],
+                "spells_prepared": table_data["spells_prepared"],
+                "spell_slots": table_data["spell_slots"],
+                "level_1_features": level_1_features,
+            }
+        )
 
     # Apply fallback spell data for casters where parsing didn't extract it
     SPELL_FALLBACKS = {
-        "druid":     {"cantrips_known": 2, "spells_prepared": 4, "spell_slots": {"1st": 2}},
-        "ranger":    {"cantrips_known": None, "spells_prepared": 2, "spell_slots": {"1st": 2}},
-        "artificer": {"cantrips_known": 2, "spells_prepared": 2, "spell_slots": {"1st": 2}},
-        "warlock":   {"cantrips_known": 2, "spells_prepared": 2, "spell_slots": {"1st": 1}},
-        "paladin":   {"cantrips_known": None, "spells_prepared": 2, "spell_slots": {"1st": 2}},
+        "druid": {"cantrips_known": 2, "spells_prepared": 4, "spell_slots": {"1st": 2}},
+        "ranger": {
+            "cantrips_known": None,
+            "spells_prepared": 2,
+            "spell_slots": {"1st": 2},
+        },
+        "artificer": {
+            "cantrips_known": 2,
+            "spells_prepared": 2,
+            "spell_slots": {"1st": 2},
+        },
+        "warlock": {
+            "cantrips_known": 2,
+            "spells_prepared": 2,
+            "spell_slots": {"1st": 1},
+        },
+        "paladin": {
+            "cantrips_known": None,
+            "spells_prepared": 2,
+            "spell_slots": {"1st": 2},
+        },
     }
     for cls in classes:
         slug = cls["slug"]
-        if slug in SPELL_FALLBACKS and cls["cantrips_known"] is None and cls["spells_prepared"] is None:
+        if (
+            slug in SPELL_FALLBACKS
+            and cls["cantrips_known"] is None
+            and cls["spells_prepared"] is None
+        ):
             fb = SPELL_FALLBACKS[slug]
             cls["cantrips_known"] = fb["cantrips_known"]
             cls["spells_prepared"] = fb["spells_prepared"]
