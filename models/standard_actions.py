@@ -272,6 +272,10 @@ def _weapon_actions(character) -> list[dict]:
                 "attack": _modifier_str(attack_bonus),
                 "damage": damage,
                 "notes": notes,
+                "kind": "weapon",
+                "weapon_key": weapon_name,
+                "versatile": bool(meta.get("versatile_damage")),
+                "can_true_strike": False,
             }
         )
 
@@ -357,6 +361,7 @@ def _cantrip_actions(character, spells_by_name: dict[str, dict]) -> list[dict]:
                 "attack": attack_bonus,
                 "damage": _scaled_cantrip_damage(spell, character.level),
                 "notes": spell.get("range", "Spell"),
+                "kind": "cantrip",
             }
         )
 
@@ -364,8 +369,63 @@ def _cantrip_actions(character, spells_by_name: dict[str, dict]) -> list[dict]:
 
 
 def build_standard_actions(
-    character, spells_by_name: dict[str, dict] | None = None
+    character,
+    spells_by_name: dict[str, dict] | None = None,
+    weapon_options: dict[str, dict] | None = None,
 ) -> list[dict]:
     """Build standard action rows for weapons and attack cantrips."""
     spells = spells_by_name or _load_spells()
-    return _weapon_actions(character) + _cantrip_actions(character, spells)
+    options = weapon_options or {}
+
+    cast_ability = None
+    if character.character_class:
+        cast_ability = character.character_class.get("spellcasting_ability")
+        if not cast_ability:
+            primary = character.character_class.get("primary_ability", [])
+            cast_ability = primary[0] if primary else None
+    spell_mod = character.ability_scores.modifier(cast_ability) if cast_ability else 0
+    has_true_strike = any(
+        name.lower() == "true strike" for name in character.selected_cantrips
+    )
+
+    weapons = _weapon_actions(character)
+    upgraded = []
+    for row in weapons:
+        key = row.get("weapon_key", "")
+        meta = WEAPON_DATA.get(key, {})
+        cfg = options.get(key, {})
+
+        use_two_handed = bool(
+            cfg.get("two_handed", False) and meta.get("versatile_damage")
+        )
+        can_true_strike = bool(has_true_strike and cast_ability)
+        use_true_strike = bool(cfg.get("true_strike", False) and can_true_strike)
+
+        ability_mod = _weapon_ability_mod(character, meta)
+        if use_true_strike:
+            ability_mod = spell_mod
+
+        prof = (
+            character.proficiency_bonus
+            if _has_weapon_proficiency(character, key, meta)
+            else 0
+        )
+        attack_bonus = ability_mod + prof
+
+        die = (
+            meta.get("versatile_damage")
+            if use_two_handed
+            else meta.get("damage", "1d4")
+        )
+        damage_type = meta.get("type", "Bludgeoning").lower()
+        if use_true_strike:
+            damage_type = f"radiant/{damage_type}"
+
+        row["attack"] = _modifier_str(attack_bonus)
+        row["damage"] = f"{die}{_modifier_str(ability_mod)} {damage_type}"
+        row["can_true_strike"] = can_true_strike
+        row["true_strike_active"] = use_true_strike
+        row["two_handed_active"] = use_two_handed
+        upgraded.append(row)
+
+    return upgraded + _cantrip_actions(character, spells)

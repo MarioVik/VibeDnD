@@ -12,10 +12,10 @@ _MULTICLASS_PREREQUISITES = {
     "bard": ["Charisma"],
     "cleric": ["Wisdom"],
     "druid": ["Wisdom"],
-    "fighter": ["Strength", "Dexterity"],       # 13 in STR or DEX
-    "monk": ["Dexterity", "Wisdom"],             # 13 in DEX and WIS
-    "paladin": ["Strength", "Charisma"],         # 13 in STR and CHA
-    "ranger": ["Dexterity", "Wisdom"],           # 13 in DEX and WIS
+    "fighter": ["Strength", "Dexterity"],  # 13 in STR or DEX
+    "monk": ["Dexterity", "Wisdom"],  # 13 in DEX and WIS
+    "paladin": ["Strength", "Charisma"],  # 13 in STR and CHA
+    "ranger": ["Dexterity", "Wisdom"],  # 13 in DEX and WIS
     "rogue": ["Dexterity"],
     "sorcerer": ["Charisma"],
     "warlock": ["Charisma"],
@@ -49,8 +49,8 @@ class Character:
     ability_scores: AbilityScores = field(default_factory=AbilityScores)
     score_method: str = "standard_array"  # "standard_array" or "point_buy"
 
-    feat: dict | None = None                    # Background feat
-    species_origin_feat: dict | None = None      # Species origin feat (Human Versatile)
+    feat: dict | None = None  # Background feat
+    species_origin_feat: dict | None = None  # Species origin feat (Human Versatile)
     feat_sub_choices: dict = field(default_factory=dict)
 
     selected_cantrips: list[str] = field(default_factory=list)
@@ -58,6 +58,7 @@ class Character:
 
     equipment_choice_class: str = "A"
     equipment_choice_background: str = "A"
+    standard_action_options: dict[str, dict[str, bool]] = field(default_factory=dict)
 
     # Level progression
     class_levels: list[ClassLevel] = field(default_factory=list)
@@ -163,7 +164,9 @@ class Character:
 
     def saving_throw_modifier(self, ability_name: str) -> int:
         base = self.ability_scores.modifier(ability_name)
-        if self.character_class and ability_name in self.character_class.get("saving_throws", []):
+        if self.character_class and ability_name in self.character_class.get(
+            "saving_throws", []
+        ):
             return base + self.proficiency_bonus
         return base
 
@@ -276,6 +279,7 @@ class Character:
         if self.is_multiclass:
             # Show multiclass breakdown
             from collections import Counter
+
             counts = Counter(cl.class_slug for cl in self.class_levels)
             mc_parts = [f"{slug.title()} {n}" for slug, n in counts.items()]
             return f"Level {self.level} {self.species_name} ({'/'.join(mc_parts)})"

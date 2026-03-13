@@ -24,6 +24,7 @@ FORMAT_VERSION = 2
 # Serialisation helpers
 # ---------------------------------------------------------------------------
 
+
 def character_to_save_dict(character: Character) -> dict:
     """Serialise a Character to a save-friendly dict using name references."""
     c = character
@@ -50,6 +51,7 @@ def character_to_save_dict(character: Character) -> dict:
         "selected_spells": list(c.selected_spells),
         "equipment_choice_class": c.equipment_choice_class,
         "equipment_choice_background": c.equipment_choice_background,
+        "standard_action_options": dict(c.standard_action_options),
     }
 
     # Serialize class_levels
@@ -122,6 +124,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.selected_spells = data.get("selected_spells", [])
     c.equipment_choice_class = data.get("equipment_choice_class", "A")
     c.equipment_choice_background = data.get("equipment_choice_background", "A")
+    c.standard_action_options = data.get("standard_action_options", {})
 
     # Load class_levels (v2) or construct from v1 data
     if "class_levels" in data:
@@ -155,6 +158,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
 # File helpers
 # ---------------------------------------------------------------------------
 
+
 def _slugify(name: str) -> str:
     """Turn a character name into a filesystem-safe slug."""
     slug = name.lower().strip()
@@ -174,8 +178,10 @@ def _make_filename(name: str) -> str:
 # Public API
 # ---------------------------------------------------------------------------
 
-def save_character(character: Character, characters_path: str,
-                   existing_filename: str | None = None) -> str:
+
+def save_character(
+    character: Character, characters_path: str, existing_filename: str | None = None
+) -> str:
     """Save *character* to *characters_path*.
 
     If *existing_filename* is given the file is overwritten (edit mode).
@@ -254,6 +260,7 @@ def import_character_from_export(filepath: str, game_data) -> Character:
     # Equipment
     save["equipment_choice_class"] = data.get("equipment_choice_class", "A")
     save["equipment_choice_background"] = data.get("equipment_choice_background", "A")
+    save["standard_action_options"] = data.get("standard_action_options", {})
 
     return save_dict_to_character(save, game_data)
 
@@ -277,15 +284,19 @@ def list_saved_characters(characters_path: str) -> list[dict]:
                 data = json.load(f)
             mtime = os.path.getmtime(fpath)
             level = len(data.get("class_levels", [])) or 1
-            results.append({
-                "name": data.get("name", "Unknown"),
-                "species": data.get("species_name", "?"),
-                "class_name": data.get("class_name", "?"),
-                "level": level,
-                "path": fpath,
-                "modified": datetime.fromtimestamp(mtime).isoformat(sep=" ", timespec="minutes"),
-            })
-        except (json.JSONDecodeError, OSError):
+            results.append(
+                {
+                    "name": data.get("name", "Unknown"),
+                    "species": data.get("species_name", "?"),
+                    "class_name": data.get("class_name", "?"),
+                    "level": level,
+                    "path": fpath,
+                    "modified": datetime.fromtimestamp(mtime).isoformat(
+                        sep=" ", timespec="minutes"
+                    ),
+                }
+            )
+        except json.JSONDecodeError, OSError:
             continue
 
     results.sort(key=lambda r: r["modified"], reverse=True)

@@ -752,7 +752,11 @@ class CharacterSheetPDF(FPDF):
 
     def _draw_weapons_section(self, x, y, w):
         """Draw weapons & damage / cantrips table."""
-        rows = build_standard_actions(self.c, self._get_spell_data())
+        rows = build_standard_actions(
+            self.c,
+            self._get_spell_data(),
+            weapon_options=getattr(self.c, "standard_action_options", {}) or {},
+        )
         row_count = max(4, len(rows))
         total_h_est = 12 + row_count * 5
         self._section_box(x, y, w, total_h_est, "WEAPONS & DAMAGE CANTRIPS")
