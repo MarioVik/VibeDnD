@@ -117,11 +117,10 @@ class ClassStep(WizardStep):
             cb.pack(side=tk.LEFT, padx=(0, 6))
             self.toggle_vars[cat] = var
 
-        # Ensure subclass filters are initialized to match
-        if "subclasses" not in self.data.source_filters:
-            self.data.source_filters["subclasses"] = {
-                cat: filters.get(cat, cat != UA_CATEGORY) for cat in sections
-            }
+        # Keep subclass filters fully in sync with the class filter toggles.
+        self.data.source_filters["subclasses"] = {
+            cat: filters.get(cat, cat != UA_CATEGORY) for cat in sections
+        }
 
     def _on_toggle_change(self):
         """Update filters and rebuild list when a toggle changes."""
@@ -165,9 +164,16 @@ class ClassStep(WizardStep):
                     in enabled_sub_cats
                 ]
                 if visible:
-                    sub_items[cls["name"]] = [
-                        sc["name"] for sc in sorted(visible, key=lambda s: s["name"])
-                    ]
+                    names = []
+                    for sc in sorted(visible, key=lambda s: s["name"]):
+                        name = sc["name"]
+                        if (
+                            get_category("subclasses", sc.get("source", ""))
+                            == UA_CATEGORY
+                        ):
+                            name = f"[UA] {name}"
+                        names.append(name)
+                    sub_items[cls["name"]] = names
 
         self.class_list.set_sectioned_items(sections, sub_items=sub_items)
 

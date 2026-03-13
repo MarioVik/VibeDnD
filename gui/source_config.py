@@ -153,6 +153,9 @@ def load_settings() -> dict[str, dict[str, bool]]:
                     cat: filters[context].get(cat, enabled)
                     for cat, enabled in cats.items()
                 }
+            # UA should always start unchecked on app load.
+            if UA_CATEGORY in filters[context]:
+                filters[context][UA_CATEGORY] = False
         return filters
     except json.JSONDecodeError, OSError:
         return defaults
