@@ -230,6 +230,18 @@ class CharacterCreatorApp:
                     f"Choose {required} class {skill_word} before moving on. "
                     f"({chosen}/{required} selected)",
                 )
+            elif isinstance(step, SpeciesStep):
+                species_name = (
+                    self.character.species.get("name", "This species")
+                    if self.character and self.character.species
+                    else "This species"
+                )
+                AlertDialog(
+                    self.root,
+                    "Species Choice Required",
+                    f"{species_name} requires an additional choice before moving on. "
+                    "Please pick one option in the species details panel.",
+                )
             return
 
         if curr < len(self.wizard_steps) - 1:
@@ -259,8 +271,8 @@ class CharacterCreatorApp:
         curr = self.wizard_notebook.index(self.wizard_notebook.select())
         self.back_btn.configure(state=tk.NORMAL if curr > 0 else tk.DISABLED)
 
-        # Class step keeps Next clickable; validation is handled on click with dialog.
-        if isinstance(self.wizard_steps[curr], ClassStep):
+        # Class and Species keep Next clickable; validation is handled on click with dialog.
+        if isinstance(self.wizard_steps[curr], (ClassStep, SpeciesStep)):
             is_valid = True
         else:
             is_valid = self.wizard_steps[curr].is_valid()
