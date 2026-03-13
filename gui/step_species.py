@@ -17,8 +17,32 @@ from gui.source_config import (
 class SpeciesStep(WizardStep):
     tab_title = "Species"
 
+    # Species whose feature block includes a required "choose one" option.
+    TRAIT_OPTION_CHOICES = {
+        "Gnome": {
+            "label": "Gnomish Lineage",
+            "options": ["Forest Gnome", "Rock Gnome"],
+        },
+        "Goliath": {
+            "label": "Giant Ancestry",
+            "options": [
+                "Cloud's Jaunt (Cloud Giant)",
+                "Fire's Burn (Fire Giant)",
+                "Frost's Chill (Frost Giant)",
+                "Hill's Tumble (Hill Giant)",
+                "Stone's Endurance (Stone Giant)",
+                "Storm's Thunder (Storm Giant)",
+            ],
+        },
+        "Shifter": {
+            "label": "Shifting Option",
+            "options": ["Beasthide", "Longtooth", "Swiftstride", "Wildhunt"],
+        },
+    }
+
     def build_ui(self):
         self._edit_initialized = False
+        self._requires_sub_choice = False
         self.frame.columnconfigure(1, weight=1)
         self.frame.rowconfigure(0, weight=1)
 
@@ -150,6 +174,9 @@ class SpeciesStep(WizardStep):
             return
 
         self.character.species = sp
+        self._requires_sub_choice = False
+        self.character.species_sub_choice = None
+        self.sub_var.set("")
         self.detail_name.configure(text=sp["name"])
         self.detail_source.configure(text=f"Source: {sp.get('source', 'Unknown')}")
         self.detail_desc.configure(text=sp.get("description", ""))
@@ -213,8 +240,42 @@ class SpeciesStep(WizardStep):
                 )
                 combo.pack(anchor="w", padx=16, pady=4)
                 if choice_names:
-                    self.sub_var.set(choice_names[0])
-                    self.character.species_sub_choice = choice_names[0]
+                    self._requires_sub_choice = True
+                    ttk.Label(
+                        self.sub_frame,
+                        text="Select one option to continue.",
+                        style="Dim.TLabel",
+                    ).pack(anchor="w", padx=16)
+
+        # Trait option choices (e.g. Gnome lineage, Goliath ancestry, Shifter form)
+        if not sp.get("sub_choices"):
+            trait_choice = self.TRAIT_OPTION_CHOICES.get(sp.get("name", ""))
+            if trait_choice:
+                available = {t.get("name", "") for t in sp.get("traits", [])}
+                option_names = [
+                    opt for opt in trait_choice["options"] if opt in available
+                ]
+                if option_names:
+                    self.sub_frame.pack(fill=tk.X, pady=(8, 0))
+                    ttk.Label(
+                        self.sub_frame,
+                        text=f"Choose {trait_choice['label']}:",
+                        style="Subheading.TLabel",
+                    ).pack(anchor="w")
+                    combo = ttk.Combobox(
+                        self.sub_frame,
+                        textvariable=self.sub_var,
+                        values=option_names,
+                        state="readonly",
+                        width=38,
+                    )
+                    combo.pack(anchor="w", padx=16, pady=4)
+                    ttk.Label(
+                        self.sub_frame,
+                        text="Select one option to continue.",
+                        style="Dim.TLabel",
+                    ).pack(anchor="w", padx=16)
+                    self._requires_sub_choice = True
 
         # Traits
         for w in self.traits_frame.winfo_children():
@@ -243,7 +304,14 @@ class SpeciesStep(WizardStep):
         self.notify_change()
 
     def is_valid(self) -> bool:
-        return self.character.species is not None
+        if self.character.species is None:
+            return False
+        if (
+            self._requires_sub_choice
+            and not (self.character.species_sub_choice or "").strip()
+        ):
+            return False
+        return True
 
     def _on_size_change(self, *args):
         self.character.size_choice = self.size_var.get()
