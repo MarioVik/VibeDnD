@@ -304,7 +304,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
     if actions:
         ttk.Label(
             actions_sec,
-            text="  Name                    Atk/DC   Damage                 Notes",
+            text="  Name                    Atk      Damage                 Notes",
             foreground=COLORS["fg_dim"],
             font=FONTS["mono"],
         ).pack(anchor="w", padx=8, pady=(2, 0))

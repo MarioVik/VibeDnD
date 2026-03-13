@@ -23,6 +23,7 @@ WEAPON_DATA = {
         "category": "simple",
         "ranged": False,
         "finesse": True,
+        "thrown_range": "20/60",
     },
     "greatclub": {
         "damage": "1d8",
@@ -37,6 +38,7 @@ WEAPON_DATA = {
         "category": "simple",
         "ranged": False,
         "finesse": False,
+        "thrown_range": "20/60",
     },
     "javelin": {
         "damage": "1d6",
@@ -44,6 +46,7 @@ WEAPON_DATA = {
         "category": "simple",
         "ranged": False,
         "finesse": False,
+        "thrown_range": "30/120",
     },
     "light crossbow": {
         "damage": "1d8",
@@ -51,6 +54,7 @@ WEAPON_DATA = {
         "category": "simple",
         "ranged": True,
         "finesse": False,
+        "range": "80/320",
     },
     "mace": {
         "damage": "1d6",
@@ -65,6 +69,7 @@ WEAPON_DATA = {
         "category": "simple",
         "ranged": False,
         "finesse": False,
+        "versatile_damage": "1d8",
     },
     "scimitar": {
         "damage": "1d6",
@@ -79,6 +84,7 @@ WEAPON_DATA = {
         "category": "simple",
         "ranged": True,
         "finesse": False,
+        "range": "80/320",
     },
     "shortsword": {
         "damage": "1d6",
@@ -100,6 +106,8 @@ WEAPON_DATA = {
         "category": "simple",
         "ranged": False,
         "finesse": False,
+        "versatile_damage": "1d8",
+        "thrown_range": "20/60",
     },
     "flail": {
         "damage": "1d8",
@@ -128,6 +136,7 @@ WEAPON_DATA = {
         "category": "martial",
         "ranged": True,
         "finesse": False,
+        "range": "150/600",
     },
     "longsword": {
         "damage": "1d8",
@@ -135,6 +144,7 @@ WEAPON_DATA = {
         "category": "martial",
         "ranged": False,
         "finesse": False,
+        "versatile_damage": "1d10",
     },
     "rapier": {
         "damage": "1d8",
@@ -244,8 +254,16 @@ def _weapon_actions(character) -> list[dict]:
 
         dmg_mod = _modifier_str(ability_mod)
         damage = f"{meta['damage']}{dmg_mod} {meta['type'].lower()}"
-        notes = "Ranged weapon" if meta.get("ranged") else "Melee weapon"
-        if qty > 1:
+        if meta.get("versatile_damage"):
+            damage += f" ({meta['versatile_damage']} two-handed)"
+
+        notes_parts = ["Ranged weapon" if meta.get("ranged") else "Melee weapon"]
+        if meta.get("range"):
+            notes_parts.append(f"range {meta['range']}")
+        if meta.get("thrown_range"):
+            notes_parts.append(f"thrown {meta['thrown_range']}")
+        notes = ", ".join(notes_parts)
+        if qty > 1 and not meta.get("thrown_range"):
             notes += f" (x{qty})"
 
         rows.append(
@@ -299,6 +317,8 @@ def _scaled_cantrip_damage(spell: dict, character_level: int) -> str:
     upgrade_text = str(spell.get("cantrip_upgrade", "")).lower()
     if "creates two beams" in upgrade_text:
         beams = _cantrip_scale(character_level)
+        if beams <= 1:
+            return f"{base_die} {damage_type.lower()}"
         return f"{base_die} {damage_type.lower()} x{beams} beams"
 
     return f"{count}d{die_size} {damage_type.lower()}"

@@ -760,7 +760,7 @@ class CharacterSheetPDF(FPDF):
         ty = inner + 1
 
         col_widths = [w * 0.30, w * 0.22, w * 0.28, w * 0.20]
-        headers = ["Name", "Atk Bonus / DC", "Damage & Type", "Notes"]
+        headers = ["Name", "Atk Bonus", "Damage & Type", "Notes"]
         self._sans("B", 5.5)
         self.set_text_color(*C_MED_GRAY)
         cx = x + 2
