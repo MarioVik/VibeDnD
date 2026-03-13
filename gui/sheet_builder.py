@@ -198,6 +198,14 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
             font=FONTS["mono"],
         ).pack(anchor="w")
 
+    # ── Standard Actions (positioned below Skills) ──────────────
+    actions_sec = ttk.LabelFrame(parent, text="Standard Actions")
+    actions_sec.pack(fill=tk.X, pady=4)
+    rows_frame = ttk.Frame(actions_sec)
+    rows_frame.pack(fill=tk.X, padx=8, pady=(2, 2))
+    options_frame = ttk.Frame(actions_sec)
+    options_frame.pack(fill=tk.X, padx=8, pady=(0, 2))
+
     # ── Species Traits ──────────────────────────────────────────
     if c.species and c.species.get("traits"):
         traits_frame = ttk.LabelFrame(parent, text=f"{c.species_name} Traits")
@@ -402,14 +410,6 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
         ttk.Label(inv_sec, text="  No inventory items.", style="Dim.TLabel").pack(
             anchor="w", padx=8
         )
-
-    # ── Standard Actions ────────────────────────────────────────
-    actions_sec = ttk.LabelFrame(parent, text="Standard Actions")
-    actions_sec.pack(fill=tk.X, pady=4)
-    rows_frame = ttk.Frame(actions_sec)
-    rows_frame.pack(fill=tk.X, padx=8, pady=(2, 2))
-    options_frame = ttk.Frame(actions_sec)
-    options_frame.pack(fill=tk.X, padx=8, pady=(0, 2))
 
     option_vars: dict[str, dict[str, tk.BooleanVar]] = {}
     saved_opts = (
