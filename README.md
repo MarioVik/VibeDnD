@@ -1,143 +1,63 @@
 # VibeDnD - D&D 2024 Character Creator
 
-A desktop character creation tool for Dungeons & Dragons 2024 rules, built with Python and Tkinter.
+A desktop character creation tool for Dungeons & Dragons 2024 rules.
 
-## 🚀 Quick Start
+## Download & Install
 
-### 1. Prerequisites
-- **Python 3.14+**
+Pre-built installers are automatically generated for every release. To get the latest version:
+
+1. Go to the [**Actions** tab](../../actions) of this repository on GitHub.
+2. Click the most recent **Build Installers** run with a green checkmark.
+3. Scroll down to **Artifacts** and download the one for your operating system:
+   - **Windows** — `VibeDnD-Setup-Windows` (run the `.exe` installer wizard)
+   - **macOS** — `VibeDnD-Installer-macOS` (open the `.dmg`, drag VibeDnD to Applications)
+   - **Ubuntu/Linux** — `VibeDnD-Installer-Ubuntu` (double-click the `.deb` to install)
+
+No Python or technical setup required.
+
+## Features
+
+- **Wizard Flow**: Species, Class, Background, Abilities, Feats, Spells, Equipment
+- **Live Summary**: View your character build in real-time
+- **Source Filtering**: Common, Eberron, Faerun, Exotic
+- **Export**: PDF, JSON, and plain text
+- **Themed UI**: Dark parchment aesthetic
+
+---
+
+## For Developers
+
+If you want to run VibeDnD from source or contribute:
+
+### Prerequisites
+- **Python 3.12+**
 - **uv** (recommended) or **pip**
 
-### 2. Setup & Run
+### Run from Source
 ```bash
-# Clone and enter the repo
 git clone <repo-url>
 cd VibeDnD
 
-# Install & Run (using uv)
+# Using uv (recommended)
 uv run main.py
 
-# OR (using pip)
+# Using pip
 python -m venv .venv
 # Windows: .venv\Scripts\activate | macOS/Linux: source .venv/bin/activate
 pip install .
 python main.py
 ```
 
----
+### Build Installers Locally
+```bash
+# Install build tools
+uv sync --extra build  # or: pip install ".[build]"
 
-## 🛠️ Development & Building
+# Build standalone executable
+python build.py --onefile
+```
+
+Platform-specific build scripts (`build_macos.py`, `build_ubuntu.py`) are also available. On Linux/macOS, ensure `python3-tk` is installed via your package manager.
 
 ### AI Development
-If you are using an AI agent (like Cursor or Claude):
-- Refer to [AI_README.md](AI_README.md) for data schemas and token optimization.
-- **Do not** have the AI read the large JSON files in `data/`.
-
-### Building an Executable
-To package VibeDnD into a standalone `.exe` or app:
-
-1. **Install build tools:**
-   ```bash
-   uv sync --extra build  # or: pip install ".[build]"
-   ```
-
-2. **Run the build script:**
-   ```bash
-   python build.py --onefile
-   ```
-   The result will be in the `dist/` folder.
-
-### Building a Single-File macOS Installer (.dmg)
-To share with non-technical Mac users (no Python needed), build a DMG on a Mac:
-
-1. **On macOS, install build deps:**
-   ```bash
-   pip install pyinstaller
-   ```
-
-2. **Put your icon source in the repo root** as `icon-source.png` (optional but recommended).
-
-3. **Run the mac packager script:**
-   ```bash
-   python3 build_macos.py
-   ```
-
-4. **Send this one file to your friend:**
-   ```
-   dist/installer-mac/VibeDnD-Installer-macOS.dmg
-   ```
-
-The DMG contains `VibeDnD.app` and an `Applications` shortcut for drag-and-drop install.
-
-### Building a Single-File Ubuntu Installer (.deb)
-To share with non-technical Ubuntu users (no Python needed), build a `.deb` on Ubuntu:
-
-1. **On Ubuntu, install build deps:**
-   ```bash
-   sudo apt update
-   sudo apt install -y dpkg-dev python3-pip python3-tk
-   python3 -m pip install pyinstaller
-   ```
-
-2. **Put your icon source in the repo root** as `icon-source.png` (optional but recommended).
-
-3. **Run the Ubuntu packager script:**
-   ```bash
-   python3 build_ubuntu.py
-   ```
-
-4. **Send this one file to your friend:**
-   ```
-   dist/installer-linux/VibeDnD-Installer-Ubuntu-amd64.deb
-   ```
-
-Your friend can install by double-clicking the `.deb` in Ubuntu Software, or via:
-```bash
-sudo apt install ./VibeDnD-Installer-Ubuntu-amd64.deb
-```
-
-### Zero-Setup Builds via GitHub Actions (Recommended)
-If you do not want Python/PyInstaller installed on your own computer, use CI builds:
-
-1. Push this repo to GitHub.
-2. Open **Actions** → **Build Installers** → **Run workflow**.
-3. Download artifacts from the finished run:
-   - `VibeDnD-Setup-Windows`
-   - `VibeDnD-Installer-macOS`
-   - `VibeDnD-Installer-Ubuntu`
-
-Workflow file: `.github/workflows/build-installers.yml`
-
-<details>
-<summary><b>Detailed Platform Instructions</b></summary>
-
-- **Windows**: Use `build.py` with `.venv` activated.
-- **Linux/macOS**: Ensure `python3-tk` or `python-tk` is installed via your package manager (brew/apt) before building.
-</details>
-
----
-
-## ✨ Features
-- **Wizard Flow**: Species → Class → Background → Abilities → Feats → Spells → Equipment.
-- **Live Summary**: View your character build in real-time.
-- **Source Filtering**: Configurable source categories (Common, Eberron, Faerun, Exotic).
-- **Export**: PDF, JSON, and plain text formats.
-- **Themed UI**: Dark parchment aesthetic.
-
----
-
-## 📂 Project Structure
-<details>
-<summary>View internal directory map</summary>
-
-```
-VibeDnD/
-  main.py           # Entry point
-  build.py          # Build script
-  data/             # Game data (JSON)
-  gui/              # Tkinter interface
-  models/           # Character logic
-  parsers/          # Data processing
-  export/           # PDF/JSON/Text export logic
-```
-</details>
+If using an AI agent (Cursor, Claude, etc.), see [AI_README.md](AI_README.md) for data schemas. Avoid having the AI read the large JSON files in `data/`.
