@@ -13,7 +13,16 @@ from gui.app import CharacterCreatorApp
 def main():
     # Check that parsed data exists
     dd = data_dir()
-    required_files = ["spells.json", "classes.json", "species.json", "backgrounds.json", "feats.json"]
+    required_files = [
+        "spells.json",
+        "classes.json",
+        "species.json",
+        "backgrounds.json",
+        "feats.json",
+        "class_progressions.json",
+        "subclasses.json",
+        "items.json",
+    ]
 
     missing = [f for f in required_files if not os.path.exists(os.path.join(dd, f))]
     if missing and not is_frozen():

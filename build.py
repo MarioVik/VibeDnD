@@ -25,6 +25,7 @@ import sys
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DIST = os.path.join(ROOT, "dist")
 BUILD = os.path.join(ROOT, "build")
+ICON_FILE = os.path.join(ROOT, "vibednd.ico")
 
 DATA_FILES = [
     "data/spells.json",
@@ -32,6 +33,9 @@ DATA_FILES = [
     "data/species.json",
     "data/backgrounds.json",
     "data/feats.json",
+    "data/class_progressions.json",
+    "data/subclasses.json",
+    "data/items.json",
 ]
 
 # Modules only needed for scraping / parsing, not at runtime
@@ -85,6 +89,11 @@ def build(onefile: bool = False):
         "--name", "VibeDnD",
         "--windowed",          # no console window
     ]
+
+    if os.path.exists(ICON_FILE):
+        cmd += ["--icon", ICON_FILE]
+    else:
+        print(f"WARNING: Icon file not found, building without icon: {ICON_FILE}")
 
     if onefile:
         cmd.append("--onefile")

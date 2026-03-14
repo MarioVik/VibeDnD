@@ -20,13 +20,13 @@
       "Common": true,
       "Eberron": true,
       "Faerun": true,
-      "Unearthed Arcana": true
+      "Unearthed Arcana": false
     },
     "subclasses": {
       "Common": true,
       "Eberron": true,
       "Faerun": true,
-      "Unearthed Arcana": true
+      "Unearthed Arcana": false
     }
   }
 }
