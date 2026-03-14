@@ -108,40 +108,64 @@ def _container_contents(item_text: str) -> tuple[str, list[str]] | None:
 
 
 def _show_level_features(parent: tk.Widget, character, game_data=None):
-    """Show features from all class levels in a compact list."""
+    """Show features from all class levels with full descriptions."""
     for cl in character.class_levels:
         level_data = None
         if game_data:
             level_data = game_data.get_level_data(cl.class_slug, cl.class_level)
 
-        features = []
+        feature_details = []
         if level_data:
-            features = [
+            feature_details = [
                 f
-                for f in level_data.get("features", [])
-                if f != "-" and f != "Ability Score Improvement"
+                for f in level_data.get("feature_details", [])
+                if isinstance(f, dict)
+                and f.get("name") not in ("-", "Ability Score Improvement")
             ]
+            # Fall back to name-only list if no details available
+            if not feature_details:
+                for name in level_data.get("features", []):
+                    if name not in ("-", "Ability Score Improvement"):
+                        feature_details.append({"name": name, "description": ""})
 
-        if not features and not cl.feat_choice and not cl.subclass_slug:
+        extra = []
+        if cl.feat_choice:
+            extra.append({"name": f"Feat: {cl.feat_choice}", "description": ""})
+        if cl.subclass_slug:
+            extra.append(
+                {
+                    "name": f"Subclass: {cl.subclass_slug.replace('-', ' ').title()}",
+                    "description": "",
+                }
+            )
+
+        all_items = feature_details + extra
+        if not all_items:
             continue
 
-        # Level header
-        items = []
-        for f in features:
-            items.append(f)
-        if cl.feat_choice:
-            items.append(f"Feat: {cl.feat_choice}")
-        if cl.subclass_slug:
-            items.append(f"Subclass: {cl.subclass_slug.replace('-', ' ').title()}")
+        prefix = f"{cl.class_slug.title()} " if character.is_multiclass else ""
+        ttk.Label(
+            parent,
+            text=f"  {prefix}Level {cl.class_level}",
+            foreground=COLORS["accent"],
+            font=FONTS["subheading"],
+        ).pack(anchor="w", padx=8, pady=(6, 2))
 
-        # Show class name prefix for multiclass characters
-        prefix = ""
-        if character.is_multiclass:
-            prefix = f"{cl.class_slug.title()} "
-        text = f"  {prefix}Level {cl.class_level}: {', '.join(items)}"
-        WrappingLabel(parent, text=text, foreground=COLORS["fg"]).pack(
-            fill=tk.X, anchor="w", padx=8, pady=1
-        )
+        for feat in all_items:
+            feat_name = feat.get("name", "")
+            feat_desc = feat.get("description", "")
+            ttk.Label(
+                parent,
+                text=f"    • {feat_name}",
+                foreground=COLORS["fg_bright"],
+                font=FONTS["body"],
+            ).pack(anchor="w", padx=8)
+            if feat_desc:
+                WrappingLabel(
+                    parent,
+                    text=f"      {feat_desc}",
+                    foreground=COLORS["fg_dim"],
+                ).pack(fill=tk.X, anchor="w", padx=8, pady=(0, 4))
 
 
 def build_character_sheet(parent: tk.Widget, character, game_data=None, on_change=None):
@@ -319,8 +343,10 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
         feat_frame = ttk.LabelFrame(parent, text=feat_title)
         feat_frame.pack(fill=tk.X, pady=4)
 
-        # Show level 1 features from class data
-        if c.character_class.get("level_1_features") and c.level == 1:
+        if c.class_levels:
+            _show_level_features(feat_frame, c, game_data)
+        elif c.character_class.get("level_1_features"):
+            # Fallback: no class_levels data, use raw level_1_features from class JSON
             for feat in c.character_class["level_1_features"]:
                 ttk.Label(
                     feat_frame,
@@ -334,18 +360,75 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
                         text=f"    {feat['description']}",
                         foreground=COLORS["fg_dim"],
                     ).pack(fill=tk.X, anchor="w", padx=8, pady=(0, 4))
-        elif c.class_levels:
-            # Multi-level: show features gained at each level
-            _show_level_features(feat_frame, c, game_data)
 
     # ── Subclass ──────────────────────────────────────────────
     if c.current_subclass:
         sub_name = c.current_subclass.replace("-", " ").title()
         sub_frame = ttk.LabelFrame(parent, text=f"Subclass: {sub_name}")
         sub_frame.pack(fill=tk.X, pady=4)
-        ttk.Label(sub_frame, text=f"  {sub_name}", foreground=COLORS["accent"]).pack(
-            anchor="w", padx=8, pady=4
-        )
+
+        # Resolve subclass data and show features by level
+        subclass_data = None
+        if game_data:
+            primary_slug = (
+                c.character_class.get("slug", "") if c.character_class else ""
+            )
+            subclasses_for_class = game_data.get_subclasses_for_class(primary_slug)
+            subclass_data = next(
+                (
+                    s
+                    for s in subclasses_for_class
+                    if s.get("slug") == c.current_subclass
+                ),
+                None,
+            )
+
+        if subclass_data:
+            desc = (subclass_data.get("description") or "").strip()
+            if desc:
+                intro = re.split(r"\bLevel\s+\d+\s*:", desc, maxsplit=1)[0].strip()
+                if intro:
+                    WrappingLabel(
+                        sub_frame, text=f"  {intro}", foreground=COLORS["fg_dim"]
+                    ).pack(fill=tk.X, anchor="w", padx=8, pady=(4, 0))
+
+            features_by_level = subclass_data.get("features", {})
+            for lvl in sorted(
+                features_by_level.keys(),
+                key=lambda x: int(x) if str(x).isdigit() else 99,
+            ):
+                # Only show features up to character's current level
+                try:
+                    lvl_int = int(lvl)
+                except ValueError, TypeError:
+                    continue
+                if lvl_int > c.level:
+                    continue
+                ttk.Label(
+                    sub_frame,
+                    text=f"  Level {lvl}",
+                    foreground=COLORS["accent"],
+                    font=FONTS["subheading"],
+                ).pack(anchor="w", padx=8, pady=(6, 2))
+                for feat in features_by_level.get(lvl, []):
+                    feat_name = feat.get("name", "")
+                    feat_desc = feat.get("description", "")
+                    ttk.Label(
+                        sub_frame,
+                        text=f"    • {feat_name}",
+                        foreground=COLORS["fg_bright"],
+                        font=FONTS["body"],
+                    ).pack(anchor="w", padx=8)
+                    if feat_desc:
+                        WrappingLabel(
+                            sub_frame,
+                            text=f"      {feat_desc}",
+                            foreground=COLORS["fg_dim"],
+                        ).pack(fill=tk.X, anchor="w", padx=8, pady=(0, 4))
+        else:
+            ttk.Label(
+                sub_frame, text=f"  {sub_name}", foreground=COLORS["accent"]
+            ).pack(anchor="w", padx=8, pady=4)
 
     # ── Feats ───────────────────────────────────────────────────
     has_any_feat = c.feat or c.species_origin_feat
