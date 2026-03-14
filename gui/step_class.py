@@ -266,7 +266,7 @@ class ClassStep(WizardStep):
         def _lvl_key(level_str: str):
             try:
                 return int(level_str)
-            except TypeError, ValueError:
+            except (TypeError, ValueError):
                 return 99
 
         for lvl in sorted(features_by_level.keys(), key=_lvl_key):

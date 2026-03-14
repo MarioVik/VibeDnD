@@ -157,7 +157,7 @@ def load_settings() -> dict[str, dict[str, bool]]:
             if UA_CATEGORY in filters[context]:
                 filters[context][UA_CATEGORY] = False
         return filters
-    except json.JSONDecodeError, OSError:
+    except (json.JSONDecodeError, OSError):
         return defaults
 
 
@@ -168,7 +168,7 @@ def save_settings(filters: dict[str, dict[str, bool]]):
         try:
             with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
-        except json.JSONDecodeError, OSError:
+        except (json.JSONDecodeError, OSError):
             data = {}
     data["source_filters"] = filters
     with open(SETTINGS_PATH, "w", encoding="utf-8") as f:

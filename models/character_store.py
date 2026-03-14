@@ -315,7 +315,7 @@ def list_saved_characters(characters_path: str) -> list[dict]:
                     ),
                 }
             )
-        except json.JSONDecodeError, OSError:
+        except (json.JSONDecodeError, OSError):
             continue
 
     results.sort(key=lambda r: r["modified"], reverse=True)
