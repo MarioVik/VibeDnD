@@ -19,11 +19,7 @@
       },
       {
         "name": "Darkvision",
-        "description": ""
-      },
-      {
-        "name": "You have Darkvision with a range of 60 feet",
-        "description": ""
+        "description": "You have Darkvision with a range of 60 feet."
       },
       {
         "name": "Healing Hands",
@@ -79,11 +75,7 @@
       },
       {
         "name": "Darkvision",
-        "description": ""
-      },
-      {
-        "name": "You have Darkvision with a range of 60 feet",
-        "description": ""
+        "description": "You have Darkvision with a range of 60 feet."
       },
       {
         "name": "Draconic Flight",
@@ -107,11 +99,7 @@
     "traits": [
       {
         "name": "Darkvision",
-        "description": ""
-      },
-      {
-        "name": "You have Darkvision with a range of 120 feet",
-        "description": ""
+        "description": "You have Darkvision with a range of 120 feet."
       },
       {
         "name": "Dwarven Resilience",
@@ -143,11 +131,7 @@
     "traits": [
       {
         "name": "Darkvision",
-        "description": ""
-      },
-      {
-        "name": "You have Darkvision with a range of 60 feet",
-        "description": ""
+        "description": "You have Darkvision with a range of 60 feet."
       },
       {
         "name": "Elven Lineage",
@@ -204,11 +188,7 @@
     "traits": [
       {
         "name": "Darkvision",
-        "description": ""
-      },
-      {
-        "name": "You have Darkvision with a range of 60 feet",
-        "description": ""
+        "description": "You have Darkvision with a range of 60 feet."
       },
       {
         "name": "Gnomish Cunning",
@@ -333,11 +313,7 @@
       },
       {
         "name": "Skillful",
-        "description": ""
-      },
-      {
-        "name": "You gain proficiency in one skill of your choice",
-        "description": ""
+        "description": "You gain proficiency in one skill of your choice."
       },
       {
         "name": "Versatile",
@@ -365,11 +341,7 @@
       },
       {
         "name": "Darkvision",
-        "description": ""
-      },
-      {
-        "name": "You have Darkvision with a range of 120 feet",
-        "description": ""
+        "description": "You have Darkvision with a range of 120 feet."
       },
       {
         "name": "Relentless Endurance",
@@ -394,11 +366,7 @@
     "traits": [
       {
         "name": "Darkvision",
-        "description": ""
-      },
-      {
-        "name": "You have Darkvision with a range of 60 feet",
-        "description": ""
+        "description": "You have Darkvision with a range of 60 feet."
       },
       {
         "name": "Fiendish Legacy",
@@ -468,11 +436,7 @@
       },
       {
         "name": "Mental Discipline",
-        "description": ""
-      },
-      {
-        "name": "You have Resistance to Psychic damage",
-        "description": ""
+        "description": "You have Resistance to Psychic damage."
       },
       {
         "name": "Mind Link",
@@ -501,11 +465,7 @@
     "traits": [
       {
         "name": "Darkvision",
-        "description": ""
-      },
-      {
-        "name": "You have Darkvision with a range of 60 feet",
-        "description": ""
+        "description": "You have Darkvision with a range of 60 feet."
       },
       {
         "name": "Fey Ancestry",
@@ -546,11 +506,7 @@
       },
       {
         "name": "Darkvision",
-        "description": ""
-      },
-      {
-        "name": "You have Darkvision with a range of 60 feet",
-        "description": ""
+        "description": "You have Darkvision with a range of 60 feet."
       },
       {
         "name": "Shifting",
@@ -595,11 +551,7 @@
       },
       {
         "name": "Integrated Protection",
-        "description": "You gain a +1 bonus to your Armor Class. In addition, armor you have donned can’t be removed against your will while you’re alive."
-      },
-      {
-        "name": "Sentry’s Rest",
-        "description": "You don’t need to sleep, and magic can’t put you to sleep. You can finish a Long Rest in 6 hours if you spend those hours in an inactive, motionless state. During this time, you appear inert but remain conscious."
+        "description": "You gain a +1 bonus to your Armor Class. In addition, armor you have donned can’t be removed against your will while you’re alive. Sentry’s Rest. You don’t need to sleep, and magic can’t put you to sleep. You can finish a Long Rest in 6 hours if you spend those hours in an inactive, motionless state. During this time, you appear inert but remain conscious."
       },
       {
         "name": "Specialized Design",
@@ -687,11 +639,7 @@
       },
       {
         "name": "Fire Resistance",
-        "description": ""
-      },
-      {
-        "name": "You have resistance to fire damage",
-        "description": ""
+        "description": "You have resistance to fire damage."
       },
       {
         "name": "Reach to the Blaze",
@@ -720,19 +668,11 @@
       },
       {
         "name": "Darkvision",
-        "description": ""
-      },
-      {
-        "name": "You have Darkvision with a range of 120 feet",
-        "description": ""
+        "description": "You have Darkvision with a range of 120 feet."
       },
       {
         "name": "Delightful Imitator",
-        "description": ""
-      },
-      {
-        "name": "You have proficiency in the Performance skill",
-        "description": ""
+        "description": "You have proficiency in the Performance skill."
       },
       {
         "name": "Unpredictable Movement",
@@ -761,19 +701,11 @@
       },
       {
         "name": "Cold Resistance",
-        "description": ""
-      },
-      {
-        "name": "You have Resistance to Cold damage",
-        "description": ""
+        "description": "You have Resistance to Cold damage."
       },
       {
         "name": "Darkvision",
-        "description": ""
-      },
-      {
-        "name": "You have Darkvision with a range of 60 feet",
-        "description": ""
+        "description": "You have Darkvision with a range of 60 feet."
       }
     ],
     "sub_choices": null
@@ -794,11 +726,7 @@
     "traits": [
       {
         "name": "Darkvision",
-        "description": ""
-      },
-      {
-        "name": "You have Darkvision with a range of 60 feet",
-        "description": ""
+        "description": "You have Darkvision with a range of 60 feet."
       },
       {
         "name": "Spider Climb",
@@ -806,11 +734,7 @@
       },
       {
         "name": "Trace of Undeath",
-        "description": ""
-      },
-      {
-        "name": "You have Resistance to Necrotic damage",
-        "description": ""
+        "description": "You have Resistance to Necrotic damage."
       },
       {
         "name": "Vampiric Bite",

@@ -72,9 +72,60 @@ def parse_traits(content: str) -> list[dict]:
     if trait_section_start is None:
         return traits
 
-    # Parse traits: name ends with period, is short and title-case
+    # Parse traits: heading line ends with period and is title-like
     current_name = None
     current_desc_lines = []
+
+    def looks_like_trait_heading(line: str) -> bool:
+        if not line.endswith("."):
+            return False
+
+        core = line.rstrip(".").strip()
+        if not core or len(core) > 70:
+            return False
+
+        words = re.findall(r"[A-Za-z][A-Za-z'\-]*", core)
+        if not words:
+            return False
+
+        # Description sentences often start with these words.
+        if words[0].lower() in {
+            "you",
+            "your",
+            "as",
+            "when",
+            "while",
+            "if",
+            "the",
+            "this",
+            "that",
+        }:
+            return False
+
+        allowed_lower = {
+            "a",
+            "an",
+            "and",
+            "as",
+            "at",
+            "by",
+            "for",
+            "from",
+            "in",
+            "of",
+            "on",
+            "or",
+            "the",
+            "to",
+            "with",
+        }
+        for word in words:
+            if word.lower() in allowed_lower:
+                continue
+            if not word[0].isupper():
+                return False
+
+        return True
 
     # Stop markers
     stop_markers = [
@@ -103,27 +154,7 @@ def parse_traits(content: str) -> list[dict]:
             else:
                 break
 
-        # Check if this is a trait name (ends with period, short, not a sentence)
-        if (
-            stripped.endswith(".")
-            and len(stripped) < 50
-            and " " in stripped
-            and not stripped[0].islower()
-            and stripped.count(".") == 1
-        ):
-            # Save previous
-            if current_name:
-                traits.append(
-                    {
-                        "name": current_name,
-                        "description": " ".join(current_desc_lines).strip(),
-                    }
-                )
-            current_name = stripped.rstrip(".")
-            current_desc_lines = []
-        elif (
-            stripped.endswith(".") and len(stripped) < 30 and not stripped[0].islower()
-        ):
+        if looks_like_trait_heading(stripped):
             # Single-word trait names like "Darkvision."
             if current_name:
                 traits.append(
