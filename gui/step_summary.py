@@ -6,13 +6,14 @@ from gui.base_step import WizardStep
 from gui.widgets import ScrollableFrame
 from gui.sheet_builder import build_character_sheet
 from gui.theme import FONTS
+from models.character_store import save_character
+from paths import characters_dir
 
 
 class SummaryStep(WizardStep):
     tab_title = "Summary"
 
-    def __init__(self, parent_notebook, character, game_data, app=None,
-                 save_path=None):
+    def __init__(self, parent_notebook, character, game_data, app=None, save_path=None):
         self.app = app
         self.save_path = save_path
         super().__init__(parent_notebook, character, game_data)
@@ -25,10 +26,14 @@ class SummaryStep(WizardStep):
         top = ttk.Frame(self.frame)
         top.pack(fill=tk.X, padx=12, pady=(12, 4))
 
-        ttk.Label(top, text="Character Name:", style="Subheading.TLabel").pack(side=tk.LEFT)
+        ttk.Label(top, text="Character Name:", style="Subheading.TLabel").pack(
+            side=tk.LEFT
+        )
         self.name_var = tk.StringVar(value=self.character.name or "New Character")
         self.name_var.trace_add("write", self._on_name_change)
-        name_entry = ttk.Entry(top, textvariable=self.name_var, width=25, font=FONTS["heading"])
+        name_entry = ttk.Entry(
+            top, textvariable=self.name_var, width=25, font=FONTS["heading"]
+        )
         name_entry.pack(side=tk.LEFT, padx=8)
 
         # Scrollable character sheet
@@ -42,7 +47,19 @@ class SummaryStep(WizardStep):
             self.name_var.set(self.character.name)
         elif not self.character.name:
             self.character.name = self.name_var.get()
-        build_character_sheet(self.sheet, self.character, self.data)
+        build_character_sheet(
+            self.sheet,
+            self.character,
+            self.data,
+            on_change=self._on_sheet_changed,
+        )
+
+    def _on_sheet_changed(self):
+        if not self.save_path:
+            return
+        save_character(
+            self.character, characters_dir(), existing_filename=self.save_path
+        )
 
     def _on_name_change(self, *args):
         self.character.name = self.name_var.get()

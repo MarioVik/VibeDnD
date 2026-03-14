@@ -27,14 +27,15 @@ class CharacterViewer(ttk.Frame):
         top.pack(fill=tk.X, padx=12, pady=(12, 4))
 
         ttk.Button(
-            top, text="\u25c0  Back to Menu",
+            top,
+            text="\u25c0  Back to Menu",
             command=self._on_back,
         ).pack(side=tk.LEFT)
 
-
         if self.character.level < 20:
             ttk.Button(
-                top, text="Level Up",
+                top,
+                text="Level Up",
                 command=self._on_level_up,
             ).pack(side=tk.LEFT, padx=8)
 
@@ -47,13 +48,16 @@ class CharacterViewer(ttk.Frame):
         ).pack(side=tk.LEFT, padx=8)
 
         # Export buttons (right side)
-        ttk.Button(top, text="Export Character",
-                   command=self._export_json).pack(side=tk.RIGHT, padx=4)
-        ttk.Button(top, text="Export PDF",
-                   command=self._export_pdf).pack(side=tk.RIGHT, padx=4)
+        ttk.Button(top, text="Export Character", command=self._export_json).pack(
+            side=tk.RIGHT, padx=4
+        )
+        ttk.Button(top, text="Export PDF", command=self._export_pdf).pack(
+            side=tk.RIGHT, padx=4
+        )
 
         ttk.Button(
-            top, text="Respec character",
+            top,
+            text="Respec character",
             command=self._on_edit,
         ).pack(side=tk.RIGHT, padx=8)
 
@@ -61,7 +65,19 @@ class CharacterViewer(ttk.Frame):
         scroll = ScrollableFrame(self)
         scroll.pack(fill=tk.BOTH, expand=True, padx=12, pady=(4, 12))
 
-        build_character_sheet(scroll.inner, self.character, self.data)
+        build_character_sheet(
+            scroll.inner,
+            self.character,
+            self.data,
+            on_change=self._on_sheet_changed,
+        )
+
+    def _on_sheet_changed(self):
+        if not self.save_path:
+            return
+        save_character(
+            self.character, characters_dir(), existing_filename=self.save_path
+        )
 
     # ── Navigation ──────────────────────────────────────────────
 
@@ -76,8 +92,9 @@ class CharacterViewer(ttk.Frame):
 
         def on_complete():
             # Save and refresh
-            save_character(self.character, characters_dir(),
-                           existing_filename=self.save_path)
+            save_character(
+                self.character, characters_dir(), existing_filename=self.save_path
+            )
             self.app.show_viewer(self.character, self.save_path)
 
         LevelUpWizard(self, self.character, self.data, on_complete=on_complete)
@@ -87,6 +104,7 @@ class CharacterViewer(ttk.Frame):
     def _export_json(self):
         from models.character_store import character_to_save_dict
         import json
+
         path = filedialog.asksaveasfilename(
             defaultextension=".json",
             filetypes=[("JSON files", "*.json")],
@@ -100,6 +118,7 @@ class CharacterViewer(ttk.Frame):
 
     def _export_pdf(self):
         from export.pdf_export import export_pdf
+
         path = filedialog.asksaveasfilename(
             defaultextension=".pdf",
             filetypes=[("PDF files", "*.pdf")],
@@ -108,6 +127,14 @@ class CharacterViewer(ttk.Frame):
         if path:
             try:
                 export_pdf(self.character, path)
-                AlertDialog(self.winfo_toplevel(), "Export", f"PDF character sheet saved to {path}")
+                AlertDialog(
+                    self.winfo_toplevel(),
+                    "Export",
+                    f"PDF character sheet saved to {path}",
+                )
             except Exception as e:
-                AlertDialog(self.winfo_toplevel(), "Export Error", f"Failed to generate PDF:\n{e}")
+                AlertDialog(
+                    self.winfo_toplevel(),
+                    "Export Error",
+                    f"Failed to generate PDF:\n{e}",
+                )

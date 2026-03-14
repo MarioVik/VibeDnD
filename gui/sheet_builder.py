@@ -2,6 +2,7 @@
 Character Viewer screen."""
 
 from decimal import Decimal
+import re
 import tkinter as tk
 from tkinter import ttk
 
@@ -15,6 +16,94 @@ from models.standard_actions import (
 )
 from gui.widgets import WrappingLabel
 from gui.equipment_utils import extract_gp, gp_to_coins
+
+
+CONTAINER_CONTENTS = {
+    "Burglar's Pack": [
+        "Backpack",
+        "Ball Bearings (1,000)",
+        "String (10 ft)",
+        "Bell",
+        "Candles (5)",
+        "Crowbar",
+        "Hammer",
+        "Piton (10)",
+        "Hooded Lantern",
+        "Oil Flask (2)",
+        "Rations (5 days)",
+        "Tinderbox",
+        "Waterskin",
+        "Hempen Rope (50 ft)",
+    ],
+    "Dungeoneer's Pack": [
+        "Backpack",
+        "Crowbar",
+        "Hammer",
+        "Piton (10)",
+        "Torch (10)",
+        "Tinderbox",
+        "Rations (10 days)",
+        "Waterskin",
+        "Hempen Rope (50 ft)",
+    ],
+    "Explorer's Pack": [
+        "Backpack",
+        "Bedroll",
+        "Mess Kit",
+        "Tinderbox",
+        "Torch (10)",
+        "Rations (10 days)",
+        "Waterskin",
+        "Hempen Rope (50 ft)",
+    ],
+    "Priest's Pack": [
+        "Backpack",
+        "Blanket",
+        "Candle (10)",
+        "Tinderbox",
+        "Alms Box",
+        "Incense Block (2)",
+        "Censer",
+        "Vestments",
+        "Rations (2 days)",
+        "Waterskin",
+    ],
+    "Scholar's Pack": [
+        "Backpack",
+        "Book of Lore",
+        "Ink Bottle",
+        "Ink Pen",
+        "Parchment (10)",
+        "Sand Bag",
+        "Small Knife",
+    ],
+    "Disguise Kit": ["Cosmetics", "Hair Dye", "Small Props", "Cloth Pieces"],
+    "Forgery Kit": ["Ink", "Parchment", "Seals", "Quills"],
+    "Healer's Kit": ["Bandages (10 uses)", "Salves", "Splints"],
+    "Herbalism Kit": ["Pouches", "Clippers", "Mortar and Pestle", "Vials"],
+}
+
+
+def _normalize_container_key(text: str) -> str:
+    t = (text or "").lower()
+    t = t.replace("’", "'").replace("‘", "'").replace("�", "")
+    t = re.sub(r"[^a-z0-9\s]", " ", t)
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
+
+
+_CONTAINER_NORM = {
+    _normalize_container_key(name): (name, contents)
+    for name, contents in CONTAINER_CONTENTS.items()
+}
+
+
+def _container_contents(item_text: str) -> tuple[str, list[str]] | None:
+    norm_item = _normalize_container_key(item_text)
+    for norm_name, (container, contents) in _CONTAINER_NORM.items():
+        if norm_name and norm_name in norm_item:
+            return container, contents
+    return None
 
 
 def _show_level_features(parent: tk.Widget, character, game_data=None):
@@ -54,7 +143,7 @@ def _show_level_features(parent: tk.Widget, character, game_data=None):
         )
 
 
-def build_character_sheet(parent: tk.Widget, character, game_data=None):
+def build_character_sheet(parent: tk.Widget, character, game_data=None, on_change=None):
     """Render a read-only character sheet into *parent*.
 
     Clears any existing children first so it can safely be called
@@ -64,6 +153,10 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
         w.destroy()
 
     c = character
+
+    def _emit_change():
+        if callable(on_change):
+            on_change()
 
     # ── Header ──────────────────────────────────────────────────
     header = ttk.Frame(parent, style="Card.TFrame")
@@ -403,9 +496,25 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
     inv_sec.pack(fill=tk.X, pady=4)
     if inventory_items:
         for item in inventory_items:
-            WrappingLabel(inv_sec, text=f"  {item}", foreground=COLORS["fg_dim"]).pack(
-                fill=tk.X, anchor="w", padx=8, pady=1
-            )
+            container_info = _container_contents(item)
+            if not container_info:
+                WrappingLabel(
+                    inv_sec, text=f"  {item}", foreground=COLORS["fg_dim"]
+                ).pack(fill=tk.X, anchor="w", padx=8, pady=1)
+                continue
+
+            container_name, contents = container_info
+            WrappingLabel(
+                inv_sec,
+                text=f"  {container_name}",
+                foreground=COLORS["fg_dim"],
+            ).pack(fill=tk.X, anchor="w", padx=8, pady=(1, 0))
+            for sub in contents:
+                WrappingLabel(
+                    inv_sec,
+                    text=f"    - {sub}",
+                    foreground=COLORS["fg_dim"],
+                ).pack(fill=tk.X, anchor="w", padx=8, pady=0)
     else:
         ttk.Label(inv_sec, text="  No inventory items.", style="Dim.TLabel").pack(
             anchor="w", padx=8
@@ -428,11 +537,15 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
         return {k for k, v in armor_vars.items() if v.get()}
 
     def _sync_equipped_state():
+        prev_weapons = list(c.equipped_weapons or [])
+        prev_armor = list(c.equipped_armor or [])
         c.equipped_weapons = sorted(_equipped_keys())
         c.equipped_armor = sorted(_equipped_armor_keys())
         ac_lbl = stat_value_labels.get("AC")
         if ac_lbl is not None:
             ac_lbl.configure(text=str(c.armor_class))
+        if prev_weapons != c.equipped_weapons or prev_armor != c.equipped_armor:
+            _emit_change()
 
     def _on_armor_toggle(changed_key: str):
         """Allow only one body armor at a time; shield is independent."""
@@ -460,7 +573,10 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None):
         return out
 
     def _persist_weapon_options():
-        c.standard_action_options = _weapon_options()
+        next_opts = _weapon_options()
+        if c.standard_action_options != next_opts:
+            c.standard_action_options = next_opts
+            _emit_change()
 
     def _render_weapon_option_rows():
         for w in options_frame.winfo_children():
