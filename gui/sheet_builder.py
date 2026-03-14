@@ -506,58 +506,85 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
             :1
         ]
 
+    # ── Wealth ──────────────────────────────────────────────────
+    wealth_sec = ttk.LabelFrame(parent, text="Wealth")
+    wealth_sec.pack(fill=tk.X, pady=4)
+    gp, sp, cp = cp_to_coins(current_wealth_cp(c))
+    WrappingLabel(
+        wealth_sec,
+        text=(f"  Gold: {gp} gp\n  Silver: {sp} sp\n  Copper: {cp} cp"),
+        foreground=COLORS["fg_dim"],
+    ).pack(fill=tk.X, anchor="w", padx=8, pady=2)
+
+    # ── Equipment ───────────────────────────────────────────────
     equip_sec = ttk.LabelFrame(parent, text="Equipment")
     equip_sec.pack(fill=tk.X, pady=4)
-    equip_rows = ttk.Frame(equip_sec)
-    equip_rows.pack(fill=tk.X, padx=8, pady=4)
-
-    header = ttk.Frame(equip_rows)
-    header.pack(fill=tk.X)
-    ttk.Label(header, text="Equiped", style="Dim.TLabel", width=9).pack(side=tk.LEFT)
-    ttk.Label(header, text="Item", style="Dim.TLabel").pack(side=tk.LEFT)
 
     equip_vars: dict[str, tk.BooleanVar] = {}
     armor_vars: dict[str, tk.BooleanVar] = {}
 
-    for weapon_key in sorted(weapon_counts.keys()):
-        qty = weapon_counts[weapon_key]
-        var = tk.BooleanVar(value=weapon_key in set(c.equipped_weapons or []))
-        equip_vars[weapon_key] = var
+    def _col_header(parent_frame):
+        h = ttk.Frame(parent_frame)
+        h.pack(fill=tk.X)
+        ttk.Label(h, text="Equipped", style="Dim.TLabel", width=9).pack(side=tk.LEFT)
+        ttk.Label(h, text="Item", style="Dim.TLabel").pack(side=tk.LEFT)
 
-        row = ttk.Frame(equip_rows)
-        row.pack(fill=tk.X, pady=1)
-        ttk.Checkbutton(
-            row,
-            variable=var,
-            command=lambda k=weapon_key: _on_weapon_toggle(k),
-        ).pack(side=tk.LEFT)
-        label = weapon_key.title()
-        if qty > 1:
-            label += f" (x{qty})"
-        ttk.Label(row, text=label, foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
+    # ── Weapons sub-section ──────────────────────────────────────
+    weapons_frame = ttk.LabelFrame(equip_sec, text="Weapons")
+    weapons_frame.pack(fill=tk.X, padx=8, pady=(6, 2))
+    weapons_inner = ttk.Frame(weapons_frame)
+    weapons_inner.pack(fill=tk.X, padx=8, pady=4)
 
-    for armor_key in sorted(armor_counts.keys()):
-        qty = armor_counts[armor_key]
-        var = tk.BooleanVar(value=armor_key in set(c.equipped_armor or []))
-        armor_vars[armor_key] = var
+    if weapon_counts:
+        _col_header(weapons_inner)
+        for weapon_key in sorted(weapon_counts.keys()):
+            qty = weapon_counts[weapon_key]
+            var = tk.BooleanVar(value=weapon_key in set(c.equipped_weapons or []))
+            equip_vars[weapon_key] = var
 
-        row = ttk.Frame(equip_rows)
-        row.pack(fill=tk.X, pady=1)
-        ttk.Checkbutton(
-            row,
-            variable=var,
-            command=lambda k=armor_key: _on_armor_toggle(k),
-        ).pack(side=tk.LEFT)
-        label = armor_key.title()
-        if qty > 1:
-            label += f" (x{qty})"
-        ttk.Label(row, text=label, foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
-
-    if not weapon_counts and not armor_counts:
+            row = ttk.Frame(weapons_inner)
+            row.pack(fill=tk.X, pady=1)
+            ttk.Checkbutton(
+                row,
+                variable=var,
+                command=lambda k=weapon_key: _on_weapon_toggle(k),
+            ).pack(side=tk.LEFT)
+            label = weapon_key.title()
+            if qty > 1:
+                label += f" (x{qty})"
+            ttk.Label(row, text=label, foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
+    else:
         ttk.Label(
-            equip_rows,
-            text="No weapon or armor in selected equipment.",
-            style="Dim.TLabel",
+            weapons_inner, text="No weapons in selected equipment.", style="Dim.TLabel"
+        ).pack(anchor="w")
+
+    # ── Armor sub-section (incl. shields) ───────────────────────
+    armor_frame = ttk.LabelFrame(equip_sec, text="Armor & Shields")
+    armor_frame.pack(fill=tk.X, padx=8, pady=(2, 6))
+    armor_inner = ttk.Frame(armor_frame)
+    armor_inner.pack(fill=tk.X, padx=8, pady=4)
+
+    if armor_counts:
+        _col_header(armor_inner)
+        for armor_key in sorted(armor_counts.keys()):
+            qty = armor_counts[armor_key]
+            var = tk.BooleanVar(value=armor_key in set(c.equipped_armor or []))
+            armor_vars[armor_key] = var
+
+            row = ttk.Frame(armor_inner)
+            row.pack(fill=tk.X, pady=1)
+            ttk.Checkbutton(
+                row,
+                variable=var,
+                command=lambda k=armor_key: _on_armor_toggle(k),
+            ).pack(side=tk.LEFT)
+            label = armor_key.title()
+            if qty > 1:
+                label += f" (x{qty})"
+            ttk.Label(row, text=label, foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
+    else:
+        ttk.Label(
+            armor_inner, text="No armor in selected equipment.", style="Dim.TLabel"
         ).pack(anchor="w")
 
     inv_sec = ttk.LabelFrame(parent, text="Inventory")
@@ -754,13 +781,3 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
         _render_weapon_option_rows()
 
     _render_action_rows()
-
-    # ── Wealth ──────────────────────────────────────────────────
-    wealth_sec = ttk.LabelFrame(parent, text="Wealth")
-    wealth_sec.pack(fill=tk.X, pady=4)
-    gp, sp, cp = cp_to_coins(current_wealth_cp(c))
-    WrappingLabel(
-        wealth_sec,
-        text=(f"  Gold: {gp} gp\n  Silver: {sp} sp\n  Copper: {cp} cp"),
-        foreground=COLORS["fg_dim"],
-    ).pack(fill=tk.X, anchor="w", padx=8, pady=2)
