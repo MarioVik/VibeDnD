@@ -56,6 +56,7 @@ class AddInventoryDialog(tk.Toplevel):
 
         self.title("Add to Inventory")
         self.geometry("980x620")
+        self.configure(bg=COLORS["bg"])
         configure_modal_dialog(self, parent)
         center_dialog_over_parent(self, parent)
 
@@ -147,6 +148,8 @@ class AddInventoryDialog(tk.Toplevel):
             fg=COLORS["fg"],
             font=FONTS["body"],
             borderwidth=0,
+            highlightthickness=0,
+            relief=tk.FLAT,
             state=tk.DISABLED,
         )
         self.detail_text.grid(row=1, column=0, sticky="nsew", padx=8, pady=4)
@@ -166,12 +169,14 @@ class AddInventoryDialog(tk.Toplevel):
         log.grid(row=3, column=0, sticky="ew", padx=12, pady=(0, 12))
         self.log_text = tk.Text(
             log,
-            height=7,
+            height=5,
             wrap=tk.WORD,
             bg=COLORS["bg_light"],
             fg=COLORS["fg_dim"],
             font=FONTS["body_small"],
             borderwidth=0,
+            highlightthickness=0,
+            relief=tk.FLAT,
             state=tk.DISABLED,
         )
         self.log_text.pack(fill=tk.X, padx=8, pady=6)
