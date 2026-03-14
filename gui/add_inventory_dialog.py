@@ -6,12 +6,11 @@ import tkinter as tk
 from tkinter import ttk
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import SectionedListbox, AlertDialog, ConfirmDialog
+from gui.widgets import SectionedListbox, AlertDialog
 from models.inventory_service import (
     add_item,
     cp_to_coins,
     current_wealth_cp,
-    undo_last_transaction,
 )
 
 
@@ -33,6 +32,13 @@ class AddInventoryDialog(tk.Toplevel):
         self.data = game_data
         self.on_changed = on_changed
 
+        style = ttk.Style(self)
+        style.configure(
+            "WealthValue.TLabel",
+            font=FONTS["subheading"],
+            foreground=COLORS["fg_bright"],
+        )
+
         self.title("Add to Inventory")
         self.geometry("980x620")
         self.transient(parent)
@@ -40,7 +46,7 @@ class AddInventoryDialog(tk.Toplevel):
 
         self.selected_item: dict | None = None
         self.items_by_name = {i.get("name", ""): i for i in self.data.items}
-        self.type_filter_var = tk.StringVar(value="Any")
+        self.category_filter_var = tk.StringVar(value="Any")
         self.min_cost_var = tk.StringVar(value="")
         self.max_cost_var = tk.StringVar(value="")
 
@@ -54,20 +60,17 @@ class AddInventoryDialog(tk.Toplevel):
         ttk.Label(top, text="Item Browser", style="Heading.TLabel").grid(
             row=0, column=0, sticky="w"
         )
-        self.wealth_label = ttk.Label(top, text="", style="Dim.TLabel")
-        self.wealth_label.grid(row=0, column=1, sticky="e")
+        self.wealth_label = ttk.Label(top, text="", style="WealthValue.TLabel")
+        self.wealth_label.grid(row=0, column=1, sticky="e", padx=(0, 12))
 
         filters = ttk.Frame(self)
         filters.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 6))
-        ttk.Label(filters, text="Type:").pack(side=tk.LEFT)
+        ttk.Label(filters, text="Category:").pack(side=tk.LEFT)
 
-        type_values = sorted(
-            {str(i.get("type", "Item")).strip() or "Item" for i in self.data.items}
-        )
         self.type_combo = ttk.Combobox(
             filters,
-            textvariable=self.type_filter_var,
-            values=["Any"] + type_values,
+            textvariable=self.category_filter_var,
+            values=["Any"] + CATEGORY_ORDER,
             state="readonly",
             width=24,
         )
@@ -82,12 +85,12 @@ class AddInventoryDialog(tk.Toplevel):
         ttk.Entry(filters, textvariable=self.max_cost_var, width=8).pack(
             side=tk.LEFT, padx=(4, 8)
         )
-        ttk.Button(filters, text="Apply Filters", command=self._populate_list).pack(
-            side=tk.LEFT, padx=(4, 4)
-        )
         ttk.Button(filters, text="Reset", command=self._reset_filters).pack(
             side=tk.LEFT
         )
+
+        self.min_cost_var.trace_add("write", lambda *_: self._populate_list())
+        self.max_cost_var.trace_add("write", lambda *_: self._populate_list())
 
         body = ttk.Frame(self)
         body.grid(row=2, column=0, sticky="nsew", padx=12, pady=(0, 8))
@@ -95,10 +98,11 @@ class AddInventoryDialog(tk.Toplevel):
         body.columnconfigure(1, weight=1)
         body.rowconfigure(0, weight=1)
 
-        left = ttk.Frame(body, width=320)
+        left = ttk.Frame(body, width=260)
         left.grid(row=0, column=0, sticky="nsw", padx=(0, 6))
         left.grid_propagate(False)
         left.rowconfigure(0, weight=1)
+        left.columnconfigure(0, weight=1)
 
         self.item_list = SectionedListbox(left, on_select=self._on_select_item)
         self.item_list.grid(row=0, column=0, sticky="nsew")
@@ -133,9 +137,6 @@ class AddInventoryDialog(tk.Toplevel):
         )
         ttk.Button(actions, text="Add Free", command=self._add_free).pack(side=tk.LEFT)
         ttk.Button(actions, text="Buy", command=self._buy).pack(side=tk.LEFT, padx=6)
-        ttk.Button(actions, text="Undo Last", command=self._undo_last).pack(
-            side=tk.LEFT, padx=(12, 0)
-        )
         ttk.Button(actions, text="Close", command=self.destroy).pack(side=tk.RIGHT)
 
         log = ttk.LabelFrame(self, text="Recent Transactions")
@@ -156,7 +157,7 @@ class AddInventoryDialog(tk.Toplevel):
         self._refresh_meta()
 
     def _reset_filters(self):
-        self.type_filter_var.set("Any")
+        self.category_filter_var.set("Any")
         self.min_cost_var.set("")
         self.max_cost_var.set("")
         self._populate_list()
@@ -167,7 +168,7 @@ class AddInventoryDialog(tk.Toplevel):
 
     def _filtered_category_items(self, category: str) -> list[dict]:
         items = list(self.data.items_by_category.get(category, []))
-        selected_type = self.type_filter_var.get().strip() or "Any"
+        selected_category = self.category_filter_var.get().strip() or "Any"
         min_gp_text = self.min_cost_var.get().strip()
         max_gp_text = self.max_cost_var.get().strip()
 
@@ -182,7 +183,7 @@ class AddInventoryDialog(tk.Toplevel):
 
         out = []
         for item in items:
-            if selected_type != "Any" and self._item_type(item) != selected_type:
+            if selected_category != "Any" and item.get("category") != selected_category:
                 continue
             gp = int(item.get("cost_cp", 0)) / 100.0
             if min_gp is not None and gp < min_gp:
@@ -194,20 +195,14 @@ class AddInventoryDialog(tk.Toplevel):
 
     def _populate_list(self):
         sections = []
-        sub_items = {}
         for category in CATEGORY_ORDER:
             items = sorted(
                 self._filtered_category_items(category), key=lambda i: i.get("name", "")
             )
-            for item in items:
-                name = item.get("name", "")
-                subs = item.get("sub_items") or []
-                if name and subs:
-                    sub_items[name] = list(subs)
             names = [i.get("name", "") for i in items if i.get("name")]
             if names:
                 sections.append((category, names))
-        self.item_list.set_sectioned_items(sections, sub_items=sub_items)
+        self.item_list.set_sectioned_items(sections)
 
     def _refresh_meta(self):
         gp, sp, cp = cp_to_coins(current_wealth_cp(self.character))
@@ -282,19 +277,3 @@ class AddInventoryDialog(tk.Toplevel):
 
     def _buy(self):
         self._add("buy")
-
-    def _undo_last(self):
-        dlg = ConfirmDialog(
-            self,
-            "Undo Transaction",
-            "Undo the most recent inventory transaction?",
-        )
-        if not dlg.result:
-            return
-        ok, msg = undo_last_transaction(self.character)
-        if not ok:
-            AlertDialog(self, "Undo", msg)
-            return
-        if callable(self.on_changed):
-            self.on_changed()
-        self._refresh_meta()
