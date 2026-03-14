@@ -24,6 +24,16 @@ CATEGORY_ORDER = [
     "Magic Items",
 ]
 
+MAGIC_RARITY_ORDER = [
+    "Common",
+    "Uncommon",
+    "Rare",
+    "Very Rare",
+    "Legendary",
+    "Artifact",
+    "Unknown",
+]
+
 
 class AddInventoryDialog(tk.Toplevel):
     def __init__(self, parent, character, game_data, on_changed=None):
@@ -49,6 +59,7 @@ class AddInventoryDialog(tk.Toplevel):
         self.category_filter_var = tk.StringVar(value="Any")
         self.min_cost_var = tk.StringVar(value="")
         self.max_cost_var = tk.StringVar(value="")
+        self.include_magic_var = tk.BooleanVar(value=False)
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(2, weight=1)
@@ -85,8 +96,15 @@ class AddInventoryDialog(tk.Toplevel):
         ttk.Entry(filters, textvariable=self.max_cost_var, width=8).pack(
             side=tk.LEFT, padx=(4, 8)
         )
-        ttk.Button(filters, text="Reset", command=self._reset_filters).pack(
-            side=tk.LEFT
+        ttk.Checkbutton(
+            filters,
+            text="Include magic items",
+            variable=self.include_magic_var,
+            command=self._populate_list,
+        ).pack(side=tk.LEFT, padx=(12, 0))
+
+        ttk.Button(filters, text="Reset", width=7, command=self._reset_filters).pack(
+            side=tk.LEFT, padx=(8, 0)
         )
 
         self.min_cost_var.trace_add("write", lambda *_: self._populate_list())
@@ -160,6 +178,7 @@ class AddInventoryDialog(tk.Toplevel):
         self.category_filter_var.set("Any")
         self.min_cost_var.set("")
         self.max_cost_var.set("")
+        self.include_magic_var.set(False)
         self._populate_list()
 
     def _item_type(self, item: dict) -> str:
@@ -167,6 +186,9 @@ class AddInventoryDialog(tk.Toplevel):
         return t or "Item"
 
     def _filtered_category_items(self, category: str) -> list[dict]:
+        if category == "Magic Items" and not self.include_magic_var.get():
+            return []
+
         items = list(self.data.items_by_category.get(category, []))
         selected_category = self.category_filter_var.get().strip() or "Any"
         min_gp_text = self.min_cost_var.get().strip()
@@ -199,9 +221,23 @@ class AddInventoryDialog(tk.Toplevel):
             items = sorted(
                 self._filtered_category_items(category), key=lambda i: i.get("name", "")
             )
-            names = [i.get("name", "") for i in items if i.get("name")]
-            if names:
-                sections.append((category, names))
+            if category == "Magic Items":
+                by_rarity: dict[str, list[str]] = {}
+                for item in items:
+                    name = item.get("name", "")
+                    if not name:
+                        continue
+                    rarity = str(item.get("rarity", "")).strip() or "Unknown"
+                    by_rarity.setdefault(rarity, []).append(name)
+
+                for rarity in MAGIC_RARITY_ORDER:
+                    names = sorted(by_rarity.get(rarity, []))
+                    if names:
+                        sections.append((f"Magic Items • {rarity}", names))
+            else:
+                names = [i.get("name", "") for i in items if i.get("name")]
+                if names:
+                    sections.append((category, names))
         self.item_list.set_sectioned_items(sections)
 
     def _refresh_meta(self):
@@ -244,11 +280,17 @@ class AddInventoryDialog(tk.Toplevel):
         body = [
             f"Category: {item.get('category', 'Unknown')}",
             f"Type: {self._item_type(item)}",
+            (
+                f"Rarity: {item.get('rarity', 'Unknown')}"
+                if item.get("category") == "Magic Items"
+                else ""
+            ),
             cost_line,
             "",
             item.get("full_description")
             or item.get("description", "No description available."),
         ]
+        body = [line for line in body if line != ""]
         sub = item.get("sub_items") or []
         if sub:
             body.append("\nContains:")

@@ -24,6 +24,16 @@ ITEM_URLS = [
     ("magic-item:all", "Magic Items"),
 ]
 
+MAGIC_TABLE_RARITIES = [
+    "Common",
+    "Uncommon",
+    "Rare",
+    "Very Rare",
+    "Legendary",
+    "Artifact",
+    "Unknown",
+]
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_FILE = os.path.join(ROOT, "data", "items.json")
 
@@ -71,6 +81,15 @@ def _extract_tables(html: str) -> list[str]:
     return re.findall(r"<table[^>]*>.*?</table>", html, flags=re.IGNORECASE | re.DOTALL)
 
 
+def _extract_tables_with_pos(html: str) -> list[tuple[str, int]]:
+    out: list[tuple[str, int]] = []
+    for m in re.finditer(
+        r"<table[^>]*>.*?</table>", html, flags=re.IGNORECASE | re.DOTALL
+    ):
+        out.append((m.group(0), m.start()))
+    return out
+
+
 def _extract_rows(table_html: str) -> list[str]:
     return re.findall(r"<tr[^>]*>.*?</tr>", table_html, flags=re.IGNORECASE | re.DOTALL)
 
@@ -109,12 +128,46 @@ def _strip_html_to_text(html: str) -> str:
     return text
 
 
+def _infer_magic_rarity(page_html: str, table_pos: int) -> str:
+    """Infer magic-item rarity from nearby heading text before a table."""
+    window_start = max(0, table_pos - 1200)
+    snippet = page_html[window_start:table_pos]
+    text = _clean_text(snippet)
+    rarity_order = [
+        "Very Rare",
+        "Legendary",
+        "Uncommon",
+        "Artifact",
+        "Common",
+        "Rare",
+    ]
+    # Find the last rarity mention in the snippet.
+    best = ("", -1)
+    lower = text.lower()
+    for rarity in rarity_order:
+        idx = lower.rfind(rarity.lower())
+        if idx > best[1]:
+            best = (rarity, idx)
+    return best[0] if best[1] >= 0 else ""
+
+
 def parse_page(url: str, category: str) -> list[dict]:
     html = _fetch_html(url)
     page = html
 
     items: list[dict] = []
-    for table in _extract_tables(page):
+    if category == "Magic Items":
+        tables = _extract_tables_with_pos(page)
+    else:
+        tables = [(t, -1) for t in _extract_tables(page)]
+
+    for table_index, (table, table_pos) in enumerate(tables):
+        rarity = ""
+        if category == "Magic Items":
+            if table_index < len(MAGIC_TABLE_RARITIES):
+                rarity = MAGIC_TABLE_RARITIES[table_index]
+            if not rarity:
+                rarity = _infer_magic_rarity(page, table_pos)
         rows = _extract_rows(table)
         if len(rows) < 2:
             continue
@@ -158,6 +211,8 @@ def parse_page(url: str, category: str) -> list[dict]:
             }
             if item_type:
                 item["type"] = item_type
+            if rarity:
+                item["rarity"] = rarity
             if category == "Magic Items" and raw_cells:
                 href = _first_href(raw_cells[0])
                 if href.startswith("/"):
