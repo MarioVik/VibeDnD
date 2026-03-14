@@ -52,6 +52,12 @@ EXCLUDES = [
     "soupsieve",
 ]
 
+# PyInstaller can occasionally miss package submodules in CI builds.
+# Collecting the whole gui package avoids runtime ModuleNotFound errors.
+COLLECT_SUBMODULES = [
+    "gui",
+]
+
 
 def check_prerequisites():
     """Make sure data files and PyInstaller are available."""
@@ -82,6 +88,10 @@ def build(onefile: bool = False):
     for mod in EXCLUDES:
         exclude_flags += ["--exclude-module", mod]
 
+    collect_flags = []
+    for pkg in COLLECT_SUBMODULES:
+        collect_flags += ["--collect-submodules", pkg]
+
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--noconfirm",
@@ -100,7 +110,7 @@ def build(onefile: bool = False):
     else:
         cmd.append("--onedir")
 
-    cmd += add_data + exclude_flags
+    cmd += add_data + exclude_flags + collect_flags
     cmd.append(os.path.join(ROOT, "main.py"))
 
     print(f"{'='*60}")

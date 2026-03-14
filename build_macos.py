@@ -48,6 +48,10 @@ EXCLUDES = [
     "soupsieve",
 ]
 
+COLLECT_SUBMODULES = [
+    "gui",
+]
+
 
 def run(cmd: list[str], cwd: Path | None = None) -> None:
     print("Running:", " ".join(cmd))
@@ -115,6 +119,10 @@ def build_app(icon_path: Path | None) -> Path:
     for mod in EXCLUDES:
         exclude_flags += ["--exclude-module", mod]
 
+    collect_flags: list[str] = []
+    for pkg in COLLECT_SUBMODULES:
+        collect_flags += ["--collect-submodules", pkg]
+
     cmd = [
         sys.executable,
         "-m",
@@ -132,7 +140,7 @@ def build_app(icon_path: Path | None) -> Path:
     if icon_path is not None:
         cmd += ["--icon", str(icon_path)]
 
-    cmd += add_data + exclude_flags + [str(ROOT / "main.py")]
+    cmd += add_data + exclude_flags + collect_flags + [str(ROOT / "main.py")]
     run(cmd)
 
     app_path = DIST / APP_NAME
