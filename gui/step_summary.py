@@ -8,6 +8,7 @@ from gui.sheet_builder import build_character_sheet
 from gui.theme import FONTS
 from models.character_store import save_character
 from paths import characters_dir
+from gui.add_inventory_dialog import AddInventoryDialog
 
 
 class SummaryStep(WizardStep):
@@ -36,6 +37,12 @@ class SummaryStep(WizardStep):
         )
         name_entry.pack(side=tk.LEFT, padx=8)
 
+        ttk.Button(
+            top,
+            text="Add to inventory",
+            command=self._on_add_inventory,
+        ).pack(side=tk.RIGHT)
+
         # Scrollable character sheet
         self.scroll = ScrollableFrame(self.frame)
         self.scroll.pack(fill=tk.BOTH, expand=True, padx=12, pady=(4, 12))
@@ -47,6 +54,11 @@ class SummaryStep(WizardStep):
             self.name_var.set(self.character.name)
         elif not self.character.name:
             self.character.name = self.name_var.get()
+        self._refresh_sheet()
+
+    def _refresh_sheet(self):
+        for w in self.sheet.winfo_children():
+            w.destroy()
         build_character_sheet(
             self.sheet,
             self.character,
@@ -63,3 +75,11 @@ class SummaryStep(WizardStep):
 
     def _on_name_change(self, *args):
         self.character.name = self.name_var.get()
+
+    def _on_add_inventory(self):
+        AddInventoryDialog(
+            self.frame,
+            self.character,
+            self.data,
+            on_changed=lambda: (self._on_sheet_changed(), self._refresh_sheet()),
+        )

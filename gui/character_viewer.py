@@ -8,6 +8,7 @@ from gui.widgets import ScrollableFrame, AlertDialog
 from gui.sheet_builder import build_character_sheet
 from models.character_store import save_character
 from paths import characters_dir
+from gui.add_inventory_dialog import AddInventoryDialog
 
 
 class CharacterViewer(ttk.Frame):
@@ -39,6 +40,12 @@ class CharacterViewer(ttk.Frame):
                 command=self._on_level_up,
             ).pack(side=tk.LEFT, padx=8)
 
+        ttk.Button(
+            top,
+            text="Add to inventory",
+            command=self._on_add_inventory,
+        ).pack(side=tk.LEFT, padx=4)
+
         # Character name
         ttk.Label(
             top,
@@ -64,9 +71,16 @@ class CharacterViewer(ttk.Frame):
         # ── Character sheet ─────────────────────────────────────
         scroll = ScrollableFrame(self)
         scroll.pack(fill=tk.BOTH, expand=True, padx=12, pady=(4, 12))
+        self._sheet_parent = scroll.inner
+
+        self._refresh_sheet()
+
+    def _refresh_sheet(self):
+        for w in self._sheet_parent.winfo_children():
+            w.destroy()
 
         build_character_sheet(
-            scroll.inner,
+            self._sheet_parent,
             self.character,
             self.data,
             on_change=self._on_sheet_changed,
@@ -86,6 +100,14 @@ class CharacterViewer(ttk.Frame):
 
     def _on_edit(self):
         self.app.show_wizard(self.character, self.save_path)
+
+    def _on_add_inventory(self):
+        AddInventoryDialog(
+            self,
+            self.character,
+            self.data,
+            on_changed=lambda: (self._on_sheet_changed(), self._refresh_sheet()),
+        )
 
     def _on_level_up(self):
         from gui.level_up_wizard import LevelUpWizard

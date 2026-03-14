@@ -27,10 +27,18 @@ _MULTICLASS_PREREQUISITES = {
 _MULTICLASS_OR_CLASSES = {"fighter"}
 
 _ARMOR_STATS = {
+    "padded armor": {"base": 11, "dex_cap": None, "shield": False},
     "leather armor": {"base": 11, "dex_cap": None, "shield": False},
     "studded leather armor": {"base": 12, "dex_cap": None, "shield": False},
+    "hide armor": {"base": 12, "dex_cap": 2, "shield": False},
     "chain shirt": {"base": 13, "dex_cap": 2, "shield": False},
+    "scale mail": {"base": 14, "dex_cap": 2, "shield": False},
+    "breastplate": {"base": 14, "dex_cap": 2, "shield": False},
+    "half plate armor": {"base": 15, "dex_cap": 2, "shield": False},
+    "ring mail": {"base": 14, "dex_cap": 0, "shield": False},
     "chain mail": {"base": 16, "dex_cap": 0, "shield": False},
+    "splint armor": {"base": 17, "dex_cap": 0, "shield": False},
+    "plate armor": {"base": 18, "dex_cap": 0, "shield": False},
     "shield": {"base": 2, "dex_cap": None, "shield": True},
 }
 
@@ -69,6 +77,9 @@ class Character:
     standard_action_options: dict[str, dict[str, bool]] = field(default_factory=dict)
     equipped_weapons: list[str] | None = None
     equipped_armor: list[str] | None = None
+    custom_inventory: list[dict] = field(default_factory=list)
+    wealth_adjust_cp: int = 0
+    inventory_transactions: list[dict] = field(default_factory=list)
 
     # Level progression
     class_levels: list[ClassLevel] = field(default_factory=list)

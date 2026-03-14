@@ -156,6 +156,7 @@ WEAPON_DATA = {
 }
 
 ARMOR_DATA = {
+    "padded armor": {"base": 11, "dex_cap": None, "heavy": False, "shield": False},
     "leather armor": {"base": 11, "dex_cap": None, "heavy": False, "shield": False},
     "studded leather armor": {
         "base": 12,
@@ -163,8 +164,15 @@ ARMOR_DATA = {
         "heavy": False,
         "shield": False,
     },
+    "hide armor": {"base": 12, "dex_cap": 2, "heavy": False, "shield": False},
     "chain shirt": {"base": 13, "dex_cap": 2, "heavy": False, "shield": False},
+    "scale mail": {"base": 14, "dex_cap": 2, "heavy": False, "shield": False},
+    "breastplate": {"base": 14, "dex_cap": 2, "heavy": False, "shield": False},
+    "half plate armor": {"base": 15, "dex_cap": 2, "heavy": False, "shield": False},
+    "ring mail": {"base": 14, "dex_cap": 0, "heavy": True, "shield": False},
     "chain mail": {"base": 16, "dex_cap": 0, "heavy": True, "shield": False},
+    "splint armor": {"base": 17, "dex_cap": 0, "heavy": True, "shield": False},
+    "plate armor": {"base": 18, "dex_cap": 0, "heavy": True, "shield": False},
     "shield": {"base": 2, "dex_cap": None, "heavy": False, "shield": True},
 }
 
@@ -308,6 +316,14 @@ def _weapon_actions(
 ) -> list[dict]:
     rows: list[dict] = []
     counts = _weapon_counts_from_texts(_selected_equipment_texts(character))
+
+    # Merge custom inventory weapons from item browser additions.
+    for ent in getattr(character, "custom_inventory", []) or []:
+        if str(ent.get("category", "")) != "Weapons":
+            continue
+        key = str(ent.get("name", "")).strip().lower()
+        if key in WEAPON_DATA:
+            counts[key] = counts.get(key, 0) + max(1, int(ent.get("qty", 1)))
 
     for weapon_name, qty in sorted(counts.items()):
         if equipped_weapon_keys is not None and weapon_name not in equipped_weapon_keys:

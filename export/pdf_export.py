@@ -5,6 +5,7 @@ from fpdf.enums import RenderStyle, Corner
 from models.character import Character
 from models.enums import ALL_SKILLS
 from models.standard_actions import build_standard_actions
+from models.inventory_service import cp_to_coins, current_wealth_cp
 
 
 # Layout constants (all in mm, A4 = 210 x 297)
@@ -1649,9 +1650,10 @@ class CharacterSheetPDF(FPDF):
         self._redraw_title(x, y, w, "COINS")
 
         ty = y + 9
-        coin_types = ["CP", "SP", "EP", "GP", "PP"]
-        coin_w = (w - 6) / len(coin_types)
-        for i, coin in enumerate(coin_types):
+        gp, sp, cp = cp_to_coins(current_wealth_cp(self.c))
+        coin_rows = [("CP", cp), ("SP", sp), ("EP", 0), ("GP", gp), ("PP", 0)]
+        coin_w = (w - 6) / len(coin_rows)
+        for i, (coin, value) in enumerate(coin_rows):
             cx = x + 3 + i * coin_w
             # Coin box
             self.set_fill_color(*C_FILL_GRAY)
@@ -1662,8 +1664,11 @@ class CharacterSheetPDF(FPDF):
             # Label
             self._sans("B", 5.5)
             self.set_text_color(*C_ACCENT)
-            self.set_xy(cx, ty + 8.5)
-            self.cell(coin_w - 2, 3.5, coin, align="C")
+            self.set_xy(cx, ty + 0.8)
+            self.cell(coin_w - 2, 3.2, str(value), align="C")
+            self._sans("", 5.0)
+            self.set_xy(cx, ty + 4.8)
+            self.cell(coin_w - 2, 3.0, coin, align="C")
 
         return y + h
 

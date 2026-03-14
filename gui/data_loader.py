@@ -20,6 +20,7 @@ class GameData:
         self.feats = self._load("feats.json")
         self.class_progressions = self._load("class_progressions.json")
         self.subclasses = self._load("subclasses.json")
+        self.items = self._load("items.json")
 
         # Source filter settings (mutable, shared with steps)
         self.source_filters = load_settings()
@@ -30,6 +31,13 @@ class GameData:
         self.backgrounds_by_name = {b["name"]: b for b in self.backgrounds}
         self.feats_by_name = {f["name"]: f for f in self.feats}
         self.progressions_by_slug = {p["slug"]: p for p in self.class_progressions}
+        self.items_by_id = {i.get("id", ""): i for i in self.items}
+        self.items_by_name = {i.get("name", ""): i for i in self.items}
+
+        self.items_by_category = {}
+        for item in self.items:
+            cat = item.get("category", "Adventuring Gear")
+            self.items_by_category.setdefault(cat, []).append(item)
 
         # Group subclasses by class
         self.subclasses_by_class = {}
@@ -64,14 +72,16 @@ class GameData:
     def spells_for_class(self, class_name: str, max_level: int = 1) -> list[dict]:
         """Get spells available to a class up to a given level."""
         return [
-            s for s in self.spells
+            s
+            for s in self.spells
             if class_name in s.get("classes", []) and s.get("level", 99) <= max_level
         ]
 
     def cantrips_for_class(self, class_name: str) -> list[dict]:
         """Get cantrips available to a class."""
         return [
-            s for s in self.spells
+            s
+            for s in self.spells
             if class_name in s.get("classes", []) and s.get("level", 99) == 0
         ]
 

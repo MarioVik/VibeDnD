@@ -1,0 +1,4816 @@
+[
+  {
+    "id": "adventuring-gear:acid",
+    "name": "Acid",
+    "category": "Adventuring Gear",
+    "cost_cp": 2500,
+    "description": "Weight: 1 lb.; Function: When you take the Attack action, you can replace one of your attacks with throwing a vial of Acid. Target one creature or object you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or take 2d6 Acid damage.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:alchemist-s-fire",
+    "name": "Alchemist's Fire",
+    "category": "Adventuring Gear",
+    "cost_cp": 5000,
+    "description": "Weight: 1 lb.; Function: When you take the Attack action, you can replace one of your attacks with throwing a flask of Alchemist’s Fire. Target one creature or object you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or take 1d4 Fire damage and start burning (see the rules glossary).",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:ammunition",
+    "name": "Ammunition",
+    "category": "Adventuring Gear",
+    "cost_cp": 0,
+    "description": "Weight: Varies; Function: Ammunition is required by a weapon that has the Ammunition property. A weapon’s description specifies the type of ammunition used by the weapon. The Ammunition table lists the different types and the amount you get when you buy them.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:antitoxin",
+    "name": "Antitoxin",
+    "category": "Adventuring Gear",
+    "cost_cp": 5000,
+    "description": "Weight: -; Function: As a Bonus Action, you can drink a vial of Antitoxin to gain Advantage on saving throws to avoid or end the Poisoned condition for 1 hour.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:arcane-focus",
+    "name": "Arcane Focus",
+    "category": "Adventuring Gear",
+    "cost_cp": 0,
+    "description": "Weight: Varies; Function: An Arcane Focus takes one of the forms in the Arcane Focuses table and is bejeweled or carved to channel arcane magic. A Sorcerer, Warlock, or Wizard can use such an item as a Spellcasting Focus.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:backpack",
+    "name": "Backpack",
+    "category": "Adventuring Gear",
+    "cost_cp": 200,
+    "description": "Weight: 5 lb.; Function: A Backpack holds up to 30 pounds within 1 cubic foot. It can also serve as a saddlebag.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:ball-bearings",
+    "name": "Ball Bearings",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: 2 lb.; Function: As a Utilize action, you can spill Ball Bearings from their pouch. They spread to cover a level, 10-foot-square area within 10 feet of yourself. A creature that enters this area for the first time on a turn must succeed on a DC 10 Dexterity saving throw or have the Prone condition. It takes 10 minutes to recover the Ball Bearings.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:barrel",
+    "name": "Barrel",
+    "category": "Adventuring Gear",
+    "cost_cp": 200,
+    "description": "Weight: 70 lb.; Function: A Barrel holds up to 40 gallons of liquid or up to 4 cubic feet of dry goods.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:basket",
+    "name": "Basket",
+    "category": "Adventuring Gear",
+    "cost_cp": 40,
+    "description": "Weight: 2 lb.; Function: A Basket holds up to 40 pounds within 2 cubic feet.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:bedroll",
+    "name": "Bedroll",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: 7 lb.; Function: A Bedroll sleeps one Small or Medium creature. While in a Bedroll, you automatically succeed on saving throws against extreme cold (see the Dungeon Master’s Guide).",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:bell",
+    "name": "Bell",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: -; Function: When rung as a Utilize action, a Bell produces a sound that can be heard up to 60 feet away.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:blanket",
+    "name": "Blanket",
+    "category": "Adventuring Gear",
+    "cost_cp": 50,
+    "description": "Weight: 3 lb.; Function: While wrapped in a blanket, you have Advantage on saving throws against extreme cold (see the Dungeon Master’s Guide).",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:block-and-tackle",
+    "name": "Block and Tackle",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: 5 lb.; Function: A Block and Tackle allows you to hoist up to four times the weight you can normally lift.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:bright-fungal-cloak",
+    "name": "Bright Fungal Cloak",
+    "category": "Adventuring Gear",
+    "cost_cp": 2500,
+    "description": "Weight: -; Function: While wearing a Bright Fungal Cloak, you can take a Bonus Action to furl or unfurl it. When the cloak is unfurled, it sheds Bright Light in a 5-foot radius and Dim Light for an additional 5 feet. One pound of fungus is sewn into a Bright Fungal Cloak. This fungus can be eaten as food. Once all the fungus is consumed, the cloak becomes a mundane set of Traveler’s Clothes.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:book",
+    "name": "Book",
+    "category": "Adventuring Gear",
+    "cost_cp": 2500,
+    "description": "Weight: 5 lb.; Function: A Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you gain a +5 bonus to Intelligence (Arcana, History, Nature, or Religion) checks you make about that topic.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:bottle-glass",
+    "name": "Bottle, Glass",
+    "category": "Adventuring Gear",
+    "cost_cp": 200,
+    "description": "Weight: 2 lb.; Function: A Glass Bottle holds up to 1½ pints.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:bucket",
+    "name": "Bucket",
+    "category": "Adventuring Gear",
+    "cost_cp": 5,
+    "description": "Weight: 2 lb.; Function: A Bucket holds up to half a cubic foot of contents.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:burglar-s-pack",
+    "name": "Burglar's Pack",
+    "category": "Adventuring Gear",
+    "cost_cp": 1600,
+    "description": "Weight: 42 lb.; Function: A Burglar’s Pack contains the following items: Backpack, Ball Bearings, Bell, 10 Candles, Crowbar, Hooded Lantern, 7 flasks of Oil, 5 days of Rations, Rope, Tinderbox, and Waterskin.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear",
+    "sub_items": [
+      "Backpack",
+      "Ball Bearings",
+      "Bell",
+      "10 Candles",
+      "Crowbar",
+      "Hooded Lantern",
+      "7 flasks of Oil",
+      "5 days of Rations",
+      "Rope",
+      "Tinderbox",
+      "Waterskin"
+    ]
+  },
+  {
+    "id": "adventuring-gear:caltrops",
+    "name": "Caltrops",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: 2 lb.; Function: As a Utilize action, you can spread Caltrops from their bag to cover a 5-foot-square area within 5 feet of yourself. A creature that enters this area for the first time on a turn must succeed on a DC 15 Dexterity saving throw or take 1 Piercing damage and have its Speed reduced to 0 until the start of its next turn. It takes 10 minutes to recover the Caltrops.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:candle",
+    "name": "Candle",
+    "category": "Adventuring Gear",
+    "cost_cp": 1,
+    "description": "Weight: -; Function: For 1 hour, a lit Candle sheds Bright Light in a 5-foot radius and Dim Light for an additional 5 feet.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:case-crossbow-bolt",
+    "name": "Case, Crossbow Bolt",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: 1 lb.; Function: A Crossbow Bolt Case holds up to 20 Bolts.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:case-map-or-scroll",
+    "name": "Case, Map or Scroll",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: 1 lb.; Function: A Map or Scroll Case holds up to 10 sheets of paper or 5 sheets of parchment.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:chain",
+    "name": "Chain",
+    "category": "Adventuring Gear",
+    "cost_cp": 500,
+    "description": "Weight: 10 lb.; Function: As a Utilize action, you can wrap a Chain around an unwilling creature within 5 feet of yourself that has the Grappled, Incapacitated, or Restrained condition if you succeed on a DC 13 Strength (Athletics) check. If the creature’s legs are bound, the creature has the Restrained condition until it escapes. Escaping the Chain requires the creature to make a successful DC 18 Dexterity (Acrobatics) check as an action. Bursting the Chain requires a successful DC 20 Strength (Athletics) check as an action.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:chest",
+    "name": "Chest",
+    "category": "Adventuring Gear",
+    "cost_cp": 500,
+    "description": "Weight: 25 lb.; Function: A Chest holds up to 12 cubic feet of contents.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:climber-s-kit",
+    "name": "Climber's Kit",
+    "category": "Adventuring Gear",
+    "cost_cp": 2500,
+    "description": "Weight: 12 lb.; Function: A Climber’s Kit includes boot tips, gloves, pitons, and a harness. As a Utilize action, you can use the Climber’s Kit to anchor yourself; when you do, you can’t fall more than 25 feet from the anchor point, and you can’t move more than 25 feet from there without undoing the anchor as a Bonus Action.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:clothes-fine",
+    "name": "Clothes, Fine",
+    "category": "Adventuring Gear",
+    "cost_cp": 1500,
+    "description": "Weight: 6 lb.; Function: Fine Clothes are made of expensive fabrics and adorned with expertly crafted details. Some events and locations admit only people wearing these clothes.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:clothes-traveler-s",
+    "name": "Clothes, Traveler's",
+    "category": "Adventuring Gear",
+    "cost_cp": 200,
+    "description": "Weight: 4 lb.; Function: Traveler’s Clothes are resilient garments designed for travel in various environments.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:component-pouch",
+    "name": "Component Pouch",
+    "category": "Adventuring Gear",
+    "cost_cp": 2500,
+    "description": "Weight: 2 lb.; Function: A Component Pouch is watertight and filled with compartments that hold all the free Material components of your spells.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:costume",
+    "name": "Costume",
+    "category": "Adventuring Gear",
+    "cost_cp": 500,
+    "description": "Weight: 4 lb.; Function: While wearing a Costume, you have Advantage on any ability check you make to impersonate the person or type of person it represents.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:crowbar",
+    "name": "Crowbar",
+    "category": "Adventuring Gear",
+    "cost_cp": 200,
+    "description": "Weight: 5 lb.; Function: Using a Crowbar gives you Advantage on Strength checks where the Crowbar’s leverage can be applied.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:desert-clothing",
+    "name": "Desert Clothing",
+    "category": "Adventuring Gear",
+    "cost_cp": 500,
+    "description": "Weight: -; Function: When you are wearing Desert Clothing and not wearing Medium or Heavy armor, you automatically succeed on saving throws against the effects of extreme heat. See chapter 3 of the Dungeon Master’s Guide for rules on extreme heat.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:devil-mask",
+    "name": "Devil Mask",
+    "category": "Adventuring Gear",
+    "cost_cp": 2500,
+    "description": "Weight: -; Function: While you are wearing a Devil Mask, other creatures have Disadvantage on Intelligence (Investigation) and Wisdom (Insight) checks made to discern your true identity or intentions.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:diplomat-s-pack",
+    "name": "Diplomat's Pack",
+    "category": "Adventuring Gear",
+    "cost_cp": 3900,
+    "description": "Weight: 39 lb.; Function: A Diplomat’s Pack contains the following items: Chest, Fine Clothes, Ink, 5 Ink Pens, Lamp, 2 Map or Scroll Cases, 4 flasks of Oil, 5 sheets of Paper, 5 sheets of Parchment, Perfume, and Tinderbox.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear",
+    "sub_items": [
+      "Chest",
+      "Fine Clothes",
+      "Ink",
+      "5 Ink Pens",
+      "Lamp",
+      "2 Map or Scroll Cases",
+      "4 flasks of Oil",
+      "5 sheets of Paper",
+      "5 sheets of Parchment",
+      "Perfume",
+      "Tinderbox"
+    ]
+  },
+  {
+    "id": "adventuring-gear:druidic-focus",
+    "name": "Druidic Focus",
+    "category": "Adventuring Gear",
+    "cost_cp": 0,
+    "description": "Weight: Varies; Function: A Druidic Focus takes one of the forms in the Druidic Focuses table and is carved, tied with ribbon, or painted to channel primal magic. A Druid or Ranger can use such an object as a Spellcasting Focus.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:dungeoneer-s-pack",
+    "name": "Dungeoneer's Pack",
+    "category": "Adventuring Gear",
+    "cost_cp": 1200,
+    "description": "Weight: 55 lb.; Function: A Dungeoneer’s Pack contains the following items: Backpack, Caltrops, Crowbar, 2 flasks of Oil, 10 days of Rations, Rope, Tinderbox, 10 Torches, and Waterskin.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear",
+    "sub_items": [
+      "Backpack",
+      "Caltrops",
+      "Crowbar",
+      "2 flasks of Oil",
+      "10 days of Rations",
+      "Rope",
+      "Tinderbox",
+      "10 Torches",
+      "Waterskin"
+    ]
+  },
+  {
+    "id": "adventuring-gear:entertainer-s-pack",
+    "name": "Entertainer's Pack",
+    "category": "Adventuring Gear",
+    "cost_cp": 4000,
+    "description": "Weight: 58½ lb.; Function: An Entertainer’s Pack contains the following items: Backpack, Bedroll, Bell, Bullseye Lantern, 3 Costumes, Mirror, 8 flasks of Oil, 9 days of Rations, Tinderbox, and Waterskin.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear",
+    "sub_items": [
+      "Backpack",
+      "Bedroll",
+      "Bell",
+      "Bullseye Lantern",
+      "3 Costumes",
+      "Mirror",
+      "8 flasks of Oil",
+      "9 days of Rations",
+      "Tinderbox",
+      "Waterskin"
+    ]
+  },
+  {
+    "id": "adventuring-gear:explorer-s-pack",
+    "name": "Explorer's Pack",
+    "category": "Adventuring Gear",
+    "cost_cp": 1000,
+    "description": "Weight: 55 lb.; Function: An Explorer’s Pack contains the following items: Backpack, Bedroll, 2 flasks of Oil, 10 days of Rations, Rope, Tinderbox, 10 Torches, and Waterskin.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear",
+    "sub_items": [
+      "Backpack",
+      "Bedroll",
+      "2 flasks of Oil",
+      "10 days of Rations",
+      "Rope",
+      "Tinderbox",
+      "10 Torches",
+      "Waterskin"
+    ]
+  },
+  {
+    "id": "adventuring-gear:flask",
+    "name": "Flask",
+    "category": "Adventuring Gear",
+    "cost_cp": 2,
+    "description": "Weight: 1 lb.; Function: A Flask holds up to 1 pint.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:garb-of-light-and-shadow",
+    "name": "Garb of Light and Shadow",
+    "category": "Adventuring Gear",
+    "cost_cp": 5000,
+    "description": "Weight: -; Function: This garb appeals to Fey from one Domain of Delight, such as the Gloaming Court or the Summer Court. While wearing the garb, you have Advantage on ability checks to influence Fey associated with that Domain of Delight.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:genie-robe",
+    "name": "Genie Robe",
+    "category": "Adventuring Gear",
+    "cost_cp": 5000,
+    "description": "Weight: -; Function: This robe appeals to Elementals associated with a particular Elemental Plane (Air, Earth, Fire, Water). While wearing a Genie Robe, you have Advantage on ability checks made to influence Elementals associated with that plane.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:grappling-hook",
+    "name": "Grappling Hook",
+    "category": "Adventuring Gear",
+    "cost_cp": 500,
+    "description": "Weight: 4 lb.; Function: As a Utilize action, you can throw the Grappling Hook at a railing, a ledge, or another catch within 50 feet of yourself, and the hook catches on if you succeed on a DC 13 Dexterity (Acrobatics) check. If you tied a Rope to the hook, you can then climb it.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:healer-s-kit",
+    "name": "Healer's Kit",
+    "category": "Adventuring Gear",
+    "cost_cp": 500,
+    "description": "Weight: 3 lb.; Function: A Healer’s Kit has ten uses. As a Utilize action, you can expend one of its uses to stabilize an Unconscious creature that has 0 Hit Points without needing to make a Wisdom (Medicine) check.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:holy-symbol",
+    "name": "Holy Symbol",
+    "category": "Adventuring Gear",
+    "cost_cp": 0,
+    "description": "Weight: Varies; Function: A Holy Symbol takes one of the forms in the Holy Symbol table and is bejeweled or painted to channel divine magic. A Cleric or Paladin can use a Holy Symbol as a Spellcasting Focus.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:holy-water",
+    "name": "Holy Water",
+    "category": "Adventuring Gear",
+    "cost_cp": 2500,
+    "description": "Weight: 1 lb.; Function: When you take the Attack action, you can replace one of your attacks with throwing a flask of Holy Water. Target one creature you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or take 2d8 Radiant damage if it is a Fiend or an Undead.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:hunting-trap",
+    "name": "Hunting Trap",
+    "category": "Adventuring Gear",
+    "cost_cp": 500,
+    "description": "Weight: 25 lb.; Function: As a Utilize action, you can set a Hunting Trap, which is a sawtooth steel ring that snaps shut when a creature steps on a pressure plate in the center. The trap is affixed by a heavy chain to an immobile object, such as a tree or a spike driven into the ground. A creature that steps on the plate must succeed on a DC 13 Dexterity saving throw or take 1d4 Piercing damage and have its Speed reduced to 0 until the start of its next turn. Thereafter, until the creature breaks free of the trap, its movement is limited by the length of the chain (typically 3 feet). A creature can use its action to make a DC 13 Strength (Athletics) check, freeing itself or another creature within its reach on a success. Each failed check deals 1 Piercing damage to the trapped creature.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:ink",
+    "name": "Ink",
+    "category": "Adventuring Gear",
+    "cost_cp": 1000,
+    "description": "Weight: -; Function: Ink comes in a 1-ounce bottle, which provides enough ink to write about 500 pages.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:ink-pen",
+    "name": "Ink Pen",
+    "category": "Adventuring Gear",
+    "cost_cp": 2,
+    "description": "Weight: -; Function: Using Ink, an Ink Pen is used to write or draw.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:jug",
+    "name": "Jug",
+    "category": "Adventuring Gear",
+    "cost_cp": 2,
+    "description": "Weight: 4 lb.; Function: A Jug holds up to 1 gallon.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:ladder",
+    "name": "Ladder",
+    "category": "Adventuring Gear",
+    "cost_cp": 10,
+    "description": "Weight: 25 lb.; Function: A Ladder is 10 feet tall. You must climb to move up or down it.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:lamp",
+    "name": "Lamp",
+    "category": "Adventuring Gear",
+    "cost_cp": 50,
+    "description": "Weight: 1 lb.; Function: A Lamp burns Oil as fuel to cast Bright Light in a 15-foot radius and Dim Light for an additional 30 feet.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:lantern-bullseye",
+    "name": "Lantern, Bullseye",
+    "category": "Adventuring Gear",
+    "cost_cp": 1000,
+    "description": "Weight: 2 lb.; Function: A Bullseye Lantern burns Oil as fuel to cast Bright Light in a 60-foot Cone and Dim Light for an additional 60 feet.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:lantern-hooded",
+    "name": "Lantern, Hooded",
+    "category": "Adventuring Gear",
+    "cost_cp": 500,
+    "description": "Weight: 2 lb.; Function: A Hooded Lantern burns Oil as fuel to cast Bright Light in a 30-foot radius and Dim Light for an additional 30 feet. As a Bonus Action, you can lower the hood, reducing the light to Dim Light in a 5-foot radius, or raise it again.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:lock",
+    "name": "Lock",
+    "category": "Adventuring Gear",
+    "cost_cp": 1000,
+    "description": "Weight: 1 lb.; Function: A Lock comes with a key. Without the key, a creature can use Thieves’ Tools to pick this Lock with a successful DC 15 Dexterity (Sleight of Hand) check.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:locking-spellbook",
+    "name": "Locking Spellbook",
+    "category": "Adventuring Gear",
+    "cost_cp": 3500,
+    "description": "Weight: -; Function: This 100-page leather-bound tome can be used as a Spellbook. It is closed with a lock that comes with a key. As a Utilize action, a creature can try to pick the lock using Thieves’ Tools, doing so with a successful DC 15 Dexterity (Sleight of Hand) check.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:magnifying-glass",
+    "name": "Magnifying Glass",
+    "category": "Adventuring Gear",
+    "cost_cp": 10000,
+    "description": "Weight: -; Function: A Magnifying Glass grants Advantage on any ability check made to appraise or inspect a highly detailed item. Lighting a fire with a Magnifying Glass requires light as bright as sunlight to focus, tinder to ignite, and about 5 minutes for the fire to ignite.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:manacles",
+    "name": "Manacles",
+    "category": "Adventuring Gear",
+    "cost_cp": 200,
+    "description": "Weight: 6 lb.; Function: As a Utilize action, you can use Manacles to bind an unwilling Small or Medium creature within 5 feet of yourself that has the Grappled, Incapacitated, or Restrained condition if you succeed on a DC 13 Dexterity (Sleight of Hand) check. While bound, a creature has Disadvantage on attack rolls, and the creature is Restrained if the Manacles are attached to a chain or hook that is fixed in place. Escaping the Manacles requires a successful DC 20 Dexterity (Sleight of Hand) check as an action. Bursting them requires a successful DC 25 Strength (Athletics) check as an action. Each set of Manacles comes with a key. Without the key, a creature can use Thieves’ Tools to pick the Manacles’ lock with a successful DC 15 Dexterity (Sleight of Hand) check.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:map",
+    "name": "Map",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: -; Function: If you consult an accurate Map, you gain a +5 bonus to Wisdom (Survival) checks you make to find your way in the place represented on it.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:mirror",
+    "name": "Mirror",
+    "category": "Adventuring Gear",
+    "cost_cp": 500,
+    "description": "Weight: 1/2 lb.; Function: A handheld steel Mirror is useful for personal cosmetics but also for peeking around corners and reflecting light as a signal.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:monster-camouflage",
+    "name": "Monster Camouflage",
+    "category": "Adventuring Gear",
+    "cost_cp": 5000,
+    "description": "Weight: -; Function: A suit of Monster Camouflage looks like a Beast or Monstrosity, such as an owlbear. To discern that you’re disguised, a creature must take the Study action to inspect your appearance and succeed on a DC 10 Intelligence (Investigation or Nature) check. The creature has Advantage on this check if it is within 30 feet of you and automatically succeeds on this check if you do anything the monster you’re disguised as couldn’t do.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:net",
+    "name": "Net",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: 3 lb.; Function: When you take the Attack action, you can replace one of your attacks with throwing a Net. Target a creature you can see within 15 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or have the Restrained condition until it escapes. The target succeeds automatically if it is Huge or larger. To escape, the target or a creature within 5 feet of it must take an action to make a DC 10 Strength (Athletics) check, freeing the Restrained creature on a success. Destroying the Net (AC 10; 5 HP; Immunity to Bludgeoning, Poison, and Psychic damage) also frees the target, ending the effect.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:oil",
+    "name": "Oil",
+    "category": "Adventuring Gear",
+    "cost_cp": 10,
+    "description": "Weight: 1 lb.; Function: You can douse a creature, object, or space with Oil or use it as fuel, as detailed below. Dousing a Creature or an Object. When you take the Attack action, you can replace one of your attacks with throwing an Oil flask. Target one creature or object within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or be covered in oil. If the target takes Fire damage before the oil dries (after 1 minute), the target takes an extra 5 Fire damage from burning oil. Dousing a Space. You can take the Utilize action to pour an Oil flask on level ground to cover a 5-foot-square area within 5 feet of yourself. If lit, the oil burns until the end of the turn 2 rounds from when the oil was lit (or 12 seconds) and deals 5 Fire damage to any creature that enters the area or ends its turn there. A creature can take this damage only once per turn. Fuel. Oil serves as fuel for Lamps and Lanterns. Once lit, a flask of Oil burns for 6 hours in a Lamp or Lantern. That duration doesn’t need to be consecutive; you can extinguish the burning Oil (as a Utilize action) and rekindle it again until it has burned for a total of 6 hours.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:paper",
+    "name": "Paper",
+    "category": "Adventuring Gear",
+    "cost_cp": 20,
+    "description": "Weight: -; Function: One sheet of Paper can hold about 250 handwritten words.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:parchment",
+    "name": "Parchment",
+    "category": "Adventuring Gear",
+    "cost_cp": 10,
+    "description": "Weight: -; Function: One sheet of Parchment can hold about 250 handwritten words.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:perfume",
+    "name": "Perfume",
+    "category": "Adventuring Gear",
+    "cost_cp": 500,
+    "description": "Weight: -; Function: Perfume comes in a 4-ounce vial. For 1 hour after applying Perfume to yourself, you have Advantage on Charisma (Persuasion) checks made to influence an Indifferent Humanoid within 5 feet of yourself.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:poison-basic",
+    "name": "Poison, Basic",
+    "category": "Adventuring Gear",
+    "cost_cp": 10000,
+    "description": "Weight: -; Function: As a Bonus Action, you can use a vial of Basic Poison to coat one weapon or up to three pieces of ammunition. A creature that takes Piercing or Slashing damage from the poisoned weapon or ammunition takes an extra 1d4 Poison damage. Once applied, the poison retains potency for 1 minute or until its damage is dealt, whichever comes first.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:pole",
+    "name": "Pole",
+    "category": "Adventuring Gear",
+    "cost_cp": 5,
+    "description": "Weight: 7 lb.; Function: A Pole is 10 feet long. You can use it to touch something up to 10 feet away. If you must make a Strength (Athletics) check as part of a High or Long Jump, you can use the Pole to vault, giving yourself Advantage on the check.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:pot-iron",
+    "name": "Pot, Iron",
+    "category": "Adventuring Gear",
+    "cost_cp": 200,
+    "description": "Weight: 10 lb.; Function: An Iron Pot holds up to 1 gallon.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:potion-of-healing",
+    "name": "Potion of Healing",
+    "category": "Adventuring Gear",
+    "cost_cp": 5000,
+    "description": "Weight: 1/2 lb.; Function: This potion is a magic item. As a Bonus Action, you can drink it or administer it to another creature within 5 feet of yourself. The creature that drinks the magical red fluid in this vial regains 2d4 + 2 Hit Points.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:pouch",
+    "name": "Pouch",
+    "category": "Adventuring Gear",
+    "cost_cp": 50,
+    "description": "Weight: 1 lb.; Function: A Pouch holds up to 6 pounds within one-fifth of a cubic foot.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:priest-s-pack",
+    "name": "Priest's Pack",
+    "category": "Adventuring Gear",
+    "cost_cp": 3300,
+    "description": "Weight: 29 lb.; Function: A Priest’s Pack contains the following items: Backpack, Blanket, Holy Water, Lamp, 7 days of Rations, Robe, and Tinderbox.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear",
+    "sub_items": [
+      "Backpack",
+      "Blanket",
+      "Holy Water",
+      "Lamp",
+      "7 days of Rations",
+      "Robe",
+      "Tinderbox"
+    ]
+  },
+  {
+    "id": "adventuring-gear:quiver",
+    "name": "Quiver",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: 1 lb.; Function: A Quiver holds up to 20 Arrows.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:ram-portable",
+    "name": "Ram, Portable",
+    "category": "Adventuring Gear",
+    "cost_cp": 400,
+    "description": "Weight: 35 lb.; Function: You can use a Portable Ram to break down doors. When doing so, you gain a +4 bonus to the Strength check. One other character can help you use the ram, giving you Advantage on this check.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:rations",
+    "name": "Rations",
+    "category": "Adventuring Gear",
+    "cost_cp": 50,
+    "description": "Weight: 2 lb.; Function: Rations consist of travel-ready food, including jerky, dried fruit, hardtack, and nuts. See “Malnutrition” in the rules glossary for the risks of not eating.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:robe",
+    "name": "Robe",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: 4 lb.; Function: A Robe has vocational or ceremonial significance. Some events and locations admit only people wearing a Robe bearing certain colors or symbols.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:rope",
+    "name": "Rope",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: 5 lb.; Function: As a Utilize action, you can tie a knot with Rope if you succeed on a DC 10 Dexterity (Sleight of Hand) check. The Rope can be burst with a successful DC 20 Strength (Athletics) check. You can bind an unwilling creature with the Rope only if the creature has the Grappled, Incapacitated, or Restrained condition. If the creature’s legs are bound, the creature has the Restrained condition until it escapes. Escaping the Rope requires the creature to make a successful DC 15 Dexterity (Acrobatics) check as an action.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:sack",
+    "name": "Sack",
+    "category": "Adventuring Gear",
+    "cost_cp": 1,
+    "description": "Weight: 1/2 lb.; Function: A Sack holds up to 30 pounds within 1 cubic foot.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:scholar-s-pack",
+    "name": "Scholar's Pack",
+    "category": "Adventuring Gear",
+    "cost_cp": 4000,
+    "description": "Weight: 22 lb.; Function: A Scholar’s Pack contains the following items: Backpack, Book, Ink, Ink Pen, Lamp, 10 flasks of Oil, 10 sheets of Parchment, and Tinderbox.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear",
+    "sub_items": [
+      "Backpack",
+      "Book",
+      "Ink",
+      "Ink Pen",
+      "Lamp",
+      "10 flasks of Oil",
+      "10 sheets of Parchment",
+      "Tinderbox"
+    ]
+  },
+  {
+    "id": "adventuring-gear:shovel",
+    "name": "Shovel",
+    "category": "Adventuring Gear",
+    "cost_cp": 200,
+    "description": "Weight: 5 lb.; Function: Working for 1 hour, you can use a Shovel to dig a hole that is 5 feet on each side in soil or similar material.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:signal-whistle",
+    "name": "Signal Whistle",
+    "category": "Adventuring Gear",
+    "cost_cp": 5,
+    "description": "Weight: -; Function: When blown as a Utilize action, a Signal Whistle produces a sound that can be heard up to 600 feet away.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:spell-scroll-cantrip",
+    "name": "Spell Scroll (Cantrip)",
+    "category": "Adventuring Gear",
+    "cost_cp": 3000,
+    "description": "Weight: -; Function: A Spell Scroll (Cantrip) is a magic item that bears the words of a cantrip determined by the scroll’s creator. If the spell is on your class’s spell list, you can read the scroll and cast the spell using its normal casting time and without providing any Material components. If the spell requires a saving throw or an attack roll, the spell save DC is 13, and the attack bonus is +5. The scroll disintegrates when the casting is completed.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:spell-scroll-level-1",
+    "name": "Spell Scroll (Level 1)",
+    "category": "Adventuring Gear",
+    "cost_cp": 5000,
+    "description": "Weight: -; Function: A Spell Scroll (Level 1) is a magic item that bears the words of a level 1 spell, respectively, determined by the scroll’s creator. If the spell is on your class’s spell list, you can read the scroll and cast the spell using its normal casting time and without providing any Material components. If the spell requires a saving throw or an attack roll, the spell save DC is 13, and the attack bonus is +5. The scroll disintegrates when the casting is completed.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:spikes-iron",
+    "name": "Spikes, Iron",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: 5 lb.; Function: Iron Spikes come in bundles of ten. As a Utilize action, you can use a blunt object, such as a Light Hammer, to hammer a spike into wood, earth, or a similar material. You can do so to jam a door shut or to then tie a Rope or Chain to the Spike.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:spyglass",
+    "name": "Spyglass",
+    "category": "Adventuring Gear",
+    "cost_cp": 100000,
+    "description": "Weight: 1 lb.; Function: Objects viewed through a Spyglass are magnified to twice their size.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:string",
+    "name": "String",
+    "category": "Adventuring Gear",
+    "cost_cp": 10,
+    "description": "Weight: -; Function: String is 10 feet long. You can tie a knot in it as a Utilize action.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:tent",
+    "name": "Tent",
+    "category": "Adventuring Gear",
+    "cost_cp": 200,
+    "description": "Weight: 20 lb.; Function: A Tent sleeps up to two Small or Medium creatures.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:tinderbox",
+    "name": "Tinderbox",
+    "category": "Adventuring Gear",
+    "cost_cp": 50,
+    "description": "Weight: 1 lb.; Function: A Tinderbox is a small container holding flint, fire steel, and tinder (usually dry cloth soaked in light oil) used to kindle a fire. Using it to light a Candle, Lamp, Lantern, or Torch—or anything else with exposed fuel—takes a Bonus Action. Lighting any other fire takes 1 minute.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:torch",
+    "name": "Torch",
+    "category": "Adventuring Gear",
+    "cost_cp": 1,
+    "description": "Weight: 1 lb.; Function: A Torch burns for 1 hour, casting Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. When you take the Attack action, you can attack with the Torch, using it as a Simple Melee weapon. On a hit, the target takes 1 Fire damage.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:vial",
+    "name": "Vial",
+    "category": "Adventuring Gear",
+    "cost_cp": 100,
+    "description": "Weight: -; Function: A Vial holds up to 4 ounces.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:warm-fungal-clothing",
+    "name": "Warm Fungal Clothing",
+    "category": "Adventuring Gear",
+    "cost_cp": 1500,
+    "description": "Weight: -; Function: When you’re wearing Warm Fungal Clothing, you automatically succeed on saving throws against the effects of extreme cold. See chapter 3 of the Dungeon Master’s Guide for rules on extreme cold. One pound of fungus is sewn into Fungal Clothing. This fungus can be eaten as food. Once all the fungus is consumed, this becomes a mundane set of Traveler’s Clothes.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:waterskin",
+    "name": "Waterskin",
+    "category": "Adventuring Gear",
+    "cost_cp": 20,
+    "description": "Weight: 5 lb. (full); Function: A Waterskin holds up to 4 pints. If you don’t drink sufficient water, you risk dehydration (see the rules glossary).",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "adventuring-gear:winter-camouflage",
+    "name": "Winter Camouflage",
+    "category": "Adventuring Gear",
+    "cost_cp": 5000,
+    "description": "Weight: -; Function: While you wear Winter Camouflage in an appropriate environment, you have Advantage on Dexterity (Stealth) checks.",
+    "source": "http://dnd2024.wikidot.com/equipment:adventuring-gear"
+  },
+  {
+    "id": "armor:padded-armor",
+    "name": "Padded Armor",
+    "category": "Armor",
+    "cost_cp": 500,
+    "description": "Armor Class (AC): 11 + Dex modifier; Strength: -; Stealth: Disadvantage; Weight: 8 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "armor:leather-armor",
+    "name": "Leather Armor",
+    "category": "Armor",
+    "cost_cp": 1000,
+    "description": "Armor Class (AC): 11 + Dex modifier; Strength: -; Stealth: -; Weight: 10 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "armor:studded-leather-armor",
+    "name": "Studded Leather Armor",
+    "category": "Armor",
+    "cost_cp": 4500,
+    "description": "Armor Class (AC): 12 + Dex modifier; Strength: -; Stealth: -; Weight: 13 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "armor:hide-armor",
+    "name": "Hide Armor",
+    "category": "Armor",
+    "cost_cp": 1000,
+    "description": "Armor Class (AC): 12 + Dex modifier (max 2); Strength: -; Stealth: -; Weight: 12 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "armor:chain-shirt",
+    "name": "Chain Shirt",
+    "category": "Armor",
+    "cost_cp": 5000,
+    "description": "Armor Class (AC): 13 + Dex modifier (max 2); Strength: -; Stealth: -; Weight: 20 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "armor:scale-mail",
+    "name": "Scale Mail",
+    "category": "Armor",
+    "cost_cp": 5000,
+    "description": "Armor Class (AC): 14 + Dex modifier (max 2); Strength: -; Stealth: Disadvantage; Weight: 45 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "armor:breastplate",
+    "name": "Breastplate",
+    "category": "Armor",
+    "cost_cp": 40000,
+    "description": "Armor Class (AC): 14 + Dex modifier (max 2); Strength: -; Stealth: -; Weight: 20 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "armor:half-plate-armor",
+    "name": "Half Plate Armor",
+    "category": "Armor",
+    "cost_cp": 75000,
+    "description": "Armor Class (AC): 15 + Dex modifier (max 2); Strength: -; Stealth: Disadvantage; Weight: 40 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "armor:ring-mail",
+    "name": "Ring Mail",
+    "category": "Armor",
+    "cost_cp": 3000,
+    "description": "Armor Class (AC): 14; Strength: -; Stealth: Disadvantage; Weight: 40 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "armor:chain-mail",
+    "name": "Chain Mail",
+    "category": "Armor",
+    "cost_cp": 7500,
+    "description": "Armor Class (AC): 16; Strength: Str 13; Stealth: Disadvantage; Weight: 55 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "armor:splint-armor",
+    "name": "Splint Armor",
+    "category": "Armor",
+    "cost_cp": 20000,
+    "description": "Armor Class (AC): 17; Strength: Str 15; Stealth: Disadvantage; Weight: 60 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "armor:plate-armor",
+    "name": "Plate Armor",
+    "category": "Armor",
+    "cost_cp": 150000,
+    "description": "Armor Class (AC): 18; Strength: Str 15; Stealth: Disadvantage; Weight: 65 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "armor:shield",
+    "name": "Shield",
+    "category": "Armor",
+    "cost_cp": 1000,
+    "description": "Armor Class (AC): +2; Strength: -; Stealth: -; Weight: 6 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:armor"
+  },
+  {
+    "id": "weapons:ammunition",
+    "name": "Ammunition",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: You can use a weapon that has the Ammunition property to make a ranged attack only if you have ammunition to fire from it. The type of ammunition required is specified with the weapon's range. Each attack expends one piece of ammunition. Drawing the ammunition is part of the attack (you need a free hand to load a one-handed weapon). After a fight, you can spend 1 minute to recover half the ammunition (round down) you used in the fight; the rest is lost.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:finesse",
+    "name": "Finesse",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: When making an attack with a Finesse weapon, use your choice of your Strength or Dexterity modifier for the attack and damage rolls. You must use the same modifier for both rolls.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:heavy",
+    "name": "Heavy",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: You have Disadvantage on attack rolls with a Heavy weapon if it's a Melee weapon and your Strength score isn't at least 13 or if it's a Ranged weapon and your Dexterity score isn't at least 13.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:light",
+    "name": "Light",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: When you take the Attack action on your turn and attack with a Light weapon, you can make one extra attack as a Bonus Action later on the same turn. That extra attack must be made with a different Light weapon, and you don’t add your ability modifier to the extra attack’s damage unless that modifier is negative. For example, you can attack with a Shortsword in one hand and a Dagger in the other using the Attack action and a Bonus Action, but you don't add your Strength or Dexterity modifier to the damage roll of the Bonus Action unless that modifier is negative.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:loading",
+    "name": "Loading",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: You can fire only one piece of ammunition from a Loading weapon when you use an action, a Bonus Action, or a Reaction to fire it, regardless of the number of attacks you can normally make.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:range",
+    "name": "Range",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: A Range weapon has a range in parentheses after the Ammunition or Thrown property. The range lists two numbers. The first is the weapon’s normal range in feet, and the second is the weapon’s long range. When attacking a target beyond normal range, you have Disadvantage on the attack roll. You can't attack a target beyond the long range.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:reach",
+    "name": "Reach",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: A Reach weapon adds 5 feet to your reach when you attack with it, as well as when determining your reach for Opportunity Attacks with it.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:thrown",
+    "name": "Thrown",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: If a weapon has the Thrown property, you can throw the weapon to make a ranged attack, and you can draw that weapon as part of the attack. If the weapon is a Melee weapon, use the same ability modifier for the attack and damage rolls that you use for a melee attack with that weapon.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:two-handed",
+    "name": "Two-Handed",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: A Two-Handed weapon requires two hands when you attack with it.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:versatile",
+    "name": "Versatile",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: A Versatile weapon can be used with one or two hands. A damage value in parentheses appears with the property. The weapon deals that damage when used with two hands to make a melee attack.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:cleave",
+    "name": "Cleave",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: If you hit a creature with a melee attack roll using this weapon, you can make a melee attack roll with the weapon against a second creature within 5 feet of the first that is also within your reach. On a hit, the second creature takes the weapon’s damage, but don't add your ability modifier to that damage unless that modifier is negative. You can make this extra attack only once per turn.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:graze",
+    "name": "Graze",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: If your attack roll with this weapon misses a creature, you can deal damage to that creature equal to the ability modifier you used to make the attack roll. This damage is the same type dealt by the weapon, and the damage can be increased only by increasing the ability modifier.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:nick",
+    "name": "Nick",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: When you make the extra attack of the Light property, you can make it as part of the Attack action instead of as a Bonus Action. You can make this extra attack only once per turn.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:push",
+    "name": "Push",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: If you hit a creature with this weapon, you can push the creature up to 10 feet straight away from yourself if it is Large or smaller.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:sap",
+    "name": "Sap",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: If you hit a creature with this weapon, that creature has Disadvantage on its next attack roll before the start of your next turn.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:slow",
+    "name": "Slow",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: If you hit a creature with this weapon and deal damage to it, you can reduce its Speed by 10 feet until the start of your next turn. If the creature is hit more than once by weapons that have this property, the Speed reduction doesn’t exceed 10 feet.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:topple",
+    "name": "Topple",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: If you hit a creature with this weapon, you can force the creature to make a Constitution saving throw (DC 8 plus the ability modifier used to make the attack roll and your Proficiency Bonus). On a failed save, the creature has the Prone condition.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:vex",
+    "name": "Vex",
+    "category": "Weapons",
+    "cost_cp": 0,
+    "description": "Description: If you hit a creature with this weapon and deal damage to the creature, you have Advantage on your next attack roll against that creature before the end of your next turn.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:arrows",
+    "name": "Arrows",
+    "category": "Weapons",
+    "cost_cp": 100,
+    "description": "Amount: 20; Storage: Quiver; Weight: 1 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:bolts",
+    "name": "Bolts",
+    "category": "Weapons",
+    "cost_cp": 100,
+    "description": "Amount: 20; Storage: Case; Weight: 1 1/2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:bullets-firearm",
+    "name": "Bullets, Firearm",
+    "category": "Weapons",
+    "cost_cp": 300,
+    "description": "Amount: 10; Storage: Pouch; Weight: 2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:bullets-sling",
+    "name": "Bullets, Sling",
+    "category": "Weapons",
+    "cost_cp": 4,
+    "description": "Amount: 20; Storage: Pouch; Weight: 1 1/2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:needles",
+    "name": "Needles",
+    "category": "Weapons",
+    "cost_cp": 100,
+    "description": "Amount: 50; Storage: Pouch; Weight: 1 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "mounts-and-vehicles:axe-beak",
+    "name": "Axe Beak",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 5000,
+    "description": "Carrying Capacity: 210 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:camel",
+    "name": "Camel",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 5000,
+    "description": "Carrying Capacity: 450 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:elephant",
+    "name": "Elephant",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 20000,
+    "description": "Carrying Capacity: 1,320 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:flying-snake",
+    "name": "Flying Snake",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 2500,
+    "description": "Carrying Capacity: 60 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:horse-draft",
+    "name": "Horse, Draft",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 5000,
+    "description": "Carrying Capacity: 540 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:horse-riding",
+    "name": "Horse, Riding",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 7500,
+    "description": "Carrying Capacity: 480 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:mastiff",
+    "name": "Mastiff",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 2500,
+    "description": "Carrying Capacity: 195 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:mule",
+    "name": "Mule",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 800,
+    "description": "Carrying Capacity: 420 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:pony",
+    "name": "Pony",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 3000,
+    "description": "Carrying Capacity: 225 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:sled-dog",
+    "name": "Sled Dog",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 5000,
+    "description": "Carrying Capacity: 210 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:warhorse",
+    "name": "Warhorse",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 40000,
+    "description": "Carrying Capacity: 540 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:exotic",
+    "name": "Exotic",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 6000,
+    "description": "Weight: 40 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:military",
+    "name": "Military",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 2000,
+    "description": "Weight: 30 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:riding",
+    "name": "Riding",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 1000,
+    "description": "Weight: 25 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:carriage",
+    "name": "Carriage",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 10000,
+    "description": "Weight: 600 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:cart",
+    "name": "Cart",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 1500,
+    "description": "Weight: 200 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:chariot",
+    "name": "Chariot",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 25000,
+    "description": "Weight: 100 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:covered-wagon",
+    "name": "Covered Wagon",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 25000,
+    "description": "Weight: 1,300 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:feed-per-day",
+    "name": "Feed per day",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 5,
+    "description": "Weight: 10 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:sled",
+    "name": "Sled",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 2000,
+    "description": "Weight: 300 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:stabling-per-day",
+    "name": "Stabling per day",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 50,
+    "description": "Weight: -",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:wagon",
+    "name": "Wagon",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 3500,
+    "description": "Weight: 400 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:airship",
+    "name": "Airship",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 4000000,
+    "description": "Speed: 8 mph; Crew: 10; Passengers: 20; Cargo (Tons): 1; AC: 13; HP: 300; Damage Threshold: -",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:galley",
+    "name": "Galley",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 3000000,
+    "description": "Speed: 4 mph; Crew: 80; Passengers: -; Cargo (Tons): 150; AC: 15; HP: 500; Damage Threshold: 20",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:keelboat",
+    "name": "Keelboat",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 300000,
+    "description": "Speed: 1 mph; Crew: 1; Passengers: 6; Cargo (Tons): 1/2; AC: 15; HP: 100; Damage Threshold: 10",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:longship",
+    "name": "Longship",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 1000000,
+    "description": "Speed: 3 mph; Crew: 40; Passengers: 150; Cargo (Tons): 10; AC: 15; HP: 300; Damage Threshold: 15",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:rowboat",
+    "name": "Rowboat",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 5000,
+    "description": "Speed: 1½ mph; Crew: 1; Passengers: 3; Cargo (Tons): -; AC: 11; HP: 50; Damage Threshold: -",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:sailing-ship",
+    "name": "Sailing Ship",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 1000000,
+    "description": "Speed: 2 mph; Crew: 20; Passengers: 20; Cargo (Tons): 100; AC: 15; HP: 300; Damage Threshold: 15",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:warship",
+    "name": "Warship",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 2500000,
+    "description": "Speed: 2½; Crew: 60; Passengers: 60; Cargo (Tons): 200; AC: 15; HP: 500; Damage Threshold: 20",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:lyrandar-air-cruiser",
+    "name": "Lyrandar Air Cruiser",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 5000000,
+    "description": "Speed: 10 mph (Fly Speed 100 ft. [hover]); Crew: 10; Passengers: 40; Cargo (Tons): 2; AC: 16; HP: 600; Damage Threshold: 20",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:lyrandar-skyskiff",
+    "name": "Lyrandar Skyskiff",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 2000000,
+    "description": "Speed: 7 mph (Fly Speed 70 ft. [hover]); Crew: 2; Passengers: 2; Cargo (Tons): 1/2; AC: 18; HP: 150; Damage Threshold: 5",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "mounts-and-vehicles:strider-airship",
+    "name": "Strider Airship",
+    "category": "Mounts and Vehicles",
+    "cost_cp": 4000000,
+    "description": "Speed: 8 mph (Fly Speed 80 ft. [hover]); Crew: 6; Passengers: 20; Cargo (Tons): 1; AC: 16; HP: 350; Damage Threshold: 10",
+    "source": "http://dnd2024.wikidot.com/equipment:mounts-and-vehicles"
+  },
+  {
+    "id": "poisons:assassin-s-blood",
+    "name": "Assassin’s Blood",
+    "category": "Poisons",
+    "cost_cp": 15000,
+    "description": "Type: Ingested Poison; Effect: A creature subjected to Assassin’s Blood makes a DC 10 Constitution saving throw. On a failed save, the creature takes 6 (1d12) Poison damage and has the Poisoned condition for 24 hours. On a successful save, the creature takes half as much damage only.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:burnt-othur-fumes",
+    "name": "Burnt Othur Fumes",
+    "category": "Poisons",
+    "cost_cp": 50000,
+    "description": "Type: Inhaled Poison; Effect: A creature subjected to Burnt Othur Fumes must succeed on a DC 13 Constitution saving throw or take 10 (3d6) Poison damage, and it must repeat the save at the start of each of its turns. On each successive failed save, the creature takes 3 (1d6) Poison damage. After three successful saves, the poison ends.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:carrion-crawler-mucus",
+    "name": "Carrion Crawler Mucus",
+    "category": "Poisons",
+    "cost_cp": 20000,
+    "description": "Type: Contact Poison; Effect: A creature subjected to Carrion Crawler Mucus must succeed on a DC 13 Constitution saving throw or have the Poisoned condition for 1 minute. The creature also has the Paralyzed condition while Poisoned in this way. The creature repeats the save at the end of each of its turns, ending the effect on itself on a success.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:essence-of-ether",
+    "name": "Essence of Ether",
+    "category": "Poisons",
+    "cost_cp": 30000,
+    "description": "Type: Inhaled Poison; Effect: A creature subjected to Essence of Ether must succeed on a DC 15 Constitution saving throw or have the Poisoned condition for 8 hours. The creature also has the Unconscious condition while Poisoned in this way. The creature wakes up if it takes damage or if another creature takes an action to shake it awake.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:lolth-s-sting",
+    "name": "Lolth’s Sting",
+    "category": "Poisons",
+    "cost_cp": 20000,
+    "description": "Type: Injury Poison; Effect: A creature subjected to Lolth’s Sting must succeed on a DC 13 Constitution saving throw or have the Poisoned condition for 1 hour. If the creature fails the save by 5 or more, the creature also has the Unconscious condition while Poisoned in this way. The creature wakes up if it takes damage or if another creature takes an action to shake it awake.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:malice",
+    "name": "Malice",
+    "category": "Poisons",
+    "cost_cp": 25000,
+    "description": "Type: Inhaled Poison; Effect: A creature subjected to Malice must succeed on a DC 15 Constitution saving throw or have the Poisoned condition for 1 hour. The creature also has the Blinded condition while Poisoned in this way.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:midnight-tears",
+    "name": "Midnight Tears",
+    "category": "Poisons",
+    "cost_cp": 150000,
+    "description": "Type: Ingested Poison; Effect: A creature that ingests Midnight Tears suffers no effect until the stroke of midnight. Any effect that ends the Poisoned condition neutralizes this poison. If the poison hasn’t been neutralized before midnight, the creature makes a DC 17 Constitution saving throw, taking 31 (9d6) Poison damage on a failed save or half as much damage on a successful one.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:oil-of-taggit",
+    "name": "Oil of Taggit",
+    "category": "Poisons",
+    "cost_cp": 40000,
+    "description": "Type: Contact Poison; Effect: A creature subjected to Oil of Taggit must succeed on a DC 13 Constitution saving throw or have the Poisoned condition for 24 hours. The creature also has the Unconscious condition while Poisoned in this way. It wakes up if it takes damage.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:pale-tincture",
+    "name": "Pale Tincture",
+    "category": "Poisons",
+    "cost_cp": 25000,
+    "description": "Type: Ingested Poison; Effect: A creature subjected to Pale Tincture must succeed on a DC 16 Constitution saving throw or take 3 (1d6) Poison damage and have the Poisoned condition. The Poisoned creature repeats the save every 24 hours, taking 3 (1d6) Poison damage on a failed save. The damage the poison deals can’t be healed by any means while the creature remains Poisoned. After seven successful saves against the poison, the creature is no longer Poisoned.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:purple-worm-poison",
+    "name": "Purple Worm Poison",
+    "category": "Poisons",
+    "cost_cp": 200000,
+    "description": "Type: Injury Poison; Effect: A creature subjected to Purple Worm Poison makes a DC 21 Constitution saving throw, taking 35 (10d6) Poison damage on a failed save or half as much damage on a successful one.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:serpent-venom",
+    "name": "Serpent Venom",
+    "category": "Poisons",
+    "cost_cp": 20000,
+    "description": "Type: Injury Poison; Effect: A creature subjected to Serpent Venom must succeed on a DC 11 Constitution saving throw, taking 10 (3d6) Poison damage on a failed save or half as much damage on a successful one.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:torpor",
+    "name": "Torpor",
+    "category": "Poisons",
+    "cost_cp": 60000,
+    "description": "Type: Ingested Poison; Effect: A creature subjected to Torpor poison must succeed on a DC 15 Constitution saving throw or have the Poisoned condition for 4d6 hours. The creature’s Speed is halved while the creature is Poisoned in this way.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:truth-serum",
+    "name": "Truth Serum",
+    "category": "Poisons",
+    "cost_cp": 15000,
+    "description": "Type: Ingested Poison; Effect: A creature subjected to Truth Serum must succeed on a DC 11 Constitution saving throw or have the Poisoned condition for 1 hour. The Poisoned creature can’t knowingly communicate a lie.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "poisons:wyvern-poison",
+    "name": "Wyvern Poison",
+    "category": "Poisons",
+    "cost_cp": 120000,
+    "description": "Type: Injury Poison; Effect: A creature subjected to Wyvern Poison makes a DC 14 Constitution saving throw, taking 24 (7d6) Poison damage on a failed save or half as much damage on a successful one.",
+    "source": "http://dnd2024.wikidot.com/equipment:poison"
+  },
+  {
+    "id": "tools:alchemist-s-supplies",
+    "name": "Alchemist's Supplies",
+    "category": "Tools",
+    "cost_cp": 5000,
+    "description": "Ability: Intelligence; Weight: 8 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:brewer-s-supplies",
+    "name": "Brewer's Supplies",
+    "category": "Tools",
+    "cost_cp": 2000,
+    "description": "Ability: Intelligence; Weight: 9 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:calligrapher-s-supplies",
+    "name": "Calligrapher's Supplies",
+    "category": "Tools",
+    "cost_cp": 1000,
+    "description": "Ability: Dexterity; Weight: 5 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:carpenter-s-tools",
+    "name": "Carpenter's Tools",
+    "category": "Tools",
+    "cost_cp": 800,
+    "description": "Ability: Strength; Weight: 6 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:cartographer-s-tools",
+    "name": "Cartographer's Tools",
+    "category": "Tools",
+    "cost_cp": 1500,
+    "description": "Ability: Wisdom; Weight: 6 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:cobbler-s-tools",
+    "name": "Cobbler's Tools",
+    "category": "Tools",
+    "cost_cp": 500,
+    "description": "Ability: Dexterity; Weight: 5 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:cook-s-utensils",
+    "name": "Cook's Utensils",
+    "category": "Tools",
+    "cost_cp": 100,
+    "description": "Ability: Wisdom; Weight: 8 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:glassblower-s-tools",
+    "name": "Glassblower's Tools",
+    "category": "Tools",
+    "cost_cp": 3000,
+    "description": "Ability: Intelligence; Weight: 5 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:jeweler-s-tools",
+    "name": "Jeweler's Tools",
+    "category": "Tools",
+    "cost_cp": 2500,
+    "description": "Ability: Intelligence; Weight: 2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:leatherworker-s-tools",
+    "name": "Leatherworker's Tools",
+    "category": "Tools",
+    "cost_cp": 500,
+    "description": "Ability: Dexterity; Weight: 5 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:mason-s-tools",
+    "name": "Mason's Tools",
+    "category": "Tools",
+    "cost_cp": 1000,
+    "description": "Ability: Strength; Weight: 8 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:painter-s-supplies",
+    "name": "Painter's Supplies",
+    "category": "Tools",
+    "cost_cp": 1000,
+    "description": "Ability: Wisdom; Weight: 5 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:potter-s-tools",
+    "name": "Potter's Tools",
+    "category": "Tools",
+    "cost_cp": 1000,
+    "description": "Ability: Intelligence; Weight: 3 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:smith-s-tools",
+    "name": "Smith's Tools",
+    "category": "Tools",
+    "cost_cp": 2000,
+    "description": "Ability: Strength; Weight: 8 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:tinker-s-tools",
+    "name": "Tinker's Tools",
+    "category": "Tools",
+    "cost_cp": 5000,
+    "description": "Ability: Dexterity; Weight: 10 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:weaver-s-tools",
+    "name": "Weaver's Tools",
+    "category": "Tools",
+    "cost_cp": 100,
+    "description": "Ability: Dexterity; Weight: 5 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:woodcarver-s-tools",
+    "name": "Woodcarver's Tools",
+    "category": "Tools",
+    "cost_cp": 100,
+    "description": "Ability: Dexterity; Weight: 5 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:disguise-kit",
+    "name": "Disguise Kit",
+    "category": "Tools",
+    "cost_cp": 2500,
+    "description": "Ability: Charisma; Weight: 3 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:forgery-kit",
+    "name": "Forgery Kit",
+    "category": "Tools",
+    "cost_cp": 1500,
+    "description": "Ability: Dexterity; Weight: 5 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:herbalism-kit",
+    "name": "Herbalism Kit",
+    "category": "Tools",
+    "cost_cp": 500,
+    "description": "Ability: Intelligence; Weight: 3 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:navigator-s-tools",
+    "name": "Navigator's Tools",
+    "category": "Tools",
+    "cost_cp": 2500,
+    "description": "Ability: Wisdom; Weight: 2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:poisoner-s-kit",
+    "name": "Poisoner's Kit",
+    "category": "Tools",
+    "cost_cp": 5000,
+    "description": "Ability: Intelligence; Weight: 2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:thieves-tools",
+    "name": "Thieves' Tools",
+    "category": "Tools",
+    "cost_cp": 2500,
+    "description": "Ability: Dexterity; Weight: 1 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:dice",
+    "name": "Dice",
+    "category": "Tools",
+    "cost_cp": 10,
+    "description": "Ability: Wisdom; Weight: -",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:dragonchess",
+    "name": "Dragonchess",
+    "category": "Tools",
+    "cost_cp": 100,
+    "description": "Ability: Wisdom; Weight: -",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:playing-cards",
+    "name": "Playing Cards",
+    "category": "Tools",
+    "cost_cp": 50,
+    "description": "Ability: Wisdom; Weight: -",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:three-dragon-ante",
+    "name": "Three-dragon Ante",
+    "category": "Tools",
+    "cost_cp": 100,
+    "description": "Ability: Wisdom; Weight: -",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:bagpipes",
+    "name": "Bagpipes",
+    "category": "Tools",
+    "cost_cp": 3000,
+    "description": "Ability: Charisma; Weight: 6 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:drum",
+    "name": "Drum",
+    "category": "Tools",
+    "cost_cp": 600,
+    "description": "Ability: Charisma; Weight: 3 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:dulcimer",
+    "name": "Dulcimer",
+    "category": "Tools",
+    "cost_cp": 2500,
+    "description": "Ability: Charisma; Weight: 10 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:flute",
+    "name": "Flute",
+    "category": "Tools",
+    "cost_cp": 200,
+    "description": "Ability: Charisma; Weight: 1 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:horn",
+    "name": "Horn",
+    "category": "Tools",
+    "cost_cp": 300,
+    "description": "Ability: Charisma; Weight: 2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:lute",
+    "name": "Lute",
+    "category": "Tools",
+    "cost_cp": 3500,
+    "description": "Ability: Charisma; Weight: 2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:lyre",
+    "name": "Lyre",
+    "category": "Tools",
+    "cost_cp": 3000,
+    "description": "Ability: Charisma; Weight: 2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:pan-flute",
+    "name": "Pan Flute",
+    "category": "Tools",
+    "cost_cp": 1200,
+    "description": "Ability: Charisma; Weight: 2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:shawm",
+    "name": "Shawm",
+    "category": "Tools",
+    "cost_cp": 200,
+    "description": "Ability: Charisma; Weight: 1 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "tools:viol",
+    "name": "Viol",
+    "category": "Tools",
+    "cost_cp": 3000,
+    "description": "Ability: Charisma; Weight: 1 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:tool"
+  },
+  {
+    "id": "magic-items:adventurer-s-ring",
+    "name": "Adventurer's Ring",
+    "category": "Magic Items",
+    "cost_cp": 25000,
+    "description": "Type: Ring; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:armor-of-gleaming",
+    "name": "Armor of Gleaming",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:bead-of-nourishment",
+    "name": "Bead of Nourishment",
+    "category": "Magic Items",
+    "cost_cp": 5000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:bead-of-refreshment",
+    "name": "Bead of Refreshment",
+    "category": "Magic Items",
+    "cost_cp": 5000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:boots-of-false-tracks",
+    "name": "Boots of False Tracks",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:candle-of-the-deep",
+    "name": "Candle of the Deep",
+    "category": "Magic Items",
+    "cost_cp": 5000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cast-off-armor",
+    "name": "Cast-Off Armor",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:charlatan-s-die",
+    "name": "Charlatan's Die",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cloak-of-billowing",
+    "name": "Cloak of Billowing",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cloak-of-many-fashions",
+    "name": "Cloak of Many Fashions",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:clockwork-amulet",
+    "name": "Clockwork Amulet",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:clothes-of-mending",
+    "name": "Clothes of Mending",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dark-shard-amulet",
+    "name": "Dark Shard Amulet",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dread-helm",
+    "name": "Dread Helm",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ear-horn-of-hearing",
+    "name": "Ear Horn of Hearing",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:enduring-spellbook",
+    "name": "Enduring Spellbook",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ersatz-eye",
+    "name": "Ersatz Eye",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:hat-of-vermin",
+    "name": "Hat of Vermin",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:hat-of-wizardry",
+    "name": "Hat of Wizardry",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:heward-s-handy-spice-pouch",
+    "name": "Heward's Handy Spice Pouch",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:horn-of-silent-alarm",
+    "name": "Horn of Silent Alarm",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:instrument-of-illusions",
+    "name": "Instrument of Illusions",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:instrument-of-scribing",
+    "name": "Instrument of Scribing",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:lock-of-trickery",
+    "name": "Lock of Trickery",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:manifold-tool",
+    "name": "Manifold Tool",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mask-of-changed-appearance",
+    "name": "Mask of Changed Appearance",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mechanical-wonder",
+    "name": "Mechanical Wonder",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:moon-touched-sword",
+    "name": "Moon-Touched Sword",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mystery-key",
+    "name": "Mystery Key",
+    "category": "Magic Items",
+    "cost_cp": 5000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mythallar-bracelet",
+    "name": "Mythallar Bracelet",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:orb-of-direction",
+    "name": "Orb of Direction",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:orb-of-time",
+    "name": "Orb of Time",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:perfume-of-bewitching",
+    "name": "Perfume of Bewitching",
+    "category": "Magic Items",
+    "cost_cp": 5000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:pipe-of-smoke-monsters",
+    "name": "Pipe of Smoke Monsters",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:pole-of-angling",
+    "name": "Pole of Angling",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:pole-of-collapsing",
+    "name": "Pole of Collapsing",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:pot-of-awakening",
+    "name": "Pot of Awakening",
+    "category": "Magic Items",
+    "cost_cp": 5000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-climbing",
+    "name": "Potion of Climbing",
+    "category": "Magic Items",
+    "cost_cp": 5000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-comprehension",
+    "name": "Potion of Comprehension",
+    "category": "Magic Items",
+    "cost_cp": 5000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-healing",
+    "name": "Potion of Healing",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:prosthetic-limb",
+    "name": "Prosthetic Limb",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:rival-coin",
+    "name": "Rival Coin",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:rope-of-mending",
+    "name": "Rope of Mending",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ruby-of-the-war-mage",
+    "name": "Ruby of the War Mage",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:shield-of-expression",
+    "name": "Shield of Expression",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:silvered-weapon",
+    "name": "Silvered Weapon",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:smoldering-armor",
+    "name": "Smoldering Armor",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:spell-scroll",
+    "name": "Spell Scroll",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Scroll; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-adornment",
+    "name": "Staff of Adornment",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Staff; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-birdcalls",
+    "name": "Staff of Birdcalls",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Staff; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-flowers",
+    "name": "Staff of Flowers",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Staff; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:sylvan-talon",
+    "name": "Sylvan Talon",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:talking-doll",
+    "name": "Talking Doll",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:tankard-of-sobriety",
+    "name": "Tankard of Sobriety",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:veteran-s-cane",
+    "name": "Veteran's Cane",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:walloping-ammunition",
+    "name": "Walloping Ammunition",
+    "category": "Magic Items",
+    "cost_cp": 5000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-conducting",
+    "name": "Wand of Conducting",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wand; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-pyrotechnics",
+    "name": "Wand of Pyrotechnics",
+    "category": "Magic Items",
+    "cost_cp": 10000,
+    "description": "Type: Wand; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:adamantine-armor",
+    "name": "Adamantine Armor",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:adamantine-weapon",
+    "name": "Adamantine Weapon",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:alchemy-jug",
+    "name": "Alchemy Jug",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ammunition-1-2-or-3",
+    "name": "Ammunition, +1, +2, or +3",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:amulet-of-proof-against-detection-and-location",
+    "name": "Amulet of Proof against Detection and Location",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:arcane-battery",
+    "name": "Arcane Battery",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:baba-yaga-s-dancing-broom",
+    "name": "Baba Yaga's Dancing Broom",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:bag-of-holding",
+    "name": "Bag of Holding",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:bag-of-tricks",
+    "name": "Bag of Tricks",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:boots-of-elvenkind",
+    "name": "Boots of Elvenkind",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:boots-of-striding-and-springing",
+    "name": "Boots of Striding and Springing",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:boots-of-the-winding-path",
+    "name": "Boots of the Winding Path",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:boots-of-the-winterlands",
+    "name": "Boots of the Winterlands",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:bracers-of-archery",
+    "name": "Bracers of Archery",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:brooch-of-shielding",
+    "name": "Brooch of Shielding",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:broom-of-flying",
+    "name": "Broom of Flying",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cap-of-vanishing",
+    "name": "Cap of Vanishing",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cap-of-water-breathing",
+    "name": "Cap of Water Breathing",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:circlet-of-blasting",
+    "name": "Circlet of Blasting",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cloak-of-elvenkind",
+    "name": "Cloak of Elvenkind",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cloak-of-protection",
+    "name": "Cloak of Protection",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cloak-of-the-manta-ray",
+    "name": "Cloak of the Manta Ray",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:decanter-of-endless-water",
+    "name": "Decanter of Endless Water",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:deck-of-illusions",
+    "name": "Deck of Illusions",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:driftglobe",
+    "name": "Driftglobe",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dust-of-disappearance",
+    "name": "Dust of Disappearance",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dust-of-dryness",
+    "name": "Dust of Dryness",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dust-of-sneezing-and-choking",
+    "name": "Dust of Sneezing and Choking",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:elemental-gem",
+    "name": "Elemental Gem",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:enspelled-armor",
+    "name": "Enspelled Armor",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:enspelled-staff",
+    "name": "Enspelled Staff",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:enspelled-weapon",
+    "name": "Enspelled Weapon",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:eversmoking-bottle",
+    "name": "Eversmoking Bottle",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:eyes-of-charming",
+    "name": "Eyes of Charming",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:eyes-of-minute-seeing",
+    "name": "Eyes of Minute Seeing",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:eyes-of-the-eagle",
+    "name": "Eyes of the Eagle",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:figurine-of-wondrous-power",
+    "name": "Figurine of Wondrous Power",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:gauntlets-of-ogre-power",
+    "name": "Gauntlets of Ogre Power",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:gem-of-brightness",
+    "name": "Gem of Brightness",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:gloves-of-missile-snaring",
+    "name": "Gloves of Missile Snaring",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:gloves-of-swimming-and-climbing",
+    "name": "Gloves of Swimming and Climbing",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:gloves-of-thievery",
+    "name": "Gloves of Thievery",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:goggles-of-night",
+    "name": "Goggles of Night",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:hag-eye",
+    "name": "Hag Eye",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:harper-pin",
+    "name": "Harper Pin",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:hat-of-disguise",
+    "name": "Hat of Disguise",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:hat-of-vortexes",
+    "name": "Hat of Vortexes",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:headband-of-intellect",
+    "name": "Headband of Intellect",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:helm-of-awareness",
+    "name": "Helm of Awareness",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:helm-of-comprehending-languages",
+    "name": "Helm of Comprehending Languages",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:helm-of-telepathy",
+    "name": "Helm of Telepathy",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:immovable-rod",
+    "name": "Immovable Rod",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Rod; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:instrument-of-the-bards",
+    "name": "Instrument of the Bards",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:javelin-of-lightning",
+    "name": "Javelin of Lightning",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:keoghtom-s-ointment",
+    "name": "Keoghtom's Ointment",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:lantern-of-revealing",
+    "name": "Lantern of Revealing",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mariner-s-armor",
+    "name": "Mariner's Armor",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:medallion-of-thoughts",
+    "name": "Medallion of Thoughts",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mind-sharpener",
+    "name": "Mind Sharpener",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mithral-armor",
+    "name": "Mithral Armor",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:nature-s-mantle",
+    "name": "Nature's Mantle",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:necklace-of-adaptation",
+    "name": "Necklace of Adaptation",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:oil-of-slipperiness",
+    "name": "Oil of Slipperiness",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:pearl-of-power",
+    "name": "Pearl of Power",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:periapt-of-health",
+    "name": "Periapt of Health",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:periapt-of-wound-closure",
+    "name": "Periapt of Wound Closure",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:philter-of-love",
+    "name": "Philter of Love",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:pipes-of-haunting",
+    "name": "Pipes of Haunting",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:pipes-of-pestilence",
+    "name": "Pipes Of Pestilence",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:pipes-of-the-sewers",
+    "name": "Pipes of the Sewers",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:poison-soaked-kukri",
+    "name": "Poison Soaked Kukri",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-animal-friendship",
+    "name": "Potion of Animal Friendship",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-fire-breath",
+    "name": "Potion of Fire Breath",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-giant-strength",
+    "name": "Potion of Giant Strength",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-growth",
+    "name": "Potion of Growth",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Potion; Attuned: ",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-poison",
+    "name": "Potion of Poison",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-pugilism",
+    "name": "Potion of Pugilism",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-resistance",
+    "name": "Potion of Resistance",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-water-breathing",
+    "name": "Potion of Water Breathing",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:quaal-s-feather-token",
+    "name": "Quaal's Feather Token",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:quiver-of-ehlonna",
+    "name": "Quiver of Ehlonna",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:reliquary-of-dawn",
+    "name": "Reliquary of Dawn",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:reliquary-of-twilight",
+    "name": "Reliquary of Twilight",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:repeating-shot",
+    "name": "Repeating Shot",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:repulsion-shield",
+    "name": "Repulsion Shield",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:returning-weapon",
+    "name": "Returning Weapon",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-jumping",
+    "name": "Ring of Jumping",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-mind-shielding",
+    "name": "Ring of Mind Shielding",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-swimming",
+    "name": "Ring of Swimming",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Ring; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-warmth",
+    "name": "Ring of Warmth",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-water-walking",
+    "name": "Ring of Water Walking",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Ring; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:robe-of-useful-items",
+    "name": "Robe of Useful Items",
+    "category": "Magic Items",
+    "cost_cp": 20000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:rod-of-the-pact-keeper",
+    "name": "Rod of the Pact Keeper",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Rod; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:rope-of-climbing",
+    "name": "Rope of Climbing",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:saddle-of-the-cavalier",
+    "name": "Saddle of the Cavalier",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:sending-stones",
+    "name": "Sending Stones",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:sentinel-shield",
+    "name": "Sentinel Shield",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:shield-1-2-or-3",
+    "name": "Shield, +1, +2, or +3",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:slippers-of-spider-climbing",
+    "name": "Slippers of Spider Climbing",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:spell-refueling-ring",
+    "name": "Spell-Refueling Ring",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:spiked-shield",
+    "name": "Spiked Shield",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-the-adder",
+    "name": "Staff of the Adder",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-the-python",
+    "name": "Staff of the Python",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:stone-of-good-luck-luckstone",
+    "name": "Stone of Good Luck (Luckstone)",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:sword-of-vengeance",
+    "name": "Sword of Vengeance",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:thayan-spell-tattoo",
+    "name": "Thayan Spell Tattoo",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:trident-of-fish-command",
+    "name": "Trident of Fish Command",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-magic-detection",
+    "name": "Wand of Magic Detection",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wand; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-magic-missiles",
+    "name": "Wand of Magic Missiles",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wand; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-secrets",
+    "name": "Wand of Secrets",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wand; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-the-war-mage-1-2-or-3",
+    "name": "Wand of the War Mage, +1, +2 or +3",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wand; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-web",
+    "name": "Wand of Web",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wand; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:weapon-1-2-or-3",
+    "name": "Weapon, +1, +2 or +3",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:weapon-of-warning",
+    "name": "Weapon of Warning",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wind-fan",
+    "name": "Wind Fan",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:winged-boots",
+    "name": "Winged Boots",
+    "category": "Magic Items",
+    "cost_cp": 40000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wraps-of-unarmed-power",
+    "name": "Wraps of Unarmed Power",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:amulet-of-health",
+    "name": "Amulet of Health",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:armor-1-2-or-3",
+    "name": "Armor, +1, +2, or +3",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:armor-of-resistance",
+    "name": "Armor of Resistance",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:armor-of-vulnerability",
+    "name": "Armor of Vulnerability",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:arrow-catching-shield",
+    "name": "Arrow-Catching Shield",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:bag-of-beans",
+    "name": "Bag of Beans",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:bead-of-force",
+    "name": "Bead of Force",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:belt-of-dwarvenkind",
+    "name": "Belt of Dwarvenkind",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:belt-of-giant-strength",
+    "name": "Belt of Giant Strength",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:berserker-axe",
+    "name": "Berserker Axe",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:boots-of-levitation",
+    "name": "Boots of Levitation",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:boots-of-speed",
+    "name": "Boots of Speed",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:bowl-of-commanding-water-elementals",
+    "name": "Bowl of Commanding Water Elementals",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:bracers-of-defense",
+    "name": "Bracers of Defense",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:brazier-of-commanding-fire-elementals",
+    "name": "Brazier of Commanding Fire Elementals",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:brooch-of-the-elements",
+    "name": "Brooch of the Elements",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cape-of-the-mountebank",
+    "name": "Cape of the Mountebank",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:censer-of-controlling-air-elementals",
+    "name": "Censer of Controlling Air Elementals",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:chime-of-opening",
+    "name": "Chime of Opening",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cloak-of-displacement",
+    "name": "Cloak of Displacement",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cloak-of-the-bat",
+    "name": "Cloak of the Bat",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cube-of-force",
+    "name": "Cube of Force",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cube-of-summoning",
+    "name": "Cube of Summoning",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:daern-s-instant-fortress",
+    "name": "Daern's Instant Fortress",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dagger-of-venom",
+    "name": "Dagger of Venom",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dazzling-weapon",
+    "name": "Dazzling Weapon",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dimensional-shackles",
+    "name": "Dimensional Shackles",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dragon-slayer",
+    "name": "Dragon Slayer",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:elixir-of-health",
+    "name": "Elixir of Health",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:elven-chain",
+    "name": "Elven Chain",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:flame-tongue",
+    "name": "Flame Tongue",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:folding-boat",
+    "name": "Folding Boat",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:fork-of-eddy-summoning",
+    "name": "Fork of Eddy Summoning",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:gem-of-seeing",
+    "name": "Gem of Seeing",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:giant-slayer",
+    "name": "Giant Slayer",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:glamoured-studded-leather",
+    "name": "Glamoured Studded Leather",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:helm-of-teleportation",
+    "name": "Helm of Teleportation",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:heward-s-handy-haversack",
+    "name": "Heward's Handy Haversack",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:horn-of-blasting",
+    "name": "Horn of Blasting",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:horn-of-valhalla",
+    "name": "Horn of Valhalla",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:horseshoes-of-speed",
+    "name": "Horseshoes of Speed",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ioun-stone",
+    "name": "Ioun Stone",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:iron-bands-of-bilarro",
+    "name": "Iron Bands of Bilarro",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mace-of-disruption",
+    "name": "Mace of Disruption",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mace-of-smiting",
+    "name": "Mace of Smiting",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mace-of-terror",
+    "name": "Mace of Terror",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:magen-handbell",
+    "name": "Magen Handbell",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mantle-of-spell-resistance",
+    "name": "Mantle of Spell Resistance",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mythallar-cloak",
+    "name": "Mythallar Cloak",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:necklace-of-fireballs",
+    "name": "Necklace of Fireballs",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:necklace-of-prayer-beads",
+    "name": "Necklace of Prayer Beads",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:oil-of-etherealness",
+    "name": "Oil of Etherealness",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:periapt-of-proof-against-poison",
+    "name": "Periapt of Proof against Poison",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:portable-hole",
+    "name": "Portable Hole",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-clairvoyance",
+    "name": "Potion of Clairvoyance",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-diminution",
+    "name": "Potion of Diminution",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-gaseous-form",
+    "name": "Potion of Gaseous Form",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-heroism",
+    "name": "Potion of Heroism",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-invisibility",
+    "name": "Potion of Invisibility",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-invulnerability",
+    "name": "Potion of Invulnerability",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-mind-reading",
+    "name": "Potion of Mind Reading",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-animal-influence",
+    "name": "Ring of Animal Influence",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Ring; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-evasion",
+    "name": "Ring of Evasion",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-feather-falling",
+    "name": "Ring of Feather Falling",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-free-action",
+    "name": "Ring of Free Action",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-protection",
+    "name": "Ring of Protection",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-resistance",
+    "name": "Ring of Resistance",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Ring; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-spell-storing",
+    "name": "Ring of Spell Storing",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-the-ram",
+    "name": "Ring of the Ram",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-x-ray-vision",
+    "name": "Ring of X-ray Vision",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:robe-of-eyes",
+    "name": "Robe of Eyes",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:rod-of-rulership",
+    "name": "Rod of Rulership",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Rod; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:rope-of-entanglement",
+    "name": "Rope of Entanglement",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:scroll-of-protection",
+    "name": "Scroll of Protection",
+    "category": "Magic Items",
+    "cost_cp": 200000,
+    "description": "Type: Scroll; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:shield-of-missile-attraction",
+    "name": "Shield of Missile Attraction",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-charming",
+    "name": "Staff of Charming",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-swarming-insects",
+    "name": "Staff of Swarming Insects",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-the-woodlands",
+    "name": "Staff of the Woodlands",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-withering",
+    "name": "Staff of Withering",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:stone-of-controlling-earth-elementals",
+    "name": "Stone of Controlling Earth Elementals",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:sun-blade",
+    "name": "Sun Blade",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:sword-of-life-stealing",
+    "name": "Sword of Life Stealing",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:sword-of-wounding",
+    "name": "Sword of Wounding",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:tentacle-rod",
+    "name": "Tentacle Rod",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Rod; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:vicious-weapon",
+    "name": "Vicious Weapon",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-binding",
+    "name": "Wand of Binding",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wand; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-enemy-detection",
+    "name": "Wand of Enemy Detection",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wand; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-fear",
+    "name": "Wand of Fear",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wand; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-fireballs",
+    "name": "Wand of Fireballs",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wand; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-lightning-bolts",
+    "name": "Wand of Lightning Bolts",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wand; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-paralysis",
+    "name": "Wand of Paralysis",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wand; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-wonder",
+    "name": "Wand of Wonder",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wand; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:windskiff",
+    "name": "Windskiff",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wings-of-flying",
+    "name": "Wings of Flying",
+    "category": "Magic Items",
+    "cost_cp": 400000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ammunition-of-slaying",
+    "name": "Ammunition of Slaying",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:amulet-of-the-planes",
+    "name": "Amulet of the Planes",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:animated-shield",
+    "name": "Animated Shield",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:bag-of-devouring",
+    "name": "Bag of Devouring",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:candle-of-invocation",
+    "name": "Candle of Invocation",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:carpet-of-flying",
+    "name": "Carpet of Flying",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cauldron-of-rebirth",
+    "name": "Cauldron of Rebirth",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cloak-of-arachnida",
+    "name": "Cloak of Arachnida",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:crystal-ball",
+    "name": "Crystal Ball",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dancing-sword",
+    "name": "Dancing Sword",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:demon-armor",
+    "name": "Demon Armor",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dragon-scale-mail",
+    "name": "Dragon Scale Mail",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dwarven-plate",
+    "name": "Dwarven Plate",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Armor; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:dwarven-thrower",
+    "name": "Dwarven Thrower",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:efreeti-bottle",
+    "name": "Efreeti Bottle",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:energy-bow",
+    "name": "Energy Bow",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:executioner-s-axe",
+    "name": "Executioner's Axe",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:frost-brand",
+    "name": "Frost Brand",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:hat-of-many-spells",
+    "name": "Hat of Many Spells",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:helm-of-brilliance",
+    "name": "Helm of Brilliance",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:horseshoes-of-a-zephyr",
+    "name": "Horseshoes of a Zephyr",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:lute-of-thunderous-thumping",
+    "name": "Lute of Thunderous Thumping",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:manual-of-bodily-health",
+    "name": "Manual of Bodily Health",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:manual-of-gainful-exercise",
+    "name": "Manual of Gainful Exercise",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:manual-of-golems",
+    "name": "Manual of Golems",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:manual-of-quickness-of-action",
+    "name": "Manual of Quickness of Action",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:mirror-of-life-trapping",
+    "name": "Mirror of Life Trapping",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:niko-s-mace",
+    "name": "Niko's Mace",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:nine-lives-stealer",
+    "name": "Nine Lives Stealer",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:nolzur-s-marvelous-pigments",
+    "name": "Nolzur's Marvelous Pigments",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:oathbow",
+    "name": "Oathbow",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:oil-of-sharpness",
+    "name": "Oil of Sharpness",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-flying",
+    "name": "Potion of Flying",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-greater-invisibility",
+    "name": "Potion of Greater Invisibility",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-longevity",
+    "name": "Potion of Longevity",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-speed",
+    "name": "Potion of Speed",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:potion-of-vitality",
+    "name": "Potion of Vitality",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Potion; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:quarterstaff-of-the-acrobat",
+    "name": "Quarterstaff of the Acrobat",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-regeneration",
+    "name": "Ring of Regeneration",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-shooting-stars",
+    "name": "Ring of Shooting Stars",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-telekinesis",
+    "name": "Ring of Telekinesis",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:robe-of-scintillating-colors",
+    "name": "Robe of Scintillating Colors",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:robe-of-stars",
+    "name": "Robe of Stars",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:rod-of-absorption",
+    "name": "Rod of Absorption",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Rod; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:rod-of-alertness",
+    "name": "Rod of Alertness",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Rod; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:rod-of-security",
+    "name": "Rod of Security",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Rod; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:scimitar-of-speed",
+    "name": "Scimitar of Speed",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:shield-of-the-cavalier",
+    "name": "Shield of the Cavalier",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:spellguard-shield",
+    "name": "Spellguard Shield",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:spirit-board",
+    "name": "Spirit Board",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-fire",
+    "name": "Staff of Fire",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-frost",
+    "name": "Staff of Frost",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-power",
+    "name": "Staff of Power",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-striking",
+    "name": "Staff of Striking",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-thunder-and-lightning",
+    "name": "Staff of Thunder and Lightning",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:sword-of-sharpness",
+    "name": "Sword of Sharpness",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:thunderous-greatclub",
+    "name": "Thunderous Greatclub",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:tome-of-clear-thought",
+    "name": "Tome of Clear Thought",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:tome-of-leadership-and-influence",
+    "name": "Tome of Leadership and Influence",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:tome-of-understanding",
+    "name": "Tome of Understanding",
+    "category": "Magic Items",
+    "cost_cp": 2000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-polymorph",
+    "name": "Wand of Polymorph",
+    "category": "Magic Items",
+    "cost_cp": 4000000,
+    "description": "Type: Wand; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:apparatus-of-kwalish",
+    "name": "Apparatus of Kwalish",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:armor-of-invulnerability",
+    "name": "Armor of Invulnerability",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cloak-of-invisibility",
+    "name": "Cloak of Invisibility",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:crystal-ball-of-mind-reading",
+    "name": "Crystal Ball of Mind Reading",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:crystal-ball-of-telepathy",
+    "name": "Crystal Ball of Telepathy",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:crystal-ball-of-true-seeing",
+    "name": "Crystal Ball of True Seeing",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:cubic-gate",
+    "name": "Cubic Gate",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:deck-of-many-things",
+    "name": "Deck of Many Things",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:defender",
+    "name": "Defender",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:efreeti-chain",
+    "name": "Efreeti Chain",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:hammer-of-thunderbolts",
+    "name": "Hammer of Thunderbolts",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:holy-avenger",
+    "name": "Holy Avenger",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:iron-flask",
+    "name": "Iron Flask",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:luck-blade",
+    "name": "Luck Blade",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:moonblade",
+    "name": "Moonblade",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:plate-armor-of-etherealness",
+    "name": "Plate Armor of Etherealness",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Armor; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-djinni-summoning",
+    "name": "Ring of Djinni Summoning",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-elemental-command",
+    "name": "Ring of Elemental Command",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-invisibility",
+    "name": "Ring of Invisibility",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-spell-turning",
+    "name": "Ring of Spell Turning",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Ring; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:ring-of-three-wishes",
+    "name": "Ring of Three Wishes",
+    "category": "Magic Items",
+    "cost_cp": 10000000,
+    "description": "Type: Ring; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:robe-of-the-archmagi",
+    "name": "Robe of the Archmagi",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:rod-of-lordly-might",
+    "name": "Rod of Lordly Might",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Rod; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:rod-of-resurrection",
+    "name": "Rod of Resurrection",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Rod; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:scarab-of-protection",
+    "name": "Scarab of Protection",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:scroll-of-titan-summoning",
+    "name": "Scroll of Titan Summoning",
+    "category": "Magic Items",
+    "cost_cp": 10000000,
+    "description": "Type: Scroll; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:sovereign-glue",
+    "name": "Sovereign Glue",
+    "category": "Magic Items",
+    "cost_cp": 10000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:sphere-of-annihilation",
+    "name": "Sphere of Annihilation",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:staff-of-the-magi",
+    "name": "Staff of the Magi",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Staff; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:sword-of-answering",
+    "name": "Sword of Answering",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:talisman-of-pure-good",
+    "name": "Talisman of Pure Good",
+    "category": "Magic Items",
+    "cost_cp": 10000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:talisman-of-the-sphere",
+    "name": "Talisman of the Sphere",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:talisman-of-ultimate-evil",
+    "name": "Talisman of Ultimate Evil",
+    "category": "Magic Items",
+    "cost_cp": 10000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:tome-of-the-dragon",
+    "name": "Tome of the Dragon",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:tome-of-the-stilled-tongue",
+    "name": "Tome of the Stilled Tongue",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:universal-solvent",
+    "name": "Universal Solvent",
+    "category": "Magic Items",
+    "cost_cp": 10000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:vorpal-sword",
+    "name": "Vorpal Sword",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:well-of-many-worlds",
+    "name": "Well of Many Worlds",
+    "category": "Magic Items",
+    "cost_cp": 20000000,
+    "description": "Type: Wondrous Item; Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:axe-of-the-dwarvish-lords",
+    "name": "Axe of the Dwarvish Lords",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:blackrazor",
+    "name": "Blackrazor",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:book-of-exalted-deeds",
+    "name": "Book of Exalted Deeds",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:book-of-vile-darkness",
+    "name": "Book of Vile Darkness",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:calimemnon-crystal",
+    "name": "Calimemnon Crystal",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:crown-of-horns",
+    "name": "Crown Of Horns",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:demonomicon-of-iggwilv",
+    "name": "Demonomicon of Iggwilv",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:eye-and-hand-of-vecna",
+    "name": "Eye and Hand of Vecna",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:orb-of-damara",
+    "name": "Orb of Damara",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:orb-of-dragonkind",
+    "name": "Orb of Dragonkind",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wondrous Item; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:sword-of-kas",
+    "name": "Sword of Kas",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wand-of-orcus",
+    "name": "Wand of Orcus",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Wand; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:wave",
+    "name": "Wave",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  },
+  {
+    "id": "magic-items:whelm",
+    "name": "Whelm",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Type: Weapon; Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all"
+  }
+]

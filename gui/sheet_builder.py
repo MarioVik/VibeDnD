@@ -1,7 +1,6 @@
 """Shared character sheet renderer used by the Summary wizard step and the
 Character Viewer screen."""
 
-from decimal import Decimal
 import re
 import tkinter as tk
 from tkinter import ttk
@@ -15,7 +14,7 @@ from models.standard_actions import (
     get_selected_weapon_counts,
 )
 from gui.widgets import WrappingLabel
-from gui.equipment_utils import extract_gp, gp_to_coins
+from models.inventory_service import cp_to_coins, current_wealth_cp
 
 
 CONTAINER_CONTENTS = {
@@ -87,6 +86,7 @@ CONTAINER_CONTENTS = {
 def _normalize_container_key(text: str) -> str:
     t = (text or "").lower()
     t = t.replace("’", "'").replace("‘", "'").replace("�", "")
+    t = t.replace("'", "")
     t = re.sub(r"[^a-z0-9\s]", " ", t)
     t = re.sub(r"\s+", " ", t).strip()
     return t
@@ -405,22 +405,25 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
                 spell_sec, text=f"  Level 1: {', '.join(c.selected_spells)}"
             ).pack(fill=tk.X, anchor="w", padx=8, pady=2)
 
-    # Totals and parsed equipment/inventory
-    total_gp = Decimal("0")
-    if c.character_class:
-        for opt in c.character_class.get("starting_equipment", []):
-            if opt["option"] == c.equipment_choice_class:
-                total_gp += extract_gp(opt["items"])
-                break
-    if c.background:
-        for opt in c.background.get("equipment", []):
-            if opt["option"] == c.equipment_choice_background:
-                total_gp += extract_gp(opt["items"])
-                break
-
+    # Parsed equipment/inventory
     weapon_counts = get_selected_weapon_counts(c)
     armor_counts = get_selected_armor_counts(c)
     inventory_items = get_selected_non_weapon_items(c)
+
+    # Merge custom inventory entries (added via item browser).
+    for ent in getattr(c, "custom_inventory", []) or []:
+        name = str(ent.get("name", "")).strip()
+        if not name:
+            continue
+        qty = max(1, int(ent.get("qty", 1)))
+        category = str(ent.get("category", "Adventuring Gear"))
+        key = name.lower()
+        if category == "Weapons":
+            weapon_counts[key] = weapon_counts.get(key, 0) + qty
+        elif category == "Armor":
+            armor_counts[key] = armor_counts.get(key, 0) + qty
+        else:
+            inventory_items.append(f"{qty} {name}" if qty > 1 else name)
 
     # Default: all weapons are equipped unless character has explicitly set state.
     if c.equipped_weapons is None:
@@ -673,7 +676,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
     # ── Wealth ──────────────────────────────────────────────────
     wealth_sec = ttk.LabelFrame(parent, text="Wealth")
     wealth_sec.pack(fill=tk.X, pady=4)
-    gp, sp, cp = gp_to_coins(total_gp)
+    gp, sp, cp = cp_to_coins(current_wealth_cp(c))
     WrappingLabel(
         wealth_sec,
         text=(f"  Gold: {gp} gp\n  Silver: {sp} sp\n  Copper: {cp} cp"),
