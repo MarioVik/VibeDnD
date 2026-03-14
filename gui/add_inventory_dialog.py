@@ -6,7 +6,12 @@ import tkinter as tk
 from tkinter import ttk
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import SectionedListbox, AlertDialog
+from gui.widgets import (
+    SectionedListbox,
+    AlertDialog,
+    configure_modal_dialog,
+    center_dialog_over_parent,
+)
 from models.inventory_service import (
     add_item,
     cp_to_coins,
@@ -51,8 +56,8 @@ class AddInventoryDialog(tk.Toplevel):
 
         self.title("Add to Inventory")
         self.geometry("980x620")
-        self.transient(parent)
-        self.grab_set()
+        configure_modal_dialog(self, parent)
+        center_dialog_over_parent(self, parent)
 
         self.selected_item: dict | None = None
         self.items_by_name = {i.get("name", ""): i for i in self.data.items}

@@ -8,12 +8,13 @@ from tkinter import ttk
 from gui.theme import COLORS, FONTS
 from models.enums import ALL_SKILLS
 from models.standard_actions import (
+    WEAPON_DATA,
     build_standard_actions,
     get_selected_armor_counts,
     get_selected_non_weapon_items,
     get_selected_weapon_counts,
 )
-from gui.widgets import WrappingLabel
+from gui.widgets import AlertDialog, WrappingLabel
 from models.inventory_service import cp_to_coins, current_wealth_cp
 
 
@@ -410,6 +411,62 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
     armor_counts = get_selected_armor_counts(c)
     inventory_items = get_selected_non_weapon_items(c)
 
+    def _normalized_armor_profs() -> set[str]:
+        out: set[str] = set()
+        for p in (c.character_class or {}).get("armor_proficiencies", []):
+            t = str(p).lower()
+            if "shield" in t:
+                out.add("shield")
+            if "heavy" in t:
+                out.add("heavy")
+            if "medium" in t:
+                out.add("medium")
+            if "light" in t:
+                out.add("light")
+        return out
+
+    ARMOR_REQUIRED = {
+        "padded armor": "light",
+        "leather armor": "light",
+        "studded leather armor": "light",
+        "hide armor": "medium",
+        "chain shirt": "medium",
+        "scale mail": "medium",
+        "breastplate": "medium",
+        "half plate armor": "medium",
+        "ring mail": "heavy",
+        "chain mail": "heavy",
+        "splint armor": "heavy",
+        "plate armor": "heavy",
+        "shield": "shield",
+    }
+
+    def _can_equip_armor(armor_key: str) -> tuple[bool, str]:
+        req = ARMOR_REQUIRED.get(armor_key, "light")
+        profs = _normalized_armor_profs()
+        if req in profs:
+            return True, ""
+        req_label = "Shields" if req == "shield" else f"{req.title()} armor"
+        class_name = c.class_name
+        return (
+            False,
+            f"{class_name} is not proficient with {req_label}."
+            " You can't equip this item.",
+        )
+
+    def _has_weapon_proficiency_local(weapon_key: str) -> bool:
+        cls = c.character_class or {}
+        profs = [str(p).lower() for p in cls.get("weapon_proficiencies", [])]
+        if any(weapon_key in p for p in profs):
+            return True
+        meta = WEAPON_DATA.get(weapon_key, {})
+        cat = meta.get("category", "")
+        if cat == "simple" and any("simple" in p for p in profs):
+            return True
+        if cat == "martial" and any("martial" in p for p in profs):
+            return True
+        return False
+
     # Merge custom inventory entries (added via item browser).
     for ent in getattr(c, "custom_inventory", []) or []:
         name = str(ent.get("name", "")).strip()
@@ -432,14 +489,18 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
         c.equipped_weapons = [w for w in c.equipped_weapons if w in weapon_counts]
     if c.equipped_armor is None:
         default_armor = []
-        if "shield" in armor_counts:
+        if "shield" in armor_counts and _can_equip_armor("shield")[0]:
             default_armor.append("shield")
         body_armor = sorted(a for a in armor_counts.keys() if a != "shield")
-        if body_armor:
-            default_armor.append(body_armor[0])
+        for armor_key in body_armor:
+            if _can_equip_armor(armor_key)[0]:
+                default_armor.append(armor_key)
+                break
         c.equipped_armor = default_armor
     else:
-        c.equipped_armor = [a for a in c.equipped_armor if a in armor_counts]
+        c.equipped_armor = [
+            a for a in c.equipped_armor if a in armor_counts and _can_equip_armor(a)[0]
+        ]
         body = [a for a in c.equipped_armor if a != "shield"]
         c.equipped_armor = (["shield"] if "shield" in c.equipped_armor else []) + body[
             :1
@@ -465,7 +526,11 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
 
         row = ttk.Frame(equip_rows)
         row.pack(fill=tk.X, pady=1)
-        ttk.Checkbutton(row, variable=var).pack(side=tk.LEFT)
+        ttk.Checkbutton(
+            row,
+            variable=var,
+            command=lambda k=weapon_key: _on_weapon_toggle(k),
+        ).pack(side=tk.LEFT)
         label = weapon_key.title()
         if qty > 1:
             label += f" (x{qty})"
@@ -552,12 +617,33 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
 
     def _on_armor_toggle(changed_key: str):
         """Allow only one body armor at a time; shield is independent."""
-        if changed_key != "shield":
-            changed_var = armor_vars.get(changed_key)
-            if changed_var is not None and changed_var.get():
+        changed_var = armor_vars.get(changed_key)
+        if changed_var is not None and changed_var.get():
+            ok, reason = _can_equip_armor(changed_key)
+            if not ok:
+                changed_var.set(False)
+                AlertDialog(parent.winfo_toplevel(), "Armor Training Required", reason)
+                return
+
+            if changed_key != "shield":
                 for key, var in armor_vars.items():
                     if key != changed_key and key != "shield" and var.get():
                         var.set(False)
+        _render_action_rows()
+
+    def _on_weapon_toggle(changed_key: str):
+        var = equip_vars.get(changed_key)
+        if (
+            var is not None
+            and var.get()
+            and not _has_weapon_proficiency_local(changed_key)
+        ):
+            AlertDialog(
+                parent.winfo_toplevel(),
+                "Weapon Proficiency",
+                f"You are not proficient with {changed_key.title()}. "
+                "You can still equip it, but your proficiency bonus will not be added to attack rolls.",
+            )
         _render_action_rows()
 
     def _weapon_options() -> dict[str, dict]:
@@ -666,10 +752,6 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
             ).pack(anchor="w", pady=1)
 
         _render_weapon_option_rows()
-
-    for weapon_key, var in equip_vars.items():
-        # bind after creation so each checkbox updates standard actions immediately
-        var.trace_add("write", lambda *_: _render_action_rows())
 
     _render_action_rows()
 

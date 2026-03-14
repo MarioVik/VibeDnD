@@ -5,6 +5,53 @@ from tkinter import ttk
 from gui.theme import COLORS, FONTS
 
 
+def configure_modal_dialog(dialog: tk.Toplevel, parent):
+    """Make dialog modal and bring it above the active app window."""
+    top = parent.winfo_toplevel() if parent is not None else None
+    if top is not None:
+        dialog.transient(top)
+    dialog.grab_set()
+    dialog.update_idletasks()
+
+    try:
+        dialog.lift(top) if top is not None else dialog.lift()
+    except tk.TclError:
+        pass
+
+    try:
+        dialog.attributes("-topmost", True)
+        dialog.after_idle(lambda: dialog.attributes("-topmost", False))
+    except tk.TclError:
+        pass
+
+    try:
+        dialog.focus_force()
+    except tk.TclError:
+        dialog.focus_set()
+
+
+def center_dialog_over_parent(dialog: tk.Toplevel, parent):
+    """Center a dialog over the parent toplevel window."""
+    top = parent.winfo_toplevel() if parent is not None else None
+    if top is None:
+        return
+
+    top.update_idletasks()
+    dialog.update_idletasks()
+
+    width = dialog.winfo_width() or dialog.winfo_reqwidth()
+    height = dialog.winfo_height() or dialog.winfo_reqheight()
+
+    parent_x = top.winfo_rootx()
+    parent_y = top.winfo_rooty()
+    parent_w = top.winfo_width()
+    parent_h = top.winfo_height()
+
+    x = parent_x + max(0, (parent_w - width) // 2)
+    y = parent_y + max(0, (parent_h - height) // 2)
+    dialog.geometry(f"{width}x{height}+{x}+{y}")
+
+
 class WrappingLabel(ttk.Label):
     """A label that automatically updates its wraplength based on its allocated width.
     Must be packed with fill=tk.X or fill=tk.BOTH to receive width updates."""
@@ -408,9 +455,7 @@ class AlertDialog(tk.Toplevel):
         self.configure(bg=COLORS["bg"])
         self.resizable(False, False)
 
-        # Standard modal behavior
-        self.transient(parent)
-        self.grab_set()
+        configure_modal_dialog(self, parent)
 
         # UI
         main_frame = ttk.Frame(self, padding=24)
@@ -461,9 +506,7 @@ class ConfirmDialog(tk.Toplevel):
         self.configure(bg=COLORS["bg"])
         self.resizable(False, False)
 
-        # Standard modal behavior
-        self.transient(parent)
-        self.grab_set()
+        configure_modal_dialog(self, parent)
 
         # UI
         main_frame = ttk.Frame(self, padding=24)

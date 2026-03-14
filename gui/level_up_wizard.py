@@ -9,7 +9,13 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import ScrollableFrame, WrappingLabel, ConfirmDialog, AlertDialog
+from gui.widgets import (
+    ScrollableFrame,
+    WrappingLabel,
+    ConfirmDialog,
+    AlertDialog,
+    configure_modal_dialog,
+)
 from models.character import Character
 from models.class_level import ClassLevel
 
@@ -62,9 +68,7 @@ class LevelUpWizard(tk.Toplevel):
         self.minsize(650, 500)
         self.configure(bg=COLORS["bg"])
 
-        self.transient(top)
-        self.grab_set()
-        self.focus_set()
+        configure_modal_dialog(self, top)
 
         # Determine what the next level will be
         self.new_total_level = character.level + 1
