@@ -47,6 +47,67 @@ To package VibeDnD into a standalone `.exe` or app:
    ```
    The result will be in the `dist/` folder.
 
+### Building a Single-File macOS Installer (.dmg)
+To share with non-technical Mac users (no Python needed), build a DMG on a Mac:
+
+1. **On macOS, install build deps:**
+   ```bash
+   pip install pyinstaller
+   ```
+
+2. **Put your icon source in the repo root** as `icon-source.png` (optional but recommended).
+
+3. **Run the mac packager script:**
+   ```bash
+   python3 build_macos.py
+   ```
+
+4. **Send this one file to your friend:**
+   ```
+   dist/installer-mac/VibeDnD-Installer-macOS.dmg
+   ```
+
+The DMG contains `VibeDnD.app` and an `Applications` shortcut for drag-and-drop install.
+
+### Building a Single-File Ubuntu Installer (.deb)
+To share with non-technical Ubuntu users (no Python needed), build a `.deb` on Ubuntu:
+
+1. **On Ubuntu, install build deps:**
+   ```bash
+   sudo apt update
+   sudo apt install -y dpkg-dev python3-pip python3-tk
+   python3 -m pip install pyinstaller
+   ```
+
+2. **Put your icon source in the repo root** as `icon-source.png` (optional but recommended).
+
+3. **Run the Ubuntu packager script:**
+   ```bash
+   python3 build_ubuntu.py
+   ```
+
+4. **Send this one file to your friend:**
+   ```
+   dist/installer-linux/VibeDnD-Installer-Ubuntu-amd64.deb
+   ```
+
+Your friend can install by double-clicking the `.deb` in Ubuntu Software, or via:
+```bash
+sudo apt install ./VibeDnD-Installer-Ubuntu-amd64.deb
+```
+
+### Zero-Setup Builds via GitHub Actions (Recommended)
+If you do not want Python/PyInstaller installed on your own computer, use CI builds:
+
+1. Push this repo to GitHub.
+2. Open **Actions** → **Build Installers** → **Run workflow**.
+3. Download artifacts from the finished run:
+   - `VibeDnD-Setup-Windows`
+   - `VibeDnD-Installer-macOS`
+   - `VibeDnD-Installer-Ubuntu`
+
+Workflow file: `.github/workflows/build-installers.yml`
+
 <details>
 <summary><b>Detailed Platform Instructions</b></summary>
 
