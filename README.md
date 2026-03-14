@@ -17,11 +17,12 @@ No Python or technical setup required.
 
 ## Features
 
-- **Wizard Flow**: Species, Class, Background, Abilities, Feats, Spells, Equipment
-- **Live Summary**: View your character build in real-time
-- **Source Filtering**: Common, Eberron, Faerun, Exotic
-- **Export**: PDF, JSON, and plain text
-- **Themed UI**: Dark parchment aesthetic
+- **Step-by-Step Character Creation**: Species, Class, Background, Ability Scores (Standard Array or Point Buy), Feats, Spells, and Equipment
+- **Leveling & Multiclass**: Level up to 20 with multiclass support, subclass selection, HP rolling, ASI/Feat choices, and spell swapping
+- **Inventory Management**: Browse the full D&D 2024 item database, filter by category and cost, and track your wealth
+- **Source Filtering**: Toggle content from Common (PHB), Eberron, Faerun, Exotic, and Unearthed Arcana sources
+- **Character Management**: Save, view, edit/respec, import, and delete characters from the home screen
+- **Export**: PDF character sheets, JSON (for backup/sharing), and plain text
 
 ---
 
