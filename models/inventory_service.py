@@ -42,12 +42,20 @@ def cp_to_coins(total_cp: int) -> tuple[int, int, int]:
 
 
 def _add_transaction(
-    character, mode: str, item_name: str, qty: int, total_cost_cp: int
+    character,
+    mode: str,
+    item_id: str,
+    item_name: str,
+    item_category: str,
+    qty: int,
+    total_cost_cp: int,
 ):
     tx = {
         "timestamp": datetime.now().isoformat(timespec="seconds"),
         "mode": mode,
+        "item_id": item_id,
         "item": item_name,
+        "category": item_category,
         "qty": int(qty),
         "total_cost_cp": int(total_cost_cp),
     }
@@ -92,5 +100,51 @@ def add_item(character, item: dict, qty: int, mode: str) -> tuple[bool, str]:
     character.custom_inventory = inv
 
     logged_cost = total_cost if mode == "buy" else 0
-    _add_transaction(character, mode, item.get("name", "Item"), qty, logged_cost)
+    _add_transaction(
+        character,
+        mode,
+        str(item.get("id", "")),
+        item.get("name", "Item"),
+        item.get("category", "Adventuring Gear"),
+        qty,
+        logged_cost,
+    )
     return True, "Item added."
+
+
+def undo_last_transaction(character) -> tuple[bool, str]:
+    """Undo the latest inventory transaction (if any)."""
+    txs = list(getattr(character, "inventory_transactions", []) or [])
+    if not txs:
+        return False, "No transaction to undo."
+
+    tx = txs.pop(0)
+    item_id = str(tx.get("item_id", ""))
+    item_name = str(tx.get("item", "Item"))
+    qty = max(1, int(tx.get("qty", 1)))
+    mode = str(tx.get("mode", "free"))
+    total_cost = int(tx.get("total_cost_cp", 0))
+
+    inv = list(getattr(character, "custom_inventory", []))
+    target = None
+    if item_id:
+        target = next((e for e in inv if e.get("item_id") == item_id), None)
+    if target is None:
+        target = next((e for e in inv if str(e.get("name", "")) == item_name), None)
+
+    if target is not None:
+        target_qty = int(target.get("qty", 0))
+        new_qty = max(0, target_qty - qty)
+        if new_qty <= 0:
+            inv = [e for e in inv if e is not target]
+        else:
+            target["qty"] = new_qty
+    character.custom_inventory = inv
+
+    if mode == "buy" and total_cost > 0:
+        character.wealth_adjust_cp = (
+            int(getattr(character, "wealth_adjust_cp", 0)) + total_cost
+        )
+
+    character.inventory_transactions = txs[:10]
+    return True, f"Undid: {mode.upper()} {qty} x {item_name}"

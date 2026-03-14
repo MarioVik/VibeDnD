@@ -81,12 +81,32 @@ def _extract_cells(row_html: str) -> list[str]:
     )
 
 
+def _first_href(cell_html: str) -> str:
+    m = re.search(r'href="([^"]+)"', cell_html, flags=re.IGNORECASE)
+    return m.group(1) if m else ""
+
+
 def _sub_items_from_desc(text: str) -> list[str]:
     m = re.search(r"contains (?:the )?following items:\s*(.+)", text, re.IGNORECASE)
     if not m:
         return []
     payload = m.group(1).replace(" and ", ", ")
     return [p.strip(" .") for p in payload.split(",") if p.strip()]
+
+
+def _strip_html_to_text(html: str) -> str:
+    body = re.sub(r"<script.*?</script>", "", html, flags=re.IGNORECASE | re.DOTALL)
+    body = re.sub(r"<style.*?</style>", "", body, flags=re.IGNORECASE | re.DOTALL)
+    body = re.sub(
+        r"</?(p|li|h1|h2|h3|h4|h5|h6|br|tr|div)>",
+        "\n",
+        body,
+        flags=re.IGNORECASE,
+    )
+    text = _clean_text(body)
+    text = text.replace(" \n ", "\n")
+    text = re.sub(r"\n{2,}", "\n\n", text)
+    return text
 
 
 def parse_page(url: str, category: str) -> list[dict]:
@@ -102,7 +122,8 @@ def parse_page(url: str, category: str) -> list[dict]:
         if len(headers) < 2:
             continue
         for row in rows[1:]:
-            cells = [_clean_text(c) for c in _extract_cells(row)]
+            raw_cells = _extract_cells(row)
+            cells = [_clean_text(c) for c in raw_cells]
             if not cells:
                 continue
             name = cells[0]
@@ -111,6 +132,7 @@ def parse_page(url: str, category: str) -> list[dict]:
 
             cost_cp = 0
             desc_parts = []
+            item_type = ""
             for i, header in enumerate(headers):
                 if i >= len(cells):
                     continue
@@ -120,6 +142,8 @@ def parse_page(url: str, category: str) -> list[dict]:
                 hl = header.lower()
                 if "cost" in hl or "price" in hl:
                     cost_cp = _parse_cost_cp(value)
+                elif hl == "type":
+                    item_type = value
                 else:
                     desc_parts.append(f"{header}: {value}")
 
@@ -132,11 +156,45 @@ def parse_page(url: str, category: str) -> list[dict]:
                 "description": desc,
                 "source": url,
             }
+            if item_type:
+                item["type"] = item_type
+            if category == "Magic Items" and raw_cells:
+                href = _first_href(raw_cells[0])
+                if href.startswith("/"):
+                    href = BASE_URL + href
+                if "/magic-item:" in href and not href.endswith("/magic-item:all"):
+                    item["detail_url"] = href
             subs = _sub_items_from_desc(desc)
             if subs:
                 item["sub_items"] = subs
             items.append(item)
     return items
+
+
+def enrich_magic_item_descriptions(items: list[dict]):
+    cache: dict[str, str] = {}
+    for item in items:
+        if item.get("category") != "Magic Items":
+            continue
+        detail_url = item.get("detail_url")
+        if not detail_url:
+            continue
+        if detail_url not in cache:
+            try:
+                html = _fetch_html(detail_url)
+            except Exception:
+                cache[detail_url] = ""
+                continue
+            m = re.search(
+                r'<div id="page-content"[^>]*>(.*?)<div id="page-info-break"',
+                html,
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+            content_html = m.group(1) if m else html
+            cache[detail_url] = _strip_html_to_text(content_html)
+        full = cache.get(detail_url, "")
+        if full:
+            item["full_description"] = full
 
 
 def main():
@@ -151,6 +209,8 @@ def main():
                 continue
             seen.add(item["id"])
             all_items.append(item)
+
+    enrich_magic_item_descriptions(all_items)
 
     os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
     with open(OUT_FILE, "w", encoding="utf-8") as f:
