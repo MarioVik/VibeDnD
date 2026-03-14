@@ -221,31 +221,37 @@ class SpeciesStep(WizardStep):
         self.sub_frame.pack_forget()
 
         if sp.get("sub_choices"):
-            self.sub_frame.pack(fill=tk.X, pady=(8, 0))
             choices = sp["sub_choices"]
             if choices and isinstance(choices[0], dict):
-                first_key = list(choices[0].keys())[0]
+                self.sub_frame.pack(fill=tk.X, pady=(8, 0))
+                self._requires_sub_choice = True
+
                 ttk.Label(
                     self.sub_frame,
-                    text=f"Choose {first_key}:",
+                    text="Choose one (required):",
                     style="Subheading.TLabel",
-                ).pack(anchor="w")
-                choice_names = [c.get(first_key, "Unknown") for c in choices]
-                combo = ttk.Combobox(
-                    self.sub_frame,
-                    textvariable=self.sub_var,
-                    values=choice_names,
-                    state="readonly",
-                    width=30,
-                )
-                combo.pack(anchor="w", padx=16, pady=4)
-                if choice_names:
-                    self._requires_sub_choice = True
-                    ttk.Label(
-                        self.sub_frame,
-                        text="Select one option to continue.",
-                        style="Dim.TLabel",
-                    ).pack(anchor="w", padx=16)
+                ).pack(anchor="w", pady=(0, 4))
+
+                for choice in choices:
+                    name = choice.get("name", "Unknown")
+                    desc = choice.get("description", "")
+
+                    row = ttk.Frame(self.sub_frame)
+                    row.pack(fill=tk.X, padx=8, pady=(2, 6))
+
+                    ttk.Radiobutton(
+                        row,
+                        text=name,
+                        variable=self.sub_var,
+                        value=name,
+                    ).pack(anchor="w")
+
+                    if desc:
+                        WrappingLabel(
+                            row,
+                            text=f"  {desc}",
+                            foreground=COLORS["fg_dim"],
+                        ).pack(fill=tk.X, anchor="w", padx=(20, 0))
 
         # Trait option choices (e.g. Gnome lineage, Goliath ancestry, Shifter form)
         if not sp.get("sub_choices"):
@@ -257,36 +263,57 @@ class SpeciesStep(WizardStep):
                 ]
                 if option_names:
                     self.sub_frame.pack(fill=tk.X, pady=(8, 0))
-                    ttk.Label(
-                        self.sub_frame,
-                        text=f"Choose {trait_choice['label']}:",
-                        style="Subheading.TLabel",
-                    ).pack(anchor="w")
-                    combo = ttk.Combobox(
-                        self.sub_frame,
-                        textvariable=self.sub_var,
-                        values=option_names,
-                        state="readonly",
-                        width=38,
-                    )
-                    combo.pack(anchor="w", padx=16, pady=4)
-                    ttk.Label(
-                        self.sub_frame,
-                        text="Select one option to continue.",
-                        style="Dim.TLabel",
-                    ).pack(anchor="w", padx=16)
                     self._requires_sub_choice = True
 
-        # Traits
+                    ttk.Label(
+                        self.sub_frame,
+                        text=f"Choose {trait_choice['label']} (required):",
+                        style="Subheading.TLabel",
+                    ).pack(anchor="w", pady=(0, 4))
+
+                    # Find matching trait descriptions
+                    trait_descs = {
+                        t.get("name", ""): t.get("description", "")
+                        for t in sp.get("traits", [])
+                    }
+
+                    for opt_name in option_names:
+                        row = ttk.Frame(self.sub_frame)
+                        row.pack(fill=tk.X, padx=8, pady=(2, 6))
+
+                        ttk.Radiobutton(
+                            row,
+                            text=opt_name,
+                            variable=self.sub_var,
+                            value=opt_name,
+                        ).pack(anchor="w")
+
+                        opt_desc = trait_descs.get(opt_name, "")
+                        if opt_desc:
+                            WrappingLabel(
+                                row,
+                                text=f"  {opt_desc}",
+                                foreground=COLORS["fg_dim"],
+                            ).pack(fill=tk.X, anchor="w", padx=(20, 0))
+
+        # Traits — exclude any that are shown as radio button sub-choices
         for w in self.traits_frame.winfo_children():
             w.destroy()
 
+        trait_choice = self.TRAIT_OPTION_CHOICES.get(sp.get("name", ""))
+        radio_trait_names = set()
+        if trait_choice and not sp.get("sub_choices"):
+            radio_trait_names = set(trait_choice.get("options", []))
+
         traits = sp.get("traits", [])
-        if traits:
+        visible_traits = [
+            t for t in traits if t.get("name", "") not in radio_trait_names
+        ]
+        if visible_traits:
             ttk.Label(self.traits_frame, text="Traits", style="Subheading.TLabel").pack(
                 anchor="w", pady=(0, 4)
             )
-            for trait in traits:
+            for trait in visible_traits:
                 tf = ttk.Frame(self.traits_frame)
                 tf.pack(fill=tk.X, pady=2)
                 ttk.Label(

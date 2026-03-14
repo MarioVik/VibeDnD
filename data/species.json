@@ -168,45 +168,24 @@
     ],
     "sub_choices": [
       {
-        "Lineage": "The range of your Darkvision increases to 120 feet. You also know the",
-        "Level 1": "Dancing Lights",
-        "Level 3": "cantrip.",
-        "Level 5": "Faerie Fire",
-        "Drow": "Darkness"
+        "name": "Drow",
+        "description": "Level 1: The range of your Darkvision increases to 120 feet. You also know the Dancing Lights cantrip.\nLevel 3: Faerie Fire\nLevel 5: Darkness"
       },
       {
-        "Lineage": "High Elf",
-        "Level 1": "You know the",
-        "Level 3": "Prestidigitation",
-        "Level 5": "cantrip. Whenever you finish a Long Rest, you can replace that cantrip with a different cantrip from the Wizard spell list.",
-        "Drow": "Detect Magic"
+        "name": "High Elf",
+        "description": "Level 1: You know the Prestidigitation cantrip. Whenever you finish a Long Rest, you can replace that cantrip with a different cantrip from the Wizard spell list.\nLevel 3: Detect Magic\nLevel 5: Misty Step"
       },
       {
-        "Lineage": "Misty Step",
-        "Level 1": "Wood Elf",
-        "Level 3": "Your Speed increases to 35 feet. You also know the",
-        "Level 5": "Druidcraft",
-        "Drow": "cantrip."
+        "name": "Wood Elf",
+        "description": "Level 1: Your Speed increases to 35 feet. You also know the Druidcraft cantrip.\nLevel 3: Longstrider\nLevel 5: Pass without Trace"
       },
       {
-        "Lineage": "Longstrider",
-        "Level 1": "Pass without Trace",
-        "Level 3": "Lorwyn Elf",
-        "Level 5": "You know the",
-        "Drow": "Thorn Whip"
+        "name": "Lorwyn Elf",
+        "description": "Level 1: You know the Thorn Whip cantrip. Whenever you finish a Long Rest, you can replace that cantrip with a different cantrip from the Druid spell list.\nLevel 3: Command\nLevel 5: Silence"
       },
       {
-        "Lineage": "cantrip. Whenever you finish a Long Rest, you can replace that cantrip with a different cantrip from the Druid spell list.",
-        "Level 1": "Command",
-        "Level 3": "Silence",
-        "Level 5": "Shadowmoor Elf",
-        "Drow": "The range of your Darkvision increases to 120 feet. You also know the"
-      },
-      {
-        "Lineage": "Starry Wisp",
-        "Level 1": "cantrip.",
-        "Level 3": "Heroism",
-        "Level 5": "Gentle Repose"
+        "name": "Shadowmoor Elf",
+        "description": "Level 1: The range of your Darkvision increases to 120 feet. You also know the Starry Wisp cantrip.\nLevel 3: Heroism\nLevel 5: Gentle Repose"
       }
     ]
   },
@@ -432,29 +411,16 @@
     ],
     "sub_choices": [
       {
-        "Legacy": "You have Resistance to Poison damage. You also know the",
-        "Level 1": "Poison Spray",
-        "Level 3": "cantrip.",
-        "Level 5": "Ray of Sickness",
-        "Abyssal": "Hold Person"
+        "name": "Abyssal",
+        "description": "Level 1: You have Resistance to Poison damage. You also know the Poison Spray cantrip.\nLevel 3: Ray of Sickness\nLevel 5: Hold Person"
       },
       {
-        "Legacy": "Chthonic",
-        "Level 1": "You have Resistance to Necrotic damage. You also know the",
-        "Level 3": "Chill Touch",
-        "Level 5": "cantrip.",
-        "Abyssal": "False Life"
+        "name": "Chthonic",
+        "description": "Level 1: You have Resistance to Necrotic damage. You also know the Chill Touch cantrip.\nLevel 3: False Life\nLevel 5: Ray of Enfeeblement"
       },
       {
-        "Legacy": "Ray of Enfeeblement",
-        "Level 1": "Infernal",
-        "Level 3": "You have Resistance to Fire damage. You also know the",
-        "Level 5": "Fire Bolt",
-        "Abyssal": "cantrip."
-      },
-      {
-        "Legacy": "Hellish Rebuke",
-        "Level 1": "Darkness"
+        "name": "Infernal",
+        "description": "Level 1: You have Resistance to Fire damage. You also know the Fire Bolt cantrip.\nLevel 3: Hellish Rebuke\nLevel 5: Darkness"
       }
     ]
   },

@@ -2,8 +2,11 @@
 
 import re
 from parsers.base_parser import (
-    extract_name_from_url, extract_source, extract_field,
-    extract_description, split_comma_list,
+    extract_name_from_url,
+    extract_source,
+    extract_field,
+    extract_description,
+    split_comma_list,
 )
 
 
@@ -33,7 +36,11 @@ def parse_traits(content: str) -> list[dict]:
                 # Skip this field and its value
                 past_base_stats = False
                 continue
-            elif not past_base_stats and stripped and stripped.rstrip(":") not in skip_fields:
+            elif (
+                not past_base_stats
+                and stripped
+                and stripped.rstrip(":") not in skip_fields
+            ):
                 # Check if previous line was a base stat field
                 if i > 0 and lines[i - 1].strip().lower().rstrip(":") in skip_fields:
                     continue  # This is the value of the base stat
@@ -44,7 +51,7 @@ def parse_traits(content: str) -> list[dict]:
     trait_section_start = None
     for i, line in enumerate(lines):
         stripped = line.strip()
-        if re.match(r'^As (a|an) .+, you have these special traits\.?$', stripped):
+        if re.match(r"^As (a|an) .+, you have these special traits\.?$", stripped):
             trait_section_start = i + 1
             break
 
@@ -71,8 +78,13 @@ def parse_traits(content: str) -> list[dict]:
 
     # Stop markers
     stop_markers = [
-        "elven lineages", "draconic ancestry", "fiendish legacy",
-        "lineage", "level 1", "level 3", "level 5",
+        "elven lineages",
+        "draconic ancestry",
+        "fiendish legacy",
+        "lineage",
+        "level 1",
+        "level 3",
+        "level 5",
     ]
 
     for i in range(trait_section_start, len(lines)):
@@ -92,50 +104,94 @@ def parse_traits(content: str) -> list[dict]:
                 break
 
         # Check if this is a trait name (ends with period, short, not a sentence)
-        if (stripped.endswith(".") and len(stripped) < 50 and
-                " " in stripped and not stripped[0].islower() and
-                stripped.count(".") == 1):
+        if (
+            stripped.endswith(".")
+            and len(stripped) < 50
+            and " " in stripped
+            and not stripped[0].islower()
+            and stripped.count(".") == 1
+        ):
             # Save previous
             if current_name:
-                traits.append({
-                    "name": current_name,
-                    "description": " ".join(current_desc_lines).strip(),
-                })
+                traits.append(
+                    {
+                        "name": current_name,
+                        "description": " ".join(current_desc_lines).strip(),
+                    }
+                )
             current_name = stripped.rstrip(".")
             current_desc_lines = []
-        elif stripped.endswith(".") and len(stripped) < 30 and not stripped[0].islower():
+        elif (
+            stripped.endswith(".") and len(stripped) < 30 and not stripped[0].islower()
+        ):
             # Single-word trait names like "Darkvision."
             if current_name:
-                traits.append({
-                    "name": current_name,
-                    "description": " ".join(current_desc_lines).strip(),
-                })
+                traits.append(
+                    {
+                        "name": current_name,
+                        "description": " ".join(current_desc_lines).strip(),
+                    }
+                )
             current_name = stripped.rstrip(".")
             current_desc_lines = []
         elif current_name:
             current_desc_lines.append(stripped)
 
     if current_name:
-        traits.append({
-            "name": current_name,
-            "description": " ".join(current_desc_lines).strip(),
-        })
+        traits.append(
+            {
+                "name": current_name,
+                "description": " ".join(current_desc_lines).strip(),
+            }
+        )
 
     return traits
 
 
+_KNOWN_SUB_RACE_NAMES = {
+    "Elven Lineages": [
+        "Drow",
+        "High Elf",
+        "Wood Elf",
+        "Lorwyn Elf",
+        "Shadowmoor Elf",
+    ],
+    "Fiendish Legacies": [
+        "Abyssal",
+        "Chthonic",
+        "Infernal",
+    ],
+    "Draconic Ancestry": [
+        "Black",
+        "Blue",
+        "Brass",
+        "Bronze",
+        "Copper",
+        "Gold",
+        "Green",
+        "Red",
+        "Silver",
+        "White",
+    ],
+}
+
+
 def parse_sub_choices(content: str, species_name: str) -> list[dict] | None:
-    """Parse sub-choice tables (elf lineages, dragonborn ancestry, etc.)."""
+    """Parse sub-choice tables (elf lineages, dragonborn ancestry, etc.).
+
+    Returns a list of dicts, each with:
+        name: sub-race name (e.g. "Drow", "High Elf")
+        description: assembled full description text
+    """
     lines = content.split("\n")
 
-    # Look for known sub-choice table patterns
-    table_headers = {
+    table_configs = {
         "Elven Lineages": ["Lineage", "Level 1", "Level 3", "Level 5"],
         "Draconic Ancestry": ["Dragon", "Damage Type", "Breath Weapon"],
         "Fiendish Legacies": ["Legacy", "Level 1", "Level 3", "Level 5"],
     }
 
-    for table_name, expected_cols in table_headers.items():
+    for table_name, col_headers in table_configs.items():
         table_start = None
         for i, line in enumerate(lines):
             if line.strip() == table_name:
@@ -145,63 +201,82 @@ def parse_sub_choices(content: str, species_name: str) -> list[dict] | None:
         if table_start is None:
             continue
 
-        # Find column headers
+        known_names = set(_KNOWN_SUB_RACE_NAMES.get(table_name, []))
+        if not known_names:
+            continue
+
+        # Find start of data after column headers
         col_start = None
         for i in range(table_start + 1, min(table_start + 10, len(lines))):
-            if lines[i].strip() == expected_cols[0]:
+            if lines[i].strip() == col_headers[0]:
                 col_start = i
                 break
 
         if col_start is None:
             continue
 
-        # Count actual columns (each header is on its own line)
-        num_cols = 0
-        col_names = []
-        for i in range(col_start, min(col_start + 10, len(lines))):
-            stripped = lines[i].strip()
-            if not stripped:
-                break
-            # Check if it looks like a column header
-            if stripped[0].isupper() and len(stripped) < 30:
-                num_cols += 1
-                col_names.append(stripped)
-            else:
-                break
+        data_start = col_start + len(col_headers)
 
-        if num_cols < 2:
-            continue
-
-        # Read data rows
-        data_start = col_start + num_cols
-        choices = []
-        row = []
-
+        # Collect all non-empty lines from data region
+        data_lines = []
         for i in range(data_start, len(lines)):
             stripped = lines[i].strip()
             if not stripped:
-                if row:
-                    # Might be end of table
-                    continue
                 continue
+            data_lines.append(stripped)
 
-            row.append(stripped)
+        # Split data_lines into chunks per known sub-race name.
+        # Each chunk starts when we see a known name.
+        chunks: list[tuple[str, list[str]]] = []
+        current_name = None
+        current_cells: list[str] = []
 
-            if len(row) >= num_cols:
-                choice = {}
-                for j, col_name in enumerate(col_names):
-                    if j < len(row):
-                        choice[col_name] = row[j]
-                choices.append(choice)
-                row = []
+        for line in data_lines:
+            if line in known_names:
+                if current_name is not None:
+                    chunks.append((current_name, current_cells))
+                current_name = line
+                current_cells = []
+            elif current_name is not None:
+                current_cells.append(line)
 
-        # Handle last partial row
-        if row and len(row) >= 2:
-            choice = {}
-            for j, col_name in enumerate(col_names):
-                if j < len(row):
-                    choice[col_name] = row[j]
-            choices.append(choice)
+        if current_name is not None:
+            chunks.append((current_name, current_cells))
+
+        choices = []
+        for name, cells in chunks:
+            if len(col_headers) == 3:
+                # Draconic Ancestry: cells map to Damage Type, Breath Weapon
+                dmg = cells[0] if cells else "Unknown"
+                breath = " ".join(cells[1:]) if len(cells) > 1 else "Unknown"
+                desc = f"Damage Type: {dmg}\nBreath Weapon: {breath}"
+            else:
+                # Lineage/Legacy tables: 3 data columns (Level 1, 3, 5).
+                # Level 3 and Level 5 are always the last 2 cells (single spell names).
+                # Everything before those is the Level 1 description.
+                if len(cells) >= 3:
+                    lvl5 = cells[-1]
+                    lvl3 = cells[-2]
+                    lvl1 = " ".join(cells[:-2])
+                elif len(cells) == 2:
+                    lvl1 = cells[0]
+                    lvl3 = cells[1]
+                    lvl5 = ""
+                elif len(cells) == 1:
+                    lvl1 = cells[0]
+                    lvl3 = ""
+                    lvl5 = ""
+                else:
+                    lvl1 = lvl3 = lvl5 = ""
+
+                parts = [f"Level 1: {lvl1}"]
+                if lvl3:
+                    parts.append(f"Level 3: {lvl3}")
+                if lvl5:
+                    parts.append(f"Level 5: {lvl5}")
+                desc = "\n".join(parts)
+
+            choices.append({"name": name, "description": desc})
 
         if choices:
             return choices
@@ -221,7 +296,7 @@ def parse_size(content: str) -> dict:
             options.append("Medium")
         if "Small" in size_raw:
             options.append("Small")
-        note_match = re.search(r'\(([^)]+)\)', size_raw)
+        note_match = re.search(r"\(([^)]+)\)", size_raw)
         return {
             "options": options if options else ["Medium"],
             "note": note_match.group(1) if note_match else None,
@@ -236,7 +311,7 @@ def parse_speed(content: str) -> int:
     """Parse speed in feet."""
     speed_raw = extract_field(content, "Speed")
     if speed_raw:
-        m = re.search(r'(\d+)\s*feet', speed_raw)
+        m = re.search(r"(\d+)\s*feet", speed_raw)
         if m:
             return int(m.group(1))
     return 30
@@ -270,15 +345,17 @@ def parse_species(raw_data: list[dict]) -> list[dict]:
         # Sub-choices (lineages, ancestry, legacy)
         sub_choices = parse_sub_choices(content, name)
 
-        species_list.append({
-            "name": name,
-            "source": source,
-            "description": description,
-            "creature_type": creature_type,
-            "size": size,
-            "speed": speed,
-            "traits": traits,
-            "sub_choices": sub_choices,
-        })
+        species_list.append(
+            {
+                "name": name,
+                "source": source,
+                "description": description,
+                "creature_type": creature_type,
+                "size": size,
+                "speed": speed,
+                "traits": traits,
+                "sub_choices": sub_choices,
+            }
+        )
 
     return species_list
