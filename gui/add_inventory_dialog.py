@@ -287,8 +287,12 @@ class AddInventoryDialog(tk.Toplevel):
             ),
             cost_line,
             "",
-            item.get("full_description")
-            or item.get("description", "No description available."),
+            (
+                (
+                    item.get("full_description")
+                    or item.get("description", "No description available.")
+                ).replace("; Function:", "\nFunction:")
+            ),
         ]
         body = [line for line in body if line != ""]
         sub = item.get("sub_items") or []
