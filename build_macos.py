@@ -91,19 +91,26 @@ def maybe_make_icns() -> Path | None:
         return None
 
     iconset_dir = BUILD / "vibednd.iconset"
+    normalized_png = BUILD / "icon-source-normalized.png"
     if iconset_dir.exists():
         shutil.rmtree(iconset_dir)
     iconset_dir.mkdir(parents=True, exist_ok=True)
+
+    # Normalize source image to a real PNG first. In CI the source file can be
+    # a JPEG with a .png suffix, which makes iconutil reject the iconset.
+    run(["sips", "-s", "format", "png", str(ICON_PNG), "--out", str(normalized_png)])
 
     base_sizes = [16, 32, 128, 256, 512]
     for s in base_sizes:
         out_1x = iconset_dir / f"icon_{s}x{s}.png"
         out_2x = iconset_dir / f"icon_{s}x{s}@2x.png"
-        run(["sips", "-z", str(s), str(s), str(ICON_PNG), "--out", str(out_1x)])
-        run(["sips", "-z", str(s * 2), str(s * 2), str(ICON_PNG), "--out", str(out_2x)])
+        run(["sips", "-z", str(s), str(s), str(normalized_png), "--out", str(out_1x)])
+        run(["sips", "-z", str(s * 2), str(s * 2), str(normalized_png), "--out", str(out_2x)])
 
     run(["iconutil", "-c", "icns", str(iconset_dir), "-o", str(ICON_ICNS)])
     shutil.rmtree(iconset_dir, ignore_errors=True)
+    if normalized_png.exists():
+        normalized_png.unlink()
     print(f"Created icon: {ICON_ICNS}")
     return ICON_ICNS
 
