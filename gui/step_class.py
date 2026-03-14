@@ -40,6 +40,15 @@ class ClassStep(WizardStep):
         self._ua_prev_enabled = False
         self._build_toggles()
 
+        # Subclass visibility filter
+        self._show_subclasses_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            left,
+            text="Show subclasses (unlocks at level 3)",
+            variable=self._show_subclasses_var,
+            command=self._populate_list,
+        ).pack(anchor="w", pady=(0, 4))
+
         self.class_list = SectionedListbox(
             left,
             on_select=self._on_select,
@@ -214,7 +223,10 @@ class ClassStep(WizardStep):
                     sub_lookup[cls["name"]] = class_lookup
 
         self._subclass_lookup_by_class = sub_lookup
-        self.class_list.set_sectioned_items(sections, sub_items=sub_items)
+        # Only pass sub_items when the checkbox is enabled
+        show_subs = getattr(self, "_show_subclasses_var", None)
+        effective_sub_items = sub_items if (show_subs and show_subs.get()) else {}
+        self.class_list.set_sectioned_items(sections, sub_items=effective_sub_items)
 
     def _clear_detail_frames(self):
         for f in [
@@ -266,7 +278,7 @@ class ClassStep(WizardStep):
         def _lvl_key(level_str: str):
             try:
                 return int(level_str)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 return 99
 
         for lvl in sorted(features_by_level.keys(), key=_lvl_key):

@@ -156,7 +156,6 @@ class SectionedListbox(ttk.Frame):
 
     HEADER_PREFIX = "\u2500\u2500 "  # ── prefix for section headers
     HEADER_SUFFIX = " \u2500\u2500"
-    SUB_ITEM_HEADER_TEXT = "Subclass options (unlocks at level 3)"
     SUB_ITEM_PREFIX = "         - "
 
     def __init__(self, parent, on_select=None, on_sub_select=None, **kwargs):
@@ -165,11 +164,12 @@ class SectionedListbox(ttk.Frame):
         self.on_sub_select = on_sub_select
         self.sections: list[tuple[str, list[str]]] = []  # [(section_name, [items])]
         self.sub_items: dict[str, list[str]] = {}  # item_name -> [sub-item texts]
-        self._sub_items_expanded: dict[str, bool] = {}  # item_name -> expanded state
         self._header_indices: set[int] = set()  # listbox indices that are headers
         self._sub_item_indices: set[int] = set()  # listbox indices that are sub-items
-        self._sub_header_indices: dict[int, str] = {}  # listbox idx -> parent item name
         self._sub_leaf_indices: dict[int, tuple[str, str]] = {}
+        self._item_row_indices: dict[
+            int, str
+        ] = {}  # idx -> item name for selectable rows
 
         # Search entry
         self.search_var = tk.StringVar()
@@ -200,7 +200,6 @@ class SectionedListbox(ttk.Frame):
         self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.listbox.bind("<Button-1>", self._on_click)
         self.listbox.bind("<<ListboxSelect>>", self._on_select)
 
     def set_sectioned_items(
@@ -213,25 +212,18 @@ class SectionedListbox(ttk.Frame):
         Args:
             sections: [(section_name, [item_names])]
             sub_items: optional dict mapping item names to lists of sub-item
-                       display strings shown beneath that item.
+                       display strings shown beneath that item when visible.
         """
         self.sections = sections
         self.sub_items = sub_items or {}
-
-        # Keep expansion state for existing items, default to collapsed for new items.
-        next_expanded: dict[str, bool] = {}
-        for item_name in self.sub_items:
-            next_expanded[item_name] = self._sub_items_expanded.get(item_name, False)
-        self._sub_items_expanded = next_expanded
-
         self._populate()
 
     def _populate(self):
         self.listbox.delete(0, tk.END)
         self._header_indices.clear()
         self._sub_item_indices.clear()
-        self._sub_header_indices.clear()
         self._sub_leaf_indices.clear()
+        self._item_row_indices.clear()
         query = self.search_var.get().lower()
         idx = 0
 
@@ -261,57 +253,28 @@ class SectionedListbox(ttk.Frame):
             self._header_indices.add(idx)
             idx += 1
 
-            # Insert items and their sub-items
+            # Insert items and optional sub-items
             for item in visible:
                 self.listbox.insert(tk.END, f"  {item}")
+                self._item_row_indices[idx] = item
                 idx += 1
 
                 subs = self.sub_items.get(item, [])
                 if subs:
-                    # Sub-item group header (click to expand/collapse)
-                    show_expanded = self._sub_items_expanded.get(item, False)
-                    if query:
-                        show_expanded = True
-                    marker = "\u25bc" if show_expanded else "\u25b6"  # ▼ / ▶
-                    self.listbox.insert(
-                        tk.END, f"    {marker} {self.SUB_ITEM_HEADER_TEXT}"
-                    )
-                    self.listbox.itemconfig(
-                        idx,
-                        fg=COLORS["accent"],
-                        selectbackground=COLORS["bg_light"],
-                        selectforeground=COLORS["accent"],
-                    )
-                    self._sub_item_indices.add(idx)
-                    self._sub_header_indices[idx] = item
-                    idx += 1
-                    if show_expanded:
-                        for sub in subs:
-                            self.listbox.insert(tk.END, f"{self.SUB_ITEM_PREFIX}{sub}")
-                            self.listbox.itemconfig(
-                                idx,
-                                fg=COLORS["fg_dim"],
-                                selectbackground=COLORS["select_bg"],
-                                selectforeground=COLORS["select_fg"],
-                            )
-                            self._sub_item_indices.add(idx)
-                            self._sub_leaf_indices[idx] = (item, sub)
-                            idx += 1
+                    for sub in subs:
+                        self.listbox.insert(tk.END, f"{self.SUB_ITEM_PREFIX}{sub}")
+                        self.listbox.itemconfig(
+                            idx,
+                            fg=COLORS["fg_dim"],
+                            selectbackground=COLORS["select_bg"],
+                            selectforeground=COLORS["select_fg"],
+                        )
+                        self._sub_item_indices.add(idx)
+                        self._sub_leaf_indices[idx] = (item, sub)
+                        idx += 1
 
     def _filter(self, *args):
         self._populate()
-
-    def _on_click(self, event):
-        """Toggle subclass groups immediately when sub-header rows are clicked."""
-        idx = self.listbox.index(f"@{event.x},{event.y}")
-        if idx in self._sub_header_indices:
-            item = self._sub_header_indices[idx]
-            self._sub_items_expanded[item] = not self._sub_items_expanded.get(
-                item, False
-            )
-            self.listbox.selection_clear(0, tk.END)
-            self._populate()
-            return "break"
 
     def _is_non_selectable(self, index: int) -> bool:
         return index in self._header_indices or index in self._sub_item_indices
@@ -329,18 +292,9 @@ class SectionedListbox(ttk.Frame):
             return
 
         if self._is_non_selectable(i):
-            # Clicked a header or sub-item — deselect and select next real item
             self.listbox.selection_clear(i)
-            # Find next selectable item
-            for j in range(i + 1, self.listbox.size()):
-                if not self._is_non_selectable(j):
-                    self.listbox.selection_set(j)
-                    self.listbox.see(j)
-                    if self.on_select:
-                        name = self.listbox.get(j).strip()
-                        self.on_select(name)
-                    return
             return
+
         if self.on_select:
             name = self.listbox.get(i).strip()
             self.on_select(name)
