@@ -184,17 +184,7 @@ class CharacterViewer(ttk.Frame):
             self._refresh_tab(selected)
 
     def _apply_tab_labels(self):
-        if not self.winfo_exists() or not getattr(self, "tabs", None):
-            return
-        for key, title in self._tab_titles.items():
-            marker = " *" if self._tab_dirty.get(key) else ""
-            widget = self._tab_widgets.get(key)
-            if widget is None:
-                continue
-            try:
-                self.tabs.tab(widget, text=f"{title}{marker}")
-            except tk.TclError:
-                pass
+        pass
 
     def _selected_tab_key(self) -> str:
         if not self.winfo_exists() or not self.tabs.winfo_exists():
