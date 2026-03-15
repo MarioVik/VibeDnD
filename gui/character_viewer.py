@@ -2,6 +2,7 @@
 
 import re
 import tkinter as tk
+import tkinter.font as tkfont
 from tkinter import ttk, filedialog
 
 from gui.theme import COLORS, FONTS
@@ -333,20 +334,24 @@ class CharacterViewer(ttk.Frame):
     def _render_inventory_split_view(self):
         split = ttk.LabelFrame(self._inventory_parent, text="Item Details")
         split.pack(fill=tk.BOTH, expand=True, pady=3)
-        split.columnconfigure(0, weight=0)
+        split.columnconfigure(0, weight=0, minsize=560)
         split.columnconfigure(1, weight=1)
-        split.rowconfigure(1, weight=1)
+        split.rowconfigure(0, weight=1)
+        self.inventory_split_frame = split
 
-        left = ttk.Frame(split, width=300)
-        left.grid(row=1, column=0, sticky="nsew", padx=(8, 6), pady=(0, 8))
+        left = ttk.Frame(split, width=520)
+        left.grid(row=0, column=0, sticky="nsew", padx=(8, 6), pady=(0, 8))
         left.grid_propagate(False)
+        self.inventory_left_pane = left
         self.inventory_list = SectionedListbox(
-            left, on_select=self._on_inventory_select
+            left,
+            on_select=self._on_inventory_select,
+            horizontal_scroll=True,
         )
         self.inventory_list.pack(fill=tk.BOTH, expand=True)
 
         right = ttk.Frame(split)
-        right.grid(row=1, column=1, sticky="nsew", padx=(0, 8), pady=(0, 8))
+        right.grid(row=0, column=1, sticky="nsew", padx=(0, 8), pady=(0, 8))
         right.columnconfigure(0, weight=1)
         right.rowconfigure(1, weight=1)
 
@@ -365,17 +370,16 @@ class CharacterViewer(ttk.Frame):
             highlightthickness=0,
             relief=tk.FLAT,
             state=tk.DISABLED,
-            height=10,
         )
         self.inventory_detail_text.grid(row=1, column=0, sticky="nsew")
 
         self.remove_item_btn = ttk.Button(
-            split,
+            right,
             text="Remove item",
             command=self._remove_selected_item,
             state=tk.DISABLED,
         )
-        self.remove_item_btn.grid(row=0, column=1, sticky="e", padx=(0, 8), pady=(6, 4))
+        self.remove_item_btn.grid(row=2, column=0, sticky="e", pady=(6, 0))
 
         self._refresh_inventory_split_items()
 
@@ -429,6 +433,7 @@ class CharacterViewer(ttk.Frame):
             sections.append(("Inventory", inv_labels))
 
         self.inventory_list.set_sectioned_items(sections)
+        self._fit_inventory_left_width(sections)
 
         if self._selected_inventory_name in self._inventory_entries_by_name:
             current = self._selected_inventory_name
@@ -445,6 +450,30 @@ class CharacterViewer(ttk.Frame):
             self.remove_item_btn.configure(state=tk.DISABLED)
             self.inventory_detail_title.configure(text="No items")
             self._set_inventory_detail_text("No inventory items available.")
+
+    def _fit_inventory_left_width(self, sections: list[tuple[str, list[str]]]):
+        if not getattr(self, "inventory_left_pane", None):
+            return
+
+        body_font = tkfont.Font(font=FONTS["body"])
+        max_px = 0
+        for section, items in sections:
+            header_text = f"{SectionedListbox.HEADER_PREFIX}{section}{SectionedListbox.HEADER_SUFFIX}"
+            max_px = max(max_px, body_font.measure(header_text))
+            for item in items:
+                # List rows include a 2-space indent in SectionedListbox.
+                max_px = max(max_px, body_font.measure(f"  {item}"))
+
+        # Account for internal padding + scrollbar; keep sensible minimum.
+        target = max(560, max_px + 110)
+        self.inventory_left_pane.configure(width=target)
+        if getattr(self, "inventory_split_frame", None):
+            self.inventory_split_frame.columnconfigure(0, minsize=target)
+
+        # Also set listbox width in characters so Tk doesn't clip rows.
+        char_px = max(7, body_font.measure("0"))
+        width_chars = max(28, int((target - 40) / char_px))
+        self.inventory_list.listbox.configure(width=width_chars)
 
     def _find_item_record(self, entry: dict) -> dict | None:
         key = entry.get("key", "")

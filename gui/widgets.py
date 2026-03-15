@@ -158,7 +158,14 @@ class SectionedListbox(ttk.Frame):
     HEADER_SUFFIX = " \u2500\u2500"
     SUB_ITEM_PREFIX = "         - "
 
-    def __init__(self, parent, on_select=None, on_sub_select=None, **kwargs):
+    def __init__(
+        self,
+        parent,
+        on_select=None,
+        on_sub_select=None,
+        horizontal_scroll: bool = False,
+        **kwargs,
+    ):
         super().__init__(parent, **kwargs)
         self.on_select = on_select
         self.on_sub_select = on_sub_select
@@ -170,6 +177,7 @@ class SectionedListbox(ttk.Frame):
         self._item_row_indices: dict[
             int, str
         ] = {}  # idx -> item name for selectable rows
+        self._horizontal_scroll = horizontal_scroll
 
         # Search entry
         self.search_var = tk.StringVar()
@@ -199,6 +207,13 @@ class SectionedListbox(ttk.Frame):
 
         self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        if self._horizontal_scroll:
+            xscroll = ttk.Scrollbar(
+                self, orient=tk.HORIZONTAL, command=self.listbox.xview
+            )
+            self.listbox.configure(xscrollcommand=xscroll.set)
+            xscroll.pack(fill=tk.X, padx=2, pady=(2, 0))
 
         self.listbox.bind("<<ListboxSelect>>", self._on_select)
 
