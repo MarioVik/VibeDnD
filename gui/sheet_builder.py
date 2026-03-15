@@ -658,37 +658,48 @@ def build_character_sheet(
             outer = ttk.Frame(coins_row)
             outer.pack(side=tk.LEFT, padx=(0, 10))
 
-            coin_box = ttk.LabelFrame(outer, text=title)
-            coin_box.pack(side=tk.LEFT)
+            ttk.Label(outer, text=title, style="Dim.TLabel").pack(
+                anchor="w", pady=(0, 2)
+            )
 
-            value_lbl = ttk.Label(
-                coin_box,
+            body = ttk.Frame(outer)
+            body.pack(anchor="w")
+            body.rowconfigure(0, weight=1)
+            body.rowconfigure(1, weight=1)
+
+            value_box = tk.Frame(
+                body,
+                bg=COLORS["bg_light"],
+                highlightbackground=COLORS["border"],
+                highlightthickness=1,
+                bd=0,
+            )
+            value_box.grid(row=0, column=0, rowspan=2, sticky="nsew")
+            value_box.grid_propagate(False)
+            value_box.configure(width=72)
+
+            value_lbl = tk.Label(
+                value_box,
                 text="0",
                 font=FONTS["stat"],
-                foreground=COLORS["fg_bright"],
-                width=4,
-                anchor="center",
+                background=COLORS["bg_light"],
+                fg=COLORS["fg_bright"],
             )
-            value_lbl.pack(padx=12, pady=(6, 4))
+            value_lbl.place(relx=0.5, rely=0.5, anchor="center")
             coin_value_labels[coin_key] = value_lbl
 
-            controls = ttk.Frame(outer)
-            controls.pack(side=tk.LEFT, padx=(5, 0), pady=(0, 0), fill=tk.Y)
-            controls.columnconfigure(0, weight=1)
-            controls.rowconfigure(0, weight=1)
-            controls.rowconfigure(3, weight=1)
             ttk.Button(
-                controls,
+                body,
                 text="+",
                 width=2,
                 command=lambda d=unit_cp: _adjust_wealth(d),
-            ).grid(row=1, column=0, pady=(0, 2), sticky="n")
+            ).grid(row=0, column=1, padx=(5, 0), pady=(0, 2), sticky="n")
             ttk.Button(
-                controls,
+                body,
                 text="-",
                 width=2,
                 command=lambda d=unit_cp: _adjust_wealth(-d),
-            ).grid(row=2, column=0, sticky="n")
+            ).grid(row=1, column=1, padx=(5, 0), sticky="s")
 
         _refresh_wealth_display()
 
