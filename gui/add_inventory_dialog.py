@@ -39,6 +39,86 @@ MAGIC_RARITY_ORDER = [
     "Unknown",
 ]
 
+ARMOR_SUBCATEGORY_ORDER = ["Light", "Medium", "Heavy", "Shields", "Other"]
+WEAPON_SUBCATEGORY_ORDER = [
+    "Simple Melee",
+    "Simple Ranged",
+    "Martial Melee",
+    "Martial Ranged",
+    "Other",
+]
+
+LIGHT_ARMOR_NAMES = {
+    "Padded Armor",
+    "Leather Armor",
+    "Studded Leather Armor",
+}
+MEDIUM_ARMOR_NAMES = {
+    "Hide Armor",
+    "Chain Shirt",
+    "Scale Mail",
+    "Breastplate",
+    "Half Plate Armor",
+}
+HEAVY_ARMOR_NAMES = {
+    "Ring Mail",
+    "Chain Mail",
+    "Splint Armor",
+    "Plate Armor",
+}
+
+SIMPLE_MELEE_WEAPONS = {
+    "Club",
+    "Dagger",
+    "Greatclub",
+    "Handaxe",
+    "Javelin",
+    "Light Hammer",
+    "Mace",
+    "Quarterstaff",
+    "Sickle",
+    "Spear",
+}
+SIMPLE_RANGED_WEAPONS = {
+    "Dart",
+    "Light Crossbow",
+    "Shortbow",
+    "Sling",
+    "Arrows",
+    "Bolts",
+    "Bullets, Firearm",
+    "Bullets, Sling",
+    "Needles",
+}
+MARTIAL_MELEE_WEAPONS = {
+    "Battleaxe",
+    "Flail",
+    "Glaive",
+    "Greataxe",
+    "Greatsword",
+    "Halberd",
+    "Lance",
+    "Longsword",
+    "Maul",
+    "Morningstar",
+    "Pike",
+    "Rapier",
+    "Scimitar",
+    "Shortsword",
+    "Trident",
+    "Warhammer",
+    "War Pick",
+    "Whip",
+}
+MARTIAL_RANGED_WEAPONS = {
+    "Blowgun",
+    "Hand Crossbow",
+    "Heavy Crossbow",
+    "Longbow",
+    "Musket",
+    "Pistol",
+}
+
 
 class AddInventoryDialog(tk.Toplevel):
     def __init__(self, parent, character, game_data, on_changed=None):
@@ -244,11 +324,55 @@ class AddInventoryDialog(tk.Toplevel):
                     names = sorted(by_rarity.get(rarity, []))
                     if names:
                         sections.append((f"Magic Items • {rarity}", names))
+            elif category == "Armor":
+                by_sub: dict[str, list[str]] = {}
+                for item in items:
+                    name = item.get("name", "")
+                    if not name:
+                        continue
+                    by_sub.setdefault(self._armor_subcategory(name), []).append(name)
+                for sub in ARMOR_SUBCATEGORY_ORDER:
+                    names = sorted(by_sub.get(sub, []))
+                    if names:
+                        sections.append((f"Armor • {sub}", names))
+            elif category == "Weapons":
+                by_sub: dict[str, list[str]] = {}
+                for item in items:
+                    name = item.get("name", "")
+                    if not name:
+                        continue
+                    by_sub.setdefault(self._weapon_subcategory(name), []).append(name)
+                for sub in WEAPON_SUBCATEGORY_ORDER:
+                    names = sorted(by_sub.get(sub, []))
+                    if names:
+                        sections.append((f"Weapons • {sub}", names))
             else:
                 names = [i.get("name", "") for i in items if i.get("name")]
                 if names:
                     sections.append((category, names))
         self.item_list.set_sectioned_items(sections)
+
+    def _armor_subcategory(self, name: str) -> str:
+        if name == "Shield":
+            return "Shields"
+        if name in LIGHT_ARMOR_NAMES:
+            return "Light"
+        if name in MEDIUM_ARMOR_NAMES:
+            return "Medium"
+        if name in HEAVY_ARMOR_NAMES:
+            return "Heavy"
+        return "Other"
+
+    def _weapon_subcategory(self, name: str) -> str:
+        if name in SIMPLE_MELEE_WEAPONS:
+            return "Simple Melee"
+        if name in SIMPLE_RANGED_WEAPONS:
+            return "Simple Ranged"
+        if name in MARTIAL_MELEE_WEAPONS:
+            return "Martial Melee"
+        if name in MARTIAL_RANGED_WEAPONS:
+            return "Martial Ranged"
+        return "Other"
 
     def _refresh_meta(self):
         gp, sp, cp = cp_to_coins(current_wealth_cp(self.character))
