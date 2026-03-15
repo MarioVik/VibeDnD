@@ -450,13 +450,18 @@ class AddInventoryDialog(tk.Toplevel):
             ),
             cost_line,
             "",
-            (
-                (
-                    item.get("full_description")
-                    or item.get("description", "No description available.")
-                ).replace("; Function:", "\nFunction:")
-            ),
         ]
+        desc = item.get("full_description") or item.get(
+            "description", "No description available."
+        )
+        cat = str(item.get("category", "")).lower()
+        if desc and cat in ("weapons", "armor"):
+            for part in desc.split(";"):
+                part = part.strip()
+                if part:
+                    body.append(part)
+        else:
+            body.append(desc.replace("; Function:", "\nFunction:"))
         body = [line for line in body if line != ""]
         sub = item.get("sub_items") or []
         if sub:

@@ -542,7 +542,15 @@ class CharacterViewer(ttk.Frame):
                 lines.append(f"Cost: {gp} gp, {sp} sp, {cp} cp")
             lines.append("")
             desc = record.get("full_description") or record.get("description") or ""
-            lines.append(desc.strip() or "No description available.")
+            desc = desc.strip()
+            cat = str(record.get("category", "")).lower()
+            if desc and cat in ("weapons", "armor"):
+                for part in desc.split(";"):
+                    part = part.strip()
+                    if part:
+                        lines.append(part)
+            else:
+                lines.append(desc or "No description available.")
         else:
             weapon_meta = WEAPON_DATA.get(entry.get("key", ""), {})
             container = _container_contents(entry.get("name", ""))
