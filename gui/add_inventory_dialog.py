@@ -48,6 +48,8 @@ WEAPON_SUBCATEGORY_ORDER = [
     "Other",
 ]
 
+ADVENTURING_GEAR_SUBCATEGORY_ORDER = ["Packs", "Other"]
+
 LIGHT_ARMOR_NAMES = {
     "Padded Armor",
     "Leather Armor",
@@ -324,6 +326,23 @@ class AddInventoryDialog(tk.Toplevel):
                     names = sorted(by_rarity.get(rarity, []))
                     if names:
                         sections.append((f"Magic Items • {rarity}", names))
+            elif category == "Adventuring Gear":
+                by_sub: dict[str, list[str]] = {}
+                for item in items:
+                    name = item.get("name", "")
+                    if not name:
+                        continue
+                    by_sub.setdefault(
+                        self._adventuring_gear_subcategory(item), []
+                    ).append(name)
+                for sub in ADVENTURING_GEAR_SUBCATEGORY_ORDER:
+                    names = sorted(by_sub.get(sub, []))
+                    if not names:
+                        continue
+                    if sub == "Other":
+                        sections.append(("Adventuring Gear", names))
+                    else:
+                        sections.append((f"Adventuring Gear • {sub}", names))
             elif category == "Armor":
                 by_sub: dict[str, list[str]] = {}
                 for item in items:
@@ -351,6 +370,12 @@ class AddInventoryDialog(tk.Toplevel):
                 if names:
                     sections.append((category, names))
         self.item_list.set_sectioned_items(sections)
+
+    def _adventuring_gear_subcategory(self, item: dict) -> str:
+        # Only classify true bundled gear (items with listed sub-items) as packs.
+        if item.get("sub_items"):
+            return "Packs"
+        return "Other"
 
     def _armor_subcategory(self, name: str) -> str:
         if name == "Shield":
