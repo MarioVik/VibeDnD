@@ -23,8 +23,7 @@ class CharacterViewer(ttk.Frame):
         self._spell_index = {
             s.get("name", ""): s for s in (self.data.spells if self.data else [])
         }
-        self._refresh_scheduled = False
-        self._building_tabs = False
+        self._tab_dirty = {"general": False, "inventory": False, "spells": False}
         self._build_ui()
 
     def _build_ui(self):
@@ -84,6 +83,7 @@ class CharacterViewer(ttk.Frame):
         self.tabs.add(self.general_tab, text="General")
         self.tabs.add(self.inventory_tab, text="Inventory")
         self.tabs.add(self.spells_tab, text="Spells")
+        self.tabs.bind("<<NotebookTabChanged>>", self._on_tab_changed)
 
         general_scroll = ScrollableFrame(self.general_tab)
         general_scroll.pack(fill=tk.BOTH, expand=True)
@@ -94,7 +94,7 @@ class CharacterViewer(ttk.Frame):
         self._inventory_parent = inventory_scroll.inner
 
         self._build_spells_tab()
-        self._refresh_tabs()
+        self._refresh_tabs(force=True)
 
     def _build_spells_tab(self):
         self.spells_tab.columnconfigure(0, weight=0)
@@ -143,9 +143,28 @@ class CharacterViewer(ttk.Frame):
             "label", font=(FONTS["body"][0], FONTS["body"][1], "bold")
         )
 
-    def _refresh_tabs(self, refresh_spells: bool = True):
-        self._building_tabs = True
-        try:
+    def _refresh_tabs(self, force: bool = False):
+        if force:
+            self._tab_dirty = {"general": True, "inventory": True, "spells": True}
+
+        selected = self._selected_tab_key()
+        if selected:
+            self._refresh_tab(selected)
+
+    def _selected_tab_key(self) -> str:
+        if not self.winfo_exists() or not self.tabs.winfo_exists():
+            return ""
+        current = self.tabs.select()
+        if current == str(self.general_tab):
+            return "general"
+        if current == str(self.inventory_tab):
+            return "inventory"
+        if current == str(self.spells_tab):
+            return "spells"
+        return ""
+
+    def _refresh_tab(self, key: str):
+        if key == "general":
             build_character_sheet(
                 self._general_parent,
                 self.character,
@@ -165,7 +184,10 @@ class CharacterViewer(ttk.Frame):
                     "feats",
                 },
             )
+            self._tab_dirty["general"] = False
+            return
 
+        if key == "inventory":
             build_character_sheet(
                 self._inventory_parent,
                 self.character,
@@ -174,10 +196,25 @@ class CharacterViewer(ttk.Frame):
                 compact=True,
                 include_sections={"wealth", "equipment", "inventory"},
             )
-            if refresh_spells:
-                self._refresh_spells_tab()
-        finally:
-            self._building_tabs = False
+            self._tab_dirty["inventory"] = False
+            return
+
+        if key == "spells":
+            self._refresh_spells_tab()
+            self._tab_dirty["spells"] = False
+
+    def _mark_tabs_dirty(self, include_current: bool = False):
+        current = self._selected_tab_key()
+        for key in self._tab_dirty.keys():
+            if include_current or key != current:
+                self._tab_dirty[key] = True
+
+    def _on_tab_changed(self, _event=None):
+        key = self._selected_tab_key()
+        if not key:
+            return
+        if self._tab_dirty.get(key):
+            self._refresh_tab(key)
 
     def _refresh_spells_tab(self):
         cantrips = list(dict.fromkeys(self.character.selected_cantrips or []))
@@ -296,46 +333,13 @@ class CharacterViewer(ttk.Frame):
         self.spell_detail_text.configure(state=tk.DISABLED)
 
     def _on_sheet_changed(self):
-        if not self.save_path:
-            self._schedule_tab_refresh()
-            return
-        save_character(
-            self.character, characters_dir(), existing_filename=self.save_path
-        )
-        self._schedule_tab_refresh()
-
-    def _schedule_tab_refresh(self):
-        if not self.winfo_exists() or not getattr(self, "tabs", None):
-            return
-        if self._refresh_scheduled:
-            return
-        self._refresh_scheduled = True
-        self.after_idle(self._refresh_after_sheet_change)
-
-    def _refresh_after_sheet_change(self):
-        self._refresh_scheduled = False
-        if not self.winfo_exists() or not getattr(self, "tabs", None):
-            return
-        if not self.tabs.winfo_exists():
-            return
-        if self._building_tabs:
-            self._schedule_tab_refresh()
-            return
-        try:
-            selected = self.tabs.select()
-        except tk.TclError:
-            selected = ""
-
-        try:
-            self._refresh_tabs(refresh_spells=False)
-        except tk.TclError:
-            return
-
-        if selected and self.tabs.winfo_exists():
-            try:
-                self.tabs.select(selected)
-            except tk.TclError:
-                pass
+        if self.save_path:
+            save_character(
+                self.character, characters_dir(), existing_filename=self.save_path
+            )
+        # Avoid rebuilding the active tab during interaction; refresh it only
+        # when revisiting to prevent visible flicker.
+        self._mark_tabs_dirty(include_current=False)
 
     # ── Navigation ──────────────────────────────────────────────
 
@@ -350,7 +354,10 @@ class CharacterViewer(ttk.Frame):
             self,
             self.character,
             self.data,
-            on_changed=lambda: (self._on_sheet_changed(), self._refresh_tabs()),
+            on_changed=lambda: (
+                self._on_sheet_changed(),
+                self._refresh_tabs(force=True),
+            ),
         )
 
     def _on_level_up(self):
