@@ -259,9 +259,25 @@ class CharacterViewer(ttk.Frame):
     def _parse_item_qty(self, text: str) -> tuple[str, int]:
         raw = str(text or "").strip()
         parts = raw.split(" ", 1)
+        qty = 1
+        name = raw
         if len(parts) == 2 and parts[0].isdigit():
-            return parts[1].strip(), max(1, int(parts[0]))
-        return raw, 1
+            qty = max(1, int(parts[0]))
+            name = parts[1].strip()
+
+        m = re.match(r"^(.*)\((\d+)(?:\s+([^)]+))?\)\s*$", name)
+        if m:
+            stripped = m.group(1).strip()
+            paren_qty = max(1, int(m.group(2)))
+            qualifier = str(m.group(3) or "").strip().lower()
+            is_quantity_suffix = (not qualifier) or qualifier in {"day", "days"}
+            if not is_quantity_suffix:
+                return name, qty
+            if stripped:
+                name = stripped
+            qty *= paren_qty
+
+        return name, qty
 
     def _effective_inventory_pools(self):
         c = self.character
@@ -457,6 +473,8 @@ class CharacterViewer(ttk.Frame):
 
     _EQUIP_CHECK = "\u2611"  # ☑
     _EQUIP_UNCHECK = "\u2610"  # ☐
+    _SECTION_PREFIX = "\u2500\u2500 "  # ──
+    _SECTION_SUFFIX = " \u2500\u2500"  #  ──
 
     def _refresh_inventory_split_items(self):
         weapon_counts, armor_counts, inv_entries = self._effective_inventory_pools()
@@ -470,7 +488,7 @@ class CharacterViewer(ttk.Frame):
         self.inv_tree.insert(
             "",
             tk.END,
-            text="Equipment • Weapons",
+            text=f"{self._SECTION_PREFIX}Equipment • Weapons{self._SECTION_SUFFIX}",
             values=("", ""),
             tags=("section",),
         )
@@ -498,7 +516,7 @@ class CharacterViewer(ttk.Frame):
         self.inv_tree.insert(
             "",
             tk.END,
-            text="Equipment • Armor & Shields",
+            text=f"{self._SECTION_PREFIX}Equipment • Armor & Shields{self._SECTION_SUFFIX}",
             values=("", ""),
             tags=("section",),
         )
@@ -530,9 +548,13 @@ class CharacterViewer(ttk.Frame):
         # ── Inventory section ──
         if inv_entries:
             self.inv_tree.insert(
-                "", tk.END, text="Inventory", values=("", ""), tags=("section",)
+                "",
+                tk.END,
+                text=f"{self._SECTION_PREFIX}Inventory{self._SECTION_SUFFIX}",
+                values=("", ""),
+                tags=("section",),
             )
-            for e in inv_entries:
+            for e in sorted(inv_entries, key=lambda x: x.get("name", "").casefold()):
                 iid = self.inv_tree.insert(
                     "",
                     tk.END,
@@ -553,17 +575,19 @@ class CharacterViewer(ttk.Frame):
                     _, contents = container
                     for sub in contents:
                         sub_name = sub.strip()
+                        clean_sub_name, sub_qty = self._parse_item_qty(sub_name)
+                        total_sub_qty = max(1, int(e.get("qty", 1))) * sub_qty
                         sub_iid = self.inv_tree.insert(
                             iid,
                             tk.END,
-                            text=f"  {sub_name}",
-                            values=("", ""),
+                            text=f"  {clean_sub_name}",
+                            values=("", str(total_sub_qty)),
                             tags=("subitem",),
                         )
                         self._inv_tree_entries[sub_iid] = {
-                            "name": sub_name,
-                            "key": normalize_item_key(sub_name),
-                            "qty": 1,
+                            "name": clean_sub_name,
+                            "key": normalize_item_key(clean_sub_name),
+                            "qty": total_sub_qty,
                             "category": "Inventory",
                             "equippable": False,
                             "equipped": False,
