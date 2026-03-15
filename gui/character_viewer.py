@@ -389,20 +389,18 @@ class CharacterViewer(ttk.Frame):
 
         self.inv_tree = ttk.Treeview(
             left,
-            columns=("equip", "name", "qty"),
+            columns=("equip", "qty"),
             show="tree headings",
             selectmode="browse",
         )
-        self.inv_tree.heading("#0", text="", anchor="w")
+        self.inv_tree.heading("#0", text="Item", anchor="w")
         self.inv_tree.heading("equip", text="Equip", anchor="center")
-        self.inv_tree.heading("name", text="Item", anchor="w")
         self.inv_tree.heading("qty", text="Qty", anchor="center")
 
-        self.inv_tree.column("#0", width=20, minwidth=20, stretch=False)
+        self.inv_tree.column("#0", width=300, minwidth=140, stretch=True, anchor="w")
         self.inv_tree.column(
             "equip", width=55, minwidth=55, stretch=False, anchor="center"
         )
-        self.inv_tree.column("name", width=280, minwidth=120, stretch=True, anchor="w")
         self.inv_tree.column(
             "qty", width=45, minwidth=45, stretch=False, anchor="center"
         )
@@ -469,11 +467,11 @@ class CharacterViewer(ttk.Frame):
         self.inv_tree.delete(*self.inv_tree.get_children())
 
         # ── Weapons section ──
-        weapons_node = self.inv_tree.insert(
+        self.inv_tree.insert(
             "",
             tk.END,
-            text="",
-            values=("", "Equipment • Weapons", ""),
+            text="Equipment • Weapons",
+            values=("", ""),
             tags=("section",),
         )
         for key in sorted(weapon_counts.keys()):
@@ -484,8 +482,8 @@ class CharacterViewer(ttk.Frame):
             iid = self.inv_tree.insert(
                 "",
                 tk.END,
-                text="",
-                values=(check, name, str(qty)),
+                text=name,
+                values=(check, str(qty)),
             )
             self._inv_tree_entries[iid] = {
                 "name": name,
@@ -500,8 +498,8 @@ class CharacterViewer(ttk.Frame):
         self.inv_tree.insert(
             "",
             tk.END,
-            text="",
-            values=("", "Equipment • Armor & Shields", ""),
+            text="Equipment • Armor & Shields",
+            values=("", ""),
             tags=("section",),
         )
         ac_order_keys = [normalize_item_key(n) for n in ARMOR_AC_ORDER]
@@ -517,8 +515,8 @@ class CharacterViewer(ttk.Frame):
             iid = self.inv_tree.insert(
                 "",
                 tk.END,
-                text="",
-                values=(check, name, str(qty)),
+                text=name,
+                values=(check, str(qty)),
             )
             self._inv_tree_entries[iid] = {
                 "name": name,
@@ -532,14 +530,14 @@ class CharacterViewer(ttk.Frame):
         # ── Inventory section ──
         if inv_entries:
             self.inv_tree.insert(
-                "", tk.END, text="", values=("", "Inventory", ""), tags=("section",)
+                "", tk.END, text="Inventory", values=("", ""), tags=("section",)
             )
             for e in inv_entries:
                 iid = self.inv_tree.insert(
                     "",
                     tk.END,
-                    text="",
-                    values=("", e["name"], str(e["qty"])),
+                    text=e["name"],
+                    values=("", str(e["qty"])),
                 )
                 self._inv_tree_entries[iid] = {
                     "name": e["name"],
@@ -558,8 +556,8 @@ class CharacterViewer(ttk.Frame):
                         sub_iid = self.inv_tree.insert(
                             iid,
                             tk.END,
-                            text="",
-                            values=("", f"  {sub_name}", ""),
+                            text=f"  {sub_name}",
+                            values=("", ""),
                             tags=("subitem",),
                         )
                         self._inv_tree_entries[sub_iid] = {
@@ -611,6 +609,8 @@ class CharacterViewer(ttk.Frame):
         self._on_inventory_select_entry(entry)
 
     def _on_tree_click(self, event=None):
+        if event is None:
+            return
         region = self.inv_tree.identify_region(event.x, event.y)
         if region != "cell":
             return
