@@ -2,7 +2,7 @@
 
 import re
 import tkinter as tk
-import tkinter.font as tkfont
+
 from tkinter import ttk, filedialog
 
 from gui.theme import COLORS, FONTS
@@ -230,7 +230,7 @@ class CharacterViewer(ttk.Frame):
                 self.data,
                 on_change=self._on_sheet_changed,
                 compact=True,
-                include_sections={"wealth", "equipment"},
+                include_sections={"wealth"},
             )
             self._render_inventory_split_view()
             self._tab_dirty["inventory"] = False
@@ -325,25 +325,101 @@ class CharacterViewer(ttk.Frame):
 
         return weapon_counts, armor_counts, inv_entries
 
+    # ── Armor proficiency helpers (mirrors sheet_builder logic) ──
+
+    ARMOR_REQUIRED = {
+        "padded armor": "light",
+        "leather armor": "light",
+        "studded leather armor": "light",
+        "hide armor": "medium",
+        "chain shirt": "medium",
+        "scale mail": "medium",
+        "breastplate": "medium",
+        "half plate armor": "medium",
+        "ring mail": "heavy",
+        "chain mail": "heavy",
+        "splint armor": "heavy",
+        "plate armor": "heavy",
+        "shield": "shield",
+    }
+
+    def _armor_profs(self) -> set[str]:
+        out: set[str] = set()
+        for p in (self.character.character_class or {}).get("armor_proficiencies", []):
+            t = str(p).lower()
+            for k in ("shield", "heavy", "medium", "light"):
+                if k in t:
+                    out.add(k)
+        return out
+
+    def _can_equip_armor(self, armor_key: str) -> tuple[bool, str]:
+        req = self.ARMOR_REQUIRED.get(armor_key, "light")
+        if req in self._armor_profs():
+            return True, ""
+        label = "Shields" if req == "shield" else f"{req.title()} armor"
+        return False, f"{self.character.class_name} is not proficient with {label}."
+
+    def _has_weapon_proficiency(self, weapon_key: str) -> bool:
+        cls = self.character.character_class or {}
+        profs = [str(p).lower() for p in cls.get("weapon_proficiencies", [])]
+        if any(weapon_key in p for p in profs):
+            return True
+        meta = WEAPON_DATA.get(weapon_key, {})
+        cat = meta.get("category", "")
+        if cat == "simple" and any("simple" in p for p in profs):
+            return True
+        if cat == "martial" and any("martial" in p for p in profs):
+            return True
+        return False
+
+    # ── Inventory split view ────────────────────────────────────
+
     def _render_inventory_split_view(self):
         split = ttk.LabelFrame(self._inventory_parent, text="Item Details")
         split.pack(fill=tk.BOTH, expand=True, pady=3)
-        split.columnconfigure(0, weight=0, minsize=560)
+        split.columnconfigure(0, weight=1)
         split.columnconfigure(1, weight=1)
         split.rowconfigure(0, weight=1)
-        self.inventory_split_frame = split
 
-        left = ttk.Frame(split, width=520)
+        # ── Left: Treeview with Equip / Item / Qty columns ──
+        left = ttk.Frame(split)
         left.grid(row=0, column=0, sticky="nsew", padx=(8, 6), pady=(0, 8))
-        left.grid_propagate(False)
-        self.inventory_left_pane = left
-        self.inventory_list = SectionedListbox(
-            left,
-            on_select=self._on_inventory_select,
-            horizontal_scroll=True,
-        )
-        self.inventory_list.pack(fill=tk.BOTH, expand=True)
+        left.rowconfigure(0, weight=1)
+        left.columnconfigure(0, weight=1)
 
+        self.inv_tree = ttk.Treeview(
+            left,
+            columns=("equip", "name", "qty"),
+            show="tree headings",
+            selectmode="browse",
+        )
+        self.inv_tree.heading("#0", text="", anchor="w")
+        self.inv_tree.heading("equip", text="Equip", anchor="center")
+        self.inv_tree.heading("name", text="Item", anchor="w")
+        self.inv_tree.heading("qty", text="Qty", anchor="center")
+
+        self.inv_tree.column("#0", width=0, stretch=False)
+        self.inv_tree.column(
+            "equip", width=55, minwidth=55, stretch=False, anchor="center"
+        )
+        self.inv_tree.column("name", width=280, minwidth=120, stretch=True, anchor="w")
+        self.inv_tree.column(
+            "qty", width=45, minwidth=45, stretch=False, anchor="center"
+        )
+
+        tree_scroll = ttk.Scrollbar(
+            left, orient=tk.VERTICAL, command=self.inv_tree.yview
+        )
+        self.inv_tree.configure(yscrollcommand=tree_scroll.set)
+        self.inv_tree.grid(row=0, column=0, sticky="nsew")
+        tree_scroll.grid(row=0, column=1, sticky="ns")
+
+        self.inv_tree.bind("<<TreeviewSelect>>", self._on_tree_select)
+        self.inv_tree.bind("<ButtonRelease-1>", self._on_tree_click)
+
+        self._inv_tree_entries: dict[str, dict] = {}
+
+        # ── Right: detail panel ──
         right = ttk.Frame(split)
         right.grid(row=0, column=1, sticky="nsew", padx=(0, 8), pady=(0, 8))
         right.columnconfigure(0, weight=1)
@@ -381,28 +457,53 @@ class CharacterViewer(ttk.Frame):
 
         self._refresh_inventory_split_items()
 
+    _EQUIP_CHECK = "\u2611"  # ☑
+    _EQUIP_UNCHECK = "\u2610"  # ☐
+
     def _refresh_inventory_split_items(self):
         weapon_counts, armor_counts, inv_entries = self._effective_inventory_pools()
+        equipped_weapons = set(self.character.equipped_weapons or [])
+        equipped_armor = set(self.character.equipped_armor or [])
 
-        sections: list[tuple[str, list[str]]] = []
-        self._inventory_entries_by_name = {}
+        self._inv_tree_entries = {}
+        self.inv_tree.delete(*self.inv_tree.get_children())
 
-        weapons = []
+        # ── Weapons section ──
+        weapons_node = self.inv_tree.insert(
+            "",
+            tk.END,
+            text="",
+            values=("", "Equipment • Weapons", ""),
+            tags=("section",),
+        )
         for key in sorted(weapon_counts.keys()):
             qty = weapon_counts[key]
             name = key.title()
-            label = f"{name} (x{qty})" if qty > 1 else name
-            weapons.append(label)
-            self._inventory_entries_by_name[label] = {
+            equipped = key in equipped_weapons
+            check = self._EQUIP_CHECK if equipped else self._EQUIP_UNCHECK
+            iid = self.inv_tree.insert(
+                "",
+                tk.END,
+                text="",
+                values=(check, name, str(qty)),
+            )
+            self._inv_tree_entries[iid] = {
                 "name": name,
                 "key": key,
                 "qty": qty,
                 "category": "Weapons",
+                "equippable": True,
+                "equipped": equipped,
             }
-        if weapons:
-            sections.append(("Equipment • Weapons", weapons))
 
-        armors = []
+        # ── Armor section ──
+        self.inv_tree.insert(
+            "",
+            tk.END,
+            text="",
+            values=("", "Equipment • Armor & Shields", ""),
+            tags=("section",),
+        )
         ac_order_keys = [normalize_item_key(n) for n in ARMOR_AC_ORDER]
         ordered_armor_keys = [k for k in ac_order_keys if k in armor_counts]
         remaining_armor_keys = sorted(
@@ -411,72 +512,168 @@ class CharacterViewer(ttk.Frame):
         for key in ordered_armor_keys + remaining_armor_keys:
             qty = armor_counts[key]
             name = key.title()
-            label = f"{name} (x{qty})" if qty > 1 else name
-            armors.append(label)
-            self._inventory_entries_by_name[label] = {
+            equipped = key in equipped_armor
+            check = self._EQUIP_CHECK if equipped else self._EQUIP_UNCHECK
+            iid = self.inv_tree.insert(
+                "",
+                tk.END,
+                text="",
+                values=(check, name, str(qty)),
+            )
+            self._inv_tree_entries[iid] = {
                 "name": name,
                 "key": key,
                 "qty": qty,
                 "category": "Armor",
+                "equippable": True,
+                "equipped": equipped,
             }
-        if armors:
-            sections.append(("Equipment • Armor & Shields", armors))
 
-        inv_labels = []
-        for e in inv_entries:
-            label = f"{e['name']} (x{e['qty']})" if e["qty"] > 1 else e["name"]
-            inv_labels.append(label)
-            self._inventory_entries_by_name[label] = {
-                "name": e["name"],
-                "key": e["key"],
-                "qty": e["qty"],
-                "category": "Inventory",
-            }
-        if inv_labels:
-            sections.append(("Inventory", inv_labels))
+        # ── Inventory section ──
+        if inv_entries:
+            self.inv_tree.insert(
+                "", tk.END, text="", values=("", "Inventory", ""), tags=("section",)
+            )
+            for e in inv_entries:
+                iid = self.inv_tree.insert(
+                    "",
+                    tk.END,
+                    text="",
+                    values=("", e["name"], str(e["qty"])),
+                )
+                self._inv_tree_entries[iid] = {
+                    "name": e["name"],
+                    "key": e["key"],
+                    "qty": e["qty"],
+                    "category": "Inventory",
+                    "equippable": False,
+                    "equipped": False,
+                }
 
-        self.inventory_list.set_sectioned_items(sections)
-        self._fit_inventory_left_width(sections)
+        # Style section header rows
+        self.inv_tree.tag_configure("section", foreground=COLORS["accent"])
 
-        if self._selected_inventory_name in self._inventory_entries_by_name:
-            current = self._selected_inventory_name
-            self.inventory_list.select_item(current)
-            self._on_inventory_select(current)
+        # Restore selection
+        if self._selected_inventory_name:
+            for iid, entry in self._inv_tree_entries.items():
+                if entry.get("name") == self._selected_inventory_name:
+                    self.inv_tree.selection_set(iid)
+                    self.inv_tree.see(iid)
+                    self._on_inventory_select_entry(entry)
+                    return
+
+        # Select first item
+        for iid in self.inv_tree.get_children():
+            if iid in self._inv_tree_entries:
+                self.inv_tree.selection_set(iid)
+                self.inv_tree.see(iid)
+                self._on_inventory_select_entry(self._inv_tree_entries[iid])
+                return
+
+        self._selected_inventory_name = ""
+        self.remove_item_btn.configure(state=tk.DISABLED)
+        self.inventory_detail_title.configure(text="No items")
+        self._set_inventory_detail_text("No inventory items available.")
+
+    def _on_tree_select(self, event=None):
+        sel = self.inv_tree.selection()
+        if not sel:
             return
-
-        if sections and sections[0][1]:
-            first = sections[0][1][0]
-            self.inventory_list.select_item(first)
-            self._on_inventory_select(first)
-        else:
-            self._selected_inventory_name = ""
-            self.remove_item_btn.configure(state=tk.DISABLED)
-            self.inventory_detail_title.configure(text="No items")
-            self._set_inventory_detail_text("No inventory items available.")
-
-    def _fit_inventory_left_width(self, sections: list[tuple[str, list[str]]]):
-        if not getattr(self, "inventory_left_pane", None):
+        iid = sel[0]
+        entry = self._inv_tree_entries.get(iid)
+        if not entry:
             return
+        self._on_inventory_select_entry(entry)
 
-        body_font = tkfont.Font(font=FONTS["body"])
-        max_px = 0
-        for section, items in sections:
-            header_text = f"{SectionedListbox.HEADER_PREFIX}{section}{SectionedListbox.HEADER_SUFFIX}"
-            max_px = max(max_px, body_font.measure(header_text))
-            for item in items:
-                # List rows include a 2-space indent in SectionedListbox.
-                max_px = max(max_px, body_font.measure(f"  {item}"))
+    def _on_tree_click(self, event=None):
+        region = self.inv_tree.identify_region(event.x, event.y)
+        if region != "cell":
+            return
+        col = self.inv_tree.identify_column(event.x)
+        if col != "#1":  # Equip column
+            return
+        iid = self.inv_tree.identify_row(event.y)
+        if not iid:
+            return
+        entry = self._inv_tree_entries.get(iid)
+        if not entry or not entry.get("equippable"):
+            return
+        self._toggle_equip(iid, entry)
 
-        # Account for internal padding + scrollbar; keep sensible minimum.
-        target = max(560, max_px + 110)
-        self.inventory_left_pane.configure(width=target)
-        if getattr(self, "inventory_split_frame", None):
-            self.inventory_split_frame.columnconfigure(0, minsize=target)
+    def _toggle_equip(self, iid: str, entry: dict):
+        key = entry["key"]
+        cat = entry["category"]
+        currently_equipped = entry.get("equipped", False)
+        new_state = not currently_equipped
 
-        # Also set listbox width in characters so Tk doesn't clip rows.
-        char_px = max(7, body_font.measure("0"))
-        width_chars = max(28, int((target - 40) / char_px))
-        self.inventory_list.listbox.configure(width=width_chars)
+        if cat == "Weapons":
+            equipped = list(self.character.equipped_weapons or [])
+            if new_state:
+                if not self._has_weapon_proficiency(key):
+                    AlertDialog(
+                        self.winfo_toplevel(),
+                        "Weapon Proficiency",
+                        f"You are not proficient with {key.title()}. "
+                        "You can still equip it, but your proficiency bonus "
+                        "will not be added to attack rolls.",
+                    )
+                if key not in equipped:
+                    equipped.append(key)
+            else:
+                equipped = [w for w in equipped if w != key]
+            self.character.equipped_weapons = sorted(equipped)
+
+        elif cat == "Armor":
+            equipped = list(self.character.equipped_armor or [])
+            if new_state:
+                ok, reason = self._can_equip_armor(key)
+                if not ok:
+                    AlertDialog(
+                        self.winfo_toplevel(),
+                        "Armor Training Required",
+                        reason,
+                    )
+                    return
+                if key != "shield":
+                    equipped = [a for a in equipped if a == "shield"]
+                if key not in equipped:
+                    equipped.append(key)
+            else:
+                equipped = [a for a in equipped if a != key]
+            self.character.equipped_armor = self._normalize_equipped_armor(
+                set(equipped)
+            )
+
+        self._on_sheet_changed()
+
+        # Sync all equip visuals to match actual character state
+        current_weapons = set(self.character.equipped_weapons or [])
+        current_armor = set(self.character.equipped_armor or [])
+        for tree_iid, tree_entry in self._inv_tree_entries.items():
+            if not tree_entry.get("equippable"):
+                continue
+            ekey = tree_entry["key"]
+            ecat = tree_entry["category"]
+            if ecat == "Weapons":
+                is_eq = ekey in current_weapons
+            elif ecat == "Armor":
+                is_eq = ekey in current_armor
+            else:
+                continue
+            tree_entry["equipped"] = is_eq
+            self.inv_tree.set(
+                tree_iid,
+                "equip",
+                self._EQUIP_CHECK if is_eq else self._EQUIP_UNCHECK,
+            )
+
+        # Update detail panel for selected item
+        self._on_inventory_select_entry(entry)
+
+    def _on_inventory_select_entry(self, entry: dict):
+        self._selected_inventory_name = entry.get("name", "")
+        self.remove_item_btn.configure(state=tk.NORMAL)
+        self._show_inventory_details(entry)
 
     def _find_item_record(self, entry: dict) -> dict | None:
         key = entry.get("key", "")
@@ -524,9 +721,7 @@ class CharacterViewer(ttk.Frame):
         if not entry:
             self.remove_item_btn.configure(state=tk.DISABLED)
             return
-        self._selected_inventory_name = label
-        self.remove_item_btn.configure(state=tk.NORMAL)
-        self._show_inventory_details(entry)
+        self._on_inventory_select_entry(entry)
 
     def _show_inventory_details(self, entry: dict):
         self.inventory_detail_title.configure(text=entry.get("name", "Item"))
@@ -536,6 +731,8 @@ class CharacterViewer(ttk.Frame):
             f"Category: {entry.get('category', 'Unknown')}",
             f"Quantity: {entry.get('qty', 1)}",
         ]
+        if entry.get("equippable"):
+            lines.append(f"Equipped: {'Yes' if entry.get('equipped') else 'No'}")
         if record:
             item_type = str(record.get("type", "")).strip() or "Item"
             lines.append(f"Type: {item_type}")
@@ -594,8 +791,11 @@ class CharacterViewer(ttk.Frame):
         return out
 
     def _remove_selected_item(self):
-        label = self._selected_inventory_name
-        entry = self._inventory_entries_by_name.get(label)
+        sel = self.inv_tree.selection()
+        if not sel:
+            return
+        iid = sel[0]
+        entry = self._inv_tree_entries.get(iid)
         if not entry:
             return
 
