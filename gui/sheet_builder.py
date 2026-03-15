@@ -624,12 +624,73 @@ def build_character_sheet(
     if _show("wealth"):
         wealth_sec = ttk.LabelFrame(parent, text="Wealth")
         wealth_sec.pack(fill=tk.X, pady=section_pady)
-        gp, sp, cp = cp_to_coins(current_wealth_cp(c))
-        WrappingLabel(
-            wealth_sec,
-            text=(f"  Gold: {gp} gp\n  Silver: {sp} sp\n  Copper: {cp} cp"),
-            foreground=COLORS["fg_dim"],
-        ).pack(fill=tk.X, anchor="w", padx=8, pady=row_pady)
+
+        coins_row = ttk.Frame(wealth_sec)
+        coins_row.pack(fill=tk.X, padx=8, pady=(2, 4))
+
+        coin_defs = [
+            ("Copper", "cp", 1),
+            ("Silver", "sp", 10),
+            ("Gold", "gp", 100),
+        ]
+        coin_value_labels: dict[str, ttk.Label] = {}
+
+        def _refresh_wealth_display():
+            gp, sp, cp = cp_to_coins(current_wealth_cp(c))
+            values = {"gp": gp, "sp": sp, "cp": cp}
+            for coin_key, lbl in coin_value_labels.items():
+                lbl.configure(text=str(values.get(coin_key, 0)))
+
+        def _adjust_wealth(delta_cp: int):
+            current_cp = current_wealth_cp(c)
+            if delta_cp < 0 and current_cp < abs(delta_cp):
+                AlertDialog(
+                    parent.winfo_toplevel(),
+                    "Wealth",
+                    "You do not have enough wealth for that reduction.",
+                )
+                return
+            c.wealth_adjust_cp = int(getattr(c, "wealth_adjust_cp", 0)) + int(delta_cp)
+            _refresh_wealth_display()
+            _emit_change()
+
+        for title, coin_key, unit_cp in coin_defs:
+            outer = ttk.Frame(coins_row)
+            outer.pack(side=tk.LEFT, padx=(0, 10))
+
+            coin_box = ttk.LabelFrame(outer, text=title)
+            coin_box.pack(side=tk.LEFT)
+
+            value_lbl = ttk.Label(
+                coin_box,
+                text="0",
+                font=FONTS["stat"],
+                foreground=COLORS["fg_bright"],
+                width=4,
+                anchor="center",
+            )
+            value_lbl.pack(padx=12, pady=(6, 4))
+            coin_value_labels[coin_key] = value_lbl
+
+            controls = ttk.Frame(outer)
+            controls.pack(side=tk.LEFT, padx=(5, 0), pady=(0, 0), fill=tk.Y)
+            controls.columnconfigure(0, weight=1)
+            controls.rowconfigure(0, weight=1)
+            controls.rowconfigure(3, weight=1)
+            ttk.Button(
+                controls,
+                text="+",
+                width=2,
+                command=lambda d=unit_cp: _adjust_wealth(d),
+            ).grid(row=1, column=0, pady=(0, 2), sticky="n")
+            ttk.Button(
+                controls,
+                text="-",
+                width=2,
+                command=lambda d=unit_cp: _adjust_wealth(-d),
+            ).grid(row=2, column=0, sticky="n")
+
+        _refresh_wealth_display()
 
     # ── Equipment ───────────────────────────────────────────────
     equip_sec = None
