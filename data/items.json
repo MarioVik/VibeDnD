@@ -910,147 +910,307 @@
     "source": "http://dnd2024.wikidot.com/equipment:armor"
   },
   {
-    "id": "weapons:ammunition",
-    "name": "Ammunition",
+    "id": "weapons:club",
+    "name": "Club",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: You can use a weapon that has the Ammunition property to make a ranged attack only if you have ammunition to fire from it. The type of ammunition required is specified with the weapon's range. Each attack expends one piece of ammunition. Drawing the ammunition is part of the attack (you need a free hand to load a one-handed weapon). After a fight, you can spend 1 minute to recover half the ammunition (round down) you used in the fight; the rest is lost.",
+    "cost_cp": 10,
+    "description": "Damage: 1d4 Bludgeoning; Properties: Light; Mastery: Slow; Weight: 2 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:finesse",
-    "name": "Finesse",
+    "id": "weapons:dagger",
+    "name": "Dagger",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: When making an attack with a Finesse weapon, use your choice of your Strength or Dexterity modifier for the attack and damage rolls. You must use the same modifier for both rolls.",
+    "cost_cp": 200,
+    "description": "Damage: 1d4 Piercing; Properties: Finesse, Light, Thrown (Range 20/60); Mastery: Nick; Weight: 1 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:heavy",
-    "name": "Heavy",
+    "id": "weapons:greatclub",
+    "name": "Greatclub",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: You have Disadvantage on attack rolls with a Heavy weapon if it's a Melee weapon and your Strength score isn't at least 13 or if it's a Ranged weapon and your Dexterity score isn't at least 13.",
+    "cost_cp": 20,
+    "description": "Damage: 1d8 Bludgeoning; Properties: Two-Handed; Mastery: Push; Weight: 10 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:light",
-    "name": "Light",
+    "id": "weapons:handaxe",
+    "name": "Handaxe",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: When you take the Attack action on your turn and attack with a Light weapon, you can make one extra attack as a Bonus Action later on the same turn. That extra attack must be made with a different Light weapon, and you don’t add your ability modifier to the extra attack’s damage unless that modifier is negative. For example, you can attack with a Shortsword in one hand and a Dagger in the other using the Attack action and a Bonus Action, but you don't add your Strength or Dexterity modifier to the damage roll of the Bonus Action unless that modifier is negative.",
+    "cost_cp": 500,
+    "description": "Damage: 1d6 Slashing; Properties: Light, Thrown (Range 20/60); Mastery: Vex; Weight: 2 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:loading",
-    "name": "Loading",
+    "id": "weapons:javelin",
+    "name": "Javelin",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: You can fire only one piece of ammunition from a Loading weapon when you use an action, a Bonus Action, or a Reaction to fire it, regardless of the number of attacks you can normally make.",
+    "cost_cp": 50,
+    "description": "Damage: 1d6 Piercing; Properties: Thrown (Range 30/120); Mastery: Slow; Weight: 2 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:range",
-    "name": "Range",
+    "id": "weapons:light-hammer",
+    "name": "Light Hammer",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: A Range weapon has a range in parentheses after the Ammunition or Thrown property. The range lists two numbers. The first is the weapon’s normal range in feet, and the second is the weapon’s long range. When attacking a target beyond normal range, you have Disadvantage on the attack roll. You can't attack a target beyond the long range.",
+    "cost_cp": 200,
+    "description": "Damage: 1d4 Bludgeoning; Properties: Light, Thrown (Range 20/60); Mastery: Nick; Weight: 2 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:reach",
-    "name": "Reach",
+    "id": "weapons:mace",
+    "name": "Mace",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: A Reach weapon adds 5 feet to your reach when you attack with it, as well as when determining your reach for Opportunity Attacks with it.",
+    "cost_cp": 500,
+    "description": "Damage: 1d6 Bludgeoning; Properties: —; Mastery: Sap; Weight: 4 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:thrown",
-    "name": "Thrown",
+    "id": "weapons:quarterstaff",
+    "name": "Quarterstaff",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: If a weapon has the Thrown property, you can throw the weapon to make a ranged attack, and you can draw that weapon as part of the attack. If the weapon is a Melee weapon, use the same ability modifier for the attack and damage rolls that you use for a melee attack with that weapon.",
+    "cost_cp": 20,
+    "description": "Damage: 1d6 Bludgeoning; Properties: Versatile (1d8); Mastery: Topple; Weight: 4 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:two-handed",
-    "name": "Two-Handed",
+    "id": "weapons:sickle",
+    "name": "Sickle",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: A Two-Handed weapon requires two hands when you attack with it.",
+    "cost_cp": 100,
+    "description": "Damage: 1d4 Slashing; Properties: Light; Mastery: Nick; Weight: 2 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:versatile",
-    "name": "Versatile",
+    "id": "weapons:spear",
+    "name": "Spear",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: A Versatile weapon can be used with one or two hands. A damage value in parentheses appears with the property. The weapon deals that damage when used with two hands to make a melee attack.",
+    "cost_cp": 100,
+    "description": "Damage: 1d6 Piercing; Properties: Thrown (Range 20/60), Versatile (1d8); Mastery: Sap; Weight: 3 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:cleave",
-    "name": "Cleave",
+    "id": "weapons:dart",
+    "name": "Dart",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: If you hit a creature with a melee attack roll using this weapon, you can make a melee attack roll with the weapon against a second creature within 5 feet of the first that is also within your reach. On a hit, the second creature takes the weapon’s damage, but don't add your ability modifier to that damage unless that modifier is negative. You can make this extra attack only once per turn.",
+    "cost_cp": 5,
+    "description": "Damage: 1d4 Piercing; Properties: Finesse, Thrown (Range 20/60); Mastery: Vex; Weight: 1/4 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:graze",
-    "name": "Graze",
+    "id": "weapons:light-crossbow",
+    "name": "Light Crossbow",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: If your attack roll with this weapon misses a creature, you can deal damage to that creature equal to the ability modifier you used to make the attack roll. This damage is the same type dealt by the weapon, and the damage can be increased only by increasing the ability modifier.",
+    "cost_cp": 2500,
+    "description": "Damage: 1d8 Piercing; Properties: Ammunition (Range 80/320; Bolt), Loading, Two-Handed; Mastery: Slow; Weight: 5b.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:nick",
-    "name": "Nick",
+    "id": "weapons:shortbow",
+    "name": "Shortbow",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: When you make the extra attack of the Light property, you can make it as part of the Attack action instead of as a Bonus Action. You can make this extra attack only once per turn.",
+    "cost_cp": 2500,
+    "description": "Damage: 1d6 Piercing; Properties: Ammunition (Range 80/320; Arrow), Two-Handed; Mastery: Vex; Weight: 2lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:push",
-    "name": "Push",
+    "id": "weapons:sling",
+    "name": "Sling",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: If you hit a creature with this weapon, you can push the creature up to 10 feet straight away from yourself if it is Large or smaller.",
+    "cost_cp": 10,
+    "description": "Damage: 1d4 Bludgeoning; Properties: Ammunition (Range 30/120; Bullet); Mastery: Slow; Weight: -",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:sap",
-    "name": "Sap",
+    "id": "weapons:battleaxe",
+    "name": "Battleaxe",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: If you hit a creature with this weapon, that creature has Disadvantage on its next attack roll before the start of your next turn.",
+    "cost_cp": 1000,
+    "description": "Damage: 1d8 Slashing; Properties: Versatile (1d10); Mastery: Topple; Weight: 4 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:slow",
-    "name": "Slow",
+    "id": "weapons:flail",
+    "name": "Flail",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: If you hit a creature with this weapon and deal damage to it, you can reduce its Speed by 10 feet until the start of your next turn. If the creature is hit more than once by weapons that have this property, the Speed reduction doesn’t exceed 10 feet.",
+    "cost_cp": 1000,
+    "description": "Damage: 1d8 Bludgeoning; Properties: —; Mastery: Sap; Weight: 2 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:topple",
-    "name": "Topple",
+    "id": "weapons:glaive",
+    "name": "Glaive",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: If you hit a creature with this weapon, you can force the creature to make a Constitution saving throw (DC 8 plus the ability modifier used to make the attack roll and your Proficiency Bonus). On a failed save, the creature has the Prone condition.",
+    "cost_cp": 2000,
+    "description": "Damage: 1d10 Slashing; Properties: Heavy, Reach, Two-Handed; Mastery: Graze; Weight: 6 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {
-    "id": "weapons:vex",
-    "name": "Vex",
+    "id": "weapons:greataxe",
+    "name": "Greataxe",
     "category": "Weapons",
-    "cost_cp": 0,
-    "description": "Description: If you hit a creature with this weapon and deal damage to the creature, you have Advantage on your next attack roll against that creature before the end of your next turn.",
+    "cost_cp": 3000,
+    "description": "Damage: 1d12 Slashing; Properties: Heavy, Two-Handed; Mastery: Cleave; Weight: 7 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:greatsword",
+    "name": "Greatsword",
+    "category": "Weapons",
+    "cost_cp": 5000,
+    "description": "Damage: 2d6 Slashing; Properties: Heavy, Two-Handed; Mastery: Graze; Weight: 6 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:halberd",
+    "name": "Halberd",
+    "category": "Weapons",
+    "cost_cp": 2000,
+    "description": "Damage: 1d10 Slashing; Properties: Heavy, Reach, Two-Handed; Mastery: Cleave; Weight: 6 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:lance",
+    "name": "Lance",
+    "category": "Weapons",
+    "cost_cp": 1000,
+    "description": "Damage: 1d10 Piercing; Properties: Heavy, Reach, Two-Handed (unless mounted); Mastery: Topple; Weight: 6 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:longsword",
+    "name": "Longsword",
+    "category": "Weapons",
+    "cost_cp": 1500,
+    "description": "Damage: 1d8 Slashing; Properties: Versatile (1d10); Mastery: Sap; Weight: 3 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:maul",
+    "name": "Maul",
+    "category": "Weapons",
+    "cost_cp": 1000,
+    "description": "Damage: 2d6 Bludgeoning; Properties: Heavy, Two-Handed; Mastery: Topple; Weight: 10 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:morningstar",
+    "name": "Morningstar",
+    "category": "Weapons",
+    "cost_cp": 1500,
+    "description": "Damage: 1d8 Piercing; Properties: —; Mastery: Sap; Weight: 4 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:pike",
+    "name": "Pike",
+    "category": "Weapons",
+    "cost_cp": 500,
+    "description": "Damage: 1d10 Piercing; Properties: Heavy, Reach, Two-Handed; Mastery: Push; Weight: 18 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:rapier",
+    "name": "Rapier",
+    "category": "Weapons",
+    "cost_cp": 2500,
+    "description": "Damage: 1d8 Piercing; Properties: Finesse; Mastery: Vex; Weight: 2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:scimitar",
+    "name": "Scimitar",
+    "category": "Weapons",
+    "cost_cp": 2500,
+    "description": "Damage: 1d6 Slashing; Properties: Finesse, Light; Mastery: Nick; Weight: 3 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:shortsword",
+    "name": "Shortsword",
+    "category": "Weapons",
+    "cost_cp": 1000,
+    "description": "Damage: 1d6 Piercing; Properties: Finesse, Light; Mastery: Vex; Weight: 2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:trident",
+    "name": "Trident",
+    "category": "Weapons",
+    "cost_cp": 500,
+    "description": "Damage: 1d8 Piercing; Properties: Thrown (Range 20/60), Versatile (1d10); Mastery: Topple; Weight: 4lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:warhammer",
+    "name": "Warhammer",
+    "category": "Weapons",
+    "cost_cp": 1500,
+    "description": "Damage: 1d8 Bludgeoning; Properties: Versatile (1d10); Mastery: Push; Weight: 5 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:war-pick",
+    "name": "War Pick",
+    "category": "Weapons",
+    "cost_cp": 500,
+    "description": "Damage: 1d8 Piercing; Properties: Versatile (1d10); Mastery: Sap; Weight: 2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:whip",
+    "name": "Whip",
+    "category": "Weapons",
+    "cost_cp": 200,
+    "description": "Damage: 1d4 Slashing; Properties: Finesse, Reach; Mastery: Slow; Weight: 3 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:blowgun",
+    "name": "Blowgun",
+    "category": "Weapons",
+    "cost_cp": 1000,
+    "description": "Damage: 1 Piercing; Properties: Ammunition (Range 25/100; Needle), Loading; Mastery: Vex; Weight: 1 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:hand-crossbow",
+    "name": "Hand Crossbow",
+    "category": "Weapons",
+    "cost_cp": 7500,
+    "description": "Damage: 1d6 Piercing; Properties: Ammunition (Range 30/120; Bolt), Light, Loading; Mastery: Vex; Weight: 3 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:heavy-crossbow",
+    "name": "Heavy Crossbow",
+    "category": "Weapons",
+    "cost_cp": 5000,
+    "description": "Damage: 1d10 Piercing; Properties: Ammunition (Range 100/400; Bolt), Heavy, Loading, Two-Handed; Mastery: Push; Weight: 18 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:longbow",
+    "name": "Longbow",
+    "category": "Weapons",
+    "cost_cp": 5000,
+    "description": "Damage: 1d8 Piercing; Properties: Ammunition (Range 150/600; Arrow), Heavy, Two-Handed; Mastery: Slow; Weight: 2 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:musket",
+    "name": "Musket",
+    "category": "Weapons",
+    "cost_cp": 50000,
+    "description": "Damage: 1d12 Piercing; Properties: Ammunition (Range 40/120; Bullet), Loading, Two-Handed; Mastery: Slow; Weight: 10 lb.",
+    "source": "http://dnd2024.wikidot.com/equipment:weapon"
+  },
+  {
+    "id": "weapons:pistol",
+    "name": "Pistol",
+    "category": "Weapons",
+    "cost_cp": 25000,
+    "description": "Damage: 1d10 Piercing; Properties: Ammunition (Range 30/90; Bullet), Loading; Mastery: Vex; Weight: 3 lb.",
     "source": "http://dnd2024.wikidot.com/equipment:weapon"
   },
   {

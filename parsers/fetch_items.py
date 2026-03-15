@@ -171,10 +171,32 @@ def parse_page(url: str, category: str) -> list[dict]:
         rows = _extract_rows(table)
         if len(rows) < 2:
             continue
-        headers = [_clean_text(c) for c in _extract_cells(rows[0])]
+
+        header_idx = -1
+        headers: list[str] = []
+        header_keywords = {"name", "item", "type", "property", "armor", "weapon"}
+        for idx in range(min(3, len(rows))):
+            probe = [_clean_text(c) for c in _extract_cells(rows[idx])]
+            if len(probe) < 2:
+                continue
+            if header_idx < 0:
+                headers = probe
+                header_idx = idx
+            if any(h.lower() in header_keywords for h in probe):
+                headers = probe
+                header_idx = idx
+                break
+
         if len(headers) < 2:
             continue
-        for row in rows[1:]:
+
+        lower_headers = [h.lower() for h in headers]
+        has_cost_column = any("cost" in h or "price" in h for h in lower_headers)
+        if category != "Magic Items" and not has_cost_column:
+            # Skip non-item reference tables (e.g. weapon properties/masteries).
+            continue
+
+        for row in rows[header_idx + 1 :]:
             raw_cells = _extract_cells(row)
             cells = [_clean_text(c) for c in raw_cells]
             if not cells:
