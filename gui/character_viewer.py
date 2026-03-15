@@ -588,17 +588,26 @@ class CharacterViewer(ttk.Frame):
                         sub_name = sub.strip()
                         clean_sub_name, sub_qty = self._parse_item_qty(sub_name)
                         total_sub_qty = max(1, int(e.get("qty", 1))) * sub_qty
+                        sub_key = normalize_item_key(clean_sub_name)
+                        removed_sub_qty = int(
+                            (getattr(self.character, "removed_items", {}) or {}).get(
+                                sub_key, 0
+                            )
+                        )
+                        remaining_sub_qty = max(0, total_sub_qty - removed_sub_qty)
+                        if remaining_sub_qty <= 0:
+                            continue
                         sub_iid = self.inv_tree.insert(
                             iid,
                             tk.END,
                             text=f"  {clean_sub_name}",
-                            values=("", str(total_sub_qty)),
+                            values=("", str(remaining_sub_qty)),
                             tags=("subitem",),
                         )
                         self._inv_tree_entries[sub_iid] = {
                             "name": clean_sub_name,
-                            "key": normalize_item_key(clean_sub_name),
-                            "qty": total_sub_qty,
+                            "key": sub_key,
+                            "qty": remaining_sub_qty,
                             "category": "Inventory",
                             "equippable": False,
                             "equipped": False,
@@ -733,12 +742,9 @@ class CharacterViewer(ttk.Frame):
 
     def _on_inventory_select_entry(self, entry: dict):
         self._selected_inventory_name = entry.get("name", "")
-        is_subitem = entry.get("is_subitem", False)
         qty = int(entry.get("qty", 1) or 1)
-        self.remove_one_btn.configure(state=tk.DISABLED if is_subitem else tk.NORMAL)
-        self.remove_all_btn.configure(
-            state=tk.DISABLED if is_subitem or qty <= 1 else tk.NORMAL
-        )
+        self.remove_one_btn.configure(state=tk.NORMAL)
+        self.remove_all_btn.configure(state=tk.DISABLED if qty <= 1 else tk.NORMAL)
         self._show_inventory_details(entry)
 
     def _find_item_record(self, entry: dict) -> dict | None:
