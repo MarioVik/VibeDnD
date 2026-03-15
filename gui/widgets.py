@@ -333,14 +333,15 @@ class SectionedListbox(ttk.Frame):
 class ScrollableFrame(ttk.Frame):
     """A frame with a vertical scrollbar."""
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, inner_padding: int = 16, **kwargs):
         super().__init__(parent, **kwargs)
+        self._inner_pad = inner_padding
 
         self.canvas = tk.Canvas(
             self, bg=COLORS["bg"], highlightthickness=0, borderwidth=0
         )
         scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.canvas.yview)
-        self.inner = ttk.Frame(self.canvas)
+        self.inner = ttk.Frame(self.canvas, padding=inner_padding)
 
         self.inner.bind(
             "<Configure>",

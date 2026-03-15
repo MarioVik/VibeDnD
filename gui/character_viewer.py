@@ -46,7 +46,7 @@ class CharacterViewer(ttk.Frame):
     def _build_ui(self):
         # ── Top bar ─────────────────────────────────────────────
         top = ttk.Frame(self)
-        top.pack(fill=tk.X, padx=12, pady=(12, 4))
+        top.pack(fill=tk.X, padx=20, pady=(16, 6))
 
         ttk.Button(
             top,
@@ -91,7 +91,7 @@ class CharacterViewer(ttk.Frame):
 
         # ── Character tabs ──────────────────────────────────────
         self.tabs = ttk.Notebook(self)
-        self.tabs.pack(fill=tk.BOTH, expand=True, padx=8, pady=(4, 10))
+        self.tabs.pack(fill=tk.BOTH, expand=True, padx=20, pady=(6, 16))
 
         self.general_tab = ttk.Frame(self.tabs)
         self.inventory_tab = ttk.Frame(self.tabs)
