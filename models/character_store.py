@@ -59,6 +59,7 @@ def character_to_save_dict(character: Character) -> dict:
         if c.equipped_armor is not None
         else None,
         "custom_inventory": list(c.custom_inventory),
+        "removed_items": dict(c.removed_items),
         "wealth_adjust_cp": int(c.wealth_adjust_cp),
         "inventory_transactions": list(c.inventory_transactions),
     }
@@ -137,6 +138,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.equipped_weapons = data.get("equipped_weapons")
     c.equipped_armor = data.get("equipped_armor")
     c.custom_inventory = data.get("custom_inventory", [])
+    c.removed_items = data.get("removed_items", {}) or {}
     c.wealth_adjust_cp = int(data.get("wealth_adjust_cp", 0))
     c.inventory_transactions = data.get("inventory_transactions", [])
 
@@ -315,7 +317,7 @@ def list_saved_characters(characters_path: str) -> list[dict]:
                     ),
                 }
             )
-        except (json.JSONDecodeError, OSError):
+        except json.JSONDecodeError, OSError:
             continue
 
     results.sort(key=lambda r: r["modified"], reverse=True)

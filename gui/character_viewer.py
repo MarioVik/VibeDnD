@@ -1,14 +1,22 @@
 """Read-only character sheet viewer with export and edit buttons."""
 
+import re
 import tkinter as tk
 from tkinter import ttk, filedialog
 
 from gui.theme import COLORS, FONTS
 from gui.widgets import ScrollableFrame, AlertDialog, SectionedListbox
-from gui.sheet_builder import build_character_sheet
+from gui.sheet_builder import build_character_sheet, _container_contents
 from models.character_store import save_character
 from paths import characters_dir
 from gui.add_inventory_dialog import AddInventoryDialog
+from models.inventory_service import normalize_item_key, remove_item
+from models.standard_actions import (
+    WEAPON_DATA,
+    get_selected_armor_counts,
+    get_selected_non_weapon_items,
+    get_selected_weapon_counts,
+)
 
 
 class CharacterViewer(ttk.Frame):
@@ -23,6 +31,14 @@ class CharacterViewer(ttk.Frame):
         self._spell_index = {
             s.get("name", ""): s for s in (self.data.spells if self.data else [])
         }
+        self._item_by_norm_name = {
+            normalize_item_key(name): item
+            for name, item in (
+                (self.data.items_by_name or {}).items() if self.data else []
+            )
+        }
+        self._inventory_entries_by_name = {}
+        self._selected_inventory_name = ""
         self._tab_dirty = {"general": False, "inventory": False, "spells": False}
         self._build_ui()
 
@@ -83,6 +99,16 @@ class CharacterViewer(ttk.Frame):
         self.tabs.add(self.general_tab, text="General")
         self.tabs.add(self.inventory_tab, text="Inventory")
         self.tabs.add(self.spells_tab, text="Spells")
+        self._tab_widgets = {
+            "general": self.general_tab,
+            "inventory": self.inventory_tab,
+            "spells": self.spells_tab,
+        }
+        self._tab_titles = {
+            "general": "General",
+            "inventory": "Inventory",
+            "spells": "Spells",
+        }
         self.tabs.bind("<<NotebookTabChanged>>", self._on_tab_changed)
 
         general_scroll = ScrollableFrame(self.general_tab)
@@ -146,10 +172,24 @@ class CharacterViewer(ttk.Frame):
     def _refresh_tabs(self, force: bool = False):
         if force:
             self._tab_dirty = {"general": True, "inventory": True, "spells": True}
+            self._apply_tab_labels()
 
         selected = self._selected_tab_key()
         if selected:
             self._refresh_tab(selected)
+
+    def _apply_tab_labels(self):
+        if not self.winfo_exists() or not getattr(self, "tabs", None):
+            return
+        for key, title in self._tab_titles.items():
+            marker = " *" if self._tab_dirty.get(key) else ""
+            widget = self._tab_widgets.get(key)
+            if widget is None:
+                continue
+            try:
+                self.tabs.tab(widget, text=f"{title}{marker}")
+            except tk.TclError:
+                pass
 
     def _selected_tab_key(self) -> str:
         if not self.winfo_exists() or not self.tabs.winfo_exists():
@@ -185,6 +225,7 @@ class CharacterViewer(ttk.Frame):
                 },
             )
             self._tab_dirty["general"] = False
+            self._apply_tab_labels()
             return
 
         if key == "inventory":
@@ -194,20 +235,24 @@ class CharacterViewer(ttk.Frame):
                 self.data,
                 on_change=self._on_sheet_changed,
                 compact=True,
-                include_sections={"wealth", "equipment", "inventory"},
+                include_sections={"wealth", "equipment"},
             )
+            self._render_inventory_split_view()
             self._tab_dirty["inventory"] = False
+            self._apply_tab_labels()
             return
 
         if key == "spells":
             self._refresh_spells_tab()
             self._tab_dirty["spells"] = False
+            self._apply_tab_labels()
 
     def _mark_tabs_dirty(self, include_current: bool = False):
         current = self._selected_tab_key()
         for key in self._tab_dirty.keys():
             if include_current or key != current:
                 self._tab_dirty[key] = True
+        self._apply_tab_labels()
 
     def _on_tab_changed(self, _event=None):
         key = self._selected_tab_key()
@@ -215,6 +260,320 @@ class CharacterViewer(ttk.Frame):
             return
         if self._tab_dirty.get(key):
             self._refresh_tab(key)
+
+    def _parse_item_qty(self, text: str) -> tuple[str, int]:
+        raw = str(text or "").strip()
+        parts = raw.split(" ", 1)
+        if len(parts) == 2 and parts[0].isdigit():
+            return parts[1].strip(), max(1, int(parts[0]))
+        return raw, 1
+
+    def _effective_inventory_pools(self):
+        c = self.character
+        weapon_counts = dict(get_selected_weapon_counts(c))
+        armor_counts = dict(get_selected_armor_counts(c))
+        inventory_items = list(get_selected_non_weapon_items(c))
+
+        for ent in getattr(c, "custom_inventory", []) or []:
+            name = str(ent.get("name", "")).strip()
+            if not name:
+                continue
+            qty = max(1, int(ent.get("qty", 1)))
+            category = str(ent.get("category", "Adventuring Gear"))
+            key = normalize_item_key(name)
+            if category == "Weapons":
+                weapon_counts[key] = weapon_counts.get(key, 0) + qty
+            elif category == "Armor":
+                armor_counts[key] = armor_counts.get(key, 0) + qty
+            else:
+                inventory_items.append(f"{qty} {name}" if qty > 1 else name)
+
+        removed = {
+            normalize_item_key(k): int(v)
+            for k, v in (getattr(c, "removed_items", {}) or {}).items()
+            if int(v) > 0
+        }
+
+        for key, rem in removed.items():
+            if key in weapon_counts:
+                weapon_counts[key] = max(0, weapon_counts[key] - rem)
+                if weapon_counts[key] <= 0:
+                    weapon_counts.pop(key, None)
+            if key in armor_counts:
+                armor_counts[key] = max(0, armor_counts[key] - rem)
+                if armor_counts[key] <= 0:
+                    armor_counts.pop(key, None)
+
+        inv_map: dict[str, int] = {}
+        inv_name: dict[str, str] = {}
+        order: list[str] = []
+        for line in inventory_items:
+            base_name, qty = self._parse_item_qty(line)
+            if not base_name:
+                continue
+            key = normalize_item_key(base_name)
+            if key not in inv_map:
+                order.append(key)
+                inv_name[key] = base_name
+            inv_map[key] = inv_map.get(key, 0) + qty
+
+        for key, rem in removed.items():
+            if key in inv_map:
+                inv_map[key] = max(0, inv_map[key] - rem)
+
+        inv_entries = []
+        for key in order:
+            qty = inv_map.get(key, 0)
+            if qty <= 0:
+                continue
+            inv_entries.append({"name": inv_name[key], "key": key, "qty": qty})
+
+        return weapon_counts, armor_counts, inv_entries
+
+    def _render_inventory_split_view(self):
+        split = ttk.LabelFrame(self._inventory_parent, text="Item Details")
+        split.pack(fill=tk.BOTH, expand=True, pady=3)
+        split.columnconfigure(0, weight=0)
+        split.columnconfigure(1, weight=1)
+        split.rowconfigure(1, weight=1)
+
+        left = ttk.Frame(split, width=300)
+        left.grid(row=1, column=0, sticky="nsew", padx=(8, 6), pady=(0, 8))
+        left.grid_propagate(False)
+        self.inventory_list = SectionedListbox(
+            left, on_select=self._on_inventory_select
+        )
+        self.inventory_list.pack(fill=tk.BOTH, expand=True)
+
+        right = ttk.Frame(split)
+        right.grid(row=1, column=1, sticky="nsew", padx=(0, 8), pady=(0, 8))
+        right.columnconfigure(0, weight=1)
+        right.rowconfigure(1, weight=1)
+
+        self.inventory_detail_title = ttk.Label(
+            right, text="Select an item", style="Subheading.TLabel"
+        )
+        self.inventory_detail_title.grid(row=0, column=0, sticky="w", pady=(0, 4))
+
+        self.inventory_detail_text = tk.Text(
+            right,
+            wrap=tk.WORD,
+            bg=COLORS["bg_light"],
+            fg=COLORS["fg"],
+            font=FONTS["body"],
+            borderwidth=0,
+            highlightthickness=0,
+            relief=tk.FLAT,
+            state=tk.DISABLED,
+            height=10,
+        )
+        self.inventory_detail_text.grid(row=1, column=0, sticky="nsew")
+
+        self.remove_item_btn = ttk.Button(
+            split,
+            text="Remove item",
+            command=self._remove_selected_item,
+            state=tk.DISABLED,
+        )
+        self.remove_item_btn.grid(row=0, column=1, sticky="e", padx=(0, 8), pady=(6, 4))
+
+        self._refresh_inventory_split_items()
+
+    def _refresh_inventory_split_items(self):
+        weapon_counts, armor_counts, inv_entries = self._effective_inventory_pools()
+
+        sections: list[tuple[str, list[str]]] = []
+        self._inventory_entries_by_name = {}
+
+        weapons = []
+        for key in sorted(weapon_counts.keys()):
+            qty = weapon_counts[key]
+            name = key.title()
+            label = f"{name} (x{qty})" if qty > 1 else name
+            weapons.append(label)
+            self._inventory_entries_by_name[label] = {
+                "name": name,
+                "key": key,
+                "qty": qty,
+                "category": "Weapons",
+            }
+        if weapons:
+            sections.append(("Equipment • Weapons", weapons))
+
+        armors = []
+        for key in sorted(armor_counts.keys()):
+            qty = armor_counts[key]
+            name = key.title()
+            label = f"{name} (x{qty})" if qty > 1 else name
+            armors.append(label)
+            self._inventory_entries_by_name[label] = {
+                "name": name,
+                "key": key,
+                "qty": qty,
+                "category": "Armor",
+            }
+        if armors:
+            sections.append(("Equipment • Armor & Shields", armors))
+
+        inv_labels = []
+        for e in inv_entries:
+            label = f"{e['name']} (x{e['qty']})" if e["qty"] > 1 else e["name"]
+            inv_labels.append(label)
+            self._inventory_entries_by_name[label] = {
+                "name": e["name"],
+                "key": e["key"],
+                "qty": e["qty"],
+                "category": "Inventory",
+            }
+        if inv_labels:
+            sections.append(("Inventory", inv_labels))
+
+        self.inventory_list.set_sectioned_items(sections)
+
+        if self._selected_inventory_name in self._inventory_entries_by_name:
+            current = self._selected_inventory_name
+            self.inventory_list.select_item(current)
+            self._on_inventory_select(current)
+            return
+
+        if sections and sections[0][1]:
+            first = sections[0][1][0]
+            self.inventory_list.select_item(first)
+            self._on_inventory_select(first)
+        else:
+            self._selected_inventory_name = ""
+            self.remove_item_btn.configure(state=tk.DISABLED)
+            self.inventory_detail_title.configure(text="No items")
+            self._set_inventory_detail_text("No inventory items available.")
+
+    def _find_item_record(self, entry: dict) -> dict | None:
+        key = entry.get("key", "")
+        for ent in getattr(self.character, "custom_inventory", []) or []:
+            if normalize_item_key(ent.get("name", "")) != key:
+                continue
+            item_id = str(ent.get("item_id", ""))
+            if (
+                item_id
+                and self.data
+                and item_id in getattr(self.data, "items_by_id", {})
+            ):
+                return self.data.items_by_id[item_id]
+
+        raw_name = str(entry.get("name", "")).strip()
+        variants = {key, normalize_item_key(raw_name)}
+
+        no_paren = re.sub(r"\s*\([^)]*\)", "", raw_name).strip()
+        if no_paren:
+            variants.add(normalize_item_key(no_paren))
+
+        no_comma = raw_name.replace(",", " ")
+        if no_comma:
+            variants.add(normalize_item_key(no_comma))
+
+        for var in list(variants):
+            if var.endswith("s") and len(var) > 3:
+                variants.add(var[:-1])
+
+        for var in variants:
+            if var in self._item_by_norm_name:
+                return self._item_by_norm_name[var]
+
+        for var in sorted(variants, key=len, reverse=True):
+            if len(var) < 4:
+                continue
+            for item_key, item in self._item_by_norm_name.items():
+                if var in item_key or item_key in var:
+                    return item
+
+        return None
+
+    def _on_inventory_select(self, label: str):
+        entry = self._inventory_entries_by_name.get(label)
+        if not entry:
+            self.remove_item_btn.configure(state=tk.DISABLED)
+            return
+        self._selected_inventory_name = label
+        self.remove_item_btn.configure(state=tk.NORMAL)
+        self._show_inventory_details(entry)
+
+    def _show_inventory_details(self, entry: dict):
+        self.inventory_detail_title.configure(text=entry.get("name", "Item"))
+        record = self._find_item_record(entry)
+
+        lines = [
+            f"Category: {entry.get('category', 'Unknown')}",
+            f"Quantity: {entry.get('qty', 1)}",
+        ]
+        if record:
+            item_type = str(record.get("type", "")).strip() or "Item"
+            lines.append(f"Type: {item_type}")
+            cost_cp = int(record.get("cost_cp", 0))
+            if cost_cp > 0:
+                gp = cost_cp // 100
+                sp = (cost_cp % 100) // 10
+                cp = cost_cp % 10
+                lines.append(f"Cost: {gp} gp, {sp} sp, {cp} cp")
+            lines.append("")
+            desc = record.get("full_description") or record.get("description") or ""
+            lines.append(desc.strip() or "No description available.")
+        else:
+            weapon_meta = WEAPON_DATA.get(entry.get("key", ""), {})
+            container = _container_contents(entry.get("name", ""))
+            lines.append("")
+            if weapon_meta:
+                dmg = weapon_meta.get("damage", "-")
+                props = ", ".join(weapon_meta.get("properties", []) or []) or "None"
+                mastery = weapon_meta.get("mastery") or "-"
+                lines.append(f"Damage: {dmg}")
+                lines.append(f"Properties: {props}")
+                lines.append(f"Mastery: {mastery}")
+            elif container:
+                _, contents = container
+                lines.append("Contains:")
+                lines.extend([f"- {c}" for c in contents])
+            else:
+                lines.append(
+                    "No description available for this item in the current data set."
+                )
+
+        self._set_inventory_detail_text("\n".join(lines))
+
+    def _set_inventory_detail_text(self, text: str):
+        self.inventory_detail_text.configure(state=tk.NORMAL)
+        self.inventory_detail_text.delete("1.0", tk.END)
+        self.inventory_detail_text.insert("1.0", text)
+        self.inventory_detail_text.configure(state=tk.DISABLED)
+
+    def _normalize_equipped_armor(self, keys: set[str]) -> list[str]:
+        has_shield = "shield" in keys
+        body = sorted(k for k in keys if k != "shield")
+        out = []
+        if has_shield:
+            out.append("shield")
+        out.extend(body[:1])
+        return out
+
+    def _remove_selected_item(self):
+        label = self._selected_inventory_name
+        entry = self._inventory_entries_by_name.get(label)
+        if not entry:
+            return
+
+        ok, msg = remove_item(self.character, entry.get("name", ""), qty=1)
+        if not ok:
+            AlertDialog(self.winfo_toplevel(), "Remove Item", msg)
+            return
+
+        weapon_counts, armor_counts, _ = self._effective_inventory_pools()
+        self.character.equipped_weapons = [
+            w for w in (self.character.equipped_weapons or []) if w in weapon_counts
+        ]
+        self.character.equipped_armor = self._normalize_equipped_armor(
+            {a for a in (self.character.equipped_armor or []) if a in armor_counts}
+        )
+
+        self._on_sheet_changed()
+        self._refresh_tab("inventory")
 
     def _refresh_spells_tab(self):
         cantrips = list(dict.fromkeys(self.character.selected_cantrips or []))

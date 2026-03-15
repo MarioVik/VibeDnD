@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import re
 
 from gui.equipment_utils import extract_gp
 
@@ -64,6 +65,10 @@ def _add_transaction(
     character.inventory_transactions = log[:10]
 
 
+def normalize_item_key(name: str) -> str:
+    return re.sub(r"\s+", " ", str(name or "").strip().lower())
+
+
 def add_item(character, item: dict, qty: int, mode: str) -> tuple[bool, str]:
     """Add item to custom inventory.
 
@@ -110,3 +115,46 @@ def add_item(character, item: dict, qty: int, mode: str) -> tuple[bool, str]:
         logged_cost,
     )
     return True, "Item added."
+
+
+def remove_item(character, item_name: str, qty: int = 1) -> tuple[bool, str]:
+    """Remove item quantity from character inventory/equipment pools.
+
+    Removal consumes custom inventory entries first, then applies an overlay
+    against base equipment-derived items via ``character.removed_items``.
+    """
+    qty = int(max(1, qty))
+    target_key = normalize_item_key(item_name)
+    if not target_key:
+        return False, "Invalid item selection."
+
+    remaining = qty
+    inv = list(getattr(character, "custom_inventory", []) or [])
+    for ent in inv:
+        if remaining <= 0:
+            break
+        if normalize_item_key(ent.get("name", "")) != target_key:
+            continue
+        have = int(ent.get("qty", 1))
+        take = min(have, remaining)
+        ent["qty"] = have - take
+        remaining -= take
+
+    inv = [e for e in inv if int(e.get("qty", 0)) > 0]
+    character.custom_inventory = inv
+
+    if remaining > 0:
+        removed = dict(getattr(character, "removed_items", {}) or {})
+        removed[target_key] = int(removed.get(target_key, 0)) + remaining
+        character.removed_items = {k: int(v) for k, v in removed.items() if int(v) > 0}
+
+    _add_transaction(
+        character,
+        "remove",
+        "",
+        item_name,
+        "",
+        qty,
+        0,
+    )
+    return True, "Item removed."

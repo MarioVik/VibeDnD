@@ -15,7 +15,12 @@ from models.standard_actions import (
     get_selected_weapon_counts,
 )
 from gui.widgets import AlertDialog, WrappingLabel
-from models.inventory_service import cp_to_coins, current_wealth_cp
+from models.inventory_service import (
+    base_wealth_cp,
+    cp_to_coins,
+    current_wealth_cp,
+    normalize_item_key,
+)
 
 
 CONTAINER_CONTENTS = {
@@ -105,6 +110,13 @@ def _container_contents(item_text: str) -> tuple[str, list[str]] | None:
         if norm_name and norm_name in norm_item:
             return container, contents
     return None
+
+
+def _parse_item_qty(text: str) -> tuple[str, int]:
+    m = re.match(r"^\s*(\d+)\s+(.+)$", str(text or "").strip())
+    if not m:
+        return str(text or "").strip(), 1
+    return m.group(2).strip(), max(1, int(m.group(1)))
 
 
 def _show_level_features(parent: tk.Widget, character, game_data=None):
@@ -596,6 +608,49 @@ def build_character_sheet(
         else:
             inventory_items.append(f"{qty} {name}" if qty > 1 else name)
 
+    removed_items = {
+        normalize_item_key(k): int(v)
+        for k, v in (getattr(c, "removed_items", {}) or {}).items()
+        if int(v) > 0
+    }
+
+    for key, rem in list(removed_items.items()):
+        if rem <= 0:
+            continue
+        if key in weapon_counts:
+            weapon_counts[key] = max(0, weapon_counts.get(key, 0) - rem)
+            if weapon_counts[key] <= 0:
+                weapon_counts.pop(key, None)
+        if key in armor_counts:
+            armor_counts[key] = max(0, armor_counts.get(key, 0) - rem)
+            if armor_counts[key] <= 0:
+                armor_counts.pop(key, None)
+
+    if removed_items and inventory_items:
+        remaining_by_key: dict[str, int] = {}
+        first_name_by_key: dict[str, str] = {}
+        order: list[str] = []
+        for item in inventory_items:
+            base_name, qty = _parse_item_qty(item)
+            nkey = normalize_item_key(base_name)
+            if nkey not in remaining_by_key:
+                order.append(nkey)
+                first_name_by_key[nkey] = base_name
+            remaining_by_key[nkey] = remaining_by_key.get(nkey, 0) + qty
+
+        for nkey, rem in removed_items.items():
+            if nkey in remaining_by_key:
+                remaining_by_key[nkey] = max(0, remaining_by_key[nkey] - rem)
+
+        rebuilt_items: list[str] = []
+        for nkey in order:
+            qty = remaining_by_key.get(nkey, 0)
+            if qty <= 0:
+                continue
+            name = first_name_by_key[nkey]
+            rebuilt_items.append(f"{qty} {name}" if qty > 1 else name)
+        inventory_items = rebuilt_items
+
     # Default: all weapons are equipped unless character has explicitly set state.
     if c.equipped_weapons is None:
         c.equipped_weapons = sorted(weapon_counts.keys())
@@ -633,15 +688,42 @@ def build_character_sheet(
             ("Silver", "sp", 10),
             ("Gold", "gp", 100),
         ]
-        coin_value_labels = {}
+        coin_value_vars = {}
 
         def _refresh_wealth_display():
             gp, sp, cp = cp_to_coins(current_wealth_cp(c))
             values = {"gp": gp, "sp": sp, "cp": cp}
-            for coin_key, lbl in coin_value_labels.items():
-                lbl.configure(text=str(values.get(coin_key, 0)))
+            for coin_key, var in coin_value_vars.items():
+                var.set(str(values.get(coin_key, 0)))
+
+        def _set_wealth_from_entries() -> bool:
+            parsed = {}
+            for _, coin_key, _ in coin_defs:
+                raw = coin_value_vars[coin_key].get().strip()
+                if raw == "":
+                    raw = "0"
+                if not raw.isdigit():
+                    AlertDialog(
+                        parent.winfo_toplevel(),
+                        "Wealth",
+                        "Please enter whole numbers only.",
+                    )
+                    _refresh_wealth_display()
+                    return False
+                parsed[coin_key] = int(raw)
+
+            new_total_cp = parsed["gp"] * 100 + parsed["sp"] * 10 + parsed["cp"]
+            c.wealth_adjust_cp = int(new_total_cp - base_wealth_cp(c))
+            _refresh_wealth_display()
+            _emit_change()
+            return True
+
+        def _on_coin_commit(event=None):
+            _set_wealth_from_entries()
 
         def _adjust_wealth(delta_cp: int):
+            if not _set_wealth_from_entries():
+                return
             current_cp = current_wealth_cp(c)
             if delta_cp < 0 and current_cp < abs(delta_cp):
                 AlertDialog(
@@ -678,15 +760,24 @@ def build_character_sheet(
             value_box.grid_propagate(False)
             value_box.configure(width=72)
 
-            value_lbl = tk.Label(
+            value_var = tk.StringVar(value="0")
+            value_entry = tk.Entry(
                 value_box,
-                text="0",
+                textvariable=value_var,
                 font=FONTS["stat"],
                 background=COLORS["bg_light"],
                 fg=COLORS["fg_bright"],
+                insertbackground=COLORS["fg_bright"],
+                relief=tk.FLAT,
+                borderwidth=0,
+                highlightthickness=0,
+                justify="center",
+                width=4,
             )
-            value_lbl.place(relx=0.5, rely=0.5, anchor="center")
-            coin_value_labels[coin_key] = value_lbl
+            value_entry.place(relx=0.5, rely=0.5, anchor="center")
+            value_entry.bind("<FocusOut>", _on_coin_commit)
+            value_entry.bind("<Return>", _on_coin_commit)
+            coin_value_vars[coin_key] = value_var
 
             ttk.Button(
                 body,
