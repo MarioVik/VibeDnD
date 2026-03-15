@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import ScrollableFrame, AlertDialog, SectionedListbox, WrappingLabel
+from gui.widgets import ScrollableFrame, AlertDialog, SectionedListbox
 from gui.sheet_builder import build_character_sheet
 from models.character_store import save_character
 from paths import characters_dir
@@ -113,29 +113,33 @@ class CharacterViewer(ttk.Frame):
         style = ttk.Style(self)
         style.configure("ViewerCompactSpells.TEntry", padding=(6, 2))
 
-        right_scroll = ScrollableFrame(self.spells_tab)
-        right_scroll.grid(row=0, column=1, sticky="nsew", pady=(2, 2))
-        self._spell_detail = right_scroll.inner
+        right = ttk.LabelFrame(self.spells_tab, text="Spell Details")
+        right.grid(row=0, column=1, sticky="nsew", pady=(2, 2))
+        right.columnconfigure(0, weight=1)
+        right.rowconfigure(1, weight=1)
 
         self.spell_title = ttk.Label(
-            self._spell_detail,
+            right,
             text="Select a spell",
-            style="Heading.TLabel",
+            style="Subheading.TLabel",
         )
-        self.spell_title.pack(anchor="w", pady=(0, 2))
+        self.spell_title.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
 
-        self.spell_meta = ttk.Label(self._spell_detail, text="", style="Dim.TLabel")
-        self.spell_meta.pack(anchor="w", pady=(0, 4))
-
-        self.spell_desc = WrappingLabel(self._spell_detail, text="")
-        self.spell_desc.pack(fill=tk.X, anchor="w", pady=(0, 2))
-
-        self.spell_higher = WrappingLabel(
-            self._spell_detail,
-            text="",
-            foreground=COLORS["fg_dim"],
+        self.spell_detail_text = tk.Text(
+            right,
+            wrap=tk.WORD,
+            bg=COLORS["bg_light"],
+            fg=COLORS["fg"],
+            font=FONTS["body"],
+            borderwidth=0,
+            highlightthickness=0,
+            relief=tk.FLAT,
+            state=tk.DISABLED,
         )
-        self.spell_higher.pack(fill=tk.X, anchor="w", pady=(4, 0))
+        self.spell_detail_text.grid(row=1, column=0, sticky="nsew", padx=8, pady=4)
+        self.spell_detail_text.tag_configure(
+            "label", font=(FONTS["body"][0], FONTS["body"][1], "bold")
+        )
 
     def _refresh_tabs(self):
         build_character_sheet(
@@ -205,28 +209,20 @@ class CharacterViewer(ttk.Frame):
     def _show_spell_details(self, spell_name: str | None):
         if not spell_name:
             self.spell_title.configure(text="No spells known")
-            self.spell_meta.configure(text="")
-            self.spell_desc.configure(
-                text="This character has no selected cantrips or spells."
+            self._set_spell_detail_text(
+                "This character has no selected cantrips or spells."
             )
-            self.spell_higher.configure(text="")
             return
 
         spell = self._spell_index.get(spell_name, {})
         if not spell:
             self.spell_title.configure(text=spell_name)
-            self.spell_meta.configure(text="Details unavailable")
-            self.spell_desc.configure(text="No spell data found for this entry.")
-            self.spell_higher.configure(text="")
+            self._set_spell_detail_text("No spell data found for this entry.")
             return
 
         level = spell.get("level", 0)
         level_text = "Cantrip" if level == 0 else f"Level {level}"
-        school = spell.get("school", "Unknown school")
-        meta = (
-            f"{level_text}  |  {school}  |  Casting: {spell.get('casting_time', 'Unknown')}"
-            f"  |  Range: {spell.get('range', 'Unknown')}  |  Duration: {spell.get('duration', 'Unknown')}"
-        )
+        school = spell.get("school", "Unknown")
 
         comps = spell.get("components", {}) or {}
         comp_text = []
@@ -238,18 +234,54 @@ class CharacterViewer(ttk.Frame):
                 comp_text.append(f"M ({val})")
             else:
                 comp_text.append(k)
-        if comp_text:
-            meta += f"  |  Components: {', '.join(comp_text)}"
+        components = ", ".join(comp_text) if comp_text else "None"
 
         self.spell_title.configure(text=spell.get("name", spell_name))
-        self.spell_meta.configure(text=meta)
-        self.spell_desc.configure(text=spell.get("description", ""))
+        body = [
+            f"Level: {level_text}",
+            f"School: {school}",
+            f"Casting Time: {spell.get('casting_time', 'Unknown')}",
+            f"Range: {spell.get('range', 'Unknown')}",
+            f"Duration: {spell.get('duration', 'Unknown')}",
+            f"Components: {components}",
+        ]
+        source = spell.get("source")
+        if source:
+            body.append(f"Source: {source}")
+        body.append("")
+        body.append(spell.get("description", "No description available."))
 
         higher = (spell.get("higher_levels") or "").strip()
         if higher:
-            self.spell_higher.configure(text=f"At Higher Levels: {higher}")
-        else:
-            self.spell_higher.configure(text="")
+            body.extend(["", f"At Higher Levels: {higher}"])
+
+        self._set_spell_detail_text("\n".join(body))
+
+    def _set_spell_detail_text(self, text: str):
+        label_prefixes = {
+            "Level",
+            "School",
+            "Casting Time",
+            "Range",
+            "Duration",
+            "Components",
+            "Source",
+            "At Higher Levels",
+        }
+
+        self.spell_detail_text.configure(state=tk.NORMAL)
+        self.spell_detail_text.delete("1.0", tk.END)
+
+        for raw_line in text.splitlines():
+            if ":" in raw_line:
+                key, rest = raw_line.split(":", 1)
+                if key in label_prefixes:
+                    self.spell_detail_text.insert(tk.END, f"{key}:", "label")
+                    self.spell_detail_text.insert(tk.END, f"{rest}\n")
+                    continue
+            self.spell_detail_text.insert(tk.END, f"{raw_line}\n")
+
+        self.spell_detail_text.configure(state=tk.DISABLED)
 
     def _on_sheet_changed(self):
         if not self.save_path:
