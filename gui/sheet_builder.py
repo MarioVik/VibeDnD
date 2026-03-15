@@ -760,11 +760,6 @@ def build_character_sheet(
     saved_opts = (
         c.standard_action_options if isinstance(c.standard_action_options, dict) else {}
     )
-    all_weapon_actions = build_standard_actions(
-        c,
-        weapon_options=saved_opts,
-        equipped_weapon_keys=set(weapon_counts.keys()),
-    )
 
     def _equipped_keys() -> set[str]:
         return {k for k, v in equip_vars.items() if v.get()}
@@ -835,7 +830,7 @@ def build_character_sheet(
             c.standard_action_options = next_opts
             _emit_change()
 
-    def _render_weapon_option_rows():
+    def _render_weapon_option_rows(current_actions: list[dict]):
         if options_frame is None:
             return
         assert options_frame is not None
@@ -844,7 +839,7 @@ def build_character_sheet(
 
         configurable_weapons = [
             a
-            for a in all_weapon_actions
+            for a in current_actions
             if a.get("kind") == "weapon"
             and (a.get("can_true_strike") or a.get("versatile"))
         ]
@@ -912,7 +907,7 @@ def build_character_sheet(
                 text="No standard attack actions detected.",
                 style="Dim.TLabel",
             ).pack(anchor="w", pady=2)
-            _render_weapon_option_rows()
+            _render_weapon_option_rows(actions)
             return
 
         ttk.Label(
@@ -928,6 +923,6 @@ def build_character_sheet(
                 rows_frame, text=line, foreground=COLORS["fg"], font=FONTS["mono"]
             ).pack(anchor="w", pady=1)
 
-        _render_weapon_option_rows()
+        _render_weapon_option_rows(actions)
 
     _render_action_rows()

@@ -23,6 +23,8 @@ class CharacterViewer(ttk.Frame):
         self._spell_index = {
             s.get("name", ""): s for s in (self.data.spells if self.data else [])
         }
+        self._refresh_scheduled = False
+        self._building_tabs = False
         self._build_ui()
 
     def _build_ui(self):
@@ -141,36 +143,41 @@ class CharacterViewer(ttk.Frame):
             "label", font=(FONTS["body"][0], FONTS["body"][1], "bold")
         )
 
-    def _refresh_tabs(self):
-        build_character_sheet(
-            self._general_parent,
-            self.character,
-            self.data,
-            on_change=self._on_sheet_changed,
-            compact=True,
-            include_sections={
-                "header",
-                "combat",
-                "abilities",
-                "saving_throws",
-                "skills",
-                "standard_actions",
-                "species_traits",
-                "class_features",
-                "subclass",
-                "feats",
-            },
-        )
+    def _refresh_tabs(self, refresh_spells: bool = True):
+        self._building_tabs = True
+        try:
+            build_character_sheet(
+                self._general_parent,
+                self.character,
+                self.data,
+                on_change=self._on_sheet_changed,
+                compact=True,
+                include_sections={
+                    "header",
+                    "combat",
+                    "abilities",
+                    "saving_throws",
+                    "skills",
+                    "standard_actions",
+                    "species_traits",
+                    "class_features",
+                    "subclass",
+                    "feats",
+                },
+            )
 
-        build_character_sheet(
-            self._inventory_parent,
-            self.character,
-            self.data,
-            on_change=self._on_sheet_changed,
-            compact=True,
-            include_sections={"wealth", "equipment", "inventory"},
-        )
-        self._refresh_spells_tab()
+            build_character_sheet(
+                self._inventory_parent,
+                self.character,
+                self.data,
+                on_change=self._on_sheet_changed,
+                compact=True,
+                include_sections={"wealth", "equipment", "inventory"},
+            )
+            if refresh_spells:
+                self._refresh_spells_tab()
+        finally:
+            self._building_tabs = False
 
     def _refresh_spells_tab(self):
         cantrips = list(dict.fromkeys(self.character.selected_cantrips or []))
@@ -285,10 +292,27 @@ class CharacterViewer(ttk.Frame):
 
     def _on_sheet_changed(self):
         if not self.save_path:
+            self._schedule_tab_refresh()
             return
         save_character(
             self.character, characters_dir(), existing_filename=self.save_path
         )
+        self._schedule_tab_refresh()
+
+    def _schedule_tab_refresh(self):
+        if self._refresh_scheduled:
+            return
+        self._refresh_scheduled = True
+        self.after_idle(self._refresh_after_sheet_change)
+
+    def _refresh_after_sheet_change(self):
+        self._refresh_scheduled = False
+        if self._building_tabs:
+            self._schedule_tab_refresh()
+            return
+        selected = self.tabs.index("current")
+        self._refresh_tabs(refresh_spells=False)
+        self.tabs.select(selected)
 
     # ── Navigation ──────────────────────────────────────────────
 
