@@ -461,13 +461,24 @@ class CharacterViewer(ttk.Frame):
         )
         self.inventory_detail_text.grid(row=1, column=0, sticky="nsew")
 
-        self.remove_item_btn = ttk.Button(
-            right,
-            text="Remove item",
-            command=self._remove_selected_item,
+        actions = ttk.Frame(right)
+        actions.grid(row=2, column=0, sticky="e", pady=(6, 0))
+
+        self.remove_one_btn = ttk.Button(
+            actions,
+            text="Remove one",
+            command=self._remove_one_selected_item,
             state=tk.DISABLED,
         )
-        self.remove_item_btn.grid(row=2, column=0, sticky="e", pady=(6, 0))
+        self.remove_one_btn.pack(side=tk.LEFT)
+
+        self.remove_all_btn = ttk.Button(
+            actions,
+            text="Remove all",
+            command=self._remove_all_selected_item,
+            state=tk.DISABLED,
+        )
+        self.remove_all_btn.pack(side=tk.LEFT, padx=(6, 0))
 
         self._refresh_inventory_split_items()
 
@@ -618,7 +629,8 @@ class CharacterViewer(ttk.Frame):
                 return
 
         self._selected_inventory_name = ""
-        self.remove_item_btn.configure(state=tk.DISABLED)
+        self.remove_one_btn.configure(state=tk.DISABLED)
+        self.remove_all_btn.configure(state=tk.DISABLED)
         self.inventory_detail_title.configure(text="No items")
         self._set_inventory_detail_text("No inventory items available.")
 
@@ -722,7 +734,11 @@ class CharacterViewer(ttk.Frame):
     def _on_inventory_select_entry(self, entry: dict):
         self._selected_inventory_name = entry.get("name", "")
         is_subitem = entry.get("is_subitem", False)
-        self.remove_item_btn.configure(state=tk.DISABLED if is_subitem else tk.NORMAL)
+        qty = int(entry.get("qty", 1) or 1)
+        self.remove_one_btn.configure(state=tk.DISABLED if is_subitem else tk.NORMAL)
+        self.remove_all_btn.configure(
+            state=tk.DISABLED if is_subitem or qty <= 1 else tk.NORMAL
+        )
         self._show_inventory_details(entry)
 
     def _find_item_record(self, entry: dict) -> dict | None:
@@ -769,7 +785,8 @@ class CharacterViewer(ttk.Frame):
     def _on_inventory_select(self, label: str):
         entry = self._inventory_entries_by_name.get(label)
         if not entry:
-            self.remove_item_btn.configure(state=tk.DISABLED)
+            self.remove_one_btn.configure(state=tk.DISABLED)
+            self.remove_all_btn.configure(state=tk.DISABLED)
             return
         self._on_inventory_select_entry(entry)
 
@@ -853,6 +870,15 @@ class CharacterViewer(ttk.Frame):
         return out
 
     def _remove_selected_item(self):
+        self._remove_selected_item_qty(remove_all=False)
+
+    def _remove_one_selected_item(self):
+        self._remove_selected_item_qty(remove_all=False)
+
+    def _remove_all_selected_item(self):
+        self._remove_selected_item_qty(remove_all=True)
+
+    def _remove_selected_item_qty(self, remove_all: bool):
         sel = self.inv_tree.selection()
         if not sel:
             return
@@ -860,8 +886,9 @@ class CharacterViewer(ttk.Frame):
         entry = self._inv_tree_entries.get(iid)
         if not entry:
             return
+        qty = max(1, int(entry.get("qty", 1) or 1)) if remove_all else 1
 
-        ok, msg = remove_item(self.character, entry.get("name", ""), qty=1)
+        ok, msg = remove_item(self.character, entry.get("name", ""), qty=qty)
         if not ok:
             AlertDialog(self.winfo_toplevel(), "Remove Item", msg)
             return
