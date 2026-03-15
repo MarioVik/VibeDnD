@@ -168,7 +168,13 @@ def _show_level_features(parent: tk.Widget, character, game_data=None):
                 ).pack(fill=tk.X, anchor="w", padx=8, pady=(0, 4))
 
 
-def build_character_sheet(parent: tk.Widget, character, game_data=None, on_change=None):
+def build_character_sheet(
+    parent: tk.Widget,
+    character,
+    game_data=None,
+    on_change=None,
+    include_sections: set[str] | None = None,
+):
     """Render a read-only character sheet into *parent*.
 
     Clears any existing children first so it can safely be called
@@ -183,149 +189,167 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
         if callable(on_change):
             on_change()
 
+    def _show(section: str) -> bool:
+        return include_sections is None or section in include_sections
+
     # ── Header ──────────────────────────────────────────────────
-    header = ttk.Frame(parent, style="Card.TFrame")
-    header.pack(fill=tk.X, pady=(0, 8), ipady=8, ipadx=8)
+    if _show("header"):
+        header = ttk.Frame(parent, style="Card.TFrame")
+        header.pack(fill=tk.X, pady=(0, 8), ipady=8, ipadx=8)
 
-    ttk.Label(header, text=c.summary_text(), style="CardHeading.TLabel").pack(
-        anchor="w", padx=8
-    )
-    details = f"Background: {c.background_name}"
-    if c.species_sub_choice:
-        details += f"  |  {c.species_sub_choice}"
-    ttk.Label(header, text=details, style="Card.TLabel").pack(anchor="w", padx=8)
-
-    # ── Combat stats row ────────────────────────────────────────
-    combat = ttk.Frame(parent, style="Card.TFrame")
-    combat.pack(fill=tk.X, pady=4, ipady=6)
-
-    stats = [
-        ("HP", str(c.hit_points)),
-        ("AC", str(c.armor_class)),
-        ("Speed", f"{c.speed} ft"),
-        ("Initiative", f"+{c.initiative}" if c.initiative >= 0 else str(c.initiative)),
-        ("Prof. Bonus", f"+{c.proficiency_bonus}"),
-    ]
+        ttk.Label(header, text=c.summary_text(), style="CardHeading.TLabel").pack(
+            anchor="w", padx=8
+        )
+        details = f"Background: {c.background_name}"
+        if c.species_sub_choice:
+            details += f"  |  {c.species_sub_choice}"
+        ttk.Label(header, text=details, style="Card.TLabel").pack(anchor="w", padx=8)
 
     stat_value_labels: dict[str, ttk.Label] = {}
-    for label, value in stats:
-        sf = ttk.Frame(combat, style="Card.TFrame")
-        sf.pack(side=tk.LEFT, padx=16, pady=4)
-        value_lbl = ttk.Label(
-            sf,
-            text=value,
-            font=FONTS["stat"],
-            foreground=COLORS["fg_bright"],
-            background=COLORS["bg_card"],
-        )
-        value_lbl.pack()
-        stat_value_labels[label] = value_lbl
-        ttk.Label(
-            sf, text=label, foreground=COLORS["fg_dim"], background=COLORS["bg_card"]
-        ).pack()
+    if _show("combat"):
+        combat = ttk.Frame(parent, style="Card.TFrame")
+        combat.pack(fill=tk.X, pady=4, ipady=6)
+
+        stats = [
+            ("HP", str(c.hit_points)),
+            ("AC", str(c.armor_class)),
+            ("Speed", f"{c.speed} ft"),
+            (
+                "Initiative",
+                f"+{c.initiative}" if c.initiative >= 0 else str(c.initiative),
+            ),
+            ("Prof. Bonus", f"+{c.proficiency_bonus}"),
+        ]
+
+        for label, value in stats:
+            sf = ttk.Frame(combat, style="Card.TFrame")
+            sf.pack(side=tk.LEFT, padx=16, pady=4)
+            value_lbl = ttk.Label(
+                sf,
+                text=value,
+                font=FONTS["stat"],
+                foreground=COLORS["fg_bright"],
+                background=COLORS["bg_card"],
+            )
+            value_lbl.pack()
+            stat_value_labels[label] = value_lbl
+            ttk.Label(
+                sf,
+                text=label,
+                foreground=COLORS["fg_dim"],
+                background=COLORS["bg_card"],
+            ).pack()
 
     # ── Ability Scores ──────────────────────────────────────────
-    abilities_frame = ttk.LabelFrame(parent, text="Ability Scores")
-    abilities_frame.pack(fill=tk.X, pady=4)
+    if _show("abilities"):
+        abilities_frame = ttk.LabelFrame(parent, text="Ability Scores")
+        abilities_frame.pack(fill=tk.X, pady=4)
 
-    ab_row = ttk.Frame(abilities_frame)
-    ab_row.pack(fill=tk.X, padx=8, pady=4)
+        ab_row = ttk.Frame(abilities_frame)
+        ab_row.pack(fill=tk.X, padx=8, pady=4)
 
-    for ability_name in [
-        "Strength",
-        "Dexterity",
-        "Constitution",
-        "Intelligence",
-        "Wisdom",
-        "Charisma",
-    ]:
-        af = ttk.Frame(ab_row)
-        af.pack(side=tk.LEFT, padx=12)
+        for ability_name in [
+            "Strength",
+            "Dexterity",
+            "Constitution",
+            "Intelligence",
+            "Wisdom",
+            "Charisma",
+        ]:
+            af = ttk.Frame(ab_row)
+            af.pack(side=tk.LEFT, padx=12)
 
-        short = ability_name[:3].upper()
-        total = c.ability_scores.total(ability_name)
-        mod_str = c.ability_scores.modifier_str(ability_name)
+            short = ability_name[:3].upper()
+            total = c.ability_scores.total(ability_name)
+            mod_str = c.ability_scores.modifier_str(ability_name)
 
-        ttk.Label(af, text=short, foreground=COLORS["fg_dim"]).pack()
-        ttk.Label(
-            af, text=str(total), font=FONTS["stat"], foreground=COLORS["fg_bright"]
-        ).pack()
+            ttk.Label(af, text=short, foreground=COLORS["fg_dim"]).pack()
+            ttk.Label(
+                af,
+                text=str(total),
+                font=FONTS["stat"],
+                foreground=COLORS["fg_bright"],
+            ).pack()
 
-        mod_val = c.ability_scores.modifier(ability_name)
-        color = (
-            COLORS["positive"]
-            if mod_val > 0
-            else COLORS["negative"]
-            if mod_val < 0
-            else COLORS["fg_dim"]
-        )
-        ttk.Label(af, text=mod_str, foreground=color).pack()
+            mod_val = c.ability_scores.modifier(ability_name)
+            color = (
+                COLORS["positive"]
+                if mod_val > 0
+                else COLORS["negative"]
+                if mod_val < 0
+                else COLORS["fg_dim"]
+            )
+            ttk.Label(af, text=mod_str, foreground=color).pack()
 
     # ── Saving Throws ───────────────────────────────────────────
-    saves_frame = ttk.LabelFrame(parent, text="Saving Throws")
-    saves_frame.pack(fill=tk.X, pady=4)
+    if _show("saving_throws"):
+        saves_frame = ttk.LabelFrame(parent, text="Saving Throws")
+        saves_frame.pack(fill=tk.X, pady=4)
 
-    saves_row = ttk.Frame(saves_frame)
-    saves_row.pack(fill=tk.X, padx=8, pady=4)
+        saves_row = ttk.Frame(saves_frame)
+        saves_row.pack(fill=tk.X, padx=8, pady=4)
 
-    for ability_name in [
-        "Strength",
-        "Dexterity",
-        "Constitution",
-        "Intelligence",
-        "Wisdom",
-        "Charisma",
-    ]:
-        sf = ttk.Frame(saves_row)
-        sf.pack(side=tk.LEFT, padx=8)
+        for ability_name in [
+            "Strength",
+            "Dexterity",
+            "Constitution",
+            "Intelligence",
+            "Wisdom",
+            "Charisma",
+        ]:
+            sf = ttk.Frame(saves_row)
+            sf.pack(side=tk.LEFT, padx=8)
 
-        is_prof = c.is_proficient_save(ability_name)
-        mod_str = c.saving_throw_str(ability_name)
-        marker = "\u25c6 " if is_prof else "  "
+            is_prof = c.is_proficient_save(ability_name)
+            mod_str = c.saving_throw_str(ability_name)
+            marker = "\u25c6 " if is_prof else "  "
 
-        text = f"{marker}{ability_name[:3].upper()} {mod_str}"
-        color = COLORS["accent"] if is_prof else COLORS["fg_dim"]
-        ttk.Label(sf, text=text, foreground=color).pack()
+            text = f"{marker}{ability_name[:3].upper()} {mod_str}"
+            color = COLORS["accent"] if is_prof else COLORS["fg_dim"]
+            ttk.Label(sf, text=text, foreground=color).pack()
 
     # ── Skills ──────────────────────────────────────────────────
-    skills_frame = ttk.LabelFrame(parent, text="Skills")
-    skills_frame.pack(fill=tk.X, pady=4)
+    if _show("skills"):
+        skills_frame = ttk.LabelFrame(parent, text="Skills")
+        skills_frame.pack(fill=tk.X, pady=4)
 
-    skill_cols = ttk.Frame(skills_frame)
-    skill_cols.pack(fill=tk.X, padx=8, pady=4)
+        skill_cols = ttk.Frame(skills_frame)
+        skill_cols.pack(fill=tk.X, padx=8, pady=4)
 
-    col_left = ttk.Frame(skill_cols)
-    col_left.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 16))
-    col_right = ttk.Frame(skill_cols)
-    col_right.pack(side=tk.LEFT, fill=tk.Y)
+        col_left = ttk.Frame(skill_cols)
+        col_left.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 16))
+        col_right = ttk.Frame(skill_cols)
+        col_right.pack(side=tk.LEFT, fill=tk.Y)
 
-    profs = c.all_skill_proficiencies
-    for i, skill in enumerate(ALL_SKILLS):
-        target = col_left if i < 9 else col_right
-        is_prof = skill.display_name in profs
-        mod_str = c.skill_modifier_str(skill.display_name)
-        marker = "\u25c6" if is_prof else " "
-        color = COLORS["accent"] if is_prof else COLORS["fg_dim"]
+        profs = c.all_skill_proficiencies
+        for i, skill in enumerate(ALL_SKILLS):
+            target = col_left if i < 9 else col_right
+            is_prof = skill.display_name in profs
+            mod_str = c.skill_modifier_str(skill.display_name)
+            marker = "\u25c6" if is_prof else " "
+            color = COLORS["accent"] if is_prof else COLORS["fg_dim"]
 
-        row = ttk.Frame(target)
-        row.pack(fill=tk.X, pady=1)
-        ttk.Label(
-            row,
-            text=f"{marker} {mod_str:>3}  {skill.display_name}",
-            foreground=color,
-            font=FONTS["mono"],
-        ).pack(anchor="w")
+            row = ttk.Frame(target)
+            row.pack(fill=tk.X, pady=1)
+            ttk.Label(
+                row,
+                text=f"{marker} {mod_str:>3}  {skill.display_name}",
+                foreground=color,
+                font=FONTS["mono"],
+            ).pack(anchor="w")
 
-    # ── Standard Actions (positioned below Skills) ──────────────
-    actions_sec = ttk.LabelFrame(parent, text="Standard Actions")
-    actions_sec.pack(fill=tk.X, pady=4)
-    rows_frame = ttk.Frame(actions_sec)
-    rows_frame.pack(fill=tk.X, padx=8, pady=(2, 2))
-    options_frame = ttk.Frame(actions_sec)
-    options_frame.pack(fill=tk.X, padx=8, pady=(0, 2))
+    rows_frame = None
+    options_frame = None
+    if _show("standard_actions"):
+        actions_sec = ttk.LabelFrame(parent, text="Standard Actions")
+        actions_sec.pack(fill=tk.X, pady=4)
+        rows_frame = ttk.Frame(actions_sec)
+        rows_frame.pack(fill=tk.X, padx=8, pady=(2, 2))
+        options_frame = ttk.Frame(actions_sec)
+        options_frame.pack(fill=tk.X, padx=8, pady=(0, 2))
 
     # ── Species Traits ──────────────────────────────────────────
-    if c.species and c.species.get("traits"):
+    if _show("species_traits") and c.species and c.species.get("traits"):
         traits_frame = ttk.LabelFrame(parent, text=f"{c.species_name} Traits")
         traits_frame.pack(fill=tk.X, pady=4)
         for trait in c.species["traits"]:
@@ -336,7 +360,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
             ).pack(fill=tk.X, anchor="w", padx=8, pady=1)
 
     # ── Class Features ──────────────────────────────────────────
-    if c.character_class:
+    if _show("class_features") and c.character_class:
         feat_title = f"{c.class_name} Features"
         if c.is_multiclass:
             feat_title = "Class Features"
@@ -362,7 +386,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
                     ).pack(fill=tk.X, anchor="w", padx=8, pady=(0, 4))
 
     # ── Subclass ──────────────────────────────────────────────
-    if c.current_subclass:
+    if _show("subclass") and c.current_subclass:
         sub_name = c.current_subclass.replace("-", " ").title()
         sub_frame = ttk.LabelFrame(parent, text=f"Subclass: {sub_name}")
         sub_frame.pack(fill=tk.X, pady=4)
@@ -432,7 +456,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
 
     # ── Feats ───────────────────────────────────────────────────
     has_any_feat = c.feat or c.species_origin_feat
-    if has_any_feat:
+    if _show("feats") and has_any_feat:
         feat_sec = ttk.LabelFrame(parent, text="Feats")
         feat_sec.pack(fill=tk.X, pady=4)
 
@@ -477,7 +501,7 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
                 ).pack(fill=tk.X, anchor="w", padx=8, pady=1)
 
     # ── Spells ──────────────────────────────────────────────────
-    if c.selected_cantrips or c.selected_spells:
+    if _show("spells") and (c.selected_cantrips or c.selected_spells):
         spell_sec = ttk.LabelFrame(parent, text="Spells")
         spell_sec.pack(fill=tk.X, pady=4)
         if c.selected_cantrips:
@@ -590,18 +614,21 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
         ]
 
     # ── Wealth ──────────────────────────────────────────────────
-    wealth_sec = ttk.LabelFrame(parent, text="Wealth")
-    wealth_sec.pack(fill=tk.X, pady=4)
-    gp, sp, cp = cp_to_coins(current_wealth_cp(c))
-    WrappingLabel(
-        wealth_sec,
-        text=(f"  Gold: {gp} gp\n  Silver: {sp} sp\n  Copper: {cp} cp"),
-        foreground=COLORS["fg_dim"],
-    ).pack(fill=tk.X, anchor="w", padx=8, pady=2)
+    if _show("wealth"):
+        wealth_sec = ttk.LabelFrame(parent, text="Wealth")
+        wealth_sec.pack(fill=tk.X, pady=4)
+        gp, sp, cp = cp_to_coins(current_wealth_cp(c))
+        WrappingLabel(
+            wealth_sec,
+            text=(f"  Gold: {gp} gp\n  Silver: {sp} sp\n  Copper: {cp} cp"),
+            foreground=COLORS["fg_dim"],
+        ).pack(fill=tk.X, anchor="w", padx=8, pady=2)
 
     # ── Equipment ───────────────────────────────────────────────
-    equip_sec = ttk.LabelFrame(parent, text="Equipment")
-    equip_sec.pack(fill=tk.X, pady=4)
+    equip_sec = None
+    if _show("equipment"):
+        equip_sec = ttk.LabelFrame(parent, text="Equipment")
+        equip_sec.pack(fill=tk.X, pady=4)
 
     equip_vars: dict[str, tk.BooleanVar] = {}
     armor_vars: dict[str, tk.BooleanVar] = {}
@@ -612,91 +639,110 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
         ttk.Label(h, text="Equipped", style="Dim.TLabel", width=9).pack(side=tk.LEFT)
         ttk.Label(h, text="Item", style="Dim.TLabel").pack(side=tk.LEFT)
 
-    # ── Weapons sub-section ──────────────────────────────────────
-    weapons_frame = ttk.LabelFrame(equip_sec, text="Weapons")
-    weapons_frame.pack(fill=tk.X, padx=8, pady=(6, 2))
-    weapons_inner = ttk.Frame(weapons_frame)
-    weapons_inner.pack(fill=tk.X, padx=8, pady=4)
+    if _show("equipment") and equip_sec is not None:
+        # ── Weapons sub-section ──────────────────────────────────────
+        weapons_frame = ttk.LabelFrame(equip_sec, text="Weapons")
+        weapons_frame.pack(fill=tk.X, padx=8, pady=(6, 2))
+        weapons_inner = ttk.Frame(weapons_frame)
+        weapons_inner.pack(fill=tk.X, padx=8, pady=4)
 
-    if weapon_counts:
-        _col_header(weapons_inner)
+        if weapon_counts:
+            _col_header(weapons_inner)
+            for weapon_key in sorted(weapon_counts.keys()):
+                qty = weapon_counts[weapon_key]
+                var = tk.BooleanVar(value=weapon_key in set(c.equipped_weapons or []))
+                equip_vars[weapon_key] = var
+
+                row = ttk.Frame(weapons_inner)
+                row.pack(fill=tk.X, pady=1)
+                ttk.Checkbutton(
+                    row,
+                    variable=var,
+                    command=lambda k=weapon_key: _on_weapon_toggle(k),
+                ).pack(side=tk.LEFT)
+                label = weapon_key.title()
+                if qty > 1:
+                    label += f" (x{qty})"
+                ttk.Label(row, text=label, foreground=COLORS["fg_dim"]).pack(
+                    side=tk.LEFT
+                )
+        else:
+            ttk.Label(
+                weapons_inner,
+                text="No weapons in selected equipment.",
+                style="Dim.TLabel",
+            ).pack(anchor="w")
+
+        # ── Armor sub-section (incl. shields) ───────────────────────
+        armor_frame = ttk.LabelFrame(equip_sec, text="Armor & Shields")
+        armor_frame.pack(fill=tk.X, padx=8, pady=(2, 6))
+        armor_inner = ttk.Frame(armor_frame)
+        armor_inner.pack(fill=tk.X, padx=8, pady=4)
+
+        if armor_counts:
+            _col_header(armor_inner)
+            for armor_key in sorted(armor_counts.keys()):
+                qty = armor_counts[armor_key]
+                var = tk.BooleanVar(value=armor_key in set(c.equipped_armor or []))
+                armor_vars[armor_key] = var
+
+                row = ttk.Frame(armor_inner)
+                row.pack(fill=tk.X, pady=1)
+                ttk.Checkbutton(
+                    row,
+                    variable=var,
+                    command=lambda k=armor_key: _on_armor_toggle(k),
+                ).pack(side=tk.LEFT)
+                label = armor_key.title()
+                if qty > 1:
+                    label += f" (x{qty})"
+                ttk.Label(row, text=label, foreground=COLORS["fg_dim"]).pack(
+                    side=tk.LEFT
+                )
+        else:
+            ttk.Label(
+                armor_inner,
+                text="No armor in selected equipment.",
+                style="Dim.TLabel",
+            ).pack(anchor="w")
+    else:
         for weapon_key in sorted(weapon_counts.keys()):
-            qty = weapon_counts[weapon_key]
-            var = tk.BooleanVar(value=weapon_key in set(c.equipped_weapons or []))
-            equip_vars[weapon_key] = var
-
-            row = ttk.Frame(weapons_inner)
-            row.pack(fill=tk.X, pady=1)
-            ttk.Checkbutton(
-                row,
-                variable=var,
-                command=lambda k=weapon_key: _on_weapon_toggle(k),
-            ).pack(side=tk.LEFT)
-            label = weapon_key.title()
-            if qty > 1:
-                label += f" (x{qty})"
-            ttk.Label(row, text=label, foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
-    else:
-        ttk.Label(
-            weapons_inner, text="No weapons in selected equipment.", style="Dim.TLabel"
-        ).pack(anchor="w")
-
-    # ── Armor sub-section (incl. shields) ───────────────────────
-    armor_frame = ttk.LabelFrame(equip_sec, text="Armor & Shields")
-    armor_frame.pack(fill=tk.X, padx=8, pady=(2, 6))
-    armor_inner = ttk.Frame(armor_frame)
-    armor_inner.pack(fill=tk.X, padx=8, pady=4)
-
-    if armor_counts:
-        _col_header(armor_inner)
+            equip_vars[weapon_key] = tk.BooleanVar(
+                value=weapon_key in set(c.equipped_weapons or [])
+            )
         for armor_key in sorted(armor_counts.keys()):
-            qty = armor_counts[armor_key]
-            var = tk.BooleanVar(value=armor_key in set(c.equipped_armor or []))
-            armor_vars[armor_key] = var
+            armor_vars[armor_key] = tk.BooleanVar(
+                value=armor_key in set(c.equipped_armor or [])
+            )
 
-            row = ttk.Frame(armor_inner)
-            row.pack(fill=tk.X, pady=1)
-            ttk.Checkbutton(
-                row,
-                variable=var,
-                command=lambda k=armor_key: _on_armor_toggle(k),
-            ).pack(side=tk.LEFT)
-            label = armor_key.title()
-            if qty > 1:
-                label += f" (x{qty})"
-            ttk.Label(row, text=label, foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
-    else:
-        ttk.Label(
-            armor_inner, text="No armor in selected equipment.", style="Dim.TLabel"
-        ).pack(anchor="w")
+    if _show("inventory"):
+        inv_sec = ttk.LabelFrame(parent, text="Inventory")
+        inv_sec.pack(fill=tk.X, pady=4)
+        if inventory_items:
+            for item in inventory_items:
+                container_info = _container_contents(item)
+                if not container_info:
+                    WrappingLabel(
+                        inv_sec, text=f"  {item}", foreground=COLORS["fg_dim"]
+                    ).pack(fill=tk.X, anchor="w", padx=8, pady=1)
+                    continue
 
-    inv_sec = ttk.LabelFrame(parent, text="Inventory")
-    inv_sec.pack(fill=tk.X, pady=4)
-    if inventory_items:
-        for item in inventory_items:
-            container_info = _container_contents(item)
-            if not container_info:
-                WrappingLabel(
-                    inv_sec, text=f"  {item}", foreground=COLORS["fg_dim"]
-                ).pack(fill=tk.X, anchor="w", padx=8, pady=1)
-                continue
-
-            container_name, contents = container_info
-            WrappingLabel(
-                inv_sec,
-                text=f"  {container_name}",
-                foreground=COLORS["fg_dim"],
-            ).pack(fill=tk.X, anchor="w", padx=8, pady=(1, 0))
-            for sub in contents:
+                container_name, contents = container_info
                 WrappingLabel(
                     inv_sec,
-                    text=f"    - {sub}",
+                    text=f"  {container_name}",
                     foreground=COLORS["fg_dim"],
-                ).pack(fill=tk.X, anchor="w", padx=8, pady=0)
-    else:
-        ttk.Label(inv_sec, text="  No inventory items.", style="Dim.TLabel").pack(
-            anchor="w", padx=8
-        )
+                ).pack(fill=tk.X, anchor="w", padx=8, pady=(1, 0))
+                for sub in contents:
+                    WrappingLabel(
+                        inv_sec,
+                        text=f"    - {sub}",
+                        foreground=COLORS["fg_dim"],
+                    ).pack(fill=tk.X, anchor="w", padx=8, pady=0)
+        else:
+            ttk.Label(inv_sec, text="  No inventory items.", style="Dim.TLabel").pack(
+                anchor="w", padx=8
+            )
 
     option_vars: dict[str, dict[str, tk.BooleanVar]] = {}
     saved_opts = (
@@ -778,6 +824,9 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
             _emit_change()
 
     def _render_weapon_option_rows():
+        if options_frame is None:
+            return
+        assert options_frame is not None
         for w in options_frame.winfo_children():
             w.destroy()
 
@@ -829,6 +878,10 @@ def build_character_sheet(parent: tk.Widget, character, game_data=None, on_chang
                 ).pack(side=tk.LEFT, padx=6)
 
     def _render_action_rows():
+        if rows_frame is None:
+            _sync_equipped_state()
+            return
+        assert rows_frame is not None
         for w in rows_frame.winfo_children():
             w.destroy()
 
