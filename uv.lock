@@ -282,10 +282,11 @@ wheels = [
 [[package]]
 name = "vibednd"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "fpdf2" },
+    { name = "pillow" },
     { name = "requests" },
 ]
 
@@ -298,6 +299,7 @@ build = [
 requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.14.3" },
     { name = "fpdf2", specifier = ">=2.8.0" },
+    { name = "pillow", specifier = ">=11.0.0" },
     { name = "pyinstaller", marker = "extra == 'build'", specifier = ">=6.0" },
     { name = "requests", specifier = ">=2.32.5" },
 ]

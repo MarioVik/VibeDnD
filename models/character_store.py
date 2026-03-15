@@ -49,6 +49,11 @@ def character_to_save_dict(character: Character) -> dict:
         "feat_sub_choices": dict(c.feat_sub_choices),
         "selected_cantrips": list(c.selected_cantrips),
         "selected_spells": list(c.selected_spells),
+        "biography_backstory": str(getattr(c, "biography_backstory", "") or ""),
+        "biography_personality": str(getattr(c, "biography_personality", "") or ""),
+        "biography_description": str(getattr(c, "biography_description", "") or ""),
+        "biography_image_data": str(getattr(c, "biography_image_data", "") or ""),
+        "biography_image_format": str(getattr(c, "biography_image_format", "") or ""),
         "equipment_choice_class": c.equipment_choice_class,
         "equipment_choice_background": c.equipment_choice_background,
         "standard_action_options": dict(c.standard_action_options),
@@ -132,6 +137,11 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.feat_sub_choices = data.get("feat_sub_choices", {})
     c.selected_cantrips = data.get("selected_cantrips", [])
     c.selected_spells = data.get("selected_spells", [])
+    c.biography_backstory = str(data.get("biography_backstory", "") or "")
+    c.biography_personality = str(data.get("biography_personality", "") or "")
+    c.biography_description = str(data.get("biography_description", "") or "")
+    c.biography_image_data = str(data.get("biography_image_data", "") or "")
+    c.biography_image_format = str(data.get("biography_image_format", "") or "")
     c.equipment_choice_class = data.get("equipment_choice_class", "A")
     c.equipment_choice_background = data.get("equipment_choice_background", "A")
     c.standard_action_options = data.get("standard_action_options", {})
@@ -272,6 +282,11 @@ def import_character_from_export(filepath: str, game_data) -> Character:
     # Spells
     save["selected_cantrips"] = data.get("cantrips", [])
     save["selected_spells"] = data.get("spells", [])
+    save["biography_backstory"] = str(data.get("biography_backstory", "") or "")
+    save["biography_personality"] = str(data.get("biography_personality", "") or "")
+    save["biography_description"] = str(data.get("biography_description", "") or "")
+    save["biography_image_data"] = str(data.get("biography_image_data", "") or "")
+    save["biography_image_format"] = str(data.get("biography_image_format", "") or "")
 
     # Equipment
     save["equipment_choice_class"] = data.get("equipment_choice_class", "A")

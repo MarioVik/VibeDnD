@@ -10,7 +10,7 @@ VibeDnD is a D&D 2024 Character Creator desktop app built with Python and Tkinte
 - `paths.py`: Resolves paths for both source and PyInstaller-packaged contexts. Always use this for file paths.
 - `gui/`: Tkinter UI (see **GUI Architecture** below).
 - `models/`: Character data models (see **Models** below).
-- `export/`: Export to PDF (`pdf_export.py`), JSON (`json_export.py`), and plain text (`text_export.py`).
+- `export/`: Export to PDF (`pdf_export.py`) and JSON (`json_export.py`).
 - `data/`: Structured JSON game data. **DO NOT READ THESE ENTIRELY.** Use the schemas below.
 - `parsers/`: Scripts that regenerate `data/*.json` from raw sources. Edit these instead of the JSON files directly.
 - `dnd2024_data.json`: 1.25MB raw scraped data. **DO NOT READ.**

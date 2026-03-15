@@ -22,7 +22,8 @@ No Python or technical setup required.
 - **Inventory Management**: Browse the full D&D 2024 item database, filter by category and cost, and track your wealth
 - **Source Filtering**: Toggle content from Common (PHB), Eberron, Faerun, Exotic, and Unearthed Arcana sources
 - **Character Management**: Save, view, edit/respec, import, and delete characters from the home screen
-- **Export**: PDF character sheets, JSON (for backup/sharing), and plain text
+- **Biography Tab**: Add backstory, personality, and description notes, plus an embedded portrait image
+- **Export**: PDF character sheets and JSON (for backup/sharing)
 
 ---
 

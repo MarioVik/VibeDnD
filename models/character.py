@@ -71,6 +71,11 @@ class Character:
 
     selected_cantrips: list[str] = field(default_factory=list)
     selected_spells: list[str] = field(default_factory=list)
+    biography_backstory: str = ""
+    biography_personality: str = ""
+    biography_description: str = ""
+    biography_image_data: str = ""
+    biography_image_format: str = ""
 
     equipment_choice_class: str = "A"
     equipment_choice_background: str = "A"

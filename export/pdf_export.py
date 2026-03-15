@@ -1,5 +1,9 @@
 """Export character as a PDF character sheet — D&D 2024 inspired with visual flair."""
 
+import base64
+import os
+import tempfile
+
 from fpdf import FPDF
 from fpdf.enums import RenderStyle, Corner
 from models.character import Character
@@ -1607,10 +1611,37 @@ class CharacterSheetPDF(FPDF):
         self.set_line_width(0.08)
         for ly in range(int(y + 11), int(y + h - 2), 5):
             self.line(x + 3, ly, x + w - 3, ly)
+
+        fields = [
+            ("Backstory", getattr(self.c, "biography_backstory", "") or ""),
+            ("Personality", getattr(self.c, "biography_personality", "") or ""),
+            ("Description", getattr(self.c, "biography_description", "") or ""),
+        ]
+        lines: list[str] = []
+        for label, value in fields:
+            cleaned = " ".join(str(value).split())
+            if cleaned:
+                lines.append(f"{label}: {cleaned}")
+        if not lines:
+            lines = ["No biography details provided."]
+
+        self._sans("", 5.2)
+        self.set_text_color(*C_BLACK)
+        text_x = x + 3
+        text_y = y + 8.5
+        max_y = y + h - 2.5
+        self.set_xy(text_x, text_y)
+        for line in lines:
+            if self.get_y() >= max_y:
+                break
+            self.multi_cell(w - 6, 3.1, line)
+            if self.get_y() >= max_y:
+                break
+
         return y + h
 
     def _draw_portrait_placeholder(self, x, y, w):
-        """Draw character portrait placeholder."""
+        """Draw character portrait frame and image if available."""
         h = 42
         self._section_box(x, y, w, h, "CHARACTER PORTRAIT / SYMBOL")
 
@@ -1632,6 +1663,34 @@ class CharacterSheetPDF(FPDF):
         self.set_draw_color(*C_ACCENT_LIGHT)
         self.set_line_width(0.2)
         self._rounded_rect(px, py, pw, ph, R_SM, "D")
+
+        image_data = getattr(self.c, "biography_image_data", "") or ""
+        image_format = (getattr(self.c, "biography_image_format", "") or "").lower()
+        if image_data:
+            ext = "jpg" if image_format in {"jpg", "jpeg"} else "png"
+            tmp_path = None
+            try:
+                raw = base64.b64decode(image_data)
+                with tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=False) as tmp:
+                    tmp.write(raw)
+                    tmp_path = tmp.name
+                self.image(tmp_path, x=px + 0.4, y=py + 0.4, w=pw - 0.8, h=ph - 0.8)
+            except Exception:
+                self._sans("", 6)
+                self.set_text_color(*C_MED_GRAY)
+                self.set_xy(px, py + ph / 2 - 1.5)
+                self.cell(pw, 3, "Portrait unavailable", align="C")
+            finally:
+                if tmp_path and os.path.exists(tmp_path):
+                    try:
+                        os.remove(tmp_path)
+                    except OSError:
+                        pass
+        else:
+            self._sans("", 6)
+            self.set_text_color(*C_MED_GRAY)
+            self.set_xy(px, py + ph / 2 - 1.5)
+            self.cell(pw, 3, "No portrait", align="C")
 
         return y + h
 

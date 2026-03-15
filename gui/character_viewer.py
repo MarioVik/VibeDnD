@@ -1,9 +1,17 @@
 """Read-only character sheet viewer with export and edit buttons."""
 
+import base64
+import io
 import re
 import tkinter as tk
 
 from tkinter import ttk, filedialog
+
+try:
+    from PIL import Image, ImageTk
+except ImportError:  # pragma: no cover
+    Image = None
+    ImageTk = None
 
 from gui.theme import COLORS, FONTS
 from gui.widgets import ScrollableFrame, AlertDialog, SectionedListbox
@@ -40,7 +48,18 @@ class CharacterViewer(ttk.Frame):
         }
         self._inventory_entries_by_name = {}
         self._selected_inventory_name = ""
-        self._tab_dirty = {"general": False, "inventory": False, "spells": False}
+        self._tab_dirty = {
+            "general": False,
+            "inventory": False,
+            "spells": False,
+            "biography": False,
+        }
+        self._spells_tab_visible = False
+        self._spells_tab_built = False
+        self._biography_tab_built = False
+        self._bio_loading = False
+        self._bio_photo = None
+        self._bio_photo_display = None
         self._build_ui()
 
     def _build_ui(self):
@@ -96,19 +115,21 @@ class CharacterViewer(ttk.Frame):
         self.general_tab = ttk.Frame(self.tabs)
         self.inventory_tab = ttk.Frame(self.tabs)
         self.spells_tab = ttk.Frame(self.tabs)
+        self.biography_tab = ttk.Frame(self.tabs)
 
         self.tabs.add(self.general_tab, text="General")
         self.tabs.add(self.inventory_tab, text="Inventory")
-        self.tabs.add(self.spells_tab, text="Spells")
         self._tab_widgets = {
             "general": self.general_tab,
             "inventory": self.inventory_tab,
             "spells": self.spells_tab,
+            "biography": self.biography_tab,
         }
         self._tab_titles = {
             "general": "General",
             "inventory": "Inventory",
             "spells": "Spells",
+            "biography": "Biography",
         }
         self.tabs.bind("<<NotebookTabChanged>>", self._on_tab_changed)
 
@@ -120,8 +141,38 @@ class CharacterViewer(ttk.Frame):
         inventory_scroll.pack(fill=tk.BOTH, expand=True)
         self._inventory_parent = inventory_scroll.inner
 
-        self._build_spells_tab()
+        self._build_biography_tab()
+        self._biography_tab_built = True
+        self.tabs.add(self.biography_tab, text="Biography")
+
+        self._sync_spells_tab_visibility()
         self._refresh_tabs(force=True)
+
+    def _character_has_spells(self) -> bool:
+        return bool(self.character.selected_cantrips or self.character.selected_spells)
+
+    def _sync_spells_tab_visibility(self):
+        show_spells = self._character_has_spells()
+
+        if show_spells and not self._spells_tab_visible:
+            tab_ids = list(self.tabs.tabs())
+            if str(self.biography_tab) in tab_ids:
+                bio_idx = tab_ids.index(str(self.biography_tab))
+                self.tabs.insert(bio_idx, self.spells_tab, text="Spells")
+            else:
+                self.tabs.add(self.spells_tab, text="Spells")
+            self._spells_tab_visible = True
+            if not self._spells_tab_built:
+                self._build_spells_tab()
+                self._spells_tab_built = True
+            self._tab_dirty["spells"] = True
+            return
+
+        if not show_spells and self._spells_tab_visible:
+            if self.tabs.select() == str(self.spells_tab):
+                self.tabs.select(self.general_tab)
+            self.tabs.forget(self.spells_tab)
+            self._spells_tab_visible = False
 
     def _build_spells_tab(self):
         self.spells_tab.columnconfigure(0, weight=0)
@@ -174,9 +225,268 @@ class CharacterViewer(ttk.Frame):
             "label", font=(FONTS["body"][0], FONTS["body"][1], "bold")
         )
 
+    def _build_biography_tab(self):
+        self.biography_tab.columnconfigure(0, weight=2)
+        self.biography_tab.columnconfigure(1, weight=1)
+        self.biography_tab.rowconfigure(0, weight=1)
+
+        left = ttk.Frame(self.biography_tab)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 6), pady=(2, 2))
+        left.columnconfigure(0, weight=1)
+        left.rowconfigure(1, weight=1)
+        left.rowconfigure(3, weight=1)
+        left.rowconfigure(5, weight=1)
+
+        ttk.Label(left, text="Backstory", style="Subheading.TLabel").grid(
+            row=0, column=0, sticky="w", pady=(0, 4)
+        )
+        self.bio_backstory_text = self._make_bio_textbox(left)
+        self.bio_backstory_text.grid(row=1, column=0, sticky="nsew", pady=(0, 8))
+
+        ttk.Label(left, text="Personality", style="Subheading.TLabel").grid(
+            row=2, column=0, sticky="w", pady=(0, 4)
+        )
+        self.bio_personality_text = self._make_bio_textbox(left)
+        self.bio_personality_text.grid(row=3, column=0, sticky="nsew", pady=(0, 8))
+
+        ttk.Label(left, text="Description", style="Subheading.TLabel").grid(
+            row=4, column=0, sticky="w", pady=(0, 4)
+        )
+        self.bio_description_text = self._make_bio_textbox(left)
+        self.bio_description_text.grid(row=5, column=0, sticky="nsew")
+
+        right = ttk.LabelFrame(self.biography_tab, text="Portrait")
+        right.grid(row=0, column=1, sticky="nsew", pady=(2, 2))
+        right.columnconfigure(0, weight=1)
+        right.rowconfigure(0, weight=1)
+
+        self.bio_image_canvas = tk.Canvas(
+            right,
+            width=260,
+            height=320,
+            bg=COLORS["bg_light"],
+            highlightthickness=1,
+            highlightbackground=COLORS["border"],
+            relief=tk.FLAT,
+        )
+        self.bio_image_canvas.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        self.bio_image_canvas.create_text(
+            130,
+            160,
+            text="No image selected",
+            fill=COLORS["fg_dim"],
+            font=FONTS["body"],
+            justify=tk.CENTER,
+            tags=("placeholder",),
+        )
+
+        btns = ttk.Frame(right)
+        btns.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
+        ttk.Button(
+            btns, text="Choose Image...", command=self._choose_biography_image
+        ).pack(side=tk.LEFT)
+        ttk.Button(btns, text="Clear Image", command=self._clear_biography_image).pack(
+            side=tk.LEFT, padx=(6, 0)
+        )
+
+        for widget in (
+            self.bio_backstory_text,
+            self.bio_personality_text,
+            self.bio_description_text,
+        ):
+            widget.bind("<FocusOut>", self._on_biography_focus_out)
+
+    def _make_bio_textbox(self, parent) -> tk.Text:
+        text = tk.Text(
+            parent,
+            wrap=tk.WORD,
+            bg=COLORS["bg_light"],
+            fg=COLORS["fg"],
+            font=FONTS["body"],
+            borderwidth=0,
+            highlightthickness=0,
+            relief=tk.FLAT,
+            spacing1=2,
+            spacing3=2,
+            padx=10,
+            pady=8,
+        )
+        return text
+
+    def _refresh_biography_tab(self):
+        if not self._biography_tab_built:
+            return
+        self._bio_loading = True
+        try:
+            self._set_text_widget(
+                self.bio_backstory_text,
+                getattr(self.character, "biography_backstory", "") or "",
+            )
+            self._set_text_widget(
+                self.bio_personality_text,
+                getattr(self.character, "biography_personality", "") or "",
+            )
+            self._set_text_widget(
+                self.bio_description_text,
+                getattr(self.character, "biography_description", "") or "",
+            )
+        finally:
+            self._bio_loading = False
+        self._refresh_biography_image_preview()
+
+    def _set_text_widget(self, widget: tk.Text, value: str):
+        widget.delete("1.0", tk.END)
+        widget.insert("1.0", value)
+
+    def _text_value(self, widget: tk.Text) -> str:
+        return widget.get("1.0", tk.END).rstrip("\n")
+
+    def _save_biography_fields_to_character(self) -> bool:
+        if self._bio_loading or not self._biography_tab_built:
+            return False
+        updates = {
+            "biography_backstory": self._text_value(self.bio_backstory_text),
+            "biography_personality": self._text_value(self.bio_personality_text),
+            "biography_description": self._text_value(self.bio_description_text),
+        }
+        changed = False
+        for attr, value in updates.items():
+            if getattr(self.character, attr, "") != value:
+                setattr(self.character, attr, value)
+                changed = True
+        return changed
+
+    def _on_biography_focus_out(self, _event=None):
+        if self._save_biography_fields_to_character():
+            self._on_sheet_changed()
+
+    def _refresh_biography_image_preview(self):
+        if not self._biography_tab_built:
+            return
+        self.bio_image_canvas.delete("all")
+        self._bio_photo = None
+        self._bio_photo_display = None
+
+        data = getattr(self.character, "biography_image_data", "") or ""
+        img_format = (
+            getattr(self.character, "biography_image_format", "") or ""
+        ).lower()
+        if not data:
+            self.bio_image_canvas.create_text(
+                130,
+                160,
+                text="No image selected",
+                fill=COLORS["fg_dim"],
+                font=FONTS["body"],
+                justify=tk.CENTER,
+            )
+            return
+
+        try:
+            raw = base64.b64decode(data)
+        except Exception:
+            self.bio_image_canvas.create_text(
+                130,
+                160,
+                text="Image data is invalid",
+                fill=COLORS["fg_dim"],
+                font=FONTS["body_small"],
+                justify=tk.CENTER,
+            )
+            return
+
+        try:
+            if Image is not None and ImageTk is not None:
+                pil_img = Image.open(io.BytesIO(raw))
+                pil_img.thumbnail((240, 300))
+                display = ImageTk.PhotoImage(pil_img)
+                self._bio_photo_display = display
+                self.bio_image_canvas.create_image(130, 160, image=display)
+                return
+
+            if img_format in {"png", ""}:
+                photo = tk.PhotoImage(data=base64.b64encode(raw).decode("ascii"))
+            else:
+                raise tk.TclError("Unsupported preview format")
+        except Exception:
+            self.bio_image_canvas.create_text(
+                130,
+                160,
+                text="Image loaded for export\nbut preview is unavailable",
+                fill=COLORS["fg_dim"],
+                font=FONTS["body_small"],
+                justify=tk.CENTER,
+            )
+            return
+
+        max_w, max_h = 240, 300
+        w = max(1, int(photo.width()))
+        h = max(1, int(photo.height()))
+        scale = max((w + max_w - 1) // max_w, (h + max_h - 1) // max_h, 1)
+        display = photo.subsample(scale) if scale > 1 else photo
+        self._bio_photo = photo
+        self._bio_photo_display = display
+        self.bio_image_canvas.create_image(130, 160, image=display)
+
+    def _choose_biography_image(self):
+        path = filedialog.askopenfilename(
+            title="Choose Character Portrait",
+            filetypes=[
+                ("Image files", "*.png *.jpg *.jpeg"),
+                ("PNG", "*.png"),
+                ("JPEG", "*.jpg *.jpeg"),
+                ("All files", "*.*"),
+            ],
+        )
+        if not path:
+            return
+
+        try:
+            with open(path, "rb") as f:
+                raw = f.read()
+        except OSError as e:
+            AlertDialog(
+                self.winfo_toplevel(), "Biography Image", f"Could not load image:\n{e}"
+            )
+            return
+
+        ext = path.rsplit(".", 1)[-1].lower() if "." in path else ""
+        img_format = "jpeg" if ext in {"jpg", "jpeg"} else "png"
+        if Image is not None:
+            try:
+                pil_img = Image.open(io.BytesIO(raw))
+                fmt = (pil_img.format or "").lower()
+                if fmt in {"jpg", "jpeg"}:
+                    img_format = "jpeg"
+                elif fmt == "png":
+                    img_format = "png"
+            except Exception:
+                pass
+        self.character.biography_image_data = base64.b64encode(raw).decode("ascii")
+        self.character.biography_image_format = img_format
+        self._refresh_biography_image_preview()
+        self._on_sheet_changed()
+
+    def _clear_biography_image(self):
+        if not (
+            getattr(self.character, "biography_image_data", "")
+            or getattr(self.character, "biography_image_format", "")
+        ):
+            return
+        self.character.biography_image_data = ""
+        self.character.biography_image_format = ""
+        self._refresh_biography_image_preview()
+        self._on_sheet_changed()
+
     def _refresh_tabs(self, force: bool = False):
+        self._sync_spells_tab_visibility()
         if force:
-            self._tab_dirty = {"general": True, "inventory": True, "spells": True}
+            self._tab_dirty = {
+                "general": True,
+                "inventory": True,
+                "spells": True,
+                "biography": True,
+            }
             self._apply_tab_labels()
 
         selected = self._selected_tab_key()
@@ -196,6 +506,8 @@ class CharacterViewer(ttk.Frame):
             return "inventory"
         if current == str(self.spells_tab):
             return "spells"
+        if current == str(self.biography_tab):
+            return "biography"
         return ""
 
     def _refresh_tab(self, key: str):
@@ -240,6 +552,12 @@ class CharacterViewer(ttk.Frame):
         if key == "spells":
             self._refresh_spells_tab()
             self._tab_dirty["spells"] = False
+            self._apply_tab_labels()
+            return
+
+        if key == "biography":
+            self._refresh_biography_tab()
+            self._tab_dirty["biography"] = False
             self._apply_tab_labels()
 
     def _mark_tabs_dirty(self, include_current: bool = False):
@@ -1031,6 +1349,7 @@ class CharacterViewer(ttk.Frame):
             save_character(
                 self.character, characters_dir(), existing_filename=self.save_path
             )
+        self._sync_spells_tab_visibility()
         # Avoid rebuilding the active tab during interaction; refresh it only
         # when revisiting to prevent visible flicker.
         self._mark_tabs_dirty(include_current=False)
@@ -1072,6 +1391,8 @@ class CharacterViewer(ttk.Frame):
         from models.character_store import character_to_save_dict
         import json
 
+        self._save_biography_fields_to_character()
+
         path = filedialog.asksaveasfilename(
             defaultextension=".json",
             filetypes=[("JSON files", "*.json")],
@@ -1085,6 +1406,8 @@ class CharacterViewer(ttk.Frame):
 
     def _export_pdf(self):
         from export.pdf_export import export_pdf
+
+        self._save_biography_fields_to_character()
 
         path = filedialog.asksaveasfilename(
             defaultextension=".pdf",
