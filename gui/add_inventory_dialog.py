@@ -233,6 +233,10 @@ class AddInventoryDialog(tk.Toplevel):
             highlightthickness=0,
             relief=tk.FLAT,
             state=tk.DISABLED,
+            spacing1=2,
+            spacing3=2,
+            padx=10,
+            pady=8,
         )
         self.detail_text.grid(row=1, column=0, sticky="nsew", padx=8, pady=4)
 
