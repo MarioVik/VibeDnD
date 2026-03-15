@@ -633,7 +633,7 @@ def build_character_sheet(
             ("Silver", "sp", 10),
             ("Gold", "gp", 100),
         ]
-        coin_value_labels: dict[str, ttk.Label] = {}
+        coin_value_labels = {}
 
         def _refresh_wealth_display():
             gp, sp, cp = cp_to_coins(current_wealth_cp(c))
@@ -839,11 +839,20 @@ def build_character_sheet(
     def _equipped_armor_keys() -> set[str]:
         return {k for k, v in armor_vars.items() if v.get()}
 
+    def _normalized_equipped_armor(keys: set[str]) -> list[str]:
+        has_shield = "shield" in keys
+        body = sorted(k for k in keys if k != "shield")
+        out = []
+        if has_shield:
+            out.append("shield")
+        out.extend(body[:1])
+        return out
+
     def _sync_equipped_state():
         prev_weapons = list(c.equipped_weapons or [])
         prev_armor = list(c.equipped_armor or [])
         c.equipped_weapons = sorted(_equipped_keys())
-        c.equipped_armor = sorted(_equipped_armor_keys())
+        c.equipped_armor = _normalized_equipped_armor(_equipped_armor_keys())
         ac_lbl = stat_value_labels.get("AC")
         if ac_lbl is not None:
             ac_lbl.configure(text=str(c.armor_class))

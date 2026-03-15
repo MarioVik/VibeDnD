@@ -265,6 +265,11 @@ class CharacterViewer(ttk.Frame):
         self._set_spell_detail_text("\n".join(body))
 
     def _set_spell_detail_text(self, text: str):
+        if (
+            not getattr(self, "spell_detail_text", None)
+            or not self.spell_detail_text.winfo_exists()
+        ):
+            return
         label_prefixes = {
             "Level",
             "School",
@@ -300,6 +305,8 @@ class CharacterViewer(ttk.Frame):
         self._schedule_tab_refresh()
 
     def _schedule_tab_refresh(self):
+        if not self.winfo_exists() or not getattr(self, "tabs", None):
+            return
         if self._refresh_scheduled:
             return
         self._refresh_scheduled = True
@@ -307,12 +314,28 @@ class CharacterViewer(ttk.Frame):
 
     def _refresh_after_sheet_change(self):
         self._refresh_scheduled = False
+        if not self.winfo_exists() or not getattr(self, "tabs", None):
+            return
+        if not self.tabs.winfo_exists():
+            return
         if self._building_tabs:
             self._schedule_tab_refresh()
             return
-        selected = self.tabs.index("current")
-        self._refresh_tabs(refresh_spells=False)
-        self.tabs.select(selected)
+        try:
+            selected = self.tabs.select()
+        except tk.TclError:
+            selected = ""
+
+        try:
+            self._refresh_tabs(refresh_spells=False)
+        except tk.TclError:
+            return
+
+        if selected and self.tabs.winfo_exists():
+            try:
+                self.tabs.select(selected)
+            except tk.TclError:
+                pass
 
     # ── Navigation ──────────────────────────────────────────────
 
