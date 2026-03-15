@@ -42,6 +42,21 @@ def cp_to_coins(total_cp: int) -> tuple[int, int, int]:
     return gp, sp, cp
 
 
+def format_coins(total_cp: int, *, compact: bool = False) -> str:
+    gp, sp, cp = cp_to_coins(total_cp)
+    if not compact:
+        return f"{gp} gp, {sp} sp, {cp} cp"
+
+    parts = []
+    if gp:
+        parts.append(f"{gp} gp")
+    if sp:
+        parts.append(f"{sp} sp")
+    if cp:
+        parts.append(f"{cp} cp")
+    return ", ".join(parts) if parts else "0 cp"
+
+
 def _add_transaction(
     character,
     mode: str,

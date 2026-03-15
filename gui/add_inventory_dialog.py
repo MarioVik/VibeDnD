@@ -16,6 +16,7 @@ from models.inventory_service import (
     add_item,
     cp_to_coins,
     current_wealth_cp,
+    format_coins,
 )
 
 
@@ -431,8 +432,7 @@ class AddInventoryDialog(tk.Toplevel):
                 mode = tx.get("mode", "free")
                 sign = "-" if mode == "buy" else "+"
                 cost = int(tx.get("total_cost_cp", 0))
-                c_gp, c_sp, c_cp = cp_to_coins(cost)
-                cost_text = f"{c_gp} gp {c_sp} sp {c_cp} cp"
+                cost_text = format_coins(cost, compact=True)
                 lines.append(
                     f"[{tx.get('timestamp', '')}] {mode.upper()} x{tx.get('qty', 1)} {tx.get('item', 'Item')} ({sign}{cost_text})"
                 )
@@ -447,9 +447,8 @@ class AddInventoryDialog(tk.Toplevel):
         self.detail_title.configure(text=item.get("name", "Item"))
 
         cost_cp = int(item.get("cost_cp", 0))
-        c_gp, c_sp, c_cp = cp_to_coins(cost_cp)
         cost_line = (
-            f"Cost: {c_gp} gp, {c_sp} sp, {c_cp} cp"
+            f"Cost: {format_coins(cost_cp, compact=True)}"
             if cost_cp > 0
             else "Cost: Varies/Unavailable"
         )

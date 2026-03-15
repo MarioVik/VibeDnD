@@ -11,7 +11,7 @@ from gui.sheet_builder import build_character_sheet, _container_contents
 from models.character_store import save_character
 from paths import characters_dir
 from gui.add_inventory_dialog import AddInventoryDialog, ARMOR_AC_ORDER
-from models.inventory_service import normalize_item_key, remove_item
+from models.inventory_service import format_coins, normalize_item_key, remove_item
 from models.standard_actions import (
     WEAPON_DATA,
     get_selected_armor_counts,
@@ -398,7 +398,7 @@ class CharacterViewer(ttk.Frame):
         self.inv_tree.heading("name", text="Item", anchor="w")
         self.inv_tree.heading("qty", text="Qty", anchor="center")
 
-        self.inv_tree.column("#0", width=0, stretch=False)
+        self.inv_tree.column("#0", width=20, minwidth=20, stretch=False)
         self.inv_tree.column(
             "equip", width=55, minwidth=55, stretch=False, anchor="center"
         )
@@ -549,9 +549,34 @@ class CharacterViewer(ttk.Frame):
                     "equippable": False,
                     "equipped": False,
                 }
+                # Show pack/container sub-items as clickable children
+                container = _container_contents(e["name"])
+                if container:
+                    _, contents = container
+                    for sub in contents:
+                        sub_name = sub.strip()
+                        sub_iid = self.inv_tree.insert(
+                            iid,
+                            tk.END,
+                            text="",
+                            values=("", f"  {sub_name}", ""),
+                            tags=("subitem",),
+                        )
+                        self._inv_tree_entries[sub_iid] = {
+                            "name": sub_name,
+                            "key": normalize_item_key(sub_name),
+                            "qty": 1,
+                            "category": "Inventory",
+                            "equippable": False,
+                            "equipped": False,
+                            "is_subitem": True,
+                            "parent_name": e["name"],
+                        }
+                    self.inv_tree.item(iid, open=True)
 
-        # Style section header rows
+        # Style section header rows and sub-items
         self.inv_tree.tag_configure("section", foreground=COLORS["accent"])
+        self.inv_tree.tag_configure("subitem", foreground=COLORS["fg_dim"])
 
         # Restore selection
         if self._selected_inventory_name:
@@ -672,7 +697,8 @@ class CharacterViewer(ttk.Frame):
 
     def _on_inventory_select_entry(self, entry: dict):
         self._selected_inventory_name = entry.get("name", "")
-        self.remove_item_btn.configure(state=tk.NORMAL)
+        is_subitem = entry.get("is_subitem", False)
+        self.remove_item_btn.configure(state=tk.DISABLED if is_subitem else tk.NORMAL)
         self._show_inventory_details(entry)
 
     def _find_item_record(self, entry: dict) -> dict | None:
@@ -727,21 +753,24 @@ class CharacterViewer(ttk.Frame):
         self.inventory_detail_title.configure(text=entry.get("name", "Item"))
         record = self._find_item_record(entry)
 
-        lines = [
-            f"Category: {entry.get('category', 'Unknown')}",
-            f"Quantity: {entry.get('qty', 1)}",
-        ]
+        lines = []
+        if entry.get("is_subitem"):
+            lines.append(f"Part of: {entry.get('parent_name', 'Unknown')}")
+        else:
+            lines.append(f"Category: {entry.get('category', 'Unknown')}")
+            lines.append(f"Quantity: {entry.get('qty', 1)}")
         if entry.get("equippable"):
             lines.append(f"Equipped: {'Yes' if entry.get('equipped') else 'No'}")
         if record:
             item_type = str(record.get("type", "")).strip() or "Item"
             lines.append(f"Type: {item_type}")
+            if record.get("category") == "Magic Items":
+                lines.append(f"Rarity: {record.get('rarity', 'Unknown')}")
             cost_cp = int(record.get("cost_cp", 0))
             if cost_cp > 0:
-                gp = cost_cp // 100
-                sp = (cost_cp % 100) // 10
-                cp = cost_cp % 10
-                lines.append(f"Cost: {gp} gp, {sp} sp, {cp} cp")
+                lines.append(f"Cost: {format_coins(cost_cp, compact=True)}")
+            else:
+                lines.append("Cost: Varies/Unavailable")
             lines.append("")
             desc = record.get("full_description") or record.get("description") or ""
             desc = desc.strip()
@@ -752,7 +781,16 @@ class CharacterViewer(ttk.Frame):
                     if part:
                         lines.append(part)
             else:
-                lines.append(desc or "No description available.")
+                lines.append(
+                    desc.replace("; Function:", "\nFunction:")
+                    if desc
+                    else "No description available."
+                )
+            sub = record.get("sub_items") or []
+            if sub:
+                lines.append("")
+                lines.append("Contains:")
+                lines.extend([f"- {s}" for s in sub])
         else:
             weapon_meta = WEAPON_DATA.get(entry.get("key", ""), {})
             container = _container_contents(entry.get("name", ""))
