@@ -73,7 +73,7 @@ class CharacterViewer(ttk.Frame):
 
         # ── Character tabs ──────────────────────────────────────
         self.tabs = ttk.Notebook(self)
-        self.tabs.pack(fill=tk.BOTH, expand=True, padx=12, pady=(4, 12))
+        self.tabs.pack(fill=tk.BOTH, expand=True, padx=8, pady=(4, 10))
 
         self.general_tab = ttk.Frame(self.tabs)
         self.inventory_tab = ttk.Frame(self.tabs)
@@ -99,18 +99,22 @@ class CharacterViewer(ttk.Frame):
         self.spells_tab.columnconfigure(1, weight=1)
         self.spells_tab.rowconfigure(0, weight=1)
 
-        left = ttk.Frame(self.spells_tab, width=280)
-        left.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
+        left = ttk.Frame(self.spells_tab, width=300)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 6), pady=(2, 2))
         left.grid_propagate(False)
 
         ttk.Label(left, text="Known Spells", style="Heading.TLabel").pack(
-            anchor="w", pady=(0, 4)
+            anchor="w", pady=(0, 2)
         )
         self.spells_list = SectionedListbox(left, on_select=self._on_spell_select)
         self.spells_list.pack(fill=tk.BOTH, expand=True)
+        self.spells_list.search_entry.configure(style="ViewerCompactSpells.TEntry")
+
+        style = ttk.Style(self)
+        style.configure("ViewerCompactSpells.TEntry", padding=(6, 2))
 
         right_scroll = ScrollableFrame(self.spells_tab)
-        right_scroll.grid(row=0, column=1, sticky="nsew")
+        right_scroll.grid(row=0, column=1, sticky="nsew", pady=(2, 2))
         self._spell_detail = right_scroll.inner
 
         self.spell_title = ttk.Label(
@@ -118,20 +122,20 @@ class CharacterViewer(ttk.Frame):
             text="Select a spell",
             style="Heading.TLabel",
         )
-        self.spell_title.pack(anchor="w", pady=(0, 4))
+        self.spell_title.pack(anchor="w", pady=(0, 2))
 
         self.spell_meta = ttk.Label(self._spell_detail, text="", style="Dim.TLabel")
-        self.spell_meta.pack(anchor="w", pady=(0, 6))
+        self.spell_meta.pack(anchor="w", pady=(0, 4))
 
         self.spell_desc = WrappingLabel(self._spell_detail, text="")
-        self.spell_desc.pack(fill=tk.X, anchor="w")
+        self.spell_desc.pack(fill=tk.X, anchor="w", pady=(0, 2))
 
         self.spell_higher = WrappingLabel(
             self._spell_detail,
             text="",
             foreground=COLORS["fg_dim"],
         )
-        self.spell_higher.pack(fill=tk.X, anchor="w", pady=(8, 0))
+        self.spell_higher.pack(fill=tk.X, anchor="w", pady=(4, 0))
 
     def _refresh_tabs(self):
         build_character_sheet(
@@ -139,6 +143,7 @@ class CharacterViewer(ttk.Frame):
             self.character,
             self.data,
             on_change=self._on_sheet_changed,
+            compact=True,
             include_sections={
                 "header",
                 "combat",
@@ -158,6 +163,7 @@ class CharacterViewer(ttk.Frame):
             self.character,
             self.data,
             on_change=self._on_sheet_changed,
+            compact=True,
             include_sections={"wealth", "equipment", "inventory"},
         )
         self._refresh_spells_tab()

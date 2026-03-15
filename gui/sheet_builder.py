@@ -174,6 +174,7 @@ def build_character_sheet(
     game_data=None,
     on_change=None,
     include_sections: set[str] | None = None,
+    compact: bool = False,
 ):
     """Render a read-only character sheet into *parent*.
 
@@ -192,6 +193,12 @@ def build_character_sheet(
     def _show(section: str) -> bool:
         return include_sections is None or section in include_sections
 
+    section_pady = 3 if compact else 4
+    section_inner_pady = 2 if compact else 4
+    row_pady = 0 if compact else 1
+    inventory_item_pady = 0 if compact else 1
+    options_sep_pady = 2 if compact else 4
+
     # ── Header ──────────────────────────────────────────────────
     if _show("header"):
         header = ttk.Frame(parent, style="Card.TFrame")
@@ -208,7 +215,7 @@ def build_character_sheet(
     stat_value_labels: dict[str, ttk.Label] = {}
     if _show("combat"):
         combat = ttk.Frame(parent, style="Card.TFrame")
-        combat.pack(fill=tk.X, pady=4, ipady=6)
+        combat.pack(fill=tk.X, pady=section_pady, ipady=6)
 
         stats = [
             ("HP", str(c.hit_points)),
@@ -243,7 +250,7 @@ def build_character_sheet(
     # ── Ability Scores ──────────────────────────────────────────
     if _show("abilities"):
         abilities_frame = ttk.LabelFrame(parent, text="Ability Scores")
-        abilities_frame.pack(fill=tk.X, pady=4)
+        abilities_frame.pack(fill=tk.X, pady=section_pady)
 
         ab_row = ttk.Frame(abilities_frame)
         ab_row.pack(fill=tk.X, padx=8, pady=4)
@@ -284,7 +291,7 @@ def build_character_sheet(
     # ── Saving Throws ───────────────────────────────────────────
     if _show("saving_throws"):
         saves_frame = ttk.LabelFrame(parent, text="Saving Throws")
-        saves_frame.pack(fill=tk.X, pady=4)
+        saves_frame.pack(fill=tk.X, pady=section_pady)
 
         saves_row = ttk.Frame(saves_frame)
         saves_row.pack(fill=tk.X, padx=8, pady=4)
@@ -311,7 +318,7 @@ def build_character_sheet(
     # ── Skills ──────────────────────────────────────────────────
     if _show("skills"):
         skills_frame = ttk.LabelFrame(parent, text="Skills")
-        skills_frame.pack(fill=tk.X, pady=4)
+        skills_frame.pack(fill=tk.X, pady=section_pady)
 
         skill_cols = ttk.Frame(skills_frame)
         skill_cols.pack(fill=tk.X, padx=8, pady=4)
@@ -330,7 +337,7 @@ def build_character_sheet(
             color = COLORS["accent"] if is_prof else COLORS["fg_dim"]
 
             row = ttk.Frame(target)
-            row.pack(fill=tk.X, pady=1)
+            row.pack(fill=tk.X, pady=row_pady)
             ttk.Label(
                 row,
                 text=f"{marker} {mod_str:>3}  {skill.display_name}",
@@ -342,7 +349,7 @@ def build_character_sheet(
     options_frame = None
     if _show("standard_actions"):
         actions_sec = ttk.LabelFrame(parent, text="Standard Actions")
-        actions_sec.pack(fill=tk.X, pady=4)
+        actions_sec.pack(fill=tk.X, pady=section_pady)
         rows_frame = ttk.Frame(actions_sec)
         rows_frame.pack(fill=tk.X, padx=8, pady=(2, 2))
         options_frame = ttk.Frame(actions_sec)
@@ -351,7 +358,7 @@ def build_character_sheet(
     # ── Species Traits ──────────────────────────────────────────
     if _show("species_traits") and c.species and c.species.get("traits"):
         traits_frame = ttk.LabelFrame(parent, text=f"{c.species_name} Traits")
-        traits_frame.pack(fill=tk.X, pady=4)
+        traits_frame.pack(fill=tk.X, pady=section_pady)
         for trait in c.species["traits"]:
             WrappingLabel(
                 traits_frame,
@@ -365,7 +372,7 @@ def build_character_sheet(
         if c.is_multiclass:
             feat_title = "Class Features"
         feat_frame = ttk.LabelFrame(parent, text=feat_title)
-        feat_frame.pack(fill=tk.X, pady=4)
+        feat_frame.pack(fill=tk.X, pady=section_pady)
 
         if c.class_levels:
             _show_level_features(feat_frame, c, game_data)
@@ -389,7 +396,7 @@ def build_character_sheet(
     if _show("subclass") and c.current_subclass:
         sub_name = c.current_subclass.replace("-", " ").title()
         sub_frame = ttk.LabelFrame(parent, text=f"Subclass: {sub_name}")
-        sub_frame.pack(fill=tk.X, pady=4)
+        sub_frame.pack(fill=tk.X, pady=section_pady)
 
         # Resolve subclass data and show features by level
         subclass_data = None
@@ -458,7 +465,7 @@ def build_character_sheet(
     has_any_feat = c.feat or c.species_origin_feat
     if _show("feats") and has_any_feat:
         feat_sec = ttk.LabelFrame(parent, text="Feats")
-        feat_sec.pack(fill=tk.X, pady=4)
+        feat_sec.pack(fill=tk.X, pady=section_pady)
 
         # Background feat
         if c.feat:
@@ -503,7 +510,7 @@ def build_character_sheet(
     # ── Spells ──────────────────────────────────────────────────
     if _show("spells") and (c.selected_cantrips or c.selected_spells):
         spell_sec = ttk.LabelFrame(parent, text="Spells")
-        spell_sec.pack(fill=tk.X, pady=4)
+        spell_sec.pack(fill=tk.X, pady=section_pady)
         if c.selected_cantrips:
             WrappingLabel(
                 spell_sec, text=f"  Cantrips: {', '.join(c.selected_cantrips)}"
@@ -616,19 +623,19 @@ def build_character_sheet(
     # ── Wealth ──────────────────────────────────────────────────
     if _show("wealth"):
         wealth_sec = ttk.LabelFrame(parent, text="Wealth")
-        wealth_sec.pack(fill=tk.X, pady=4)
+        wealth_sec.pack(fill=tk.X, pady=section_pady)
         gp, sp, cp = cp_to_coins(current_wealth_cp(c))
         WrappingLabel(
             wealth_sec,
             text=(f"  Gold: {gp} gp\n  Silver: {sp} sp\n  Copper: {cp} cp"),
             foreground=COLORS["fg_dim"],
-        ).pack(fill=tk.X, anchor="w", padx=8, pady=2)
+        ).pack(fill=tk.X, anchor="w", padx=8, pady=row_pady)
 
     # ── Equipment ───────────────────────────────────────────────
     equip_sec = None
     if _show("equipment"):
         equip_sec = ttk.LabelFrame(parent, text="Equipment")
-        equip_sec.pack(fill=tk.X, pady=4)
+        equip_sec.pack(fill=tk.X, pady=section_pady)
 
     equip_vars: dict[str, tk.BooleanVar] = {}
     armor_vars: dict[str, tk.BooleanVar] = {}
@@ -642,9 +649,9 @@ def build_character_sheet(
     if _show("equipment") and equip_sec is not None:
         # ── Weapons sub-section ──────────────────────────────────────
         weapons_frame = ttk.LabelFrame(equip_sec, text="Weapons")
-        weapons_frame.pack(fill=tk.X, padx=8, pady=(6, 2))
+        weapons_frame.pack(fill=tk.X, padx=8, pady=(4, 2) if compact else (6, 2))
         weapons_inner = ttk.Frame(weapons_frame)
-        weapons_inner.pack(fill=tk.X, padx=8, pady=4)
+        weapons_inner.pack(fill=tk.X, padx=8, pady=section_inner_pady)
 
         if weapon_counts:
             _col_header(weapons_inner)
@@ -654,7 +661,7 @@ def build_character_sheet(
                 equip_vars[weapon_key] = var
 
                 row = ttk.Frame(weapons_inner)
-                row.pack(fill=tk.X, pady=1)
+                row.pack(fill=tk.X, pady=row_pady)
                 ttk.Checkbutton(
                     row,
                     variable=var,
@@ -675,9 +682,9 @@ def build_character_sheet(
 
         # ── Armor sub-section (incl. shields) ───────────────────────
         armor_frame = ttk.LabelFrame(equip_sec, text="Armor & Shields")
-        armor_frame.pack(fill=tk.X, padx=8, pady=(2, 6))
+        armor_frame.pack(fill=tk.X, padx=8, pady=(2, 4) if compact else (2, 6))
         armor_inner = ttk.Frame(armor_frame)
-        armor_inner.pack(fill=tk.X, padx=8, pady=4)
+        armor_inner.pack(fill=tk.X, padx=8, pady=section_inner_pady)
 
         if armor_counts:
             _col_header(armor_inner)
@@ -687,7 +694,7 @@ def build_character_sheet(
                 armor_vars[armor_key] = var
 
                 row = ttk.Frame(armor_inner)
-                row.pack(fill=tk.X, pady=1)
+                row.pack(fill=tk.X, pady=row_pady)
                 ttk.Checkbutton(
                     row,
                     variable=var,
@@ -717,14 +724,14 @@ def build_character_sheet(
 
     if _show("inventory"):
         inv_sec = ttk.LabelFrame(parent, text="Inventory")
-        inv_sec.pack(fill=tk.X, pady=4)
+        inv_sec.pack(fill=tk.X, pady=section_pady)
         if inventory_items:
             for item in inventory_items:
                 container_info = _container_contents(item)
                 if not container_info:
                     WrappingLabel(
                         inv_sec, text=f"  {item}", foreground=COLORS["fg_dim"]
-                    ).pack(fill=tk.X, anchor="w", padx=8, pady=1)
+                    ).pack(fill=tk.X, anchor="w", padx=8, pady=inventory_item_pady)
                     continue
 
                 container_name, contents = container_info
@@ -732,13 +739,18 @@ def build_character_sheet(
                     inv_sec,
                     text=f"  {container_name}",
                     foreground=COLORS["fg_dim"],
-                ).pack(fill=tk.X, anchor="w", padx=8, pady=(1, 0))
+                ).pack(
+                    fill=tk.X,
+                    anchor="w",
+                    padx=8,
+                    pady=(inventory_item_pady, 0),
+                )
                 for sub in contents:
                     WrappingLabel(
                         inv_sec,
                         text=f"    - {sub}",
                         foreground=COLORS["fg_dim"],
-                    ).pack(fill=tk.X, anchor="w", padx=8, pady=0)
+                    ).pack(fill=tk.X, anchor="w", padx=8, pady=inventory_item_pady)
         else:
             ttk.Label(inv_sec, text="  No inventory items.", style="Dim.TLabel").pack(
                 anchor="w", padx=8
@@ -839,7 +851,9 @@ def build_character_sheet(
         if not configurable_weapons:
             return
 
-        ttk.Separator(options_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=4)
+        ttk.Separator(options_frame, orient=tk.HORIZONTAL).pack(
+            fill=tk.X, pady=options_sep_pady
+        )
         ttk.Label(options_frame, text="Weapon Options", style="Subheading.TLabel").pack(
             anchor="w"
         )
@@ -848,7 +862,7 @@ def build_character_sheet(
             key = a.get("weapon_key", "")
             vars_for_weapon = option_vars.setdefault(key, {})
             row = ttk.Frame(options_frame)
-            row.pack(fill=tk.X, pady=1)
+            row.pack(fill=tk.X, pady=row_pady)
             ttk.Label(row, text=a["name"], foreground=COLORS["fg_dim"]).pack(
                 side=tk.LEFT
             )
