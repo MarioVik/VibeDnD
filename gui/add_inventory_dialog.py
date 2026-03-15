@@ -50,24 +50,30 @@ WEAPON_SUBCATEGORY_ORDER = [
 
 ADVENTURING_GEAR_SUBCATEGORY_ORDER = ["Packs", "Other"]
 
-LIGHT_ARMOR_NAMES = {
+# Ordered by AC value (ascending).
+LIGHT_ARMOR_ORDER = [
     "Padded Armor",
     "Leather Armor",
     "Studded Leather Armor",
-}
-MEDIUM_ARMOR_NAMES = {
+]
+MEDIUM_ARMOR_ORDER = [
     "Hide Armor",
     "Chain Shirt",
     "Scale Mail",
     "Breastplate",
     "Half Plate Armor",
-}
-HEAVY_ARMOR_NAMES = {
+]
+HEAVY_ARMOR_ORDER = [
     "Ring Mail",
     "Chain Mail",
     "Splint Armor",
     "Plate Armor",
-}
+]
+LIGHT_ARMOR_NAMES = set(LIGHT_ARMOR_ORDER)
+MEDIUM_ARMOR_NAMES = set(MEDIUM_ARMOR_ORDER)
+HEAVY_ARMOR_NAMES = set(HEAVY_ARMOR_ORDER)
+
+ARMOR_AC_ORDER = LIGHT_ARMOR_ORDER + MEDIUM_ARMOR_ORDER + HEAVY_ARMOR_ORDER + ["Shield"]
 
 SIMPLE_MELEE_WEAPONS = {
     "Club",
@@ -349,13 +355,20 @@ class AddInventoryDialog(tk.Toplevel):
                         sections.append((f"Adventuring Gear • {sub}", names))
             elif category == "Armor":
                 by_sub: dict[str, list[str]] = {}
+                item_names_in_data = {item.get("name", "") for item in items}
                 for item in items:
                     name = item.get("name", "")
                     if not name:
                         continue
                     by_sub.setdefault(self._armor_subcategory(name), []).append(name)
                 for sub in ARMOR_SUBCATEGORY_ORDER:
-                    names = sorted(by_sub.get(sub, []))
+                    sub_names = by_sub.get(sub, [])
+                    if not sub_names:
+                        continue
+                    sub_set = set(sub_names)
+                    ordered = [n for n in ARMOR_AC_ORDER if n in sub_set]
+                    remaining = [n for n in sub_names if n not in set(ordered)]
+                    names = ordered + sorted(remaining)
                     if names:
                         sections.append((f"Armor • {sub}", names))
             elif category == "Weapons":

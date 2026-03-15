@@ -10,7 +10,7 @@ from gui.widgets import ScrollableFrame, AlertDialog, SectionedListbox
 from gui.sheet_builder import build_character_sheet, _container_contents
 from models.character_store import save_character
 from paths import characters_dir
-from gui.add_inventory_dialog import AddInventoryDialog
+from gui.add_inventory_dialog import AddInventoryDialog, ARMOR_AC_ORDER
 from models.inventory_service import normalize_item_key, remove_item
 from models.standard_actions import (
     WEAPON_DATA,
@@ -403,7 +403,12 @@ class CharacterViewer(ttk.Frame):
             sections.append(("Equipment • Weapons", weapons))
 
         armors = []
-        for key in sorted(armor_counts.keys()):
+        ac_order_keys = [normalize_item_key(n) for n in ARMOR_AC_ORDER]
+        ordered_armor_keys = [k for k in ac_order_keys if k in armor_counts]
+        remaining_armor_keys = sorted(
+            k for k in armor_counts if k not in set(ac_order_keys)
+        )
+        for key in ordered_armor_keys + remaining_armor_keys:
             qty = armor_counts[key]
             name = key.title()
             label = f"{name} (x{qty})" if qty > 1 else name
