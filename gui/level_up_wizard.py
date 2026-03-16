@@ -235,9 +235,17 @@ class LevelUpWizard(tk.Toplevel):
                     result.remove(cl.replaced_choice)
         return result
 
+    def _get_active_pool(self, config: dict) -> str | None:
+        """Return the active pool name for the current level, or None if no pools."""
+        return config.get("pools", {}).get(str(self.new_class_level))
+
     def _get_available_options(self, config: dict) -> list[dict]:
         """Return options from config that are available to pick right now."""
         options = config.get("options", [])
+        # Pool filtering (Tattooed Warrior, Hunter — different option sets per level)
+        active_pool = self._get_active_pool(config)
+        if active_pool:
+            options = [o for o in options if o.get("pool") == active_pool]
         # Determine which key (class or subclass) this config belongs to
         key = self.class_slug
         for k, v in _CLASS_CHOICES.items():
@@ -992,16 +1000,21 @@ class LevelUpWizard(tk.Toplevel):
         known = self._get_known_choices(choice_key)
         available = self._get_available_options(config)
 
+        # Pool-aware labels (e.g. "Beast Tattoos", "Hunter's Prey")
+        active_pool = self._get_active_pool(config)
+        pool_heading = f"{active_pool} {choice_plural}" if active_pool else choice_plural
+        pool_subtext = f"{active_pool} {choice_label}" if active_pool else choice_label
+
         # ── Heading ───────────────────────────────────────────────
         ttk.Label(
             self.step2b_frame,
-            text=f"Select {choice_plural}",
+            text=f"Select {pool_heading}",
             font=FONTS["heading"],
             foreground=COLORS["accent"],
         ).pack(anchor="w", pady=(4, 2))
         ttk.Label(
             self.step2b_frame,
-            text=f"Choose {new_count} new {choice_label}(s)",
+            text=f"Choose {new_count} new {pool_subtext}(s)",
             foreground=COLORS["fg"],
         ).pack(anchor="w", padx=4, pady=(0, 4))
 

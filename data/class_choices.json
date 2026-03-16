@@ -559,6 +559,185 @@
       }
     ]
   },
+  "sorcerer": {
+    "choice_label": "Metamagic Option",
+    "choice_plural": "Metamagic Options",
+    "gains_by_level": {"2": 2, "10": 2, "17": 2},
+    "can_replace": true,
+    "options": [
+      {
+        "name": "Careful Spell",
+        "description": "When you cast a spell that forces other creatures to make a saving throw, you can protect some of those creatures from the spell's full force. To do so, spend 1 Sorcery Point and choose a number of those creatures up to your Charisma modifier (minimum of one creature). A chosen creature automatically succeeds on its saving throw against the spell."
+      },
+      {
+        "name": "Distant Spell",
+        "description": "When you cast a spell that has a range of at least 5 feet, you can spend 1 Sorcery Point to double the spell's range. When you cast a spell that has a range of Touch, you can spend 1 Sorcery Point to make the range of the spell 30 feet."
+      },
+      {
+        "name": "Empowered Spell",
+        "description": "When you roll damage for a spell, you can spend 1 Sorcery Point to reroll a number of the damage dice up to your Charisma modifier (minimum of one). You must use the new rolls. You can use Empowered Spell even if you have already used a different Metamagic option during the casting of the spell."
+      },
+      {
+        "name": "Extended Spell",
+        "description": "When you cast a spell that has a duration of 1 minute or longer, you can spend 1 Sorcery Point to double its duration, to a maximum duration of 24 hours."
+      },
+      {
+        "name": "Heightened Spell",
+        "description": "When you cast a spell that forces a creature to make a saving throw to resist its effects, you can spend 2 Sorcery Points to give one target of the spell Disadvantage on its first saving throw against the spell."
+      },
+      {
+        "name": "Quickened Spell",
+        "description": "When you cast a spell that has a casting time of an action, you can spend 2 Sorcery Points to change the casting time to a Bonus Action for this casting."
+      },
+      {
+        "name": "Seeking Spell",
+        "description": "If you make an attack roll for a spell and miss, you can spend 1 Sorcery Point to reroll the d20, and you must use the new roll. You can use Seeking Spell even if you have already used a different Metamagic option during the casting of the spell."
+      },
+      {
+        "name": "Subtle Spell",
+        "description": "When you cast a spell, you can spend 1 Sorcery Point to cast it without any Verbal, Somatic, or Material components, except Material components that are consumed by the spell or that have a cost specified in the spell."
+      },
+      {
+        "name": "Transmuted Spell",
+        "description": "When you cast a spell that deals a type of damage from the following list, you can spend 1 Sorcery Point to change that damage type to one of the other listed types: Acid, Cold, Fire, Lightning, Poison, Thunder."
+      },
+      {
+        "name": "Twinned Spell",
+        "description": "When you cast a spell that can be cast with a higher-level spell slot to target an additional creature, you can spend 1 Sorcery Point to cast the spell at its lowest level and choose a second target in range, also without using a higher slot."
+      }
+    ]
+  },
+  "tattooed-warrior2": {
+    "choice_label": "Magic Tattoo",
+    "choice_plural": "Magic Tattoos",
+    "gains_by_level": {"3": 2, "6": 1, "11": 1, "17": 1},
+    "pools": {"3": "Beast", "6": "Celestial", "11": "Nature", "17": "Monster"},
+    "can_replace": false,
+    "can_swap_on_rest": true,
+    "options": [
+      {
+        "name": "Bat",
+        "pool": "Beast",
+        "description": "You know the Dancing Lights cantrip. You also gain Blindsight with a range of 10 feet."
+      },
+      {
+        "name": "Butterfly",
+        "pool": "Beast",
+        "description": "You know the Light cantrip. When you make a High Jump, you can use your Dexterity modifier instead of your Strength modifier to determine how high you can jump."
+      },
+      {
+        "name": "Crane",
+        "pool": "Beast",
+        "description": "You know the Guidance cantrip. When you miss a creature with an attack granted by your Flurry of Blows, you have Advantage on your next attack roll against that creature before the end of your next turn."
+      },
+      {
+        "name": "Horse",
+        "pool": "Beast",
+        "description": "You know the Message cantrip. When you expend 1 Focus Point to use Step of the Wind, your Speed increases by 10 feet until the start of your next turn."
+      },
+      {
+        "name": "Tortoise",
+        "pool": "Beast",
+        "description": "You know the Spare the Dying cantrip. When you expend 1 Focus Point to use Patient Defense, you have a +1 bonus to AC until the start of your next turn."
+      },
+      {
+        "name": "Comet",
+        "pool": "Celestial",
+        "description": "When you take the Search action, you can expend 1 Focus Point to roll your Martial Arts die and add the number rolled to the Wisdom check."
+      },
+      {
+        "name": "Eclipse",
+        "pool": "Celestial",
+        "description": "When you take the Hide action, you can expend 1 Focus Point to roll your Martial Arts die and add the number rolled to the Dexterity (Stealth) check."
+      },
+      {
+        "name": "Sunburst",
+        "pool": "Celestial",
+        "description": "When you take the Study action, you can expend 1 Focus Point to roll your Martial Arts die and add the number rolled to the Intelligence check."
+      },
+      {
+        "name": "Sea Storm",
+        "pool": "Nature",
+        "description": "You gain Resistance to one of the following damage types of your choice: Cold, Lightning, or Thunder. Whenever you finish a Short or Long Rest, you can change this choice."
+      },
+      {
+        "name": "Volcano",
+        "pool": "Nature",
+        "description": "You gain Resistance to one of the following damage types of your choice: Acid, Fire, or Poison. Whenever you finish a Short or Long Rest, you can change this choice."
+      },
+      {
+        "name": "Beholder",
+        "pool": "Monster",
+        "description": "At the start of your turn, you can expend 1 Focus Point to gain a Fly Speed equal to your Speed for 10 minutes (you can hover). Additionally, as a Magic action you can expend 1 Focus Point to fire four rays from your eyes at one or more targets within 120 feet; make a ranged spell attack for each. On a hit, each ray deals Force damage equal to one roll of your Martial Arts die plus your Wisdom modifier."
+      },
+      {
+        "name": "Chromatic Dragon",
+        "pool": "Monster",
+        "description": "When you take the Attack action on your turn, you can expend 1 Focus Point to replace one of your attacks with a 30-foot Cone exhalation. Choose a damage type: Acid, Cold, Fire, Lightning, or Poison. Each creature in the area makes a Dexterity saving throw. On a failed save it takes damage equal to two rolls of your Martial Arts die plus your Wisdom modifier; on success, half as much."
+      },
+      {
+        "name": "Displacer Beast",
+        "pool": "Monster",
+        "description": "When you expend a Focus Point to use Flurry of Blows or Step of the Wind, you can expend 1 additional Focus Point to cast Mirror Image as part of that Bonus Action."
+      },
+      {
+        "name": "Troll",
+        "pool": "Monster",
+        "description": "At the start of each of your turns, you regain Hit Points equal to 5 plus your Wisdom modifier if you are Bloodied and have at least 1 Hit Point. Any severed body part regrows after you finish a Short or Long Rest."
+      }
+    ]
+  },
+  "hunter": {
+    "choice_label": "Feature Option",
+    "choice_plural": "Feature Options",
+    "gains_by_level": {"3": 1, "7": 1},
+    "pools": {"3": "Hunter's Prey", "7": "Defensive Tactics"},
+    "can_replace": false,
+    "can_swap_on_rest": true,
+    "options": [
+      {
+        "name": "Colossus Slayer",
+        "pool": "Hunter's Prey",
+        "description": "Your tenacity can wear down even the most resilient foes. When you hit a creature with a weapon, the weapon deals an extra 1d8 damage to the target if it's missing any of its Hit Points. You can deal this extra damage only once per turn."
+      },
+      {
+        "name": "Horde Breaker",
+        "pool": "Hunter's Prey",
+        "description": "Once on each of your turns when you make an attack with a weapon, you can make another attack with the same weapon against a different creature that is within 5 feet of the original target, that is within the weapon's range, and that you haven't attacked this turn."
+      },
+      {
+        "name": "Escape the Horde",
+        "pool": "Defensive Tactics",
+        "description": "Opportunity Attacks have Disadvantage against you."
+      },
+      {
+        "name": "Multiattack Defense",
+        "pool": "Defensive Tactics",
+        "description": "When a creature hits you with an attack roll, that creature has Disadvantage on all other attack rolls against you this turn."
+      }
+    ]
+  },
+  "path-of-the-wild-heart": {
+    "choice_label": "Aspect",
+    "choice_plural": "Aspect of the Wilds",
+    "gains_by_level": {"6": 1},
+    "can_replace": false,
+    "can_swap_on_rest": true,
+    "options": [
+      {
+        "name": "Owl",
+        "description": "You have Darkvision with a range of 60 feet. If you already have Darkvision, its range increases by 60 feet."
+      },
+      {
+        "name": "Panther",
+        "description": "You have a Climb Speed equal to your Speed."
+      },
+      {
+        "name": "Salmon",
+        "description": "You have a Swim Speed equal to your Speed."
+      }
+    ]
+  },
   "arcane-archer2": {
     "choice_label": "Arcane Shot Option",
     "choice_plural": "Arcane Shot Options",
