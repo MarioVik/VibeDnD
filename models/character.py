@@ -117,8 +117,11 @@ class Character:
         for cl in self.class_levels:
             hit_die = self._hit_die_for_class(cl.class_slug)
             if cl.class_level == 1 and cl == self.class_levels[0]:
-                # First level ever: max hit die + CON
-                total_hp += hit_die + con_mod
+                # First level ever: max hit die + CON (or manual override)
+                if cl.hp_roll is not None:
+                    total_hp += cl.hp_roll + con_mod
+                else:
+                    total_hp += hit_die + con_mod
             elif cl.hp_roll is not None:
                 total_hp += cl.hp_roll + con_mod
             else:

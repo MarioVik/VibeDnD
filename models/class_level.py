@@ -19,3 +19,5 @@ class ClassLevel:
     swapped_in_spell: str | None = None
     hp_roll: int | None = None   # HP rolled/chosen for this level (None = level 1 max)
     hit_die: int = 0             # Hit die size for this class (e.g. 10 for d10); 0 = use primary class
+    new_choices: list[str] = field(default_factory=list)   # Class choices made at this level (maneuvers, invocations, plans, etc.)
+    replaced_choice: str | None = None                     # Existing choice swapped out at this level

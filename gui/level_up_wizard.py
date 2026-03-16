@@ -5,6 +5,8 @@ Two-step flow:
   Step 2 – spell selection (only shown when the level grants new spells)
 """
 
+import json
+import os
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -18,6 +20,14 @@ from gui.widgets import (
 )
 from models.character import Character
 from models.class_level import ClassLevel
+
+# Load class choices data (maneuvers, invocations, plans, arcane shots)
+_CHOICES_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "class_choices.json")
+try:
+    with open(_CHOICES_PATH, encoding="utf-8") as _f:
+        _CLASS_CHOICES: dict = json.load(_f)
+except Exception:
+    _CLASS_CHOICES = {}
 
 _SLOT_ORDER = {
     "1st": 1,
@@ -84,6 +94,8 @@ class LevelUpWizard(tk.Toplevel):
 
         # Choices to collect
         self.hp_choice = tk.IntVar(value=0)
+        self.hp_mode = tk.StringVar(value="average")   # "average" | "max" | "manual"
+        self.hp_manual_var = tk.StringVar(value="")
         self.subclass_var = tk.StringVar()
         self.feat_var = tk.StringVar()
         self.selected_new_cantrips: list[str] = []
@@ -102,6 +114,14 @@ class LevelUpWizard(tk.Toplevel):
         self.swap_in_cantrip: str | None = None
         self.swap_out_spell: str | None = None
         self.swap_in_spell: str | None = None
+
+        # Class choices step state (maneuvers, invocations, plans, arcane shots)
+        self.selected_new_choices: set[str] = set()
+        self.replace_out_var = tk.StringVar(value="")
+        self.replace_in_var = tk.StringVar(value="")
+        self._updating_choices = False
+        self.choice_vars: dict[str, tk.BooleanVar] = {}
+        self.choice_checkbuttons: dict[str, ttk.Checkbutton] = {}
 
         self._build_ui()
 
@@ -175,6 +195,81 @@ class LevelUpWizard(tk.Toplevel):
         can_c, can_s = self._can_swap()
         return can_c or can_s
 
+    def _get_current_subclass(self) -> str | None:
+        """Return the subclass slug active for self.class_slug (existing or being chosen now)."""
+        if self.subclass_var.get():
+            sub_name = self.subclass_var.get().replace(" (PHB)", "")
+            for sc in self.data.get_subclasses_for_class(self.class_slug):
+                if sc["name"] == sub_name:
+                    return sc["slug"]
+        for cl in self.character.class_levels:
+            if cl.class_slug == self.class_slug and cl.subclass_slug:
+                return cl.subclass_slug
+        return None
+
+    def _get_choices_config(self) -> dict | None:
+        """Return choice config dict if this level-up grants class choices, else None."""
+        level_str = str(self.new_class_level)
+        # Check class-level choices (warlock, artificer)
+        cfg = _CLASS_CHOICES.get(self.class_slug)
+        if cfg and cfg.get("gains_by_level", {}).get(level_str):
+            return cfg
+        # Check subclass-level choices (battle-master, arcane-archer2)
+        sub = self._get_current_subclass()
+        if sub:
+            cfg = _CLASS_CHOICES.get(sub)
+            if cfg and cfg.get("gains_by_level", {}).get(level_str):
+                return cfg
+        return None
+
+    def _has_class_choices(self) -> bool:
+        return self._get_choices_config() is not None
+
+    def _get_known_choices(self, key: str) -> list[str]:
+        """Return the character's current choices for class/subclass key."""
+        result: list[str] = []
+        for cl in self.character.class_levels:
+            if cl.class_slug == key or cl.subclass_slug == key:
+                result.extend(cl.new_choices)
+                if cl.replaced_choice and cl.replaced_choice in result:
+                    result.remove(cl.replaced_choice)
+        return result
+
+    def _get_active_pool(self, config: dict) -> str | None:
+        """Return the active pool name for the current level, or None if no pools."""
+        return config.get("pools", {}).get(str(self.new_class_level))
+
+    def _get_available_options(self, config: dict) -> list[dict]:
+        """Return options from config that are available to pick right now."""
+        options = config.get("options", [])
+        # Pool filtering (Tattooed Warrior, Hunter — different option sets per level)
+        active_pool = self._get_active_pool(config)
+        if active_pool:
+            options = [o for o in options if o.get("pool") == active_pool]
+        # Determine which key (class or subclass) this config belongs to
+        key = self.class_slug
+        for k, v in _CLASS_CHOICES.items():
+            if v is config:
+                key = k
+                break
+        known = set(self._get_known_choices(key))
+        result = []
+        for opt in options:
+            name = opt["name"]
+            # Already known — exclude from new picks (still shows in replace)
+            if name in known:
+                continue
+            # Warlock prerequisite level check
+            prereq = opt.get("prerequisite_level")
+            if prereq and self.new_class_level < prereq:
+                continue
+            # Artificer min_level check
+            min_lvl = opt.get("min_level")
+            if min_lvl and self.new_class_level < min_lvl:
+                continue
+            result.append(opt)
+        return result
+
     # ------------------------------------------------------------------
     # UI skeleton
     # ------------------------------------------------------------------
@@ -228,10 +323,13 @@ class LevelUpWizard(tk.Toplevel):
         self.step1_scroll = ScrollableFrame(self.content_container)
         self.step1_content = self.step1_scroll.inner
 
-        # Step 2 – spell selection (built lazily)
+        # Step 2 – class choices (built lazily; maneuvers, invocations, plans, etc.)
+        self.step2b_frame = ttk.Frame(self.content_container)
+
+        # Step 3 – spell selection (built lazily)
         self.step2_frame = ttk.Frame(self.content_container)
 
-        # Step 3 – spell swap (built lazily)
+        # Step 4 – spell swap (built lazily)
         self.step3_frame = ttk.Frame(self.content_container)
 
         # ── Bottom buttons (pack BEFORE content so they always get space) ──
@@ -271,10 +369,16 @@ class LevelUpWizard(tk.Toplevel):
         self._show_step(1)
 
     def _try_go_next(self, target_step: int):
-        if target_step == 2 or target_step == 3:
+        # Step 1 validation required before advancing past step 1
+        if target_step >= 2:
             if not self._validate_step1():
                 return
-        if target_step == 3 and self._has_new_spell_options():
+        # Class choices validation required before advancing past step 2
+        if target_step >= 3 and self._has_class_choices():
+            if not self._validate_choices_step():
+                return
+        # Spell validation required before advancing past step 3
+        if target_step >= 4 and self._has_new_spell_options():
             if not self._validate_step2():
                 return
         self._show_step(target_step)
@@ -344,9 +448,41 @@ class LevelUpWizard(tk.Toplevel):
                 return False
         return True
 
+    def _validate_choices_step(self) -> bool:
+        config = self._get_choices_config()
+        if not config:
+            return True
+        required = config.get("gains_by_level", {}).get(str(self.new_class_level), 0)
+        label = config.get("choice_plural", "choices")
+        if len(self.selected_new_choices) < required:
+            AlertDialog(
+                self,
+                "Missing Choice",
+                f"Please select {required} new {label} on the Class Choices step.",
+            )
+            return False
+        # If user picked something to remove but not what to add (or vice versa)
+        out = self.replace_out_var.get()
+        inp = self.replace_in_var.get()
+        if out and not inp:
+            AlertDialog(
+                self,
+                "Incomplete Swap",
+                f"You chose to remove a {config.get('choice_label', 'choice')} but haven't selected a replacement.",
+            )
+            return False
+        return True
+
     def _show_step(self, step: int):
-        """Show *step* (1, 2, or 3) and update bottom buttons."""
+        """Show *step* (1-4) and update bottom buttons.
+
+        Step 1 = features / HP / ASI / subclass
+        Step 2 = class choices (conditional: maneuvers, invocations, plans, arcane shots)
+        Step 3 = spell selection (conditional)
+        Step 4 = spell swap (conditional)
+        """
         self.step1_scroll.pack_forget()
+        self.step2b_frame.pack_forget()
         self.step2_frame.pack_forget()
         self.step3_frame.pack_forget()
         self.confirm_btn.pack_forget()
@@ -359,6 +495,7 @@ class LevelUpWizard(tk.Toplevel):
         else:
             self.mc_frame.pack_forget()
 
+        has_choices = self._has_class_choices()
         has_spells = self._has_new_spell_options()
         has_swap = self._has_swap_step()
 
@@ -366,39 +503,73 @@ class LevelUpWizard(tk.Toplevel):
             self.step1_scroll.pack(
                 in_=self.content_container, fill=tk.BOTH, expand=True
             )
-            if has_spells:
+            if has_choices:
                 self.next_btn.configure(
-                    text="Next: Spells \u2192", command=lambda: self._try_go_next(2)
+                    text="Next: Class Choices \u2192",
+                    command=lambda: self._try_go_next(2),
+                )
+                self.next_btn.pack(side=tk.RIGHT)
+            elif has_spells:
+                self.next_btn.configure(
+                    text="Next: Spells \u2192", command=lambda: self._try_go_next(3)
                 )
                 self.next_btn.pack(side=tk.RIGHT)
             elif has_swap:
                 self.next_btn.configure(
                     text="Next: Swap Spells \u2192",
-                    command=lambda: self._try_go_next(3),
+                    command=lambda: self._try_go_next(4),
                 )
                 self.next_btn.pack(side=tk.RIGHT)
             else:
                 self.confirm_btn.pack(side=tk.RIGHT)
 
         elif step == 2:
-            self._build_spell_step()
-            self.step2_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
+            # Class choices step
+            self._build_choices_step()
+            self.step2b_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
             self.back_btn.configure(command=lambda: self._show_step(1))
             self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
-            if has_swap:
+            if has_spells:
+                self.next_btn.configure(
+                    text="Next: Spells \u2192", command=lambda: self._try_go_next(3)
+                )
+                self.next_btn.pack(side=tk.RIGHT)
+            elif has_swap:
                 self.next_btn.configure(
                     text="Next: Swap Spells \u2192",
-                    command=lambda: self._try_go_next(3),
+                    command=lambda: self._try_go_next(4),
                 )
                 self.next_btn.pack(side=tk.RIGHT)
             else:
                 self.confirm_btn.pack(side=tk.RIGHT)
 
         elif step == 3:
+            # Spell selection step
+            self._build_spell_step()
+            self.step2_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
+            prev_step = 2 if has_choices else 1
+            self.back_btn.configure(command=lambda p=prev_step: self._show_step(p))
+            self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
+            if has_swap:
+                self.next_btn.configure(
+                    text="Next: Swap Spells \u2192",
+                    command=lambda: self._try_go_next(4),
+                )
+                self.next_btn.pack(side=tk.RIGHT)
+            else:
+                self.confirm_btn.pack(side=tk.RIGHT)
+
+        elif step == 4:
+            # Spell swap step
             self._build_swap_step()
             self.step3_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
-            prev_step = 2 if has_spells else 1
-            self.back_btn.configure(command=lambda: self._show_step(prev_step))
+            if has_spells:
+                prev_step = 3
+            elif has_choices:
+                prev_step = 2
+            else:
+                prev_step = 1
+            self.back_btn.configure(command=lambda p=prev_step: self._show_step(p))
             self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
             self.confirm_btn.pack(side=tk.RIGHT)
 
@@ -445,6 +616,13 @@ class LevelUpWizard(tk.Toplevel):
     def _rebuild_content(self):
         for w in self.step1_content.winfo_children():
             w.destroy()
+
+        # Reset class choices state whenever content is rebuilt
+        self.selected_new_choices.clear()
+        self.replace_out_var.set("")
+        self.replace_in_var.set("")
+        self.choice_vars.clear()
+        self.choice_checkbuttons.clear()
 
         self._build_features_section()
         self._build_hp_section()
@@ -586,24 +764,70 @@ class LevelUpWizard(tk.Toplevel):
         con_mod = self.character.ability_scores.modifier("Constitution")
         average = hit_die // 2 + 1
 
+        self.hp_mode.set("average")
+        self.hp_manual_var.set("")
+
         hp_frame = ttk.Frame(self.step1_content)
         hp_frame.pack(fill=tk.X, padx=12)
 
         ttk.Radiobutton(
             hp_frame,
             text=f"Take average ({average} + {con_mod} CON = {average + con_mod} HP)",
-            variable=self.hp_choice,
-            value=average,
+            variable=self.hp_mode,
+            value="average",
         ).pack(anchor="w", pady=2)
 
         ttk.Radiobutton(
             hp_frame,
             text=f"Take max ({hit_die} + {con_mod} CON = {hit_die + con_mod} HP)",
-            variable=self.hp_choice,
-            value=hit_die,
+            variable=self.hp_mode,
+            value="max",
         ).pack(anchor="w", pady=2)
 
-        self.hp_choice.set(average)
+        # Manual entry row
+        manual_row = ttk.Frame(hp_frame)
+        manual_row.pack(anchor="w", pady=2, fill=tk.X)
+
+        ttk.Radiobutton(
+            manual_row,
+            text="Enter manually:",
+            variable=self.hp_mode,
+            value="manual",
+        ).pack(side=tk.LEFT)
+
+        manual_entry = ttk.Entry(manual_row, textvariable=self.hp_manual_var, width=5)
+        manual_entry.pack(side=tk.LEFT, padx=(4, 4))
+
+        self._hp_manual_hint = ttk.Label(
+            manual_row,
+            text=f"+ {con_mod} CON = ? HP",
+            foreground=COLORS["fg_dim"],
+        )
+        self._hp_manual_hint.pack(side=tk.LEFT)
+
+        def _update_manual_state(*_):
+            if self.hp_mode.get() == "manual":
+                manual_entry.config(state="normal")
+            else:
+                manual_entry.config(state="disabled")
+            _update_hint()
+
+        def _update_hint(*_):
+            if self.hp_mode.get() != "manual":
+                return
+            val = self.hp_manual_var.get().strip()
+            try:
+                roll = int(val)
+                if roll >= 1:
+                    self._hp_manual_hint.config(text=f"+ {con_mod} CON = {roll + con_mod} HP")
+                else:
+                    self._hp_manual_hint.config(text="(must be ≥ 1)")
+            except ValueError:
+                self._hp_manual_hint.config(text=f"+ {con_mod} CON = ? HP")
+
+        self.hp_mode.trace_add("write", _update_manual_state)
+        self.hp_manual_var.trace_add("write", _update_hint)
+        manual_entry.config(state="disabled")
 
     # ── ASI ───────────────────────────────────────────────────────
 
@@ -745,7 +969,230 @@ class LevelUpWizard(tk.Toplevel):
         ).pack(anchor="w", padx=12, pady=(4, 0))
 
     # ------------------------------------------------------------------
-    # Step 2 – spell selection
+    # Step 2 – class choices (maneuvers, invocations, plans, arcane shots)
+    # ------------------------------------------------------------------
+
+    def _build_choices_step(self):
+        """Build (or rebuild) the class choices UI in step2b_frame."""
+        for w in self.step2b_frame.winfo_children():
+            w.destroy()
+        self.selected_new_choices.clear()
+        self.replace_out_var.set("")
+        self.replace_in_var.set("")
+        self.choice_vars.clear()
+        self.choice_checkbuttons.clear()
+
+        config = self._get_choices_config()
+        if not config:
+            return
+
+        # Determine which key this config belongs to
+        choice_key = self.class_slug
+        for k, v in _CLASS_CHOICES.items():
+            if v is config:
+                choice_key = k
+                break
+
+        choice_label = config.get("choice_label", "Choice")
+        choice_plural = config.get("choice_plural", "Choices")
+        level_str = str(self.new_class_level)
+        new_count = config.get("gains_by_level", {}).get(level_str, 0)
+        known = self._get_known_choices(choice_key)
+        available = self._get_available_options(config)
+
+        # Pool-aware labels (e.g. "Beast Tattoos", "Hunter's Prey")
+        active_pool = self._get_active_pool(config)
+        pool_heading = f"{active_pool} {choice_plural}" if active_pool else choice_plural
+        pool_subtext = f"{active_pool} {choice_label}" if active_pool else choice_label
+
+        # ── Heading ───────────────────────────────────────────────
+        ttk.Label(
+            self.step2b_frame,
+            text=f"Select {pool_heading}",
+            font=FONTS["heading"],
+            foreground=COLORS["accent"],
+        ).pack(anchor="w", pady=(4, 2))
+        ttk.Label(
+            self.step2b_frame,
+            text=f"Choose {new_count} new {pool_subtext}(s)",
+            foreground=COLORS["fg"],
+        ).pack(anchor="w", padx=4, pady=(0, 2))
+
+        if config.get("can_swap_on_rest"):
+            ttk.Label(
+                self.step2b_frame,
+                text="\u21ba These choices can be changed when you finish a Short or Long Rest.",
+                foreground=COLORS["fg_dim"],
+                font=("Segoe UI", 9, "italic"),
+            ).pack(anchor="w", padx=4, pady=(0, 4))
+
+        # ── Two-column split: list (left) + detail (right) ───────
+        cols = ttk.Frame(self.step2b_frame)
+        cols.pack(fill=tk.BOTH, expand=True, pady=4)
+        cols.columnconfigure(0, weight=1)
+        cols.columnconfigure(1, weight=1)
+        cols.rowconfigure(0, weight=1)
+
+        # --- LEFT: choices list + optional replace section ---
+        left = ttk.Frame(cols)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+        left.rowconfigure(1, weight=1)
+
+        # Count label
+        self.choice_count_label = ttk.Label(
+            left,
+            text=f"0 / {new_count} selected",
+            style="Dim.TLabel",
+        )
+        self.choice_count_label.pack(anchor="w", padx=4, pady=(0, 1))
+
+        list_outer = ttk.Frame(left)
+        list_outer.pack(fill=tk.BOTH, expand=True, pady=(2, 0))
+        _, inner = self._make_scrollable_list(list_outer)
+
+        def _section_header(parent, title):
+            ttk.Label(
+                parent,
+                text=f"\u2500\u2500 {title} \u2500\u2500",
+                foreground=COLORS["accent"],
+                font=FONTS["body"],
+            ).pack(anchor="w", pady=(6, 2))
+
+        _section_header(inner, f"Available {choice_plural}")
+        for opt in sorted(available, key=lambda o: o["name"]):
+            var = tk.BooleanVar(value=False)
+            var.trace_add("write", lambda *a, o=opt: self._on_choice_toggle(o))
+            self.choice_vars[opt["name"]] = var
+            cb = ttk.Checkbutton(inner, text=opt["name"], variable=var)
+            cb.pack(anchor="w", pady=1, padx=(8, 0))
+            cb.bind("<Enter>", lambda e, o=opt: self._show_choice_detail(o))
+            self.choice_checkbuttons[opt["name"]] = cb
+
+        # ── Replace one (optional, only if has existing choices) ──
+        if known and config.get("can_replace"):
+            ttk.Separator(left, orient="horizontal").pack(fill=tk.X, pady=(8, 4))
+            ttk.Label(
+                left,
+                text="Replace one (optional):",
+                foreground=COLORS["fg"],
+                font=FONTS["body"],
+            ).pack(anchor="w", padx=4)
+
+            replace_cols = ttk.Frame(left)
+            replace_cols.pack(fill=tk.X, pady=4)
+            replace_cols.columnconfigure(0, weight=1)
+            replace_cols.columnconfigure(1, weight=1)
+
+            # Left sub-column: Remove
+            remove_lf = ttk.LabelFrame(replace_cols, text="Remove")
+            remove_lf.grid(row=0, column=0, sticky="nsew", padx=(0, 2))
+            ttk.Radiobutton(
+                remove_lf,
+                text="Don\u2019t replace",
+                variable=self.replace_out_var,
+                value="",
+            ).pack(anchor="w", pady=1, padx=4)
+            for name in sorted(known):
+                opt_data = next((o for o in config.get("options", []) if o["name"] == name), {"name": name, "description": ""})
+                rb = ttk.Radiobutton(
+                    remove_lf,
+                    text=name,
+                    variable=self.replace_out_var,
+                    value=name,
+                )
+                rb.pack(anchor="w", pady=1, padx=(8, 0))
+                rb.bind("<Enter>", lambda e, o=opt_data: self._show_choice_detail(o))
+
+            # Right sub-column: Replace with
+            learn_lf = ttk.LabelFrame(replace_cols, text="Replace with")
+            learn_lf.grid(row=0, column=1, sticky="nsew", padx=(2, 0))
+            ttk.Radiobutton(
+                learn_lf,
+                text="Nothing",
+                variable=self.replace_in_var,
+                value="",
+            ).pack(anchor="w", pady=1, padx=4)
+            # All options not already known (including ones selected as new picks)
+            all_not_known = [o for o in config.get("options", []) if o["name"] not in known]
+            # Apply level/prereq filter
+            all_not_known = self._get_available_options(config)
+            for opt in sorted(all_not_known, key=lambda o: o["name"]):
+                rb = ttk.Radiobutton(
+                    learn_lf,
+                    text=opt["name"],
+                    variable=self.replace_in_var,
+                    value=opt["name"],
+                )
+                rb.pack(anchor="w", pady=1, padx=(8, 0))
+                rb.bind("<Enter>", lambda e, o=opt: self._show_choice_detail(o))
+
+        # --- RIGHT: detail panel ---
+        detail_lf = ttk.LabelFrame(cols, text="Details")
+        detail_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
+
+        self.choice_detail_text = tk.Text(
+            detail_lf,
+            wrap=tk.WORD,
+            bg=COLORS["bg_light"],
+            fg=COLORS["fg"],
+            font=FONTS["body"],
+            borderwidth=0,
+            state=tk.DISABLED,
+        )
+        self.choice_detail_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+
+    def _on_choice_toggle(self, opt: dict):
+        if self._updating_choices:
+            return
+        self._updating_choices = True
+        try:
+            config = self._get_choices_config()
+            if not config:
+                return
+            level_str = str(self.new_class_level)
+            max_count = config.get("gains_by_level", {}).get(level_str, 0)
+            selected = [n for n, v in self.choice_vars.items() if v.get()]
+            if len(selected) > max_count:
+                self.choice_vars[opt["name"]].set(False)
+                selected = [n for n, v in self.choice_vars.items() if v.get()]
+            self.selected_new_choices = set(selected)
+            self.choice_count_label.configure(
+                text=f"{len(selected)} / {max_count} selected"
+            )
+            self._update_choice_states(max_count, selected)
+        finally:
+            self._updating_choices = False
+
+    def _update_choice_states(self, max_count: int, selected: list[str]):
+        at_max = len(selected) >= max_count
+        for name, cb in self.choice_checkbuttons.items():
+            cb.configure(
+                state=tk.DISABLED if at_max and name not in selected else tk.NORMAL
+            )
+
+    def _show_choice_detail(self, opt: dict):
+        if not hasattr(self, "choice_detail_text"):
+            return
+        self.choice_detail_text.configure(state=tk.NORMAL)
+        self.choice_detail_text.delete("1.0", tk.END)
+        lines = [opt.get("name", ""), ""]
+        prereq = opt.get("prerequisite_level")
+        if prereq:
+            lines.append(f"Requires Warlock level {prereq}+")
+        prereq_feat = opt.get("prerequisite_feature")
+        if prereq_feat:
+            lines.append(f"Requires: {prereq_feat}")
+        min_lvl = opt.get("min_level")
+        if min_lvl:
+            lines.append(f"Available at Artificer level {min_lvl}+")
+        if prereq or prereq_feat or min_lvl:
+            lines.append("")
+        lines.append(opt.get("description", ""))
+        self.choice_detail_text.insert("1.0", "\n".join(lines))
+        self.choice_detail_text.configure(state=tk.DISABLED)
+
+    # ------------------------------------------------------------------
+    # Step 3 – spell selection
     # ------------------------------------------------------------------
 
     def _build_spell_step(self):
@@ -1311,6 +1758,8 @@ class LevelUpWizard(tk.Toplevel):
         """Validate choices, apply the level-up, and close."""
         if not self._validate_step1():
             return
+        if self._has_class_choices() and not self._validate_choices_step():
+            return
         if self._has_new_spell_options() and not self._validate_step2():
             return
 
@@ -1321,7 +1770,7 @@ class LevelUpWizard(tk.Toplevel):
                 "Incomplete Swap",
                 "You selected a cantrip to forget but didn't pick one to learn.",
             )
-            self._show_step(3)
+            self._show_step(4)
             return
         if self.swap_out_spell and not self.swap_in_spell:
             AlertDialog(
@@ -1329,8 +1778,31 @@ class LevelUpWizard(tk.Toplevel):
                 "Incomplete Swap",
                 "You selected a spell to forget but didn't pick one to learn.",
             )
-            self._show_step(3)
+            self._show_step(4)
             return
+
+        # ── resolve HP roll ───────────────────────────────────────
+        hit_die = (
+            self.selected_class_data.get("hit_die", 8)
+            if self.selected_class_data
+            else 8
+        )
+        con_mod = self.character.ability_scores.modifier("Constitution")
+        average = hit_die // 2 + 1
+
+        mode = self.hp_mode.get()
+        if mode == "manual":
+            try:
+                hp_roll = int(self.hp_manual_var.get().strip())
+                if hp_roll < 1:
+                    raise ValueError
+            except ValueError:
+                AlertDialog(self, "Invalid HP", "Please enter a valid number (≥ 1) for your hit points.")
+                return
+        elif mode == "max":
+            hp_roll = hit_die
+        else:
+            hp_roll = average
 
         # ── confirmation dialog ──────────────────────────────────
         dlg = ConfirmDialog(
@@ -1341,17 +1813,10 @@ class LevelUpWizard(tk.Toplevel):
         if not dlg.result:
             return
 
-        # ── build ClassLevel ──────────────────────────────────────
-        hit_die = (
-            self.selected_class_data.get("hit_die", 8)
-            if self.selected_class_data
-            else 8
-        )
-
         cl = ClassLevel(
             class_slug=self.class_slug,
             class_level=self.new_class_level,
-            hp_roll=self.hp_choice.get(),
+            hp_roll=hp_roll,
             hit_die=hit_die,
         )
 
@@ -1369,6 +1834,15 @@ class LevelUpWizard(tk.Toplevel):
 
         cl.new_cantrips = list(self.selected_new_cantrips)
         cl.new_spells = list(self.selected_new_spells)
+
+        # Store class choices (maneuvers, invocations, plans, arcane shots)
+        if self.selected_new_choices:
+            cl.new_choices = list(self.selected_new_choices)
+        replace_out = self.replace_out_var.get()
+        replace_in = self.replace_in_var.get()
+        if replace_out and replace_in:
+            cl.replaced_choice = replace_out
+            cl.new_choices.append(replace_in)
 
         # Store swap choices on the ClassLevel
         if self.swap_out_cantrip and self.swap_in_cantrip:
