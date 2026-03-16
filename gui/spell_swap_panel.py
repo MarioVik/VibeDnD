@@ -243,6 +243,167 @@ class SpellSwapPanel:
                 rb.configure(state=tk.NORMAL)
 
 
+
+class MultiSpellSwapPanel:
+    """Checkbox-based panel for swapping multiple prepared spells at once.
+
+    Used by prepared casters (Cleric, Druid, Wizard, Artificer) who can
+    re-prepare their entire spell list on a Long Rest.
+
+    Read ``forget_names`` and ``learn_names`` for the current selections.
+    """
+
+    def __init__(
+        self,
+        parent: tk.Widget,
+        *,
+        forget_spells: list[dict],
+        learn_spells: list[dict],
+        left_label: str = "Unprepare",
+        right_label: str = "Prepare instead",
+    ):
+        self._forget_vars: dict[str, tk.BooleanVar] = {}
+        self._learn_vars: dict[str, tk.BooleanVar] = {}
+        self._learn_cbs: list[tuple[ttk.Checkbutton, dict]] = []
+
+        # ── Counter label ──
+        self._counter = ttk.Label(
+            parent,
+            text="",
+            foreground=COLORS["fg_dim"],
+        )
+        self._counter.pack(anchor="w", padx=4, pady=(0, 2))
+
+        # ── Two-column split ──
+        cols = ttk.Frame(parent)
+        cols.pack(fill=tk.BOTH, expand=True, pady=2)
+        cols.columnconfigure(0, weight=1)
+        cols.columnconfigure(1, weight=1)
+        cols.rowconfigure(0, weight=1)
+
+        # --- LEFT: Unprepare ---
+        left_lf = ttk.LabelFrame(cols, text=left_label)
+        left_lf.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+        left_outer = ttk.Frame(left_lf)
+        left_outer.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        _, left_inner = _make_scrollable_list(left_outer)
+
+        if forget_spells:
+            forget_sorted = sorted(forget_spells, key=lambda s: (s["level"], s["name"]))
+            for lvl, group in groupby(forget_sorted, key=lambda s: s["level"]):
+                _section_header(left_inner, LEVEL_NAMES.get(lvl, f"Level {lvl}"))
+                for spell in group:
+                    var = tk.BooleanVar(value=False)
+                    self._forget_vars[spell["name"]] = var
+                    cb = ttk.Checkbutton(
+                        left_inner,
+                        text=spell["name"],
+                        variable=var,
+                        command=self._on_change,
+                    )
+                    cb.pack(anchor="w", pady=1, padx=8)
+                    cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
+
+        # --- RIGHT: Prepare ---
+        right_lf = ttk.LabelFrame(cols, text=right_label)
+        right_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
+        right_outer = ttk.Frame(right_lf)
+        right_outer.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        _, right_inner = _make_scrollable_list(right_outer)
+
+        if learn_spells:
+            learn_sorted = sorted(learn_spells, key=lambda s: (s["level"], s["name"]))
+            for lvl, group in groupby(learn_sorted, key=lambda s: s["level"]):
+                _section_header(right_inner, LEVEL_NAMES.get(lvl, f"Level {lvl}"))
+                for spell in group:
+                    var = tk.BooleanVar(value=False)
+                    self._learn_vars[spell["name"]] = var
+                    cb = ttk.Checkbutton(
+                        right_inner,
+                        text=spell["name"],
+                        variable=var,
+                        command=self._on_change,
+                    )
+                    cb.pack(anchor="w", pady=1, padx=8)
+                    cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
+                    self._learn_cbs.append((cb, spell))
+        else:
+            ttk.Label(
+                right_inner,
+                text="No additional spells available.",
+                foreground=COLORS["fg_dim"],
+            ).pack(anchor="w", padx=8, pady=4)
+
+        # --- Shared Detail Panel ---
+        detail_lf = ttk.LabelFrame(parent, text="Spell Details")
+        detail_lf.pack(fill=tk.X, pady=(4, 0))
+        self._detail_text = tk.Text(
+            detail_lf,
+            wrap=tk.WORD,
+            height=6,
+            bg=COLORS["bg_light"],
+            fg=COLORS["fg"],
+            font=FONTS["body"],
+            borderwidth=0,
+            state=tk.DISABLED,
+        )
+        self._detail_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+
+        self._on_change()
+
+    # ── Public properties ──
+
+    @property
+    def forget_names(self) -> list[str]:
+        return [n for n, v in self._forget_vars.items() if v.get()]
+
+    @property
+    def learn_names(self) -> list[str]:
+        return [n for n, v in self._learn_vars.items() if v.get()]
+
+    # ── Detail panel ──
+
+    def _show_detail(self, spell: dict):
+        self._detail_text.configure(state=tk.NORMAL)
+        self._detail_text.delete("1.0", tk.END)
+        lines = [
+            spell["name"],
+            f"{'Cantrip' if spell['level'] == 0 else 'Level ' + str(spell['level'])} "
+            f"{spell['school']}",
+            f"Casting Time: {spell.get('casting_time', '?')}"
+            f"{'  (Ritual)' if spell.get('ritual') else ''}",
+            f"Range: {spell.get('range', '?')}",
+            f"Duration: {'Concentration, ' if spell.get('concentration') else ''}"
+            f"{spell.get('duration', '?')}",
+            "",
+            spell.get("description", ""),
+        ]
+        if spell.get("higher_levels"):
+            lines.extend(["", f"At Higher Levels: {spell['higher_levels']}"])
+        if spell.get("cantrip_upgrade"):
+            lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade']}"])
+        self._detail_text.insert("1.0", "\n".join(lines))
+        self._detail_text.configure(state=tk.DISABLED)
+
+    # ── Logic ──
+
+    def _on_change(self):
+        n_forget = len(self.forget_names)
+        n_learn = len(self.learn_names)
+
+        # Update counter
+        if n_forget == 0 and n_learn == 0:
+            self._counter.configure(text="Check spells on the left to unprepare, then check replacements on the right.", foreground=COLORS["fg_dim"])
+        elif n_forget == n_learn:
+            self._counter.configure(text=f"Swapping {n_forget} spell{'s' if n_forget != 1 else ''}.", foreground=COLORS["fg"])
+        else:
+            diff = n_forget - n_learn
+            if diff > 0:
+                self._counter.configure(text=f"Unpreparing {n_forget}, preparing {n_learn} — select {diff} more on the right.", foreground=COLORS["accent"])
+            else:
+                self._counter.configure(text=f"Unpreparing {n_forget}, preparing {n_learn} — deselect {-diff} on the right or select more on the left.", foreground=COLORS["accent"])
+
+
 # ── Module-level helpers ──
 
 
