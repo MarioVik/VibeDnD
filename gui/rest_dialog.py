@@ -457,6 +457,7 @@ class RestDialog(tk.Toplevel):
 
     def _build_cantrip_section(self, parent):
         parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(2, weight=1)
 
         ttk.Label(
             parent,
