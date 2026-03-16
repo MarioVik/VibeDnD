@@ -107,13 +107,6 @@ class SpellSwapPanel:
         right_outer.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
         _, right_inner = _make_scrollable_list(right_outer)
 
-        ttk.Radiobutton(
-            right_inner,
-            text="\u2014",
-            variable=self.learn_var,
-            value="",
-        ).pack(anchor="w", pady=1)
-
         # Available cantrips
         if allow_cantrips and learn_cantrips:
             _section_header(right_inner, "Cantrips")
