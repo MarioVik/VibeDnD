@@ -29,8 +29,8 @@ class CharacterCreatorApp:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("D&D 2024 Character Creator")
-        self.root.geometry("1100x750")
-        self.root.minsize(900, 600)
+        self.root.geometry("1600x1050")
+        self.root.minsize(1100, 750)
 
         apply_theme(self.root)
         self.data = GameData()
