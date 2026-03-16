@@ -614,6 +614,7 @@
     "pools": {"3": "Beast", "6": "Celestial", "11": "Nature", "17": "Monster"},
     "can_replace": false,
     "can_swap_on_rest": true,
+    "swap_rest_type": "long",
     "options": [
       {
         "name": "Bat",
@@ -694,6 +695,7 @@
     "pools": {"3": "Hunter's Prey", "7": "Defensive Tactics"},
     "can_replace": false,
     "can_swap_on_rest": true,
+    "swap_rest_type": "short_or_long",
     "options": [
       {
         "name": "Colossus Slayer",
@@ -723,6 +725,7 @@
     "gains_by_level": {"6": 1},
     "can_replace": false,
     "can_swap_on_rest": true,
+    "swap_rest_type": "long",
     "options": [
       {
         "name": "Owl",

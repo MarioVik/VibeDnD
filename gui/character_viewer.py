@@ -26,6 +26,7 @@ from models.standard_actions import (
     get_selected_non_weapon_items,
     get_selected_weapon_counts,
 )
+from gui.rest_dialog import RestDialog, can_short_rest, can_long_rest
 
 
 class CharacterViewer(ttk.Frame):
@@ -85,6 +86,22 @@ class CharacterViewer(ttk.Frame):
             text="Add to inventory",
             command=self._on_add_inventory,
         ).pack(side=tk.LEFT, padx=4)
+
+        short_rest_btn = ttk.Button(
+            top,
+            text="Short Rest",
+            command=self._on_short_rest,
+            state=tk.NORMAL if can_short_rest(self.character) else tk.DISABLED,
+        )
+        short_rest_btn.pack(side=tk.LEFT, padx=4)
+
+        long_rest_btn = ttk.Button(
+            top,
+            text="Long Rest",
+            command=self._on_long_rest,
+            state=tk.NORMAL if can_long_rest(self.character) else tk.DISABLED,
+        )
+        long_rest_btn.pack(side=tk.LEFT, padx=4)
 
         # Character name
         ttk.Label(
@@ -1371,6 +1388,24 @@ class CharacterViewer(ttk.Frame):
                 self._on_sheet_changed(),
                 self._refresh_tabs(force=True),
             ),
+        )
+
+    def _on_short_rest(self):
+        RestDialog(
+            self,
+            self.character,
+            self.data,
+            rest_type="short",
+            on_changed=lambda: (self._on_sheet_changed(), self._refresh_sheet()),
+        )
+
+    def _on_long_rest(self):
+        RestDialog(
+            self,
+            self.character,
+            self.data,
+            rest_type="long",
+            on_changed=lambda: (self._on_sheet_changed(), self._refresh_sheet()),
         )
 
     def _on_level_up(self):

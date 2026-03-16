@@ -1016,7 +1016,15 @@ class LevelUpWizard(tk.Toplevel):
             self.step2b_frame,
             text=f"Choose {new_count} new {pool_subtext}(s)",
             foreground=COLORS["fg"],
-        ).pack(anchor="w", padx=4, pady=(0, 4))
+        ).pack(anchor="w", padx=4, pady=(0, 2))
+
+        if config.get("can_swap_on_rest"):
+            ttk.Label(
+                self.step2b_frame,
+                text="\u21ba These choices can be changed when you finish a Short or Long Rest.",
+                foreground=COLORS["fg_dim"],
+                font=("Segoe UI", 9, "italic"),
+            ).pack(anchor="w", padx=4, pady=(0, 4))
 
         # ── Two-column split: list (left) + detail (right) ───────
         cols = ttk.Frame(self.step2b_frame)
