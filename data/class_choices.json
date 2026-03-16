@@ -1,0 +1,608 @@
+{
+  "warlock": {
+    "choice_label": "Eldritch Invocation",
+    "choice_plural": "Eldritch Invocations",
+    "gains_by_level": {
+      "1": 1,
+      "2": 2,
+      "5": 2,
+      "7": 1,
+      "9": 1,
+      "12": 1,
+      "15": 1,
+      "18": 1
+    },
+    "can_replace": true,
+    "options": [
+      {
+        "name": "Agonizing Blast",
+        "description": "Choose one of your known Warlock cantrips that deals damage. You can add your Charisma modifier to that spell’s damage rolls.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Armor of Shadows",
+        "description": "You can cast Mage Armor on yourself without expending a spell slot.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Ascendant Step",
+        "description": "You can cast Levitate on yourself without expending a spell slot.",
+        "prerequisite_level": 5
+      },
+      {
+        "name": "Devil’s Sight",
+        "description": "You can see normally in Darkness—both magical and nonmagical—to a distance of 120 feet.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Eldritch Mind",
+        "description": "You have Advantage on Constitution saving throws that you make to maintain Concentration.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Eldritch Smite",
+        "description": "Once per turn when you hit a creature with your pact weapon, you can expend a Pact Magic spell slot to deal an extra 1d8 Force damage to the target, plus another 1d8 per level of the spell slot, and you can give the target the Prone condition if it is Huge or smaller.",
+        "prerequisite_level": 5,
+        "prerequisite_feature": "Pact of the Blade"
+      },
+      {
+        "name": "Eldritch Spear",
+        "description": "Choose one of your known Warlock cantrips that deals damage and has a range of 10 feet or more. When you cast that cantrip, its range increases by a number of feet equal to 30 times your Warlock level.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Eyes of the Rune Keeper",
+        "description": "You can read all writing.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Fiendish Vigor",
+        "description": "You can cast False Life on yourself without expending a spell slot. When you cast it this way, you don’t roll the die for the Temporary Hit Points; instead, you automatically get the highest number on the die.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Gaze of Two Minds",
+        "description": "You can use a Bonus Action to touch a willing creature and perceive through its senses until the end of your next turn. As long as the creature is on the same plane of existence as you, you can use your action on subsequent turns to maintain this connection, extending the duration until the end of your next turn. The connection ends if you don’t maintain it or if the distance between you and the creature exceeds 1 mile. While perceiving through the other creature’s senses, you benefit from any special senses possessed by that creature, and you are Blinded and Deafened to your own surroundings.",
+        "prerequisite_level": 5
+      },
+      {
+        "name": "Gift of the Depths",
+        "description": "You can breathe underwater, and you gain a Swim Speed equal to your Speed. You can also cast Water Breathing once without expending a spell slot. You regain the ability to cast it this way when you finish a Long Rest.",
+        "prerequisite_level": 5
+      },
+      {
+        "name": "Gift of the Protectors",
+        "description": "A new page appears in your Book of Shadows when you gain this invocation. With your permission, a creature can use its action to write its name on that page. Whenever any creature whose name is on the page is reduced to 0 Hit Points but not killed outright, the creature magically drops to 1 Hit Point instead. Once this magic is triggered, no creature can benefit from it until you finish a Long Rest. Magic can add no more than eight names to the page.",
+        "prerequisite_level": 9,
+        "prerequisite_feature": "Pact of the Tome"
+      },
+      {
+        "name": "Investment of the Chain Master",
+        "description": "When you cast Find Familiar, you infuse the summoned familiar with a measure of your eldritch power, granting the creature the following benefits: The familiar gains either a Fly Speed or Swim Speed (your choice) of 40 feet. As a Bonus Action, you can command the familiar to take the Attack action. The familiar’s weapon attacks are considered magical for the purpose of overcoming Immunity and Resistance to nonmagical attacks. If the familiar forces a creature to make a saving throw, it uses your spell save DC. When the familiar takes damage, you can use your Reaction to grant it Resistance against that damage.",
+        "prerequisite_level": 9,
+        "prerequisite_feature": "Pact of the Chain"
+      },
+      {
+        "name": "Lessons of the First Ones",
+        "description": "You have received knowledge from an elder entity of the multiverse, allowing you to gain one Origin feat of your choice. You can select this invocation more than once, gaining a new Origin feat each time.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Lifedrinker",
+        "description": "Once per turn when you hit a creature with your pact weapon, you can deal an extra 1d6 Necrotic, Psychic, or Radiant damage (your choice) to the creature.",
+        "prerequisite_level": 9,
+        "prerequisite_feature": "Pact of the Blade"
+      },
+      {
+        "name": "Maddening Hex",
+        "description": "As a Bonus Action, you cause a psychic disturbance around the target cursed by your Hex spell or by a Warlock feature of yours, such as Sign of Ill Omen and Fiendish Vigor. When you do so, you deal Psychic damage to the cursed target and each creature of your choice within 5 feet of it. The Psychic damage equals your Charisma modifier (minimum of 1 damage). To use this invocation, you must be able to see the cursed target, and it must be within 30 feet of you.",
+        "prerequisite_level": 5
+      },
+      {
+        "name": "Mask of Many Faces",
+        "description": "You can cast Disguise Self without expending a spell slot.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Master of Myriad Forms",
+        "description": "You can cast Alter Self without expending a spell slot.",
+        "prerequisite_level": 5
+      },
+      {
+        "name": "One with Shadows",
+        "description": "When you are in an area of Dim Light or Darkness, you can cast Invisibility on yourself without expending a spell slot.",
+        "prerequisite_level": 5
+      },
+      {
+        "name": "Otherworldly Leap",
+        "description": "You can cast Jump on yourself without expending a spell slot.",
+        "prerequisite_level": 2
+      },
+      {
+        "name": "Pact of the Blade",
+        "description": "As a Bonus Action, you can conjure a pact weapon in your hand—a Simple or Martial melee weapon of your choice with which you bond—or create a bond with a magic weapon you touch; you can’t bond with a magic weapon if someone else is attuned to it or another Warlock is bonded with it. Until the bond ends, you have proficiency with the weapon, and you can use it as a Spellcasting Focus. Whenever you attack with the bonded weapon, you can use your Charisma modifier for the attack and damage rolls instead of using Strength or Dexterity; and you can cause the weapon to deal Necrotic, Psychic, or Radiant damage or its normal damage type. Your bond with the weapon ends if you use this feature’s Bonus Action again, if the weapon is more than 5 feet away from you for 1 minute or more, or if you die. A conjured weapon disappears when the bond ends.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Pact of the Chain",
+        "description": "You learn the Find Familiar spell and can cast it as a Magic action without expending a spell slot. When you cast the spell, you choose one of the normal forms for your familiar or one of the following special forms: Imp, Pseudodragon, Quasit, Skeleton, Slaad Tadpole, Sphinx of Wonder, Sprite, or Venomous Snake. Additionally, when you take the Attack action, you can forgo one of your own attacks to allow your familiar to make one attack of its own with its Reaction.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Pact of the Tome",
+        "description": "Stitching together strands of shadow, you conjure forth a book in your hand at the end of a Short or Long Rest. This Book of Shadows contains eldritch magic that only you can access, granting you the following benefits. Cantrips and Rituals. When the book appears, choose three cantrips, and choose two level 1 spells that have the Ritual tag. The cantrips can be from any class’s spell list, and they are Warlock spells for you while they’re in the book. The spells can be from any class’s spell list, and you can cast them as Rituals while they’re in your book; you can’t cast them as non-Ritual spells. On your adventures, you can add other Ritual spells to your Book of Shadows.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Repelling Blast",
+        "description": "Choose one of your known Warlock cantrips that deals damage. When you hit a Large or smaller creature with that cantrip, you can push the creature up to 10 feet straight away from you.",
+        "prerequisite_level": null
+      },
+      {
+        "name": "Thirsting Blade",
+        "description": "When you take the Attack action, you can attack twice with your pact weapon instead of once. You can use this invocation twice, and you recover all expended uses when you finish a Short or Long Rest.",
+        "prerequisite_level": 5,
+        "prerequisite_feature": "Pact of the Blade"
+      },
+      {
+        "name": "Undying Servitude",
+        "description": "You can cast Animate Dead without expending a spell slot. Once you cast the spell this way, you can’t do so again until you finish a Long Rest.",
+        "prerequisite_level": 5
+      },
+      {
+        "name": "Visions of Distant Realms",
+        "description": "You can cast Arcane Eye without expending a spell slot.",
+        "prerequisite_level": 9
+      },
+      {
+        "name": "Voice of the Chain Master",
+        "description": "You can communicate telepathically with your familiar and perceive through your familiar’s senses as long as you are on the same plane of existence. Additionally, while perceiving through your familiar’s senses, you can also speak through your familiar in your own voice, even if your familiar is normally incapable of speech.",
+        "prerequisite_level": null,
+        "prerequisite_feature": "Pact of the Chain"
+      },
+      {
+        "name": "Whispers of the Grave",
+        "description": "You can cast Speak with Dead without expending a spell slot.",
+        "prerequisite_level": 7
+      },
+      {
+        "name": "Witch Sight",
+        "description": "You can see the true form of any Shapechanger or creature concealed by illusion or transmutation magic while the creature is within 30 feet of you and within your line of sight.",
+        "prerequisite_level": 15
+      }
+    ]
+  },
+  "artificer": {
+    "choice_label": "Magic Item Plan",
+    "choice_plural": "Magic Item Plans",
+    "gains_by_level": {
+      "2": 4,
+      "6": 1,
+      "10": 1,
+      "14": 1,
+      "18": 1
+    },
+    "can_replace": true,
+    "options": [
+      {
+        "name": "Alchemy Jug",
+        "description": "No attunement required. An alchemy jug can produce various liquids on command.",
+        "min_level": 2
+      },
+      {
+        "name": "Bag of Holding",
+        "description": "No attunement required. This bag has an interior space considerably larger than its outside dimensions.",
+        "min_level": 2
+      },
+      {
+        "name": "Cap of Water Breathing",
+        "description": "No attunement required. While wearing this cap underwater, you can breathe normally.",
+        "min_level": 2
+      },
+      {
+        "name": "Common magic item (not a Potion, Scroll, or cursed)",
+        "description": "Varies. You can select this option multiple times, choosing a different common magic item each time.",
+        "min_level": 2
+      },
+      {
+        "name": "Goggles of Night",
+        "description": "No attunement required. While wearing these dark lenses, you have Darkvision out to 60 feet.",
+        "min_level": 2
+      },
+      {
+        "name": "Manifold Tool",
+        "description": "Requires attunement. A tool that can transform into different types of artisan’s tools.",
+        "min_level": 2
+      },
+      {
+        "name": "Repeating Shot",
+        "description": "Requires attunement. A weapon with the Ammunition property that magically produces one piece of ammunition each time you make a ranged attack.",
+        "min_level": 2
+      },
+      {
+        "name": "Returning Weapon",
+        "description": "No attunement required. A thrown weapon with the Thrown property that returns to your hand after each throw.",
+        "min_level": 2
+      },
+      {
+        "name": "Rope of Climbing",
+        "description": "No attunement required. This 60-foot length of rope can animate on command.",
+        "min_level": 2
+      },
+      {
+        "name": "Sending Stones",
+        "description": "No attunement required. A matched pair of stones allows telepathic communication between the bearers.",
+        "min_level": 2
+      },
+      {
+        "name": "Shield +1",
+        "description": "No attunement required. While holding this shield, you have a +1 bonus to AC.",
+        "min_level": 2
+      },
+      {
+        "name": "Wand of Magic Detection",
+        "description": "No attunement required. This wand has 3 charges and can cast Detect Magic.",
+        "min_level": 2
+      },
+      {
+        "name": "Wand of Secrets",
+        "description": "No attunement required. This wand has 3 charges and can detect secret doors and traps.",
+        "min_level": 2
+      },
+      {
+        "name": "Wand of the War Mage +1",
+        "description": "Requires attunement by a spellcaster. While holding this wand, you gain a +1 bonus to spell attack rolls.",
+        "min_level": 2
+      },
+      {
+        "name": "Weapon +1",
+        "description": "No attunement required. You have a +1 bonus to attack and damage rolls made with this weapon.",
+        "min_level": 2
+      },
+      {
+        "name": "Wraps of Unarmed Power +1",
+        "description": "No attunement required. While wearing these wraps, your Unarmed Strikes deal +1 damage.",
+        "min_level": 2
+      },
+      {
+        "name": "Armor +1",
+        "description": "No attunement required. While wearing this armor, you have a +1 bonus to AC.",
+        "min_level": 6
+      },
+      {
+        "name": "Boots of Elvenkind",
+        "description": "No attunement required. While you wear these boots, your steps make no sound.",
+        "min_level": 6
+      },
+      {
+        "name": "Boots of the Winding Path",
+        "description": "Requires attunement. While attuned, you can teleport up to 15 feet to a space you can see.",
+        "min_level": 6
+      },
+      {
+        "name": "Cloak of Elvenkind",
+        "description": "Requires attunement. While attuned and the hood is up, you have Advantage on Stealth checks.",
+        "min_level": 6
+      },
+      {
+        "name": "Cloak of the Manta Ray",
+        "description": "No attunement required. While wearing this cloak, you can breathe underwater and have a Swim Speed of 60 feet.",
+        "min_level": 6
+      },
+      {
+        "name": "Dazzling Weapon",
+        "description": "Requires attunement. When you score a critical hit, the target is Blinded until the end of your next turn.",
+        "min_level": 6
+      },
+      {
+        "name": "Eyes of Charming",
+        "description": "Requires attunement. This pair of crystal lenses fits over the eyes. While wearing them, you can cast Charm Person (save DC 13) without expending a spell slot.",
+        "min_level": 6
+      },
+      {
+        "name": "Eyes of Minute Seeing",
+        "description": "No attunement required. These crystal lenses grant you Advantage on Investigation checks made to examine an object or area within 1 foot.",
+        "min_level": 6
+      },
+      {
+        "name": "Gloves of Thievery",
+        "description": "No attunement required. These gloves give you a +5 bonus to Sleight of Hand checks and Dexterity checks made to pick locks.",
+        "min_level": 6
+      },
+      {
+        "name": "Helm of Awareness",
+        "description": "No attunement required. While wearing this helmet, you can’t be surprised and have Advantage on Initiative rolls.",
+        "min_level": 6
+      },
+      {
+        "name": "Lantern of Revealing",
+        "description": "No attunement required. While lit, this lantern sheds Bright Light in a 30-foot radius and reveals Invisible creatures and objects.",
+        "min_level": 6
+      },
+      {
+        "name": "Mind Sharpener",
+        "description": "Requires attunement. This item can interrupt a failed Concentration check, allowing you to maintain concentration.",
+        "min_level": 6
+      },
+      {
+        "name": "Necklace of Adaption",
+        "description": "Requires attunement. While wearing this necklace, you can breathe normally in any environment, and you have Advantage on saving throws against harmful gases.",
+        "min_level": 6
+      },
+      {
+        "name": "Pipes of Haunting",
+        "description": "No attunement required. You must be proficient with wind instruments to use these pipes. They have 3 charges and can cast Fear.",
+        "min_level": 6
+      },
+      {
+        "name": "Repulsion Shield",
+        "description": "No attunement required. A shield that can push creatures away when you perform the Shove action.",
+        "min_level": 6
+      },
+      {
+        "name": "Ring of Swimming",
+        "description": "No attunement required. You have a Swim Speed of 40 feet while wearing this ring.",
+        "min_level": 6
+      },
+      {
+        "name": "Ring of Water Walking",
+        "description": "No attunement required. While wearing this ring, you can stand on and move across any liquid surface as if it were solid ground.",
+        "min_level": 6
+      },
+      {
+        "name": "Sentinel Shield",
+        "description": "No attunement required. While holding this shield, you have Advantage on Initiative rolls and Perception checks.",
+        "min_level": 6
+      },
+      {
+        "name": "Spell-Refueling Ring",
+        "description": "Requires attunement. While wearing this ring, once per day when you expend a spell slot, you can regain one expended spell slot of the same level or lower.",
+        "min_level": 6
+      },
+      {
+        "name": "Wand of Magic Missiles",
+        "description": "No attunement required. This wand has 7 charges and can cast Magic Missile.",
+        "min_level": 6
+      },
+      {
+        "name": "Wand of Web",
+        "description": "Requires attunement by a spellcaster. This wand has 7 charges and can cast Web.",
+        "min_level": 6
+      },
+      {
+        "name": "Weapon of Warning",
+        "description": "Requires attunement. This magic weapon warns you of danger. While the weapon is on your person, you have Advantage on Initiative rolls.",
+        "min_level": 6
+      },
+      {
+        "name": "Armor of Resistance",
+        "description": "Requires attunement. While wearing this armor, you have Resistance to one type of damage.",
+        "min_level": 10
+      },
+      {
+        "name": "Dagger of Venom",
+        "description": "No attunement required. This dagger has a groove running down the blade. You can use a Bonus Action to cause thick, dark poison to coat the blade.",
+        "min_level": 10
+      },
+      {
+        "name": "Elven Chain",
+        "description": "No attunement required. You gain a +1 bonus to AC while wearing this armor. You are considered proficient with this armor even if you lack proficiency with medium armor.",
+        "min_level": 10
+      },
+      {
+        "name": "Ring of Feather Falling",
+        "description": "Requires attunement. When you fall while wearing this ring, you descend 60 feet per round and take no damage from falling.",
+        "min_level": 10
+      },
+      {
+        "name": "Ring of Jumping",
+        "description": "Requires attunement. While wearing this ring, you can cast Jump on yourself as a Bonus Action.",
+        "min_level": 10
+      },
+      {
+        "name": "Ring of Mind Shielding",
+        "description": "Requires attunement. While wearing this ring, you are immune to magic that allows other creatures to read your thoughts, determine if you are lying, or know your alignment.",
+        "min_level": 10
+      },
+      {
+        "name": "Shield +2",
+        "description": "No attunement required. While holding this shield, you have a +2 bonus to AC.",
+        "min_level": 10
+      },
+      {
+        "name": "Uncommon Wondrous Item (not cursed)",
+        "description": "Varies. You can select this option multiple times, choosing a different uncommon wondrous item each time.",
+        "min_level": 10
+      },
+      {
+        "name": "Wand of the War Mage +2",
+        "description": "Requires attunement by a spellcaster. While holding this wand, you gain a +2 bonus to spell attack rolls.",
+        "min_level": 10
+      },
+      {
+        "name": "Weapon +2",
+        "description": "No attunement required. You have a +2 bonus to attack and damage rolls made with this weapon.",
+        "min_level": 10
+      },
+      {
+        "name": "Wraps of Unarmed Power +2",
+        "description": "No attunement required. While wearing these wraps, your Unarmed Strikes deal +2 damage.",
+        "min_level": 10
+      },
+      {
+        "name": "Armor +2",
+        "description": "No attunement required. While wearing this armor, you have a +2 bonus to AC.",
+        "min_level": 14
+      },
+      {
+        "name": "Arrow-Catching Shield",
+        "description": "Requires attunement. You gain a +2 bonus to AC against ranged attacks while holding this shield.",
+        "min_level": 14
+      },
+      {
+        "name": "Flame Tongue",
+        "description": "Requires attunement. While the blade is ignited, the sword deals an extra 2d6 Fire damage on a hit and sheds Bright Light in a 40-foot radius.",
+        "min_level": 14
+      },
+      {
+        "name": "Rare Wondrous Item (not cursed)",
+        "description": "Varies. You can select this option multiple times, choosing a different rare wondrous item each time.",
+        "min_level": 14
+      },
+      {
+        "name": "Ring of Free Action",
+        "description": "Requires attunement. While wearing this ring, Difficult Terrain doesn’t cost you extra movement, and magic can neither reduce your Speed nor cause you to have the Paralyzed or Restrained condition.",
+        "min_level": 14
+      },
+      {
+        "name": "Ring of Protection",
+        "description": "Requires attunement. You gain a +1 bonus to AC and saving throws while wearing this ring.",
+        "min_level": 14
+      },
+      {
+        "name": "Ring of the Ram",
+        "description": "Requires attunement. This ring has 3 charges and can cast a force ram attack.",
+        "min_level": 14
+      }
+    ]
+  },
+  "battle-master": {
+    "choice_label": "Maneuver",
+    "choice_plural": "Maneuvers",
+    "gains_by_level": {
+      "3": 3,
+      "7": 2,
+      "10": 2,
+      "15": 2
+    },
+    "can_replace": true,
+    "options": [
+      {
+        "name": "Ambush",
+        "description": "When you make a Dexterity (Stealth) check or an Initiative roll, you can expend one Superiority Die and add the die to the roll, unless you have the Incapacitated condition."
+      },
+      {
+        "name": "Bait and Switch",
+        "description": "When you’re within 5 feet of a creature on your turn, you can expend one Superiority Die and switch places with that creature, provided you spend at least 5 feet of movement and the creature is willing and doesn’t have the Incapacitated condition. This movement doesn’t provoke Opportunity Attacks. Roll the Superiority Die. Until the start of your next turn, you or the other creature (your choice) gains a bonus to AC equal to the number rolled."
+      },
+      {
+        "name": "Commander’s Strike",
+        "description": "When you take the Attack action on your turn, you can replace one of your attacks to direct one of your companions to strike. When you do so, choose a willing creature who can see or hear you and expend one Superiority Die. That creature can immediately use its Reaction to make one attack with a weapon or an Unarmed Strike, adding the Superiority Die to the attack’s damage roll on a hit."
+      },
+      {
+        "name": "Commanding Presence",
+        "description": "When you make a Charisma (Intimidation, Performance, or Persuasion) check, you can expend one Superiority Die and add that die to the roll."
+      },
+      {
+        "name": "Disarming Attack",
+        "description": "When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to disarm the target. Add the Superiority Die roll to the attack’s damage roll. The target must succeed on a Strength saving throw or drop one object of your choice that it’s holding, with the object landing in its space."
+      },
+      {
+        "name": "Distracting Strike",
+        "description": "When you hit a creature with an attack roll, you can expend one Superiority Die to distract the target. Add the Superiority Die roll to the attack’s damage roll. The next attack roll against the target by an attacker other than you has Advantage if the attack is made before the start of your next turn."
+      },
+      {
+        "name": "Evasive Footwork",
+        "description": "As a Bonus Action, you can expend one Superiority Die and take the Disengage action. You also roll the die and add the number rolled to your AC until the start of your next turn."
+      },
+      {
+        "name": "Feinting Attack",
+        "description": "As a Bonus Action, you can expend one Superiority Die to feint, choosing one creature within 5 feet of yourself as your target. You have Advantage on your next attack roll against that target this turn. If that attack hits, add the Superiority Die to the attack’s damage roll."
+      },
+      {
+        "name": "Goading Attack",
+        "description": "When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to goad the target into attacking you. Add the Superiority Die to the attack’s damage roll. The target must succeed on a Wisdom saving throw or have Disadvantage on attack rolls against targets other than you until the end of your next turn."
+      },
+      {
+        "name": "Lunging Attack",
+        "description": "As a Bonus Action, you can expend one Superiority Die and take the Dash action. If you move at least 5 feet in a straight line immediately before hitting with a melee attack as part of the Attack action on this turn, you can add the Superiority Die to the attack’s damage roll."
+      },
+      {
+        "name": "Maneuvering Attack",
+        "description": "When you hit a creature with an attack roll, you can expend one Superiority Die to maneuver one of your comrades into another position. Add the Superiority Die roll to the attack’s damage roll, and choose a willing creature who can see or hear you. That creature can use its Reaction to move up to half its Speed without provoking an Opportunity Attacks from the target of your attack."
+      },
+      {
+        "name": "Menacing Attack",
+        "description": "When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to frighten the target. Add the Superiority Die to the attack’s damage roll. The target must succeed on a Wisdom saving throw or have the Frightened condition until the end of your next turn."
+      },
+      {
+        "name": "Parry",
+        "description": "When another creature damages you with a melee attack roll, you can take a Reaction and expend one Superiority Die to reduce the damage by the number you roll on your Superiority Die plus your Strength or Dexterity modifier (your choice)."
+      },
+      {
+        "name": "Precision Attack",
+        "description": "When you miss with an attack roll, you can expend one Superiority Die, roll that die, and add it to the attack roll, potentially causing the attack to hit."
+      },
+      {
+        "name": "Pushing Attack",
+        "description": "When you hit a creature with an attack roll using a weapon or an Unarmed Strike, you can expend one Superiority Die to attempt to drive the target back. Add the Superiority Die to the attack’s damage roll. If the target is Large or smaller, it must succeed on a Strength saving throw or be pushed up to 15 feet directly away from you."
+      },
+      {
+        "name": "Rally",
+        "description": "As a Bonus Action, you can expend one Superiority Die to bolster the resolve of a companion. Choose an ally of yours within 30 feet of yourself who can see or hear you. That creature gains Temporary Hit Points equal to the Superiority Die roll plus half your Fighter level (round down)."
+      },
+      {
+        "name": "Riposte",
+        "description": "When a creature misses you with a melee attack roll, you can take a Reaction and expend one Superiority Die to make a melee attack roll with a weapon or an Unarmed Strike against the creature. If you hit, add the Superiority Die to the attack’s damage."
+      },
+      {
+        "name": "Sweeping Attack",
+        "description": "When you hit a creature with a melee attack roll using a weapon or an Unarmed Strike, you can expend one Superiority Die to attempt to damage another creature. Choose another creature within 5 feet of the original target and within your reach. If the original attack roll would hit the second creature, it takes damage equal to the number you roll on your Superiority Die. The damage is of the same type dealt by the original attack."
+      },
+      {
+        "name": "Tactical Assessment",
+        "description": "When you make an Intelligence (History or Investigation) check or a Wisdom (Insight) check, you can expend one Superiority Die and add that die to the ability check."
+      },
+      {
+        "name": "Trip Attack",
+        "description": "When you hit a creature with an attack roll using a weapon or an Unarmed Strike, you can expend one Superiority Die and add the die to the attack’s damage roll. If the target is Large or smaller, it must succeed on a Strength saving throw or have the Prone condition."
+      }
+    ]
+  },
+  "arcane-archer2": {
+    "choice_label": "Arcane Shot Option",
+    "choice_plural": "Arcane Shot Options",
+    "gains_by_level": {
+      "3": 2,
+      "7": 1,
+      "10": 1,
+      "15": 1,
+      "18": 1
+    },
+    "can_replace": true,
+    "options": [
+      {
+        "name": "Banishing Shot",
+        "description": "Your ammunition temporarily sequesters your target in a harmless demiplane. The creature you hit takes additional Psychic damage equal to one roll of your Arcane Shot Die and must succeed on a Charisma saving throw or be banished. While banished, the creature has the Incapacitated condition and a Speed of 0. At the end of its next turn, the target reappears in the space it left or, if that space is occupied, in the nearest unoccupied space."
+      },
+      {
+        "name": "Beguiling Shot",
+        "description": "Your ammunition beguiles your target. The creature you hit takes additional Psychic damage equal to two rolls of your Arcane Shot Die and must succeed on a Wisdom saving throw or have the Charmed condition until the start of your next turn, treating either you or one of your allies within 30 feet of the target (your choice) as the charmer. The Charmed condition ends early if the charmer attacks the target, deals damage to it, or forces it to make a saving throw."
+      },
+      {
+        "name": "Bursting Shot",
+        "description": "You imbue your ammunition with explosive force energy. Immediately after you deal damage to the creature, your target and each creature within a 10-foot Emanation originating from the target take Force damage equal to two rolls of your Arcane Shot Die."
+      },
+      {
+        "name": "Enfeebling Shot",
+        "description": "Your ammunition saps your target’s strength. The creature you hit takes additional Necrotic damage equal to two rolls of your Arcane Shot Die. The target must also succeed on a Constitution saving throw or have the Poisoned condition until the end of its next turn. Whenever a target Poisoned in this way hits with an attack roll, it subtracts an amount equal to one roll of your Arcane Shot Die from the total damage of that attack."
+      },
+      {
+        "name": "Grasping Shot",
+        "description": "Your ammunition creates clutching brambles around your target. The creature you hit takes additional Slashing damage equal to one roll of your Arcane Shot Die and must succeed on a Strength saving throw or have the Restrained condition for 1 minute or until you use this option again. The target or a creature within reach of it can take an action to make a Strength (Athletics) check against your Arcane Shot DC, removing the brambles and ending the Restrained condition on the target on a successful check."
+      },
+      {
+        "name": "Piercing Shot",
+        "description": "You give your ammunition an ethereal quality. When you use this option, you don’t make an attack roll for the attack. Instead, the ammunition shoots forward in a 30-foot Line that is 1 foot wide, originating from you, then vanishes. The Line ignores cover, as the ammunition phases through solid objects. Each creature in the Line must make a Dexterity saving throw. On a failed save, a creature takes damage as if it were hit plus additional Piercing damage equal to two rolls of your Arcane Shot Die. On a successful save, a creature takes half as much damage."
+      },
+      {
+        "name": "Seeking Shot",
+        "description": "Your ammunition can seek out a target. When you use this option, you don’t make an attack roll for the attack. Instead, choose one creature you have seen in the last minute. The ammunition flies toward that creature, moving around corners if necessary and ignoring Half Cover and Three-Quarters Cover. If the target is within your weapon’s long range, the target must make a Dexterity saving throw. On a failed save, the target takes damage as if it were hit plus additional Force damage equal to two rolls of your Arcane Shot Die, and you learn the target’s current location. On a successful save, the target takes half as much damage only. If the target is beyond your weapon’s long range, the ammunition disappears after traveling as far as it can."
+      },
+      {
+        "name": "Shadow Shot",
+        "description": "Your ammunition occludes your foe’s vision with shadows. The creature you hit takes additional Psychic damage equal to one roll of your Arcane Shot Die, and it must succeed on a Wisdom saving throw or have the Blinded condition until the end of its next turn."
+      }
+    ]
+  }
+}
