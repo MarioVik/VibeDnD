@@ -22,6 +22,36 @@ LEVEL_NAMES = {
 }
 
 
+def _spell_detail_lines(spell: dict) -> list[str]:
+    """Build the detail text lines for a spell dict."""
+    lines = [
+        spell["name"],
+        f"{'Cantrip' if spell['level'] == 0 else 'Level ' + str(spell['level'])} "
+        f"{spell['school']}",
+        f"Casting Time: {spell.get('casting_time', '?')}"
+        f"{'  (Ritual)' if spell.get('ritual') else ''}",
+        f"Range: {spell.get('range', '?')}",
+        f"Duration: {'Concentration, ' if spell.get('concentration') else ''}"
+        f"{spell.get('duration', '?')}",
+        "",
+        spell.get("description", ""),
+    ]
+    if spell.get("higher_levels"):
+        lines.extend(["", f"At Higher Levels: {spell['higher_levels']}"])
+    if spell.get("cantrip_upgrade"):
+        lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade']}"])
+    return lines
+
+
+def _max_detail_height(*spell_lists: list[dict], lower: int = 4, upper: int = 20) -> int:
+    """Return the line count needed to fit the longest spell description."""
+    max_lines = lower
+    for spells in spell_lists:
+        for spell in spells:
+            max_lines = max(max_lines, len(_spell_detail_lines(spell)))
+    return min(max_lines, upper)
+
+
 class SpellSwapPanel:
     """Builds a two-column spell swap UI with level headers, scrollable lists,
     and a shared spell-detail panel.
@@ -145,12 +175,14 @@ class SpellSwapPanel:
             ).pack(anchor="w", padx=8, pady=4)
 
         # --- Shared Detail Panel ---
+        all_spells = forget_spells + learn_spells + (forget_cantrips or []) + (learn_cantrips or [])
+        detail_h = _max_detail_height(all_spells)
         detail_lf = ttk.LabelFrame(parent, text="Spell Details")
         detail_lf.pack(fill=tk.X, pady=(4, 0))
         self._detail_text = tk.Text(
             detail_lf,
             wrap=tk.WORD,
-            height=6,
+            height=detail_h,
             bg=COLORS["bg_light"],
             fg=COLORS["fg"],
             font=FONTS["body"],
@@ -174,23 +206,7 @@ class SpellSwapPanel:
     def _show_detail(self, spell: dict):
         self._detail_text.configure(state=tk.NORMAL)
         self._detail_text.delete("1.0", tk.END)
-        lines = [
-            spell["name"],
-            f"{'Cantrip' if spell['level'] == 0 else 'Level ' + str(spell['level'])} "
-            f"{spell['school']}",
-            f"Casting Time: {spell.get('casting_time', '?')}"
-            f"{'  (Ritual)' if spell.get('ritual') else ''}",
-            f"Range: {spell.get('range', '?')}",
-            f"Duration: {'Concentration, ' if spell.get('concentration') else ''}"
-            f"{spell.get('duration', '?')}",
-            "",
-            spell.get("description", ""),
-        ]
-        if spell.get("higher_levels"):
-            lines.extend(["", f"At Higher Levels: {spell['higher_levels']}"])
-        if spell.get("cantrip_upgrade"):
-            lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade']}"])
-        self._detail_text.insert("1.0", "\n".join(lines))
+        self._detail_text.insert("1.0", "\n".join(_spell_detail_lines(spell)))
         self._detail_text.configure(state=tk.DISABLED)
 
     # ── Enable/disable logic (with cantrip distinction) ──
@@ -328,12 +344,13 @@ class MultiSpellSwapPanel:
             ).pack(anchor="w", padx=8, pady=4)
 
         # --- Shared Detail Panel ---
+        detail_h = _max_detail_height(forget_spells, learn_spells)
         detail_lf = ttk.LabelFrame(parent, text="Spell Details")
         detail_lf.pack(fill=tk.X, pady=(4, 0))
         self._detail_text = tk.Text(
             detail_lf,
             wrap=tk.WORD,
-            height=6,
+            height=detail_h,
             bg=COLORS["bg_light"],
             fg=COLORS["fg"],
             font=FONTS["body"],
@@ -359,23 +376,7 @@ class MultiSpellSwapPanel:
     def _show_detail(self, spell: dict):
         self._detail_text.configure(state=tk.NORMAL)
         self._detail_text.delete("1.0", tk.END)
-        lines = [
-            spell["name"],
-            f"{'Cantrip' if spell['level'] == 0 else 'Level ' + str(spell['level'])} "
-            f"{spell['school']}",
-            f"Casting Time: {spell.get('casting_time', '?')}"
-            f"{'  (Ritual)' if spell.get('ritual') else ''}",
-            f"Range: {spell.get('range', '?')}",
-            f"Duration: {'Concentration, ' if spell.get('concentration') else ''}"
-            f"{spell.get('duration', '?')}",
-            "",
-            spell.get("description", ""),
-        ]
-        if spell.get("higher_levels"):
-            lines.extend(["", f"At Higher Levels: {spell['higher_levels']}"])
-        if spell.get("cantrip_upgrade"):
-            lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade']}"])
-        self._detail_text.insert("1.0", "\n".join(lines))
+        self._detail_text.insert("1.0", "\n".join(_spell_detail_lines(spell)))
         self._detail_text.configure(state=tk.DISABLED)
 
     # ── Logic ──

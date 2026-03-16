@@ -133,7 +133,7 @@ class RestDialog(tk.Toplevel):
 
         # Center over parent, same pattern as LevelUpWizard
         self.update_idletasks()
-        width, height = 700, 650
+        width, height = 1400, 1000
         top = parent.winfo_toplevel()
         px = top.winfo_rootx()
         py = top.winfo_rooty()
@@ -142,7 +142,7 @@ class RestDialog(tk.Toplevel):
         x = max(0, px + (pw - width) // 2)
         y = max(0, py + (ph - height) // 2)
         self.geometry(f"{width}x{height}+{x}+{y}")
-        self.minsize(600, 450)
+        self.minsize(1000, 750)
 
         configure_modal_dialog(self, parent)
 

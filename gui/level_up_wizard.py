@@ -58,8 +58,8 @@ class LevelUpWizard(tk.Toplevel):
         self.title(f"Level Up - {character.name}")
         # Center the window over the parent main window
         self.update_idletasks()
-        width = 750
-        height = 600
+        width = 1400
+        height = 1000
 
         # Use winfo_toplevel() to get coordinates relative to the main app window
         top = parent.winfo_toplevel()
@@ -76,7 +76,7 @@ class LevelUpWizard(tk.Toplevel):
         y = max(0, y)
 
         self.geometry(f"{width}x{height}+{x}+{y}")
-        self.minsize(650, 500)
+        self.minsize(1000, 750)
         self.configure(bg=COLORS["bg"])
 
         configure_modal_dialog(self, top)
