@@ -173,6 +173,10 @@ class LevelUpWizard(tk.Toplevel):
 
         curr_slots = self.level_data.get("spell_slots") or {}
         max_spell_level = max((_SLOT_ORDER.get(k, 0) for k in curr_slots), default=0)
+        # Pact Magic casters (Warlock) use pact_slot_level instead of spell_slots
+        pact_level = to_int(self.level_data.get("pact_slot_level"))
+        if pact_level > max_spell_level:
+            max_spell_level = pact_level
 
         return (
             max(curr_cantrips - prev_cantrips, 0),
@@ -1494,6 +1498,10 @@ class LevelUpWizard(tk.Toplevel):
             max_spell_level = max(
                 (_SLOT_ORDER.get(k, 0) for k in curr_slots), default=0
             )
+            # Pact Magic fallback (Warlock)
+            pact_lvl = self.level_data.get("pact_slot_level")
+            if pact_lvl and isinstance(pact_lvl, int) and pact_lvl > max_spell_level:
+                max_spell_level = pact_lvl
 
         # ── heading ───────────────────────────────────────────────
         ttk.Label(

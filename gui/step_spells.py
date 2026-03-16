@@ -309,6 +309,19 @@ class SpellsStep(WizardStep):
             else:
                 cb.configure(state=tk.NORMAL)
 
+    def is_valid(self) -> bool:
+        """Spells step is valid only when all cantrip and spell slots are filled."""
+        cls = self.character.character_class
+        if not cls or not cls.get("caster_type"):
+            return True  # non-caster, nothing to pick
+        cantrip_max = cls.get("cantrips_known", 0) or 0
+        spell_max = cls.get("spells_prepared", 0) or 0
+        if cantrip_max > 0 and len(self.character.selected_cantrips) < cantrip_max:
+            return False
+        if spell_max > 0 and len(self.character.selected_spells) < spell_max:
+            return False
+        return True
+
     # ── spell detail hover ───────────────────────────────────────
 
     def _show_detail(self, spell):

@@ -244,6 +244,22 @@ class CharacterCreatorApp:
                     f"{species_name} requires an additional choice before moving on. "
                     "Please pick one option in the species details panel.",
                 )
+            elif isinstance(step, SpellsStep):
+                cls = self.character.character_class or {}
+                cantrip_max = cls.get("cantrips_known", 0) or 0
+                spell_max = cls.get("spells_prepared", 0) or 0
+                cantrip_count = len(self.character.selected_cantrips)
+                spell_count = len(self.character.selected_spells)
+                parts = []
+                if cantrip_max > 0 and cantrip_count < cantrip_max:
+                    parts.append(f"{cantrip_count}/{cantrip_max} cantrips")
+                if spell_max > 0 and spell_count < spell_max:
+                    parts.append(f"{spell_count}/{spell_max} spells")
+                AlertDialog(
+                    self.root,
+                    "Spell Selection Required",
+                    f"Select all your spells before moving on. ({', '.join(parts)} selected)",
+                )
             return
 
         if curr < len(self.wizard_steps) - 1:
