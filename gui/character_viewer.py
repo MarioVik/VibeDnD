@@ -1396,7 +1396,7 @@ class CharacterViewer(ttk.Frame):
             self.character,
             self.data,
             rest_type="short",
-            on_changed=lambda: (self._on_sheet_changed(), self._refresh_sheet()),
+            on_changed=lambda: (self._on_sheet_changed(), self._refresh_tabs()),
         )
 
     def _on_long_rest(self):
@@ -1405,7 +1405,7 @@ class CharacterViewer(ttk.Frame):
             self.character,
             self.data,
             rest_type="long",
-            on_changed=lambda: (self._on_sheet_changed(), self._refresh_sheet()),
+            on_changed=lambda: (self._on_sheet_changed(), self._refresh_tabs()),
         )
 
     def _on_level_up(self):
