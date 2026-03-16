@@ -18,7 +18,8 @@
       "Bash(ls -la C:VibeDnDguistep_class*.py)",
       "Bash(grep -E \"\\\\.\\(py|ts|js\\)$\")",
       "Bash(grep -rn \"class.*Wizard\\\\|class.*Creator\\\\|def.*wizard\\\\|def.*creator\" /c/VibeDnD/gui/*.py)",
-      "Bash(grep -n \"import.*WizardStep\\\\|from.*WizardStep\\\\|from gui\\\\|import gui\" /c/VibeDnD/gui/*.py)"
+      "Bash(grep -n \"import.*WizardStep\\\\|from.*WizardStep\\\\|from gui\\\\|import gui\" /c/VibeDnD/gui/*.py)",
+      "Bash(grep -r \"def.*spell\" /c/VibeDnD/gui/*.py)"
     ]
   }
 }

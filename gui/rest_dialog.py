@@ -8,7 +8,8 @@ import tkinter as tk
 from tkinter import ttk
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import ScrollableFrame, AlertDialog
+from gui.widgets import ScrollableFrame, AlertDialog, configure_modal_dialog
+from gui.spell_swap_panel import SpellSwapPanel
 
 # Load class choices data (same file as level_up_wizard)
 _CHOICES_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "class_choices.json")
@@ -94,10 +95,23 @@ class RestDialog(tk.Toplevel):
 
         title = "Short Rest" if rest_type == "short" else "Long Rest"
         self.title(title)
-        self.geometry("700x520")
-        self.transient(parent)
-        self.grab_set()
         self.resizable(True, True)
+        self.configure(bg=COLORS["bg"])
+
+        # Center over parent, same pattern as LevelUpWizard
+        self.update_idletasks()
+        width, height = 700, 650
+        top = parent.winfo_toplevel()
+        px = top.winfo_rootx()
+        py = top.winfo_rooty()
+        pw = top.winfo_width()
+        ph = top.winfo_height()
+        x = max(0, px + (pw - width) // 2)
+        y = max(0, py + (ph - height) // 2)
+        self.geometry(f"{width}x{height}+{x}+{y}")
+        self.minsize(600, 450)
+
+        configure_modal_dialog(self, parent)
 
         # State: maps choice_key -> {new_choice: str, old_choice: str}
         self._swaps: dict[str, dict] = {}
@@ -109,11 +123,11 @@ class RestDialog(tk.Toplevel):
 
     def _build_ui(self, title: str):
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
+        self.rowconfigure(1, weight=1)  # main content row expands
 
         # ── Header ─────────────────────────────────────────────────
         header = ttk.Frame(self)
-        header.grid(row=0, column=0, sticky="ew", padx=16, pady=(16, 4))
+        header.grid(row=0, column=0, sticky="ew", padx=12, pady=(8, 2))
 
         ttk.Label(
             header,
@@ -127,20 +141,17 @@ class RestDialog(tk.Toplevel):
             foreground=COLORS["fg_dim"],
         ).pack(anchor="w")
 
-        # ── Scrollable content area ─────────────────────────────────
-        scroll = ScrollableFrame(self)
-        scroll.grid(row=1, column=0, sticky="nsew", padx=16, pady=4)
-        inner = scroll.inner
-
         any_section = False
+        has_features = False
 
-        # ── Feature swap sections ────────────────────────────────────
+        # ── Check for feature swap sections ────────────────────────
         all_keys: set[str] = set()
         for cl in self.character.class_levels:
             all_keys.add(cl.class_slug)
             if cl.subclass_slug:
                 all_keys.add(cl.subclass_slug)
 
+        feature_keys = []
         for key in sorted(all_keys):
             config = _CLASS_CHOICES.get(key)
             if not config or not config.get("can_swap_on_rest"):
@@ -148,29 +159,52 @@ class RestDialog(tk.Toplevel):
             swap_type = config.get("swap_rest_type", "long")
             if self.rest_type == "short" and swap_type not in ("short", "short_or_long"):
                 continue
-
             known = _get_all_known_choices(self.character, key)
-            if not known:
-                continue
+            if known:
+                feature_keys.append((key, config, known))
 
+        # ── Feature swap sections (in scrollable area if present) ──
+        if feature_keys:
+            has_features = True
             any_section = True
-            self._build_feature_section(inner, key, config, known)
+            scroll = ScrollableFrame(self)
+            scroll.grid(row=1, column=0, sticky="nsew", padx=8, pady=2)
+            inner = scroll.inner
+            for key, config, known in feature_keys:
+                self._build_feature_section(inner, key, config, known)
 
-        # ── Prepared spell swap section (Long Rest only) ─────────────
-        if self.rest_type == "long" and _is_prepared_caster(self.character) and self.character.selected_spells:
+        # ── Prepared spell swap section (Long Rest only) ───────────
+        has_spells = (
+            self.rest_type == "long"
+            and _is_prepared_caster(self.character)
+            and self.character.selected_spells
+        )
+        if has_spells:
             any_section = True
-            self._build_spell_section(inner)
+            # Spell panel goes directly into the main grid (not inside ScrollableFrame)
+            # so its own scrollable columns work properly
+            spell_row = 2 if has_features else 1
+            if not has_features:
+                self.rowconfigure(1, weight=1)
+            else:
+                self.rowconfigure(2, weight=1)
+                self.rowconfigure(1, weight=0)
+
+            spell_frame = ttk.Frame(self)
+            spell_frame.grid(row=spell_row, column=0, sticky="nsew", padx=8, pady=2)
+            self._build_spell_section(spell_frame)
 
         if not any_section:
             ttk.Label(
-                inner,
+                self,
                 text="Nothing to swap on this rest.",
                 foreground=COLORS["fg_dim"],
-            ).pack(pady=20)
+            ).grid(row=1, column=0, pady=20)
 
         # ── Footer ──────────────────────────────────────────────────
+        footer_row = 3 if has_features and has_spells else 2
         footer = ttk.Frame(self)
-        footer.grid(row=2, column=0, sticky="ew", padx=16, pady=(4, 12))
+        footer.grid(row=footer_row, column=0, sticky="ew", padx=12, pady=(4, 8))
 
         ttk.Button(
             footer,
@@ -270,84 +304,86 @@ class RestDialog(tk.Toplevel):
                 foreground=COLORS["fg_dim"],
             ).pack(anchor="w", padx=8, pady=4)
 
+    def _max_spell_level(self) -> int:
+        """Compute the highest spell slot level available to this character."""
+        _SLOT_ORDER = {
+            "1st": 1, "2nd": 2, "3rd": 3, "4th": 4, "5th": 5,
+            "6th": 6, "7th": 7, "8th": 8, "9th": 9,
+        }
+        max_lvl = 0
+        for cl in self.character.class_levels:
+            if cl.class_slug not in _PREPARED_CASTER_CLASSES:
+                continue
+            class_level = self.character.class_level_in(cl.class_slug)
+            level_data = self.data.get_level_data(cl.class_slug, class_level)
+            if level_data:
+                slots = level_data.get("spell_slots") or {}
+                for k in slots:
+                    max_lvl = max(max_lvl, _SLOT_ORDER.get(k, 0))
+        return max_lvl
+
     def _build_spell_section(self, parent):
-        frame = ttk.LabelFrame(parent, text="Change Prepared Spells")
-        frame.pack(fill=tk.X, pady=(8, 0), padx=4)
+        parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(1, weight=1)
 
         ttk.Label(
-            frame,
+            parent,
             text="You may replace one prepared spell with another from your class spell list.",
             foreground=COLORS["fg_dim"],
-        ).pack(anchor="w", padx=8, pady=(4, 8))
+        ).grid(row=0, column=0, sticky="w", padx=4, pady=(2, 4))
 
-        cols = ttk.Frame(frame)
-        cols.pack(fill=tk.X, padx=8, pady=(0, 8))
-        cols.columnconfigure(0, weight=1)
-        cols.columnconfigure(1, weight=1)
-
-        # Left: Remove a prepared spell
-        remove_lf = ttk.LabelFrame(cols, text="Unprepare")
-        remove_lf.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
-
-        ttk.Radiobutton(
-            remove_lf,
-            text="Don\u2019t change",
-            variable=self._spell_remove_var,
-            value="",
-        ).pack(anchor="w", padx=8, pady=2)
-
-        for spell in sorted(self.character.selected_spells):
-            ttk.Radiobutton(
-                remove_lf,
-                text=spell,
-                variable=self._spell_remove_var,
-                value=spell,
-            ).pack(anchor="w", padx=(16, 8), pady=1)
-
-        # Right: Prepare a new spell from class spell list
-        add_lf = ttk.LabelFrame(cols, text="Prepare instead")
-        add_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
-
-        ttk.Radiobutton(
-            add_lf,
-            text="\u2014",
-            variable=self._spell_add_var,
-            value="",
-        ).pack(anchor="w", padx=8, pady=2)
-
-        # Collect available spells from class spell list not already prepared
+        # Gather spell dicts for currently prepared spells
         known_set = set(self.character.selected_spells)
-        available_spells = self._get_available_spells(known_set)
+        forget_spells = self._collect_spell_dicts(known_set)
 
-        for spell_name in sorted(available_spells):
-            ttk.Radiobutton(
-                add_lf,
-                text=spell_name,
-                variable=self._spell_add_var,
-                value=spell_name,
-            ).pack(anchor="w", padx=(16, 8), pady=1)
+        # Gather available spells (not already prepared), limited to castable levels
+        max_lvl = self._max_spell_level()
+        learn_spells = self._collect_available_spell_dicts(known_set, max_lvl)
 
-        if not available_spells:
-            ttk.Label(
-                add_lf,
-                text="No additional spells available.",
-                foreground=COLORS["fg_dim"],
-            ).pack(anchor="w", padx=8, pady=4)
+        content = ttk.Frame(parent)
+        content.grid(row=1, column=0, sticky="nsew")
 
-    def _get_available_spells(self, known_set: set[str]) -> list[str]:
-        """Return spells from class spell lists not already prepared."""
-        available: set[str] = set()
+        self._spell_panel = SpellSwapPanel(
+            content,
+            forget_spells=forget_spells,
+            learn_spells=learn_spells,
+            allow_cantrips=False,
+            left_label="Unprepare",
+            right_label="Prepare instead",
+            no_swap_label="Don\u2019t change",
+        )
+        # Alias vars for _on_confirm
+        self._spell_remove_var = self._spell_panel.forget_var
+        self._spell_add_var = self._spell_panel.learn_var
+
+    def _collect_spell_dicts(self, names: set[str]) -> list[dict]:
+        """Look up full spell dicts for a set of spell names."""
+        result = []
         primary_slugs = {cl.class_slug for cl in self.character.class_levels
                          if cl.class_slug in _PREPARED_CASTER_CLASSES}
-
         for spell in self.data.spells:
-            if spell.get("name") in known_set:
+            if spell.get("name") in names:
+                spell_classes = {c.lower() for c in spell.get("classes", [])}
+                if spell_classes & primary_slugs:
+                    result.append(spell)
+        return result
+
+    def _collect_available_spell_dicts(self, known_set: set[str], max_spell_level: int) -> list[dict]:
+        """Return full spell dicts from class spell lists not already prepared."""
+        result = []
+        primary_slugs = {cl.class_slug for cl in self.character.class_levels
+                         if cl.class_slug in _PREPARED_CASTER_CLASSES}
+        for spell in self.data.spells:
+            name = spell.get("name", "")
+            if not name or name in known_set:
+                continue
+            level = spell.get("level", 0)
+            if level < 1 or level > max_spell_level:
                 continue
             spell_classes = {c.lower() for c in spell.get("classes", [])}
             if spell_classes & primary_slugs:
-                available.add(spell.get("name", ""))
-
-        return [s for s in available if s]
+                result.append(spell)
+        return result
 
     def _on_confirm(self):
         changed = False

@@ -11,6 +11,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 from gui.theme import COLORS, FONTS
+from gui.spell_swap_panel import SpellSwapPanel
 from gui.widgets import (
     ScrollableFrame,
     WrappingLabel,
@@ -1507,248 +1508,59 @@ class LevelUpWizard(tk.Toplevel):
             foreground=COLORS["fg"],
         ).pack(anchor="w", padx=4, pady=(0, 4))
 
-        # ── Two-column split ──
-        cols = ttk.Frame(self.step3_frame)
-        cols.pack(fill=tk.BOTH, expand=True, pady=4)
-        cols.columnconfigure(0, weight=1)
-        cols.columnconfigure(1, weight=1)
-        cols.rowconfigure(0, weight=1)
+        # ── Gather spell data ──
+        def _find_spell(name):
+            for s in self.data.spells_for_class(class_name, max_level=9):
+                if s["name"] == name:
+                    return s
+            for s in self.data.cantrips_for_class(class_name):
+                if s["name"] == name:
+                    return s
+            return None
 
-        LEVEL_NAMES = {
-            1: "1st-Level",
-            2: "2nd-Level",
-            3: "3rd-Level",
-            4: "4th-Level",
-            5: "5th-Level",
-            6: "6th-Level",
-            7: "7th-Level",
-            8: "8th-Level",
-            9: "9th-Level",
-        }
+        forget_cantrips = [d for n in self.character.selected_cantrips if (d := _find_spell(n))]
+        forget_spells = [d for n in self.character.selected_spells if (d := _find_spell(n))]
 
-        def _section_header(parent, title):
-            ttk.Label(
-                parent,
-                text=f"\u2500\u2500 {title} \u2500\u2500",
-                foreground=COLORS["accent"],
-                font=FONTS["body"],
-            ).pack(anchor="w", pady=(6, 2))
+        known_c_set = set(self.character.selected_cantrips) | set(self.selected_new_cantrips)
+        learn_cantrips = [s for s in self.data.cantrips_for_class(class_name)
+                          if s["name"] not in known_c_set]
 
-        # --- LEFT: Forget ---
-        left_lf = ttk.LabelFrame(cols, text="Forget")
-        left_lf.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
-        left_outer = ttk.Frame(left_lf)
-        left_outer.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
-        _, left_inner = self._make_scrollable_list(left_outer)
+        known_s_set = set(self.character.selected_spells) | set(self.selected_new_spells)
+        learn_spells = [s for s in self.data.spells_for_class(class_name, max_level=max_spell_level)
+                        if s["name"] not in known_s_set and s.get("level", 0) >= 1]
 
-        forget_var = tk.StringVar(value="")
-        ttk.Radiobutton(
-            left_inner,
-            text="Don't swap",
-            variable=forget_var,
-            value="",
-        ).pack(anchor="w", pady=1)
-
-        # Cantrips to forget
-        cantrips_to_forget = []
-        for name in self.character.selected_cantrips:
-            d = self._find_spell(name, class_name)
-            if d:
-                cantrips_to_forget.append(d)
-
-        if cantrips_to_forget:
-            _section_header(left_inner, "Cantrips")
-            for spell in sorted(cantrips_to_forget, key=lambda s: s["name"]):
-                rb = ttk.Radiobutton(
-                    left_inner,
-                    text=spell["name"],
-                    variable=forget_var,
-                    value=f"C:{spell['name']}",
-                )
-                rb.pack(anchor="w", pady=1, padx=8)
-                rb.bind("<Enter>", lambda e, s=spell: self._show_swap_detail(s))
-
-        # Spells to forget
-        spells_to_forget = []
-        for name in self.character.selected_spells:
-            d = self._find_spell(name, class_name)
-            if d:
-                spells_to_forget.append(d)
-
-        if spells_to_forget:
-            from itertools import groupby
-
-            spells_to_forget.sort(key=lambda s: (s["level"], s["name"]))
-            for lvl, group in groupby(spells_to_forget, key=lambda s: s["level"]):
-                _section_header(left_inner, LEVEL_NAMES.get(lvl, f"Level {lvl}"))
-                for spell in group:
-                    rb = ttk.Radiobutton(
-                        left_inner,
-                        text=spell["name"],
-                        variable=forget_var,
-                        value=f"S:{spell['name']}",
-                    )
-                    rb.pack(anchor="w", pady=1, padx=8)
-                    rb.bind("<Enter>", lambda e, s=spell: self._show_swap_detail(s))
-
-        # --- RIGHT: Learn ---
-        right_lf = ttk.LabelFrame(cols, text="Learn")
-        right_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
-        right_outer = ttk.Frame(right_lf)
-        right_outer.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
-        _, right_inner = self._make_scrollable_list(right_outer)
-
-        learn_var = tk.StringVar(value="")
-
-        # Available cantrips
-        all_avail_cantrips = self.data.cantrips_for_class(class_name)
-        known_c_set = set(self.character.selected_cantrips)
-        known_c_set.update(self.selected_new_cantrips)
-        avail_cantrips = sorted(
-            [s for s in all_avail_cantrips if s["name"] not in known_c_set],
-            key=lambda s: s["name"],
+        # ── Build shared panel ──
+        self._swap_panel = SpellSwapPanel(
+            self.step3_frame,
+            forget_spells=forget_spells,
+            learn_spells=learn_spells,
+            forget_cantrips=forget_cantrips,
+            learn_cantrips=learn_cantrips,
+            allow_cantrips=True,
         )
 
-        cantrip_rbs = []
-        if avail_cantrips:
-            _section_header(right_inner, "Cantrips")
-            for spell in avail_cantrips:
-                rb = ttk.Radiobutton(
-                    right_inner,
-                    text=spell["name"],
-                    variable=learn_var,
-                    value=spell["name"],
-                )
-                rb.pack(anchor="w", pady=1, padx=8)
-                rb.bind("<Enter>", lambda e, s=spell: self._show_swap_detail(s))
-                cantrip_rbs.append((rb, spell))
-
-        # Available spells
-        all_avail_spells = self.data.spells_for_class(
-            class_name, max_level=max_spell_level
-        )
-        known_s_set = set(self.character.selected_spells)
-        known_s_set.update(self.selected_new_spells)
-        avail_spells = [
-            s
-            for s in all_avail_spells
-            if s["name"] not in known_s_set and s.get("level", 0) >= 1
-        ]
-        avail_spells.sort(key=lambda s: (s["level"], s["name"]))
-
-        spell_rbs = []
-        from itertools import groupby
-
-        for lvl, group in groupby(avail_spells, key=lambda s: s["level"]):
-            _section_header(right_inner, LEVEL_NAMES.get(lvl, f"Level {lvl}"))
-            for spell in group:
-                rb = ttk.Radiobutton(
-                    right_inner,
-                    text=spell["name"],
-                    variable=learn_var,
-                    value=spell["name"],
-                )
-                rb.pack(anchor="w", pady=1, padx=8)
-                rb.bind("<Enter>", lambda e, s=spell: self._show_swap_detail(s))
-                spell_rbs.append((rb, spell))
-
-        # --- Shared Detail Panel ---
-        detail_lf = ttk.LabelFrame(self.step3_frame, text="Spell Details")
-        detail_lf.pack(fill=tk.X, pady=(4, 0))
-        self.swap_detail_text = tk.Text(
-            detail_lf,
-            wrap=tk.WORD,
-            height=6,
-            bg=COLORS["bg_light"],
-            fg=COLORS["fg"],
-            font=FONTS["body"],
-            borderwidth=0,
-            state=tk.DISABLED,
-        )
-        self.swap_detail_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
-
-        # ── Logic ─────────────────────────────────────────────
-        def _on_change(*_):
-            val = forget_var.get()
-            if not val:
+        # ── Wire panel vars back to instance state for _confirm ──
+        def _sync_swap_vars(*_):
+            fv = self._swap_panel.forget_var.get()
+            lv = self._swap_panel.learn_var.get()
+            if not fv:
                 self.swap_out_cantrip = None
                 self.swap_out_spell = None
-                learn_var.set("")
-                for rb, _ in cantrip_rbs + spell_rbs:
-                    rb.configure(state=tk.DISABLED)
-            elif val.startswith("C:"):
-                self.swap_out_cantrip = val[2:]
+                self.swap_in_cantrip = None
+                self.swap_in_spell = None
+            elif fv.startswith("C:"):
+                self.swap_out_cantrip = fv[2:]
                 self.swap_out_spell = None
-                # can only learn cantrips
-                for rb, s in cantrip_rbs:
-                    rb.configure(state=tk.NORMAL)
-                for rb, s in spell_rbs:
-                    rb.configure(state=tk.DISABLED)
-                if learn_var.get() and not any(
-                    s["name"] == learn_var.get() for _, s in cantrip_rbs
-                ):
-                    learn_var.set("")
-            else:  # S:
-                self.swap_out_spell = val[2:]
-                self.swap_out_cantrip = None
-                # can only learn spells
-                for rb, s in cantrip_rbs:
-                    rb.configure(state=tk.DISABLED)
-                for rb, s in spell_rbs:
-                    rb.configure(state=tk.NORMAL)
-                if learn_var.get() and not any(
-                    s["name"] == learn_var.get() for _, s in spell_rbs
-                ):
-                    learn_var.set("")
-
-            # update instance vars for _confirm
-            lv = learn_var.get()
-            if self.swap_out_cantrip:
                 self.swap_in_cantrip = lv or None
                 self.swap_in_spell = None
-            elif self.swap_out_spell:
+            else:  # S: prefix
+                self.swap_out_spell = fv[2:]
+                self.swap_out_cantrip = None
                 self.swap_in_spell = lv or None
                 self.swap_in_cantrip = None
-            else:
-                self.swap_in_cantrip = None
-                self.swap_in_spell = None
 
-        forget_var.trace_add("write", _on_change)
-        learn_var.trace_add("write", _on_change)
-        _on_change()
-
-    def _find_spell(self, name: str, class_name: str) -> dict | None:
-        """Find a spell dict by name from the class spell list."""
-        for s in self.data.spells_for_class(class_name, max_level=9):
-            if s["name"] == name:
-                return s
-        for s in self.data.cantrips_for_class(class_name):
-            if s["name"] == name:
-                return s
-        return None
-
-    def _show_swap_detail(self, spell):
-        """Show spell detail in the swap step's detail panel."""
-        self.swap_detail_text.configure(state=tk.NORMAL)
-        self.swap_detail_text.delete("1.0", tk.END)
-        lines = [
-            spell["name"],
-            f"{'Cantrip' if spell['level'] == 0 else 'Level ' + str(spell['level'])} "
-            f"{spell['school']}",
-            f"Casting Time: {spell.get('casting_time', '?')}"
-            f"{'  (Ritual)' if spell.get('ritual') else ''}",
-            f"Range: {spell.get('range', '?')}",
-            f"Duration: {'Concentration, ' if spell.get('concentration') else ''}"
-            f"{spell.get('duration', '?')}",
-            "",
-            spell.get("description", ""),
-        ]
-        if spell.get("higher_levels"):
-            lines.extend(["", f"At Higher Levels: {spell['higher_levels']}"])
-        if spell.get("cantrip_upgrade"):
-            lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade']}"])
-        self.swap_detail_text.insert("1.0", "\n".join(lines))
-        self.swap_detail_text.configure(state=tk.DISABLED)
+        self._swap_panel.forget_var.trace_add("write", _sync_swap_vars)
+        self._swap_panel.learn_var.trace_add("write", _sync_swap_vars)
 
     # ------------------------------------------------------------------
     # Confirm
