@@ -84,6 +84,8 @@ class LevelUpWizard(tk.Toplevel):
 
         # Choices to collect
         self.hp_choice = tk.IntVar(value=0)
+        self.hp_mode = tk.StringVar(value="average")   # "average" | "max" | "manual"
+        self.hp_manual_var = tk.StringVar(value="")
         self.subclass_var = tk.StringVar()
         self.feat_var = tk.StringVar()
         self.selected_new_cantrips: list[str] = []
@@ -586,24 +588,70 @@ class LevelUpWizard(tk.Toplevel):
         con_mod = self.character.ability_scores.modifier("Constitution")
         average = hit_die // 2 + 1
 
+        self.hp_mode.set("average")
+        self.hp_manual_var.set("")
+
         hp_frame = ttk.Frame(self.step1_content)
         hp_frame.pack(fill=tk.X, padx=12)
 
         ttk.Radiobutton(
             hp_frame,
             text=f"Take average ({average} + {con_mod} CON = {average + con_mod} HP)",
-            variable=self.hp_choice,
-            value=average,
+            variable=self.hp_mode,
+            value="average",
         ).pack(anchor="w", pady=2)
 
         ttk.Radiobutton(
             hp_frame,
             text=f"Take max ({hit_die} + {con_mod} CON = {hit_die + con_mod} HP)",
-            variable=self.hp_choice,
-            value=hit_die,
+            variable=self.hp_mode,
+            value="max",
         ).pack(anchor="w", pady=2)
 
-        self.hp_choice.set(average)
+        # Manual entry row
+        manual_row = ttk.Frame(hp_frame)
+        manual_row.pack(anchor="w", pady=2, fill=tk.X)
+
+        ttk.Radiobutton(
+            manual_row,
+            text="Enter manually:",
+            variable=self.hp_mode,
+            value="manual",
+        ).pack(side=tk.LEFT)
+
+        manual_entry = ttk.Entry(manual_row, textvariable=self.hp_manual_var, width=5)
+        manual_entry.pack(side=tk.LEFT, padx=(4, 4))
+
+        self._hp_manual_hint = ttk.Label(
+            manual_row,
+            text=f"+ {con_mod} CON = ? HP",
+            foreground=COLORS["fg_dim"],
+        )
+        self._hp_manual_hint.pack(side=tk.LEFT)
+
+        def _update_manual_state(*_):
+            if self.hp_mode.get() == "manual":
+                manual_entry.config(state="normal")
+            else:
+                manual_entry.config(state="disabled")
+            _update_hint()
+
+        def _update_hint(*_):
+            if self.hp_mode.get() != "manual":
+                return
+            val = self.hp_manual_var.get().strip()
+            try:
+                roll = int(val)
+                if roll >= 1:
+                    self._hp_manual_hint.config(text=f"+ {con_mod} CON = {roll + con_mod} HP")
+                else:
+                    self._hp_manual_hint.config(text="(must be ≥ 1)")
+            except ValueError:
+                self._hp_manual_hint.config(text=f"+ {con_mod} CON = ? HP")
+
+        self.hp_mode.trace_add("write", _update_manual_state)
+        self.hp_manual_var.trace_add("write", _update_hint)
+        manual_entry.config(state="disabled")
 
     # ── ASI ───────────────────────────────────────────────────────
 
@@ -1332,6 +1380,29 @@ class LevelUpWizard(tk.Toplevel):
             self._show_step(3)
             return
 
+        # ── resolve HP roll ───────────────────────────────────────
+        hit_die = (
+            self.selected_class_data.get("hit_die", 8)
+            if self.selected_class_data
+            else 8
+        )
+        con_mod = self.character.ability_scores.modifier("Constitution")
+        average = hit_die // 2 + 1
+
+        mode = self.hp_mode.get()
+        if mode == "manual":
+            try:
+                hp_roll = int(self.hp_manual_var.get().strip())
+                if hp_roll < 1:
+                    raise ValueError
+            except ValueError:
+                AlertDialog(self, "Invalid HP", "Please enter a valid number (≥ 1) for your hit points.")
+                return
+        elif mode == "max":
+            hp_roll = hit_die
+        else:
+            hp_roll = average
+
         # ── confirmation dialog ──────────────────────────────────
         dlg = ConfirmDialog(
             self,
@@ -1341,17 +1412,10 @@ class LevelUpWizard(tk.Toplevel):
         if not dlg.result:
             return
 
-        # ── build ClassLevel ──────────────────────────────────────
-        hit_die = (
-            self.selected_class_data.get("hit_die", 8)
-            if self.selected_class_data
-            else 8
-        )
-
         cl = ClassLevel(
             class_slug=self.class_slug,
             class_level=self.new_class_level,
-            hp_roll=self.hp_choice.get(),
+            hp_roll=hp_roll,
             hit_die=hit_die,
         )
 
