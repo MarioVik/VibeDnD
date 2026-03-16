@@ -16,6 +16,7 @@ from gui.step_ability_scores import AbilityScoresStep
 from gui.step_feat import FeatStep
 from gui.step_spells import SpellsStep
 from gui.step_equipment import EquipmentStep
+from gui.step_biography import BiographyStep
 from gui.step_summary import SummaryStep
 
 from gui.home_screen import HomeScreen
@@ -158,6 +159,7 @@ class CharacterCreatorApp:
             FeatStep(self.wizard_notebook, character, self.data),
             SpellsStep(self.wizard_notebook, character, self.data),
             EquipmentStep(self.wizard_notebook, character, self.data),
+            BiographyStep(self.wizard_notebook, character, self.data),
             SummaryStep(
                 self.wizard_notebook,
                 character,
