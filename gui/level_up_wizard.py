@@ -688,10 +688,25 @@ class LevelUpWizard(tk.Toplevel):
             ).pack(anchor="w", padx=8, pady=(4, 0))
 
             desc = ""
+            feat_lower = feat_name.lower().replace("\u2019", "'")
             for d in details:
-                if d["name"].lower() == feat_name.lower():
+                d_lower = d["name"].lower().replace("\u2019", "'")
+                if d_lower == feat_lower or feat_lower.startswith(d_lower + " ("):
                     desc = d["description"]
                     break
+
+            # Fallback: search all levels for the base feature description
+            if not desc:
+                base_name = feat_name.split(" (")[0].lower().replace("\u2019", "'")
+                prog = self.data.get_progression(self.class_slug)
+                if prog:
+                    for lvl_data in prog.get("levels", []):
+                        for d in lvl_data.get("feature_details", []):
+                            if d["name"].lower().replace("\u2019", "'") == base_name:
+                                desc = d["description"]
+                                break
+                        if desc:
+                            break
             if desc:
                 WrappingLabel(
                     frame,
