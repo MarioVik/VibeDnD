@@ -917,10 +917,14 @@ class LevelUpWizard(tk.Toplevel):
             for sc in subclasses:
                 if sc["name"] == name:
                     self.sub_desc_label.configure(text=sc.get("description", ""))
-                    return
-            self.sub_desc_label.configure(
-                text="(Core subclass - feature data not available)"
-            )
+                    break
+            else:
+                self.sub_desc_label.configure(
+                    text="(Core subclass - feature data not available)"
+                )
+            # Refresh navigation buttons — the selected subclass may add
+            # a Class Choices step (e.g. Hunter's Prey for Hunter).
+            self._show_step(1)
 
         self.subclass_var.trace_add("write", on_sub_select)
 
