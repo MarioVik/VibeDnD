@@ -7,6 +7,7 @@ Two-step flow:
 
 import json
 import os
+import re
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -920,23 +921,80 @@ class LevelUpWizard(tk.Toplevel):
             width=40,
         ).pack(anchor="w")
 
-        self.sub_desc_label = WrappingLabel(
-            self.step1_content,
-            text="",
-            foreground=COLORS["fg_dim"],
-        )
-        self.sub_desc_label.pack(fill=tk.X, anchor="w", padx=12, pady=4)
+        self.sub_detail_frame = ttk.Frame(self.step1_content)
+        self.sub_detail_frame.pack(fill=tk.X, anchor="w", padx=12, pady=4)
 
         def on_sub_select(*_):
+            for w in self.sub_detail_frame.winfo_children():
+                w.destroy()
+
             name = self.subclass_var.get().replace(" (PHB)", "")
-            for sc in subclasses:
-                if sc["name"] == name:
-                    self.sub_desc_label.configure(text=sc.get("description", ""))
+            sc = None
+            for s in subclasses:
+                if s["name"] == name:
+                    sc = s
                     break
-            else:
-                self.sub_desc_label.configure(
-                    text="(Core subclass - feature data not available)"
-                )
+
+            if not sc:
+                WrappingLabel(
+                    self.sub_detail_frame,
+                    text="(Core subclass - feature data not available)",
+                    foreground=COLORS["fg_dim"],
+                ).pack(fill=tk.X, anchor="w")
+                self._show_step(1)
+                return
+
+            # Intro summary (text before first "Level N:" marker)
+            desc = (sc.get("description") or "").strip()
+            if desc:
+                parts = re.split(r"\bLevel\s+\d+\s*:", desc, maxsplit=1)
+                intro = parts[0].strip()
+                if intro:
+                    WrappingLabel(
+                        self.sub_detail_frame,
+                        text=intro,
+                        foreground=COLORS["fg_dim"],
+                    ).pack(fill=tk.X, anchor="w", pady=(0, 4))
+
+            # Structured features by level
+            features_by_level = sc.get("features", {})
+            if features_by_level:
+                def _lvl_key(level_str: str):
+                    try:
+                        return int(level_str)
+                    except (TypeError, ValueError):
+                        return 99
+
+                for lvl in sorted(features_by_level.keys(), key=_lvl_key):
+                    ttk.Label(
+                        self.sub_detail_frame,
+                        text=f"Level {lvl}",
+                        style="Subheading.TLabel",
+                    ).pack(anchor="w", pady=(8, 2))
+
+                    for feat in features_by_level.get(lvl, []):
+                        feat_name = feat.get("name", "Feature")
+                        ttk.Label(
+                            self.sub_detail_frame,
+                            text=f"  \u2022 {feat_name}",
+                            foreground=COLORS["accent"],
+                            font=FONTS["body"],
+                        ).pack(anchor="w")
+
+                        feat_desc = feat.get("description", "")
+                        if feat_desc:
+                            WrappingLabel(
+                                self.sub_detail_frame,
+                                text=f"    {feat_desc}",
+                                foreground=COLORS["fg_dim"],
+                            ).pack(fill=tk.X, anchor="w", pady=(0, 4))
+            elif desc:
+                # No structured features — show full description as fallback
+                WrappingLabel(
+                    self.sub_detail_frame,
+                    text=desc,
+                    foreground=COLORS["fg_dim"],
+                ).pack(fill=tk.X, anchor="w")
             # Refresh navigation buttons — the selected subclass may add
             # a Class Choices step (e.g. Hunter's Prey for Hunter).
             self._show_step(1)
