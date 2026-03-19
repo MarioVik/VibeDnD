@@ -125,6 +125,10 @@ class LevelUpWizard(tk.Toplevel):
         self.choice_vars: dict[str, tk.BooleanVar] = {}
         self.choice_checkbuttons: dict[str, ttk.Checkbutton] = {}
 
+        # Subclass proficiency/expertise step state
+        self.prof_grant_vars: list[tk.StringVar] = []  # dropdown vars for proficiency picks
+        self.expertise_grant_vars: list[tk.StringVar] = []  # dropdown vars for expertise picks
+
         self._build_ui()
 
     # ------------------------------------------------------------------
@@ -277,6 +281,166 @@ class LevelUpWizard(tk.Toplevel):
         return result
 
     # ------------------------------------------------------------------
+    # Subclass proficiency/expertise grants
+    # ------------------------------------------------------------------
+
+    def _get_subclass_grants(self) -> list[dict]:
+        """Return grant info for subclass features at the current level.
+
+        Each dict has keys: feature_name, grants_proficiency, grants_expertise.
+        """
+        sub_slug = self._get_current_subclass()
+        if not sub_slug:
+            return []
+        subclass = self.data.get_subclass(self.class_slug, sub_slug)
+        if not subclass:
+            return []
+        feats = subclass.get("features", {}).get(str(self.new_class_level), [])
+        grants = []
+        for feat in feats:
+            gp = feat.get("grants_proficiency")
+            ge = feat.get("grants_expertise")
+            if gp or ge:
+                grants.append({
+                    "feature_name": feat["name"],
+                    "grants_proficiency": gp,
+                    "grants_expertise": ge,
+                })
+        return grants
+
+    def _has_proficiency_step(self) -> bool:
+        """True if subclass grants require player choices."""
+        for g in self._get_subclass_grants():
+            gp = g.get("grants_proficiency")
+            ge = g.get("grants_expertise")
+            if gp and not gp.get("automatic"):
+                return True
+            if ge and not ge.get("automatic") and not ge.get("from_granted"):
+                return True
+        return False
+
+    def _build_proficiency_step(self):
+        """Build the proficiency/expertise selection UI."""
+        for w in self.step_prof_frame.winfo_children():
+            w.destroy()
+        self.prof_grant_vars.clear()
+        self.expertise_grant_vars.clear()
+
+        grants = self._get_subclass_grants()
+        if not grants:
+            return
+
+        existing_profs = self.character.all_skill_proficiencies
+
+        ttk.Label(
+            self.step_prof_frame,
+            text="Subclass Proficiencies",
+            font=FONTS["heading"],
+            foreground=COLORS["accent"],
+        ).pack(anchor="w", pady=(8, 4))
+
+        for grant in grants:
+            gp = grant.get("grants_proficiency")
+            ge = grant.get("grants_expertise")
+
+            if gp and gp.get("automatic") and ge and ge.get("automatic"):
+                # Automatic grant — just show info text
+                ttk.Label(
+                    self.step_prof_frame,
+                    text=f"{grant['feature_name']}: automatically gained",
+                    foreground=COLORS["fg"],
+                ).pack(anchor="w", padx=12, pady=4)
+                continue
+
+            ttk.Label(
+                self.step_prof_frame,
+                text=grant["feature_name"],
+                font=FONTS["subheading"],
+                foreground=COLORS["fg_bright"],
+            ).pack(anchor="w", padx=4, pady=(8, 2))
+
+            if gp and not gp.get("automatic"):
+                count = gp.get("count", 1)
+                available = [s for s in gp["skills"] if s not in existing_profs]
+
+                ttk.Label(
+                    self.step_prof_frame,
+                    text=f"Choose {count} skill proficiency(s):",
+                    foreground=COLORS["fg"],
+                ).pack(anchor="w", padx=12, pady=(0, 2))
+
+                for i in range(count):
+                    var = tk.StringVar(value="")
+                    self.prof_grant_vars.append(var)
+                    combo = ttk.Combobox(
+                        self.step_prof_frame,
+                        textvariable=var,
+                        values=available,
+                        state="readonly",
+                        width=30,
+                    )
+                    combo.pack(anchor="w", padx=24, pady=2)
+
+                if ge and ge.get("from_granted"):
+                    ttk.Label(
+                        self.step_prof_frame,
+                        text="(You also gain Expertise in the chosen skills.)",
+                        foreground=COLORS["fg_dim"],
+                        font=("Segoe UI", 9, "italic"),
+                    ).pack(anchor="w", padx=12, pady=(2, 0))
+
+            if ge and not ge.get("automatic") and not ge.get("from_granted"):
+                count = ge.get("count", 1)
+                available = ge.get("skills", [])
+
+                ttk.Label(
+                    self.step_prof_frame,
+                    text=f"Choose {count} skill expertise(s):",
+                    foreground=COLORS["fg"],
+                ).pack(anchor="w", padx=12, pady=(4, 2))
+
+                for i in range(count):
+                    var = tk.StringVar(value="")
+                    self.expertise_grant_vars.append(var)
+                    combo = ttk.Combobox(
+                        self.step_prof_frame,
+                        textvariable=var,
+                        values=available,
+                        state="readonly",
+                        width=30,
+                    )
+                    combo.pack(anchor="w", padx=24, pady=2)
+
+    def _validate_proficiency_step(self) -> bool:
+        """Ensure all required proficiency/expertise selections are made."""
+        for var in self.prof_grant_vars:
+            if not var.get():
+                AlertDialog(
+                    self,
+                    "Missing Choice",
+                    "Please select all skill proficiencies.",
+                )
+                return False
+        for var in self.expertise_grant_vars:
+            if not var.get():
+                AlertDialog(
+                    self,
+                    "Missing Choice",
+                    "Please select all skill expertise choices.",
+                )
+                return False
+        # Check for duplicates among proficiency picks
+        picks = [v.get() for v in self.prof_grant_vars if v.get()]
+        if len(picks) != len(set(picks)):
+            AlertDialog(
+                self,
+                "Duplicate Choice",
+                "Please choose different skills for each proficiency.",
+            )
+            return False
+        return True
+
+    # ------------------------------------------------------------------
     # UI skeleton
     # ------------------------------------------------------------------
 
@@ -329,6 +493,9 @@ class LevelUpWizard(tk.Toplevel):
         self.step1_scroll = ScrollableFrame(self.content_container)
         self.step1_content = self.step1_scroll.inner
 
+        # Step 1.5 – subclass proficiency/expertise selection (built lazily)
+        self.step_prof_frame = ttk.Frame(self.content_container)
+
         # Step 2 – class choices (built lazily; maneuvers, invocations, plans, etc.)
         self.step2b_frame = ttk.Frame(self.content_container)
 
@@ -375,18 +542,33 @@ class LevelUpWizard(tk.Toplevel):
         self._show_step(1)
 
     def _try_go_next(self, target_step: int):
-        # Step 1 validation required before advancing past step 1
-        if target_step >= 2:
-            if not self._validate_step1():
+        # Build the ordered list of active steps
+        step_order = [1]
+        if self._has_proficiency_step():
+            step_order.append(15)
+        if self._has_class_choices():
+            step_order.append(2)
+        if self._has_new_spell_options():
+            step_order.append(3)
+        if self._has_swap_step():
+            step_order.append(4)
+
+        target_idx = step_order.index(target_step) if target_step in step_order else len(step_order)
+
+        # Validate all steps before the target
+        validators = {
+            1: self._validate_step1,
+            15: self._validate_proficiency_step,
+            2: self._validate_choices_step,
+            3: self._validate_step2,
+        }
+        for s in step_order:
+            if step_order.index(s) >= target_idx:
+                break
+            validator = validators.get(s)
+            if validator and not validator():
                 return
-        # Class choices validation required before advancing past step 2
-        if target_step >= 3 and self._has_class_choices():
-            if not self._validate_choices_step():
-                return
-        # Spell validation required before advancing past step 3
-        if target_step >= 4 and self._has_new_spell_options():
-            if not self._validate_step2():
-                return
+
         self._show_step(target_step)
 
     def _validate_step1(self) -> bool:
@@ -479,15 +661,57 @@ class LevelUpWizard(tk.Toplevel):
             return False
         return True
 
-    def _show_step(self, step: int):
-        """Show *step* (1-4) and update bottom buttons.
+    def _next_step_after(self, current: int) -> tuple[int, str] | None:
+        """Return (step_number, button_label) for the next step after *current*, or None."""
+        has_prof = self._has_proficiency_step()
+        has_choices = self._has_class_choices()
+        has_spells = self._has_new_spell_options()
+        has_swap = self._has_swap_step()
+        order: list[tuple[int, str]] = [(1, "")]
+        if has_prof:
+            order.append((15, "Next: Proficiencies \u2192"))
+        if has_choices:
+            order.append((2, "Next: Class Choices \u2192"))
+        if has_spells:
+            order.append((3, "Next: Spells \u2192"))
+        if has_swap:
+            order.append((4, "Next: Swap Spells \u2192"))
+        # Find the entry right after current
+        found = False
+        for entry in order:
+            if found:
+                return entry
+            if entry[0] == current:
+                found = True
+        return None
 
-        Step 1 = features / HP / ASI / subclass
-        Step 2 = class choices (conditional: maneuvers, invocations, plans, arcane shots)
-        Step 3 = spell selection (conditional)
-        Step 4 = spell swap (conditional)
+    def _prev_step_before(self, current: int) -> int:
+        """Return the step number before *current*."""
+        has_prof = self._has_proficiency_step()
+        has_choices = self._has_class_choices()
+        has_spells = self._has_new_spell_options()
+        order = [1]
+        if has_prof:
+            order.append(15)
+        if has_choices:
+            order.append(2)
+        if has_spells:
+            order.append(3)
+        order.append(4)
+        idx = order.index(current) if current in order else 0
+        return order[max(0, idx - 1)]
+
+    def _show_step(self, step: int):
+        """Show *step* and update bottom buttons.
+
+        Step 1  = features / HP / ASI / subclass
+        Step 15 = subclass proficiency/expertise (conditional)
+        Step 2  = class choices (conditional)
+        Step 3  = spell selection (conditional)
+        Step 4  = spell swap (conditional)
         """
         self.step1_scroll.pack_forget()
+        self.step_prof_frame.pack_forget()
         self.step2b_frame.pack_forget()
         self.step2_frame.pack_forget()
         self.step3_frame.pack_forget()
@@ -501,81 +725,52 @@ class LevelUpWizard(tk.Toplevel):
         else:
             self.mc_frame.pack_forget()
 
-        has_choices = self._has_class_choices()
-        has_spells = self._has_new_spell_options()
-        has_swap = self._has_swap_step()
+        def _setup_next_or_confirm(current_step: int):
+            nxt = self._next_step_after(current_step)
+            if nxt:
+                self.next_btn.configure(
+                    text=nxt[1],
+                    command=lambda s=nxt[0]: self._try_go_next(s),
+                )
+                self.next_btn.pack(side=tk.RIGHT)
+            else:
+                self.confirm_btn.pack(side=tk.RIGHT)
 
         if step == 1:
             self.step1_scroll.pack(
                 in_=self.content_container, fill=tk.BOTH, expand=True
             )
-            if has_choices:
-                self.next_btn.configure(
-                    text="Next: Class Choices \u2192",
-                    command=lambda: self._try_go_next(2),
-                )
-                self.next_btn.pack(side=tk.RIGHT)
-            elif has_spells:
-                self.next_btn.configure(
-                    text="Next: Spells \u2192", command=lambda: self._try_go_next(3)
-                )
-                self.next_btn.pack(side=tk.RIGHT)
-            elif has_swap:
-                self.next_btn.configure(
-                    text="Next: Swap Spells \u2192",
-                    command=lambda: self._try_go_next(4),
-                )
-                self.next_btn.pack(side=tk.RIGHT)
-            else:
-                self.confirm_btn.pack(side=tk.RIGHT)
+            _setup_next_or_confirm(1)
+
+        elif step == 15:
+            # Subclass proficiency/expertise step
+            self._build_proficiency_step()
+            self.step_prof_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
+            self.back_btn.configure(command=lambda: self._show_step(1))
+            self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
+            _setup_next_or_confirm(15)
 
         elif step == 2:
             # Class choices step
             self._build_choices_step()
             self.step2b_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
-            self.back_btn.configure(command=lambda: self._show_step(1))
+            self.back_btn.configure(command=lambda p=self._prev_step_before(2): self._show_step(p))
             self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
-            if has_spells:
-                self.next_btn.configure(
-                    text="Next: Spells \u2192", command=lambda: self._try_go_next(3)
-                )
-                self.next_btn.pack(side=tk.RIGHT)
-            elif has_swap:
-                self.next_btn.configure(
-                    text="Next: Swap Spells \u2192",
-                    command=lambda: self._try_go_next(4),
-                )
-                self.next_btn.pack(side=tk.RIGHT)
-            else:
-                self.confirm_btn.pack(side=tk.RIGHT)
+            _setup_next_or_confirm(2)
 
         elif step == 3:
             # Spell selection step
             self._build_spell_step()
             self.step2_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
-            prev_step = 2 if has_choices else 1
-            self.back_btn.configure(command=lambda p=prev_step: self._show_step(p))
+            self.back_btn.configure(command=lambda p=self._prev_step_before(3): self._show_step(p))
             self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
-            if has_swap:
-                self.next_btn.configure(
-                    text="Next: Swap Spells \u2192",
-                    command=lambda: self._try_go_next(4),
-                )
-                self.next_btn.pack(side=tk.RIGHT)
-            else:
-                self.confirm_btn.pack(side=tk.RIGHT)
+            _setup_next_or_confirm(3)
 
         elif step == 4:
             # Spell swap step
             self._build_swap_step()
             self.step3_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
-            if has_spells:
-                prev_step = 3
-            elif has_choices:
-                prev_step = 2
-            else:
-                prev_step = 1
-            self.back_btn.configure(command=lambda p=prev_step: self._show_step(p))
+            self.back_btn.configure(command=lambda p=self._prev_step_before(4): self._show_step(p))
             self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
             self.confirm_btn.pack(side=tk.RIGHT)
 
@@ -1655,6 +1850,8 @@ class LevelUpWizard(tk.Toplevel):
         """Validate choices, apply the level-up, and close."""
         if not self._validate_step1():
             return
+        if self._has_proficiency_step() and not self._validate_proficiency_step():
+            return
         if self._has_class_choices() and not self._validate_choices_step():
             return
         if self._has_new_spell_options() and not self._validate_step2():
@@ -1740,6 +1937,31 @@ class LevelUpWizard(tk.Toplevel):
         if replace_out and replace_in:
             cl.replaced_choice = replace_out
             cl.new_choices.append(replace_in)
+
+        # Store subclass proficiency/expertise grants
+        prof_picks = [v.get() for v in self.prof_grant_vars if v.get()]
+        exp_picks = [v.get() for v in self.expertise_grant_vars if v.get()]
+        if prof_picks:
+            cl.new_proficiencies = prof_picks
+            # Handle from_granted expertise (e.g. Knowledge Domain)
+            for g in self._get_subclass_grants():
+                ge = g.get("grants_expertise")
+                if ge and ge.get("from_granted"):
+                    cl.new_expertise = list(prof_picks)
+        if exp_picks:
+            cl.new_expertise.extend(exp_picks)
+        # Handle automatic grants (e.g. Arcana Domain)
+        for g in self._get_subclass_grants():
+            gp = g.get("grants_proficiency")
+            ge = g.get("grants_expertise")
+            if gp and gp.get("automatic"):
+                for s in gp.get("skills", []):
+                    if s not in cl.new_proficiencies:
+                        cl.new_proficiencies.append(s)
+            if ge and ge.get("automatic"):
+                for s in ge.get("skills", []):
+                    if s not in cl.new_expertise:
+                        cl.new_expertise.append(s)
 
         # Store swap choices on the ClassLevel
         if self.swap_out_cantrip and self.swap_in_cantrip:

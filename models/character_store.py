@@ -85,6 +85,10 @@ def character_to_save_dict(character: Character) -> dict:
                 "swapped_in_spell": cl.swapped_in_spell,
                 "hp_roll": cl.hp_roll,
                 "hit_die": cl.hit_die,
+                "new_choices": list(cl.new_choices),
+                "replaced_choice": cl.replaced_choice,
+                "new_proficiencies": list(cl.new_proficiencies),
+                "new_expertise": list(cl.new_expertise),
             }
             for cl in c.class_levels
         ]
@@ -168,6 +172,10 @@ def save_dict_to_character(data: dict, game_data) -> Character:
                 swapped_in_spell=cl.get("swapped_in_spell"),
                 hp_roll=cl.get("hp_roll"),
                 hit_die=cl.get("hit_die", 0),
+                new_choices=cl.get("new_choices", []),
+                replaced_choice=cl.get("replaced_choice"),
+                new_proficiencies=cl.get("new_proficiencies", []),
+                new_expertise=cl.get("new_expertise", []),
             )
             for cl in data["class_levels"]
         ]

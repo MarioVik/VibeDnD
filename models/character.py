@@ -194,7 +194,19 @@ class Character:
         if self.background:
             profs.update(self.background.get("skill_proficiencies", []))
 
+        # From subclass grants (level-up)
+        for cl in self.class_levels:
+            profs.update(cl.new_proficiencies)
+
         return profs
+
+    @property
+    def all_skill_expertise(self) -> set[str]:
+        """All skills the character has expertise in."""
+        exp = set()
+        for cl in self.class_levels:
+            exp.update(cl.new_expertise)
+        return exp
 
     def skill_modifier(self, skill_display_name: str) -> int:
         """Calculate modifier for a skill."""

@@ -21,3 +21,5 @@ class ClassLevel:
     hit_die: int = 0             # Hit die size for this class (e.g. 10 for d10); 0 = use primary class
     new_choices: list[str] = field(default_factory=list)   # Class choices made at this level (maneuvers, invocations, plans, etc.)
     replaced_choice: str | None = None                     # Existing choice swapped out at this level
+    new_proficiencies: list[str] = field(default_factory=list)  # Skill proficiencies gained from subclass
+    new_expertise: list[str] = field(default_factory=list)       # Skill expertise gained from subclass
