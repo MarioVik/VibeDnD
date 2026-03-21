@@ -418,7 +418,7 @@
   {
     "name": "Aberrant Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "Your aberrant dragonmark has made life challenging since it manifested. You might have hidden it successfully for most of your life or managed to avoid notice. Alternatively, you might have encountered suspicion and fear, perhaps coupled with the outright antagonism of one or more dragonmarked houses. You might have formed an association with the House Tarkanan criminal organization (named for one of the most notorious leaders of the aberrant dragonmarked in the War of the Mark twenty-five centuries ago). Or you might struggle to find your own way in the world, relying on your wits and the power of your mark.",
     "ability_scores": [
       "Strength",
       "Constitution",
@@ -444,7 +444,7 @@
   {
     "name": "Archaeologist",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "You’ve made a lifelong study of the lost and fallen cultures of the past, visiting their ruins, deciphering their written records, and examining their surviving masterworks. Perhaps you studied at Morgrave University or a similar institution, supplementing your time in the library with fieldwork amid ancient ruins in remote locations. Some archaeologists plunder the treasures of the past in search of wealth or fame, but most consider it their calling to learn from the past. In any case, the archaeologists of Eberron combine the qualities of learned historians with the grit of treasure hunters.",
     "ability_scores": [
       "Dexterity",
       "Intelligence",
@@ -470,7 +470,7 @@
   {
     "name": "House Agent",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "You are connected to one of the dragonmarked houses, but you haven’t (yet) manifested a dragonmark. You might be a member of the family by birth or an employee of the house with no familial connection. You’ve earned your living by doing the business of the house, serving as the hands, feet, and eyes of house leadership in the world. You might have many old friends, mentors, and rivals in the house you serve, plus allies or enemies in other houses.",
     "ability_scores": [
       "Strength",
       "Intelligence",
@@ -496,7 +496,7 @@
   {
     "name": "House Cannith Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "As a scion of House Cannith, you carry a proud legacy. Cannith creates wonders of the modern world, and you’re expected to contribute to the ongoing success of the house through invention, scholarship, business, or diplomacy. The only thing that can stand in your way is the deep rift within your own house. The sooner the three barons sort out which of them is the true head of the house (and you, no doubt, have your preference), the sooner House Cannith can claim its rightful position of leadership among all the dragonmarked houses.",
     "ability_scores": [
       "Strength",
       "Dexterity",
@@ -522,7 +522,7 @@
   {
     "name": "House Deneith Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "As an heir of House Deneith, you’ve been trained for combat—not to seek it out, but not to shy from it either. You’ve learned the importance of duty, honor, and the laws used to govern society when duty and honor fail. As you established your name in the house, you might have worked as a bodyguard for some minor dignitary, as a mercenary, or as a marshal hunting fugitives. Now you’re prepared to claim your rightful standing in the mightiest of the dragonmarked houses.",
     "ability_scores": [
       "Strength",
       "Constitution",
@@ -548,7 +548,7 @@
   {
     "name": "House Ghallanda Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "Thanks to your connections to House Ghallanda, you grew up accustomed to creature comforts, lively conversation, good drink, and delicious food. You might be a charming and witty scion of the house who loves nothing more than a pleasant evening beside a warm hearth. Or you could be a schemer who exploits bonds of trust and friendship to bend others to your will. You might pursue an adventuring career to master the cuisines of other cultures and ages, expand your network of useful contacts, or earn enough money to open your own inn.",
     "ability_scores": [
       "Dexterity",
       "Wisdom",
@@ -574,7 +574,7 @@
   {
     "name": "House Jorasco Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "House Jorasco teaches that illness and injury stalk the living like ghosts, robbing people of health and longevity. You’ve been taught ways to combat these scourges, both magically and medically. You’re trained to use those skills in the service of others—and to ascertain that you are always appropriately compensated for this service, ensuring the health and longevity of House Jorasco. You might be a kindly healer with no stomach for combat or a dispassionate specialist who knows exactly how to incapacitate or kill an enemy with precise strikes.",
     "ability_scores": [
       "Dexterity",
       "Constitution",
@@ -600,7 +600,7 @@
   {
     "name": "House Kundarak Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "As an heir of House Kundarak, you take great pride in your family and its work of safeguarding the valuables of Khorvaire. Your house has always been a leader among the clans of the Mror Holds. Though it has never held the crown, it has a reputation for professionalism, honor, and order. You might strive to uphold that reputation, you might place your own sense of honor over your family’s, or you could rebel against the house’s expectations and flout the demands of honor.",
     "ability_scores": [
       "Strength",
       "Constitution",
@@ -626,7 +626,7 @@
   {
     "name": "House Lyrandar Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "As an heir of House Lyrandar, the wind is your ally, the sea and sky your dominion. Despite the devastation of the Last War, your house is on the ascendancy, buoyed by its mastery of the new airship technology. You might have spent your early career on the sea as a sailor or navigator; as a shipwright; or as a member of the Raincallers’ Guild, manipulating the weather and assisting with irrigation and similar public works. Or you might have been among the first in your house to take to the skies as part of an airship crew. Service to the house might call you to hunt pirates in the Lhazaar Sea, to explore ancient ruins in search of magical technology to bind elemental forces, or to salvage a wrecked airship in the Mournland.",
     "ability_scores": [
       "Strength",
       "Dexterity",
@@ -652,7 +652,7 @@
   {
     "name": "House Medani Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "As a member of House Medani, your life revolves around subterfuge - not engaging in it, but preventing others from doing so. You see the world around you as an intricate web of schemes, plots, and counterplots. Assessing the range of possibilities, you use instinct to predict threats to your clients and defend against them well before those threats can turn into danger. Defending against an assassin’s blade is a job any Deneith sellsword or Tharashk enforcer can do - making sure no one ever draws that blade is the Medani way.",
     "ability_scores": [
       "Dexterity",
       "Intelligence",
@@ -678,7 +678,7 @@
   {
     "name": "House Orien Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "Before the Last War, Orien’s influence covered Khorvaire, and its trade roads and lightning rails were the lifeblood of a vibrant kingdom. But the war cut those arteries, leaving Galifar dead and House Orien bloodied. While the house’s couriers and shippers still keep goods moving on both sides of the continent, finding a way to reestablish routes across the Mournland remains the house’s top priority. In the meantime, Orien adventurers can serve their house by investigating missing couriers, recovering goods stolen from caravans, and troubleshooting disruptions to the lightning rail.",
     "ability_scores": [
       "Dexterity",
       "Constitution",
@@ -704,7 +704,7 @@
   {
     "name": "House Phiarlan Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "Though you have seen wealth, fame, and beauty as a child of House Phiarlan, you consider knowledge (and the power it brings) the greatest treasure of all. You might pursue that power as an artist or performer, always alert for secrets even as you regale the world with story, song, acrobatics, or art. Or you might foster ties to the secretive espionage arm of your house: the Serpentine Table.",
     "ability_scores": [
       "Dexterity",
       "Wisdom",
@@ -730,7 +730,7 @@
   {
     "name": "House Sivis Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "For nearly thirty centuries, your family has worked to maintain order. Communication is the cord that binds civilization together, and your ancestors settled the disputes of sovereigns and helped the dragonmarked houses find a place in the world. Few people realize the influence House Sivis has had on the shape of the modern age—just as few know how often a royal adviser holds more power than the actual ruler. While the other dragonmarked houses fight for fame and recognition, House Sivis plays a long game of subtle influence behind the scenes, keeping order amid the chaos of unending intrigue.",
     "ability_scores": [
       "Intelligence",
       "Wisdom",
@@ -756,7 +756,7 @@
   {
     "name": "House Tharashk Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "Heirs of other houses lead lives of luxury, but in House Tharashk you learned self-reliance from an early age. What your young house lacks in resources, it makes up for in spirit and determination. Tharashk has a destiny to fulfill, and you have a part in it. Whether in combat or in social interaction, you have learned to play the role of the hunter: study your enemies, exploit their weaknesses, and do whatever it takes to achieve victory.",
     "ability_scores": [
       "Constitution",
       "Intelligence",
@@ -782,7 +782,7 @@
   {
     "name": "House Thuranni Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "Given House Thuranni’s short history and focus on espionage, its leaders expect you to further the interests of the house at every opportunity. During the house’s formative years as an independent entity, every move you make has been watched closely. This isn’t to say that every Thuranni heir must actively spy at the behest of house elders. But even the house’s most insular artists and artisans must keep up with current political events and pass on or collect information when asked.",
     "ability_scores": [
       "Dexterity",
       "Intelligence",
@@ -808,7 +808,7 @@
   {
     "name": "House Vadalis Heir",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "You have grown up with respect for both family and nature. You understand the culture of the Five Nations, but you don’t get drawn into the games of ambition and status that others play. You know the beauty and power inherent in life, the mysteries of birth and death, and the miracles that happen in between. Your insights into the natural world allow you to see through the lies and deception of city folk—and never let on how much of their subterfuge you recognize.",
     "ability_scores": [
       "Constitution",
       "Wisdom",
@@ -834,7 +834,7 @@
   {
     "name": "Inquisitive",
     "source": "Eberron - Forge of the Artificer",
-    "description": "",
+    "description": "You have honed your talents of investigation and deduction—fueled by a boundless curiosity—to explore mysteries, find missing people, recover stolen goods, unearth corruption and conspiracies, and solve crimes. As an inquisitive, you might have pursued freelance work, signed on with an inquisitive agency (perhaps one licensed by a dragonmarked house such as Medani or Tharashk), reported for a broadsheet, or worked for a police force.",
     "ability_scores": [
       "Constitution",
       "Intelligence",
@@ -860,7 +860,7 @@
   {
     "name": "Chondathan Freebooter",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "Though most youths in Chondath accept their four-year term of compulsory military service, you bristled at that authoritarian attempt to control your life. You forsook your nationhood, discarded your given name, and worked as a freebooter with the first ship that would have you. Since then, you’ve traveled the Vilhon Reach. Though you’ve never sailed more than a few dozen leagues from land, you make up for it with deep local connections and the breadth of your experiences.",
     "ability_scores": [
       "Strength",
       "Dexterity",
@@ -886,7 +886,7 @@
   {
     "name": "Dead Magic Dweller",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "The dead magic zones of the Anauroch desert are anathema to spellcasters and monsters that rely on magic - which is exactly why you made your life there. Perhaps you’re on the run from Red Wizards, or you ran afoul of a powerful djinni in Calimshan. Whatever the case, you decided that living in Anauroch was your best option. After long months or years, you’re stronger, wiser, and armed with hard-earned knowledge of desert medicine and wasteland survival.",
     "ability_scores": [
       "Strength",
       "Constitution",
@@ -912,7 +912,7 @@
   {
     "name": "Dragon Cultist",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "You are an initiate of the Cult of the Dragon. You discovered or were brought to a cell cult, where you exemplified the values honored by dragon cultists: duplicity, secrecy, and determination. In exchange for your oath to serve the cult, the cult offered you the company of fellow dragon worshipers, plus access to resources that might help further your studies in the realms of arcana and occultism.",
     "ability_scores": [
       "Dexterity",
       "Constitution",
@@ -938,7 +938,7 @@
   {
     "name": "Emerald Enclave Caretaker",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "As a Caretaker with the Emerald Enclave, you take care of those who care for the world. Either alongside your fellow Emerald Enclave members or by yourself, you’ve learned essential skills for living with the land: how to track game, where to forage for useful herbs, and even how to forecast the weather. You use these talents to maintain the balance between civilization and the wilds and to rid the world of unnatural creatures.",
     "ability_scores": [
       "Constitution",
       "Intelligence",
@@ -964,7 +964,7 @@
   {
     "name": "Flaming Fist Mercenary",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "The chief law enforcement branch of Baldur’s Gate is the Flaming Fist, a brawny mercenary guild led by the city’s grand duke. You once served as a Flaming Fist, where you learned how to preempt trouble with your intimidating stare and, when necessary, absorb deadly blows. Flaming Fist mercenaries, active or retired, are known as some of the toughest, most resilient warriors along the Sword Coast, and you seek to maintain that reputation.",
     "ability_scores": [
       "Strength",
       "Constitution",
@@ -990,7 +990,7 @@
   {
     "name": "Genie Touched",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "(Wizard) Skill Proficiencies: Perception and Persuasion Tool Proficiency: Glassblower’s Tools Equipment: Choose A or B: (A) Light Hammer, Glassblower’s Tools, Fine Clothes, Lamp, Oil (3 flasks), Waterskin, 2 GP; or (B) 50 GP Although genies no longer rule Calimshan, genie magic is still common in your homeland. Perhaps you inadvertently summoned a djinni from a magic lamp, or maybe you came upon an oasis guarded by a marid. A dao might have saved you from a landslide, or you bargained with an efreeti for fleeting wealth. However your fate intersected with that of a genie, the experience left you with a keen eye, a silver tongue, and more than a touch of magic.",
     "ability_scores": [
       "Dexterity",
       "Wisdom",
@@ -1016,7 +1016,7 @@
   {
     "name": "Harper",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "You accepted an invitation to join the Harpers, pledging an oath to uphold the Harper code and act in service to the common good. Like all Harpers, you understand the value of teamwork as well as when it’s best to go it alone. Harper veterans have taught you the order’s secrets—magical melodies, special watchwords, and legerdemain—and have entrusted you to use such knowledge to surveil and undermine the forces of evil.",
     "ability_scores": [
       "Dexterity",
       "Intelligence",
@@ -1042,7 +1042,7 @@
   {
     "name": "Ice Fisher",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "You come from a proud line of ice fishers out of Ten-Towns in Icewind Dale. Catching knucklehead trout isn’t the most glorious trade in the North, but it’s an honest living. You’ve trained your senses for the slightest tug on the line, wrestled big trout out of ice-covered lakes, and gutted enough knucklehead trout to feed your village many times over. These experiences have toughened your body and mind for a life of adventuring.",
     "ability_scores": [
       "Strength",
       "Dexterity",
@@ -1068,7 +1068,7 @@
   {
     "name": "Knight Of The Gauntlet",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "Not all who answer the call of a higher power are content to pore over scripture in a stuffy temple apse. You chose the path of the holy warrior by joining the Order of the Gauntlet. As a knight of the Gauntlet, you exercise righteous scorn for the forces of evil, unswerving camaraderie for your siblings in arms, and heartfelt compassion for the survivors of war. With weapon and holy symbol in hand, you’ve sworn not to rest until the light of justice has vanquished the shadow of chaos across Faerûn.",
     "ability_scores": [
       "Strength",
       "Intelligence",
@@ -1094,7 +1094,7 @@
   {
     "name": "Lords Alliance Vassal",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "You’ve pledged your loyalty to a member-city of the Lords’ Alliance. As an Alliance agent, you must uphold the tenets of the Alliance and seek to increase safety and prosperity along the Sword Coast. You’re sworn to bring honor and glory to your lord’s house, whether that means securing trade roads for a merchant-lord of Waterdeep or vanquishing monsters upriver of Daggerford. You’ve trained in the arts of swordplay and statecraft and are as deft with a blade as you are with a quill.",
     "ability_scores": [
       "Strength",
       "Intelligence",
@@ -1120,7 +1120,7 @@
   {
     "name": "Moonwell Pilgrim",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "(Druid) Skill Proficiencies: Nature and Performance Tool Proficiency: Painter’s Supplies Equipment: Choose A or B: (A) Quarterstaff, Painter’s Supplies, Bedroll, Bell, Pouch, Robe, String, Traveler’s Clothes, Waterskin, 34 GP; or (B) 50 GP Like many who hail from the Moonshae Isles, you grew up revering the blessed land, its unique gods, and the mysterious shrines called the moonwells. As a moonwell pilgrim, you undertook a quest to visit and commune with every moonwell on (or off) the map. Along your idyllic journeys, you collected a repertoire of Moonshavian folk songs, painted landscapes of enchanting vistas, and even learned how to wield a bit of primal magic.",
     "ability_scores": [
       "Constitution",
       "Wisdom",
@@ -1146,7 +1146,7 @@
   {
     "name": "Mulhorandi Tomb Raider",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "You grew up in a land of living god-kings, and as a child you were told countless stories of ancient empires and buried cities. In these tales, Mulhorand was a land overflowing with forgotten riches—priceless treasures awaiting anyone cunning and brave enough to seek them out. You’ve taken it upon yourself to explore your homeland’s crypts, tombs, and pyramids to reclaim your people’s relics.",
     "ability_scores": [
       "Dexterity",
       "Constitution",
@@ -1172,7 +1172,7 @@
   {
     "name": "Mythalkeeper",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "Mythals are sources of great magical power that can alter the Weave or even the very nature of reality. Most were constructed in antiquity, and many have since been damaged or gone dormant. As a mythalkeeper from the Dalelands, your first experience with a mythal was likely in the ruins of Myth Drannor. You roam Faerûn in search of other ruined places of power, hoping to learn more about the history and powers of mythals—or even restore a malfunctioning one.",
     "ability_scores": [
       "Intelligence",
       "Wisdom",
@@ -1198,7 +1198,7 @@
   {
     "name": "Purple Dragon Squire",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "You’ve pledged your life to the safety of Cormyr and sought admission to that realm’s order of elite warriors: the Purple Dragon Knights. But before you have the chance to join the ranks officially, you must first serve as a knight’s squire. You’ve found a liege willing to take you on and teach you the order’s ways. Will you uphold the Purple Dragon Knights’ ideals of glory, honor, and strength and prove yourself worthy of knighthood?",
     "ability_scores": [
       "Strength",
       "Wisdom",
@@ -1224,7 +1224,7 @@
   {
     "name": "Rashemi Wanderer",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "You spent years wandering the highlands of Rashemen, a dangerous windswept heath that’s dotted with ancient obelisks enchanted to imprison Fiends and home to dragons, gnolls, and other deadly creatures. Friendships are hard to find in such an isolated land, and you’ve learned to keep strangers at a distance.",
     "ability_scores": [
       "Strength",
       "Constitution",
@@ -1250,7 +1250,7 @@
   {
     "name": "Shadowmasters Exile",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "You trained your whole life to become a member of the Shadowmasters, the mysterious thieves’ guild that controls the realm of Thesk from behind the scenes. Stealth and quick reflexes were just the start of your Shadowmaster education; you also needed to hone your ruthlessness to ensure the safety of the guild’s secrets. But one wrong move led to your expulsion from the order. Now you must walk your own path.",
     "ability_scores": [],
     "feat": "Savage Attacker",
     "skill_proficiencies": [
@@ -1272,7 +1272,7 @@
   {
     "name": "Spellfire Initiate",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "You bear the gift of spellfire: a rare form of magic that channels the raw power of the Weave. Wielding spellfire takes a heavy toll on the body. You’ve trained both mind and body to efficiently wield this sacred power.",
     "ability_scores": [
       "Constitution",
       "Intelligence",
@@ -1298,7 +1298,7 @@
   {
     "name": "Zhentarim Mercenary",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "description": "",
+    "description": "Maybe you needed the money. Maybe you longed for a family, no matter how dubious. Or maybe you’re just good at getting the job done by any means necessary. Whatever your reason, you enlisted with the Zhentarim, the most notorious mercenary guild in the Realms. Though the Zhentarim’s leaders insist the organization is more like a family than a shadowy syndicate, few families exhibit as much dishonesty, nepotism, and corruption as this one. You’ve honed your cunning, reflexes, and blade to climb the guild’s ranks.",
     "ability_scores": [
       "Strength",
       "Dexterity",
@@ -1324,7 +1324,7 @@
   {
     "name": "Carouser",
     "source": "Astarion's Book of Hungers",
-    "description": "",
+    "description": "You grew to adulthood in the beating heart of a large city, such as Baldur’s Gate. You spent countless evenings in taverns, playhouses, parlors, and gambling dens, savoring all the city had to offer. You’re a natural at interacting with people to learn their secrets, whether over a high-stakes game or at a high-class soiree. You might have been thrown out of an establishment or ten, but only by people who don’t know how to party.",
     "ability_scores": [
       "Dexterity",
       "Intelligence",
@@ -1350,7 +1350,7 @@
   {
     "name": "Lorwyn Expert",
     "source": "Lorwyn - First Light",
-    "description": "",
+    "description": "You hail from Lorwyn, a land of eternal sunshine, or you have studied the place with great intensity. You consider the majestic creature Eirdu the living embodiment of the sun, and you love embarking on whimsical adventures. You hold your loved ones close, even if only emotionally, for you’ve seen some venture into Shadowmoor or beyond and become faded versions of themselves. You’re nevertheless courageous and always long for new experiences.",
     "ability_scores": [
       "Strength",
       "Constitution",
@@ -1376,7 +1376,7 @@
   {
     "name": "Shadowmoor Expert",
     "source": "Lorwyn - First Light",
-    "description": "",
+    "description": "You are from Shadowmoor or have studied it for years. It’s a gloomy, chaotic place perpetually lit by pale moonlight. You might survive Shadowmoor’s merciless conditions thanks to your wit and cunning, or you might keep threats at bay with your brawn and bravery. Regardless of where you tread, you keenly understand that friendship is a rare commodity. You believe that knowing who to trust and who to keep at arm’s length isn’t just practical - it’s often a matter of life or death.",
     "ability_scores": [
       "Dexterity",
       "Intelligence",
@@ -1402,7 +1402,7 @@
   {
     "name": "Vampire Devotee",
     "source": "Astarion's Book of Hungers",
-    "description": "",
+    "description": "You were in service to a vampire or a small group of vampires lairing together. The Undead drank your blood more times than you can count. You might have served willingly, perhaps with aspirations of one day becoming a vampire yourself. Or you might have been magically charmed and retain only a few muddled memories of your time as a vampire familiar. In either case, your time in the vampire den is over.",
     "ability_scores": [
       "Strength",
       "Constitution",
@@ -1428,7 +1428,7 @@
   {
     "name": "Vampire Survivor",
     "source": "Astarion's Book of Hungers",
-    "description": "",
+    "description": "You witnessed or survived a vampire attack. You might have been directly involved in this confrontation, or perhaps you were frozen in terror by what you saw. Regardless, you remain vigilant for monster attacks and pride yourself on being ready for anything. No vampire will catch you or your allies by surprise again.",
     "ability_scores": [
       "Dexterity",
       "Constitution",

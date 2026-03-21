@@ -109,6 +109,9 @@ def extract_description(content: str, after_source: bool = True) -> str:
     """Extract the flavor/narrative description text.
 
     Typically the paragraph(s) between Source line and the first traits/mechanics section.
+    Some entries (e.g. Eberron backgrounds) place the description *after* all
+    field headers, so if nothing is found before the headers we fall back to
+    collecting trailing text.
     """
     lines = content.split("\n")
     start = 0
@@ -131,19 +134,66 @@ def extract_description(content: str, after_source: bool = True) -> str:
         "you gain the following", "feat:", "skill proficiencies",
     ]
 
+    field_headers = trait_headers + [
+        "tool proficiency", "equipment",
+    ]
+
+    first_header_idx = None
     for i in range(start, len(lines)):
         stripped = lines[i].strip()
         if not stripped:
             continue
         lower = stripped.lower()
         if any(lower.startswith(h) for h in trait_headers):
+            first_header_idx = i
             break
         # Also stop at labeled field patterns
         if re.match(r'^[A-Z][a-z]+ [A-Z][a-z]+:', stripped):
+            first_header_idx = i
             break
         desc_lines.append(stripped)
 
-    return " ".join(desc_lines).strip()
+    if desc_lines:
+        return " ".join(desc_lines).strip()
+
+    # Fallback: collect trailing text after all known field headers.
+    # Walk past header/value pairs (header line + one value line each),
+    # then grab whatever remains as the description.
+    def _is_header(line: str) -> bool:
+        low = line.strip().lower()
+        return (
+            any(low.startswith(h) for h in field_headers)
+            or bool(re.match(r'^[A-Z][a-z]+ [A-Z][a-z]+:', line.strip()))
+        )
+
+    i = first_header_idx or start
+    while i < len(lines):
+        stripped = lines[i].strip()
+        if not stripped:
+            i += 1
+            continue
+        if _is_header(stripped):
+            i += 1  # skip header line
+            # skip the value line(s) until next header or end
+            while i < len(lines):
+                s = lines[i].strip()
+                if not s:
+                    i += 1
+                    continue
+                if _is_header(s):
+                    break
+                i += 1  # skip value line
+                break  # only consume one value line per header
+        else:
+            break
+
+    tail_lines = []
+    for j in range(i, len(lines)):
+        stripped = lines[j].strip()
+        if stripped:
+            tail_lines.append(stripped)
+
+    return " ".join(tail_lines).strip()
 
 
 def is_school_index(entry: dict) -> bool:
