@@ -9,13 +9,14 @@ from gui.theme import COLORS, FONTS
 def _wheel_units(event) -> int:
     """Normalise a MouseWheel event delta to scroll units.
 
-    Windows fires delta in multiples of 120; macOS fires delta as ±1
-    (or small integers for trackpad momentum).  Dividing by 120 on macOS
-    always truncates to zero, making every scrollable panel unresponsive.
+    Windows and Linux/X11 fire delta in multiples of 120.  macOS fires
+    delta as ±1 (or small integers for trackpad momentum).  On macOS,
+    dividing by 120 truncates to zero (no scroll); on Linux, skipping
+    the division scrolls 120 units at once (list flies off the screen).
     """
-    if sys.platform == "win32":
-        return int(-1 * event.delta / 120)
-    return int(-event.delta)
+    if sys.platform == "darwin":
+        return int(-event.delta)
+    return int(-1 * event.delta / 120)
 
 
 def configure_modal_dialog(dialog: tk.Toplevel, parent):
