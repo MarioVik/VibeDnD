@@ -212,6 +212,7 @@ class BackgroundStep(WizardStep):
             self.assign_frame = ttk.Frame(self.bonus_frame)
             self.assign_frame.pack(fill=tk.X, padx=4, pady=4)
             self.bonus_combos = {}
+            self.bonus_widgets = {}
             self.current_abilities = abilities
 
             self._update_bonus_ui()
@@ -228,6 +229,7 @@ class BackgroundStep(WizardStep):
         for w in self.assign_frame.winfo_children():
             w.destroy()
         self.bonus_combos.clear()
+        self.bonus_widgets.clear()
 
         mode = self.bonus_mode.get()
         self.character.ability_bonus_mode = mode
@@ -244,6 +246,7 @@ class BackgroundStep(WizardStep):
             )
             combo2.pack(side=tk.LEFT, padx=4)
             self.bonus_combos["+2"] = var2
+            self.bonus_widgets["+2"] = combo2
 
             row2 = ttk.Frame(self.assign_frame)
             row2.pack(fill=tk.X, pady=2)
@@ -251,21 +254,24 @@ class BackgroundStep(WizardStep):
             remaining = [a for a in abilities if a != abilities[0]] if abilities else []
             var1 = tk.StringVar(value=remaining[0] if remaining else "")
             combo1 = ttk.Combobox(
-                row2, textvariable=var1, values=abilities, state="readonly", width=15
+                row2, textvariable=var1, values=[a for a in abilities if a != abilities[0]] if abilities else [], state="readonly", width=15
             )
             combo1.pack(side=tk.LEFT, padx=4)
             self.bonus_combos["+1"] = var1
+            self.bonus_widgets["+1"] = combo1
 
             var2.trace_add("write", self._on_bonus_change)
             var1.trace_add("write", self._on_bonus_change)
 
         else:
             # Three abilities each get +1
-            ttk.Label(
-                self.assign_frame,
-                text=f"Each gets +1: {', '.join(abilities)}",
-                style="Dim.TLabel",
-            ).pack(anchor="w")
+            for ab in abilities:
+                row = ttk.Frame(self.assign_frame)
+                row.pack(fill=tk.X, pady=2)
+                ttk.Label(row, text="+1 to:", width=8).pack(side=tk.LEFT)
+                ttk.Label(
+                    row, text=ab, foreground=COLORS["accent"], font=FONTS["body"]
+                ).pack(side=tk.LEFT, padx=4)
 
         self._on_bonus_change()
 
@@ -277,16 +283,35 @@ class BackgroundStep(WizardStep):
 
         mode = self.bonus_mode.get()
         if mode == "2/1":
-            plus2 = self.bonus_combos.get("+2")
-            plus1 = self.bonus_combos.get("+1")
-            if plus2:
-                ab2 = plus2.get()
-                if ab2:
-                    self.character.ability_scores.set_bonus(ab2, 2)
-            if plus1:
-                ab1 = plus1.get()
-                if ab1:
-                    self.character.ability_scores.set_bonus(ab1, 1)
+            plus2_var = self.bonus_combos.get("+2")
+            plus1_var = self.bonus_combos.get("+1")
+            ab2 = plus2_var.get() if plus2_var else ""
+            ab1 = plus1_var.get() if plus1_var else ""
+            abilities = self.current_abilities
+
+            # Cross-filter: update each combo's options to exclude the other's pick
+            combo2_w = self.bonus_widgets.get("+2")
+            combo1_w = self.bonus_widgets.get("+1")
+
+            if combo1_w and ab2:
+                allowed = [a for a in abilities if a != ab2]
+                combo1_w["values"] = allowed
+                # Auto-correct if +1 conflicts with +2
+                if ab1 == ab2 and allowed:
+                    plus1_var.set(allowed[0])
+                    return  # .set() re-triggers this callback
+            elif combo1_w:
+                combo1_w["values"] = abilities
+
+            if combo2_w and ab1:
+                combo2_w["values"] = [a for a in abilities if a != ab1]
+            elif combo2_w:
+                combo2_w["values"] = abilities
+
+            if ab2:
+                self.character.ability_scores.set_bonus(ab2, 2)
+            if ab1 and ab1 != ab2:
+                self.character.ability_scores.set_bonus(ab1, 1)
         else:
             for ab in self.current_abilities:
                 self.character.ability_scores.set_bonus(ab, 1)
