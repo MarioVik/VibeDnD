@@ -199,6 +199,7 @@ def _make_control_file() -> None:
             f"Architecture: {deb_arch()}",
             "Maintainer: VibeDnD",
             f"Installed-Size: {_installed_size_kb()}",
+            "Depends: libc6, libx11-6, libxext6, libxrender1, libfontconfig1",
             "Description: VibeDnD D&D 2024 Character Creator",
             "",
         ]
