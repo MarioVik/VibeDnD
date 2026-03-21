@@ -137,6 +137,7 @@ class ClassStep(WizardStep):
                 if skill_name in self.skill_vars:
                     self.skill_vars[skill_name].set(True)
             self.character.selected_skills = saved_skills
+            self._update_skill_states()
 
     def _build_toggles(self):
         """Build source filter checkboxes for classes and subclasses."""
@@ -418,6 +419,7 @@ class ClassStep(WizardStep):
         cols_frame = ttk.Frame(self.skills_frame)
         cols_frame.pack(fill=tk.X, padx=4, pady=4)
 
+        self.skill_checkbuttons: dict[str, ttk.Checkbutton] = {}
         for i, skill_name in enumerate(options):
             var = tk.BooleanVar(value=False)
             var.trace_add("write", self._on_skill_change)
@@ -426,6 +428,7 @@ class ClassStep(WizardStep):
             row = i // 3
             cb = ttk.Checkbutton(cols_frame, text=skill_name, variable=var)
             cb.grid(row=row, column=col, sticky="w", padx=8, pady=1)
+            self.skill_checkbuttons[skill_name] = cb
 
         # Features - All Levels Roadmap
         for w in self.features_frame.winfo_children():
@@ -641,13 +644,16 @@ class ClassStep(WizardStep):
 
     def _on_skill_change(self, *args):
         selected = [name for name, var in self.skill_vars.items() if var.get()]
-
-        if len(selected) > self.skill_limit:
-            # Uncheck the last one
-            for name, var in self.skill_vars.items():
-                if var.get() and name not in self.character.selected_skills:
-                    var.set(False)
-                    return
-
         self.character.selected_skills = selected
+        self._update_skill_states()
         self.notify_change()
+
+    def _update_skill_states(self):
+        """Disable unchecked skill checkboxes when at max."""
+        selected = [name for name, var in self.skill_vars.items() if var.get()]
+        at_max = len(selected) >= self.skill_limit
+        for name, cb in self.skill_checkbuttons.items():
+            if at_max and name not in selected:
+                cb.configure(state=tk.DISABLED)
+            else:
+                cb.configure(state=tk.NORMAL)
