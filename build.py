@@ -58,6 +58,8 @@ EXCLUDES = [
 # and binaries in the package, ensuring nothing is silently skipped.
 COLLECT_ALL = [
     "gui",
+    "models",
+    "export",
 ]
 
 

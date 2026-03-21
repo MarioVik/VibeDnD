@@ -50,6 +50,8 @@ EXCLUDES = [
 
 COLLECT_ALL = [
     "gui",
+    "models",
+    "export",
 ]
 
 
