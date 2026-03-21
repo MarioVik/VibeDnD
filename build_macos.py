@@ -187,7 +187,13 @@ def create_dmg(app_path: Path) -> Path:
     DMG_STAGING.mkdir(parents=True, exist_ok=True)
 
     staged_app = DMG_STAGING / APP_NAME
-    shutil.copytree(app_path, staged_app)
+    # Use ditto instead of shutil.copytree: ditto preserves symlinks, resource
+    # forks, and extended attributes.  shutil.copytree(symlinks=False) follows
+    # symlinks and turns them into regular files, which invalidates the
+    # code-signature that was just applied (codesign hashes the bundle layout
+    # including symlink targets), causing macOS to silently kill the app at
+    # launch even after the user approves the Gatekeeper dialog.
+    run(["ditto", str(app_path), str(staged_app)])
 
     apps_link = DMG_STAGING / "Applications"
     if apps_link.exists() or apps_link.is_symlink():
@@ -212,6 +218,11 @@ def create_dmg(app_path: Path) -> Path:
             str(dmg_path),
         ]
     )
+
+    # Ad-hoc sign the DMG container so Gatekeeper doesn't flag the disk image
+    # itself as unsigned (separate from the app bundle signature inside it).
+    print("Ad-hoc signing DMG...")
+    run(["codesign", "--force", "--sign", "-", str(dmg_path)])
 
     return dmg_path
 
