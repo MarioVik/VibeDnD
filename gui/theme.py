@@ -1,5 +1,6 @@
 """TTK theme configuration for the D&D character creator."""
 
+import sys
 import tkinter as tk
 from tkinter import ttk
 
@@ -20,14 +21,24 @@ COLORS = {
     "select_fg": "#f5ead6",
 }
 
+if sys.platform == "darwin":
+    _SANS = "Helvetica Neue"
+    _MONO = "Menlo"
+elif sys.platform == "win32":
+    _SANS = "Segoe UI"
+    _MONO = "Consolas"
+else:
+    _SANS = "DejaVu Sans"
+    _MONO = "DejaVu Sans Mono"
+
 FONTS = {
-    "heading": ("Segoe UI", 18, "bold"),
-    "subheading": ("Segoe UI", 13, "bold"),
-    "body": ("Segoe UI", 11),
-    "body_small": ("Segoe UI", 10),
-    "mono": ("Consolas", 11),
-    "stat": ("Segoe UI", 15, "bold"),
-    "stat_mod": ("Segoe UI", 12),
+    "heading": (_SANS, 18, "bold"),
+    "subheading": (_SANS, 13, "bold"),
+    "body": (_SANS, 11),
+    "body_small": (_SANS, 10),
+    "mono": (_MONO, 11),
+    "stat": (_SANS, 15, "bold"),
+    "stat_mod": (_SANS, 12),
 }
 
 

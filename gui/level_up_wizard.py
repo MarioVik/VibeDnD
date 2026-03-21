@@ -19,6 +19,7 @@ from gui.widgets import (
     ConfirmDialog,
     AlertDialog,
     configure_modal_dialog,
+    _wheel_units,
 )
 from models.character import Character
 from models.class_level import ClassLevel
@@ -1660,7 +1661,7 @@ class LevelUpWizard(tk.Toplevel):
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         def _on_wheel(event):
-            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            canvas.yview_scroll(_wheel_units(event), "units")
 
         inner.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_wheel))
         inner.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))

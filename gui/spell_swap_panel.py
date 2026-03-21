@@ -7,6 +7,7 @@ from itertools import groupby
 from tkinter import ttk
 
 from gui.theme import COLORS, FONTS
+from gui.widgets import _wheel_units
 
 LEVEL_NAMES = {
     0: "Cantrips",
@@ -425,7 +426,7 @@ def _make_scrollable_list(parent_frame):
     canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
     def _on_wheel(event):
-        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        canvas.yview_scroll(_wheel_units(event), "units")
 
     inner.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_wheel))
     inner.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))

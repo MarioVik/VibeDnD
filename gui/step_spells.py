@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
 from gui.theme import COLORS, FONTS
+from gui.widgets import _wheel_units
 
 
 class SpellsStep(WizardStep):
@@ -218,7 +219,7 @@ class SpellsStep(WizardStep):
 
         # Mousewheel scrolling — scoped to whichever list the cursor is over
         def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            canvas.yview_scroll(_wheel_units(event), "units")
 
         def _bind_wheel(event):
             canvas.bind_all("<MouseWheel>", _on_mousewheel)
