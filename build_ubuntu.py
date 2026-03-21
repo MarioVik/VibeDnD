@@ -55,7 +55,7 @@ EXCLUDES = [
     "soupsieve",
 ]
 
-COLLECT_SUBMODULES = [
+COLLECT_ALL = [
     "gui",
 ]
 
@@ -109,8 +109,8 @@ def build_app() -> Path:
         exclude_flags += ["--exclude-module", mod]
 
     collect_flags: list[str] = []
-    for pkg in COLLECT_SUBMODULES:
-        collect_flags += ["--collect-submodules", pkg]
+    for pkg in COLLECT_ALL:
+        collect_flags += ["--collect-all", pkg]
 
     cmd = [
         sys.executable,

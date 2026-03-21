@@ -52,9 +52,11 @@ EXCLUDES = [
     "soupsieve",
 ]
 
-# PyInstaller can occasionally miss package submodules in CI builds.
-# Collecting the whole gui package avoids runtime ModuleNotFound errors.
-COLLECT_SUBMODULES = [
+# PyInstaller can miss package submodules during analysis on Windows,
+# especially with --onefile mode.  --collect-all is more aggressive than
+# --collect-submodules: it forces collection of all submodules, data files
+# and binaries in the package, ensuring nothing is silently skipped.
+COLLECT_ALL = [
     "gui",
 ]
 
@@ -89,8 +91,8 @@ def build(onefile: bool = False):
         exclude_flags += ["--exclude-module", mod]
 
     collect_flags = []
-    for pkg in COLLECT_SUBMODULES:
-        collect_flags += ["--collect-submodules", pkg]
+    for pkg in COLLECT_ALL:
+        collect_flags += ["--collect-all", pkg]
 
     cmd = [
         sys.executable, "-m", "PyInstaller",
