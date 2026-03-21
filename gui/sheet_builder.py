@@ -1,9 +1,17 @@
 """Shared character sheet renderer used by the Summary wizard step and the
 Character Viewer screen."""
 
+import base64
+import io
 import re
 import tkinter as tk
 from tkinter import ttk
+
+try:
+    from PIL import Image, ImageTk
+except ImportError:  # pragma: no cover
+    Image = None
+    ImageTk = None
 
 from gui.theme import COLORS, FONTS
 from models.enums import ALL_SKILLS
@@ -187,6 +195,7 @@ def build_character_sheet(
     on_change=None,
     include_sections: set[str] | None = None,
     compact: bool = False,
+    read_only: bool = False,
 ):
     """Render a read-only character sheet into *parent*.
 
@@ -688,111 +697,144 @@ def build_character_sheet(
             ("Silver", "sp", 10),
             ("Gold", "gp", 100),
         ]
-        coin_value_vars = {}
 
-        def _refresh_wealth_display():
-            gp, sp, cp = cp_to_coins(current_wealth_cp(c))
-            values = {"gp": gp, "sp": sp, "cp": cp}
-            for coin_key, var in coin_value_vars.items():
-                var.set(str(values.get(coin_key, 0)))
+        gp, sp, cp_val = cp_to_coins(current_wealth_cp(c))
+        coin_values = {"gp": gp, "sp": sp, "cp": cp_val}
 
-        def _set_wealth_from_entries() -> bool:
-            parsed = {}
-            for _, coin_key, _ in coin_defs:
-                raw = coin_value_vars[coin_key].get().strip()
-                if raw == "":
-                    raw = "0"
-                if not raw.isdigit():
+        if read_only:
+            for title, coin_key, _ in coin_defs:
+                outer = ttk.Frame(coins_row)
+                outer.pack(side=tk.LEFT, padx=(0, 10))
+
+                ttk.Label(outer, text=title, style="Dim.TLabel").pack(
+                    anchor="w", pady=(0, 2)
+                )
+
+                value_box = tk.Frame(
+                    outer,
+                    bg=COLORS["bg_light"],
+                    highlightbackground=COLORS["border"],
+                    highlightthickness=1,
+                    bd=0,
+                )
+                value_box.pack(anchor="w")
+                value_box.configure(width=72, height=30)
+                value_box.pack_propagate(False)
+
+                tk.Label(
+                    value_box,
+                    text=str(coin_values.get(coin_key, 0)),
+                    font=FONTS["stat"],
+                    background=COLORS["bg_light"],
+                    fg=COLORS["fg_bright"],
+                    anchor="center",
+                ).place(relx=0.5, rely=0.5, anchor="center")
+        else:
+            coin_value_vars = {}
+
+            def _refresh_wealth_display():
+                gp, sp, cp = cp_to_coins(current_wealth_cp(c))
+                values = {"gp": gp, "sp": sp, "cp": cp}
+                for coin_key, var in coin_value_vars.items():
+                    var.set(str(values.get(coin_key, 0)))
+
+            def _set_wealth_from_entries() -> bool:
+                parsed = {}
+                for _, coin_key, _ in coin_defs:
+                    raw = coin_value_vars[coin_key].get().strip()
+                    if raw == "":
+                        raw = "0"
+                    if not raw.isdigit():
+                        AlertDialog(
+                            parent.winfo_toplevel(),
+                            "Wealth",
+                            "Please enter whole numbers only.",
+                        )
+                        _refresh_wealth_display()
+                        return False
+                    parsed[coin_key] = int(raw)
+
+                new_total_cp = parsed["gp"] * 100 + parsed["sp"] * 10 + parsed["cp"]
+                c.wealth_adjust_cp = int(new_total_cp - base_wealth_cp(c))
+                _refresh_wealth_display()
+                _emit_change()
+                return True
+
+            def _on_coin_commit(event=None):
+                _set_wealth_from_entries()
+
+            def _adjust_wealth(delta_cp: int):
+                if not _set_wealth_from_entries():
+                    return
+                current_cp = current_wealth_cp(c)
+                if delta_cp < 0 and current_cp < abs(delta_cp):
                     AlertDialog(
                         parent.winfo_toplevel(),
                         "Wealth",
-                        "Please enter whole numbers only.",
+                        "You do not have enough wealth for that reduction.",
                     )
-                    _refresh_wealth_display()
-                    return False
-                parsed[coin_key] = int(raw)
+                    return
+                c.wealth_adjust_cp = int(getattr(c, "wealth_adjust_cp", 0)) + int(delta_cp)
+                _refresh_wealth_display()
+                _emit_change()
 
-            new_total_cp = parsed["gp"] * 100 + parsed["sp"] * 10 + parsed["cp"]
-            c.wealth_adjust_cp = int(new_total_cp - base_wealth_cp(c))
-            _refresh_wealth_display()
-            _emit_change()
-            return True
+            for title, coin_key, unit_cp in coin_defs:
+                outer = ttk.Frame(coins_row)
+                outer.pack(side=tk.LEFT, padx=(0, 10))
 
-        def _on_coin_commit(event=None):
-            _set_wealth_from_entries()
-
-        def _adjust_wealth(delta_cp: int):
-            if not _set_wealth_from_entries():
-                return
-            current_cp = current_wealth_cp(c)
-            if delta_cp < 0 and current_cp < abs(delta_cp):
-                AlertDialog(
-                    parent.winfo_toplevel(),
-                    "Wealth",
-                    "You do not have enough wealth for that reduction.",
+                ttk.Label(outer, text=title, style="Dim.TLabel").pack(
+                    anchor="w", pady=(0, 2)
                 )
-                return
-            c.wealth_adjust_cp = int(getattr(c, "wealth_adjust_cp", 0)) + int(delta_cp)
+
+                body = ttk.Frame(outer)
+                body.pack(anchor="w")
+                body.rowconfigure(0, weight=1)
+                body.rowconfigure(1, weight=1)
+
+                value_box = tk.Frame(
+                    body,
+                    bg=COLORS["bg_light"],
+                    highlightbackground=COLORS["border"],
+                    highlightthickness=1,
+                    bd=0,
+                )
+                value_box.grid(row=0, column=0, rowspan=2, sticky="nsew")
+                value_box.grid_propagate(False)
+                value_box.configure(width=72)
+
+                value_var = tk.StringVar(value="0")
+                value_entry = tk.Entry(
+                    value_box,
+                    textvariable=value_var,
+                    font=FONTS["stat"],
+                    background=COLORS["bg_light"],
+                    fg=COLORS["fg_bright"],
+                    insertbackground=COLORS["fg_bright"],
+                    relief=tk.FLAT,
+                    borderwidth=0,
+                    highlightthickness=0,
+                    justify="center",
+                    width=4,
+                )
+                value_entry.place(relx=0.5, rely=0.5, anchor="center")
+                value_entry.bind("<FocusOut>", _on_coin_commit)
+                value_entry.bind("<Return>", _on_coin_commit)
+                coin_value_vars[coin_key] = value_var
+
+                ttk.Button(
+                    body,
+                    text="+",
+                    width=2,
+                    command=lambda d=unit_cp: _adjust_wealth(d),
+                ).grid(row=0, column=1, padx=(5, 0), pady=(0, 2), sticky="n")
+                ttk.Button(
+                    body,
+                    text="-",
+                    width=2,
+                    command=lambda d=unit_cp: _adjust_wealth(-d),
+                ).grid(row=1, column=1, padx=(5, 0), sticky="s")
+
             _refresh_wealth_display()
-            _emit_change()
-
-        for title, coin_key, unit_cp in coin_defs:
-            outer = ttk.Frame(coins_row)
-            outer.pack(side=tk.LEFT, padx=(0, 10))
-
-            ttk.Label(outer, text=title, style="Dim.TLabel").pack(
-                anchor="w", pady=(0, 2)
-            )
-
-            body = ttk.Frame(outer)
-            body.pack(anchor="w")
-            body.rowconfigure(0, weight=1)
-            body.rowconfigure(1, weight=1)
-
-            value_box = tk.Frame(
-                body,
-                bg=COLORS["bg_light"],
-                highlightbackground=COLORS["border"],
-                highlightthickness=1,
-                bd=0,
-            )
-            value_box.grid(row=0, column=0, rowspan=2, sticky="nsew")
-            value_box.grid_propagate(False)
-            value_box.configure(width=72)
-
-            value_var = tk.StringVar(value="0")
-            value_entry = tk.Entry(
-                value_box,
-                textvariable=value_var,
-                font=FONTS["stat"],
-                background=COLORS["bg_light"],
-                fg=COLORS["fg_bright"],
-                insertbackground=COLORS["fg_bright"],
-                relief=tk.FLAT,
-                borderwidth=0,
-                highlightthickness=0,
-                justify="center",
-                width=4,
-            )
-            value_entry.place(relx=0.5, rely=0.5, anchor="center")
-            value_entry.bind("<FocusOut>", _on_coin_commit)
-            value_entry.bind("<Return>", _on_coin_commit)
-            coin_value_vars[coin_key] = value_var
-
-            ttk.Button(
-                body,
-                text="+",
-                width=2,
-                command=lambda d=unit_cp: _adjust_wealth(d),
-            ).grid(row=0, column=1, padx=(5, 0), pady=(0, 2), sticky="n")
-            ttk.Button(
-                body,
-                text="-",
-                width=2,
-                command=lambda d=unit_cp: _adjust_wealth(-d),
-            ).grid(row=1, column=1, padx=(5, 0), sticky="s")
-
-        _refresh_wealth_display()
 
     # ── Equipment ───────────────────────────────────────────────
     equip_sec = None
@@ -809,6 +851,9 @@ def build_character_sheet(
         ttk.Label(h, text="Equipped", style="Dim.TLabel", width=9).pack(side=tk.LEFT)
         ttk.Label(h, text="Item", style="Dim.TLabel").pack(side=tk.LEFT)
 
+    _EQUIP_CHECK = "\u2611"  # ☑
+    _EQUIP_UNCHECK = "\u2610"  # ☐
+
     if _show("equipment") and equip_sec is not None:
         # ── Weapons sub-section ──────────────────────────────────────
         weapons_frame = ttk.LabelFrame(equip_sec, text="Weapons")
@@ -820,16 +865,21 @@ def build_character_sheet(
             _col_header(weapons_inner)
             for weapon_key in sorted(weapon_counts.keys()):
                 qty = weapon_counts[weapon_key]
-                var = tk.BooleanVar(value=weapon_key in set(c.equipped_weapons or []))
+                equipped = weapon_key in set(c.equipped_weapons or [])
+                var = tk.BooleanVar(value=equipped)
                 equip_vars[weapon_key] = var
 
                 row = ttk.Frame(weapons_inner)
                 row.pack(fill=tk.X, pady=row_pady)
-                ttk.Checkbutton(
-                    row,
-                    variable=var,
-                    command=lambda k=weapon_key: _on_weapon_toggle(k),
-                ).pack(side=tk.LEFT)
+                if read_only:
+                    indicator = _EQUIP_CHECK if equipped else _EQUIP_UNCHECK
+                    ttk.Label(row, text=f" {indicator} ", width=4).pack(side=tk.LEFT)
+                else:
+                    ttk.Checkbutton(
+                        row,
+                        variable=var,
+                        command=lambda k=weapon_key: _on_weapon_toggle(k),
+                    ).pack(side=tk.LEFT)
                 label = weapon_key.title()
                 if qty > 1:
                     label += f" (x{qty})"
@@ -853,16 +903,21 @@ def build_character_sheet(
             _col_header(armor_inner)
             for armor_key in sorted(armor_counts.keys()):
                 qty = armor_counts[armor_key]
-                var = tk.BooleanVar(value=armor_key in set(c.equipped_armor or []))
+                equipped = armor_key in set(c.equipped_armor or [])
+                var = tk.BooleanVar(value=equipped)
                 armor_vars[armor_key] = var
 
                 row = ttk.Frame(armor_inner)
                 row.pack(fill=tk.X, pady=row_pady)
-                ttk.Checkbutton(
-                    row,
-                    variable=var,
-                    command=lambda k=armor_key: _on_armor_toggle(k),
-                ).pack(side=tk.LEFT)
+                if read_only:
+                    indicator = _EQUIP_CHECK if equipped else _EQUIP_UNCHECK
+                    ttk.Label(row, text=f" {indicator} ", width=4).pack(side=tk.LEFT)
+                else:
+                    ttk.Checkbutton(
+                        row,
+                        variable=var,
+                        command=lambda k=armor_key: _on_armor_toggle(k),
+                    ).pack(side=tk.LEFT)
                 label = armor_key.title()
                 if qty > 1:
                     label += f" (x{qty})"
@@ -1003,7 +1058,7 @@ def build_character_sheet(
             _emit_change()
 
     def _render_weapon_option_rows(current_actions: list[dict]):
-        if options_frame is None:
+        if options_frame is None or read_only:
             return
         assert options_frame is not None
         for w in options_frame.winfo_children():
@@ -1098,3 +1153,102 @@ def build_character_sheet(
         _render_weapon_option_rows(actions)
 
     _render_action_rows()
+
+    # ── Biography ────────────────────────────────────────────────
+    if _show("biography"):
+        backstory = getattr(c, "biography_backstory", "") or ""
+        personality = getattr(c, "biography_personality", "") or ""
+        description = getattr(c, "biography_description", "") or ""
+        image_data = getattr(c, "biography_image_data", "") or ""
+        img_format = (getattr(c, "biography_image_format", "") or "").lower()
+
+        has_bio_text = backstory.strip() or personality.strip() or description.strip()
+        has_portrait = bool(image_data)
+
+        if has_bio_text or has_portrait:
+            bio_sec = ttk.LabelFrame(parent, text="Biography")
+            bio_sec.pack(fill=tk.X, pady=section_pady)
+
+            def _make_readonly_textbox(parent_frame, label: str, content: str):
+                if not content.strip():
+                    return
+                ttk.Label(
+                    parent_frame, text=label, style="Subheading.TLabel"
+                ).pack(anchor="w", padx=8, pady=(4, 2))
+                text_widget = tk.Text(
+                    parent_frame,
+                    wrap=tk.WORD,
+                    bg=COLORS["bg_light"],
+                    fg=COLORS["fg"],
+                    font=FONTS["body"],
+                    borderwidth=0,
+                    highlightthickness=0,
+                    relief=tk.FLAT,
+                    spacing1=2,
+                    spacing3=2,
+                    padx=10,
+                    pady=8,
+                    height=min(8, max(2, content.count("\n") + 2)),
+                )
+                text_widget.pack(fill=tk.X, padx=8, pady=(0, 4))
+                text_widget.insert("1.0", content)
+                text_widget.configure(state=tk.DISABLED)
+
+            _make_readonly_textbox(bio_sec, "Backstory", backstory)
+            _make_readonly_textbox(bio_sec, "Personality", personality)
+            _make_readonly_textbox(bio_sec, "Description", description)
+
+            if has_portrait:
+                ttk.Label(
+                    bio_sec, text="Portrait", style="Subheading.TLabel"
+                ).pack(anchor="w", padx=8, pady=(4, 2))
+                canvas = tk.Canvas(
+                    bio_sec,
+                    width=260,
+                    height=320,
+                    bg=COLORS["bg_light"],
+                    highlightthickness=1,
+                    highlightbackground=COLORS["border"],
+                    relief=tk.FLAT,
+                )
+                canvas.pack(padx=8, pady=(0, 8))
+
+                try:
+                    raw = base64.b64decode(image_data)
+                    if Image is not None and ImageTk is not None:
+                        pil_img = Image.open(io.BytesIO(raw))
+                        pil_img.thumbnail((240, 300))
+                        display = ImageTk.PhotoImage(pil_img)
+                        canvas.create_image(130, 160, image=display)
+                        # Prevent garbage collection
+                        parent._bio_photo_ref = display
+                    elif img_format in {"png", ""}:
+                        photo = tk.PhotoImage(
+                            data=base64.b64encode(raw).decode("ascii")
+                        )
+                        max_w, max_h = 240, 300
+                        w = max(1, int(photo.width()))
+                        h = max(1, int(photo.height()))
+                        scale = max(
+                            (w + max_w - 1) // max_w,
+                            (h + max_h - 1) // max_h,
+                            1,
+                        )
+                        display = photo.subsample(scale) if scale > 1 else photo
+                        canvas.create_image(130, 160, image=display)
+                        parent._bio_photo_ref = display
+                        parent._bio_photo_orig = photo
+                    else:
+                        canvas.create_text(
+                            130, 160,
+                            text="Preview unavailable",
+                            fill=COLORS["fg_dim"],
+                            font=FONTS["body"],
+                        )
+                except Exception:
+                    canvas.create_text(
+                        130, 160,
+                        text="Image data is invalid",
+                        fill=COLORS["fg_dim"],
+                        font=FONTS["body"],
+                    )

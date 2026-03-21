@@ -184,6 +184,14 @@ class SummaryStep(WizardStep):
             self.character,
             self.data,
             on_change=self._on_sheet_changed,
+            compact=True,
+            read_only=True,
+            include_sections={
+                "header", "combat", "abilities", "saving_throws", "skills",
+                "standard_actions", "species_traits", "class_features",
+                "subclass", "feats", "spells", "wealth", "equipment",
+                "inventory", "biography",
+            },
         )
 
     def _on_sheet_changed(self):
