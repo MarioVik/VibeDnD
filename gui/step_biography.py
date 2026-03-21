@@ -79,6 +79,8 @@ class BiographyStep(WizardStep):
             justify=tk.CENTER,
             tags=("placeholder",),
         )
+        self._last_canvas_size = (0, 0)
+        self._canvas.bind("<Configure>", self._on_canvas_configure)
 
         btns = ttk.Frame(right)
         btns.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
@@ -134,15 +136,32 @@ class BiographyStep(WizardStep):
 
     # ---- image handling ----
 
+    def _canvas_center(self):
+        cw = self._canvas.winfo_width()
+        ch = self._canvas.winfo_height()
+        if cw <= 1:
+            cw = self._canvas.winfo_reqwidth()
+        if ch <= 1:
+            ch = self._canvas.winfo_reqheight()
+        return cw, ch
+
+    def _on_canvas_configure(self, event):
+        new_size = (event.width, event.height)
+        if new_size != self._last_canvas_size and new_size[0] > 1 and new_size[1] > 1:
+            self._last_canvas_size = new_size
+            self._refresh_image()
+
     def _refresh_image(self):
         self._canvas.delete("all")
         self._photo = None
         self._photo_display = None
+        cw, ch = self._canvas_center()
+        cx, cy = cw // 2, ch // 2
 
         data = self.character.biography_image_data or ""
         if not data:
             self._canvas.create_text(
-                130, 160,
+                cx, cy,
                 text="No image selected",
                 fill=COLORS["fg_dim"],
                 font=FONTS["body"],
@@ -154,7 +173,7 @@ class BiographyStep(WizardStep):
             raw = base64.b64decode(data)
         except Exception:
             self._canvas.create_text(
-                130, 160,
+                cx, cy,
                 text="Image data is invalid",
                 fill=COLORS["fg_dim"],
                 font=FONTS["body_small"],
@@ -165,10 +184,10 @@ class BiographyStep(WizardStep):
         try:
             if Image is not None and ImageTk is not None:
                 pil_img = Image.open(io.BytesIO(raw))
-                pil_img.thumbnail((240, 300))
+                pil_img.thumbnail((cw, ch))
                 display = ImageTk.PhotoImage(pil_img)
                 self._photo_display = display
-                self._canvas.create_image(130, 160, image=display)
+                self._canvas.create_image(cx, cy, image=display)
                 return
 
             img_format = (self.character.biography_image_format or "").lower()
@@ -178,7 +197,7 @@ class BiographyStep(WizardStep):
                 raise tk.TclError("Unsupported preview format")
         except Exception:
             self._canvas.create_text(
-                130, 160,
+                cx, cy,
                 text="Image loaded for export\nbut preview is unavailable",
                 fill=COLORS["fg_dim"],
                 font=FONTS["body_small"],
@@ -186,14 +205,14 @@ class BiographyStep(WizardStep):
             )
             return
 
-        max_w, max_h = 240, 300
+        max_w, max_h = cw, ch
         w = max(1, int(photo.width()))
         h = max(1, int(photo.height()))
         scale = max((w + max_w - 1) // max_w, (h + max_h - 1) // max_h, 1)
         display = photo.subsample(scale) if scale > 1 else photo
         self._photo = photo
         self._photo_display = display
-        self._canvas.create_image(130, 160, image=display)
+        self._canvas.create_image(cx, cy, image=display)
 
     def _choose_image(self):
         path = filedialog.askopenfilename(

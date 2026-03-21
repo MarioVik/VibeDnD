@@ -296,6 +296,8 @@ class CharacterViewer(ttk.Frame):
             justify=tk.CENTER,
             tags=("placeholder",),
         )
+        self._last_bio_canvas_size = (0, 0)
+        self.bio_image_canvas.bind("<Configure>", self._on_bio_canvas_configure)
 
         btns = ttk.Frame(right)
         btns.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
@@ -377,12 +379,29 @@ class CharacterViewer(ttk.Frame):
         if self._save_biography_fields_to_character():
             self._on_sheet_changed()
 
+    def _bio_canvas_center(self):
+        cw = self.bio_image_canvas.winfo_width()
+        ch = self.bio_image_canvas.winfo_height()
+        if cw <= 1:
+            cw = self.bio_image_canvas.winfo_reqwidth()
+        if ch <= 1:
+            ch = self.bio_image_canvas.winfo_reqheight()
+        return cw, ch
+
+    def _on_bio_canvas_configure(self, event):
+        new_size = (event.width, event.height)
+        if new_size != self._last_bio_canvas_size and new_size[0] > 1 and new_size[1] > 1:
+            self._last_bio_canvas_size = new_size
+            self._refresh_biography_image_preview()
+
     def _refresh_biography_image_preview(self):
         if not self._biography_tab_built:
             return
         self.bio_image_canvas.delete("all")
         self._bio_photo = None
         self._bio_photo_display = None
+        cw, ch = self._bio_canvas_center()
+        cx, cy = cw // 2, ch // 2
 
         data = getattr(self.character, "biography_image_data", "") or ""
         img_format = (
@@ -390,8 +409,8 @@ class CharacterViewer(ttk.Frame):
         ).lower()
         if not data:
             self.bio_image_canvas.create_text(
-                130,
-                160,
+                cx,
+                cy,
                 text="No image selected",
                 fill=COLORS["fg_dim"],
                 font=FONTS["body"],
@@ -403,8 +422,8 @@ class CharacterViewer(ttk.Frame):
             raw = base64.b64decode(data)
         except Exception:
             self.bio_image_canvas.create_text(
-                130,
-                160,
+                cx,
+                cy,
                 text="Image data is invalid",
                 fill=COLORS["fg_dim"],
                 font=FONTS["body_small"],
@@ -415,10 +434,10 @@ class CharacterViewer(ttk.Frame):
         try:
             if Image is not None and ImageTk is not None:
                 pil_img = Image.open(io.BytesIO(raw))
-                pil_img.thumbnail((240, 300))
+                pil_img.thumbnail((cw, ch))
                 display = ImageTk.PhotoImage(pil_img)
                 self._bio_photo_display = display
-                self.bio_image_canvas.create_image(130, 160, image=display)
+                self.bio_image_canvas.create_image(cx, cy, image=display)
                 return
 
             if img_format in {"png", ""}:
@@ -427,8 +446,8 @@ class CharacterViewer(ttk.Frame):
                 raise tk.TclError("Unsupported preview format")
         except Exception:
             self.bio_image_canvas.create_text(
-                130,
-                160,
+                cx,
+                cy,
                 text="Image loaded for export\nbut preview is unavailable",
                 fill=COLORS["fg_dim"],
                 font=FONTS["body_small"],
@@ -436,14 +455,14 @@ class CharacterViewer(ttk.Frame):
             )
             return
 
-        max_w, max_h = 240, 300
+        max_w, max_h = cw, ch
         w = max(1, int(photo.width()))
         h = max(1, int(photo.height()))
         scale = max((w + max_w - 1) // max_w, (h + max_h - 1) // max_h, 1)
         display = photo.subsample(scale) if scale > 1 else photo
         self._bio_photo = photo
         self._bio_photo_display = display
-        self.bio_image_canvas.create_image(130, 160, image=display)
+        self.bio_image_canvas.create_image(cx, cy, image=display)
 
     def _choose_biography_image(self):
         path = filedialog.askopenfilename(

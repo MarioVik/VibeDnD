@@ -1202,18 +1202,21 @@ def build_character_sheet(
 
                 try:
                     raw = base64.b64decode(image_data)
+                    canvas_w = int(canvas["width"])
+                    canvas_h = int(canvas["height"])
+                    cx, cy = canvas_w // 2, canvas_h // 2
                     if Image is not None and ImageTk is not None:
                         pil_img = Image.open(io.BytesIO(raw))
-                        pil_img.thumbnail((240, 300))
+                        pil_img.thumbnail((canvas_w, canvas_h))
                         display = ImageTk.PhotoImage(pil_img)
-                        canvas.create_image(130, 160, image=display)
+                        canvas.create_image(cx, cy, image=display)
                         # Prevent garbage collection
                         parent._bio_photo_ref = display
                     elif img_format in {"png", ""}:
                         photo = tk.PhotoImage(
                             data=base64.b64encode(raw).decode("ascii")
                         )
-                        max_w, max_h = 240, 300
+                        max_w, max_h = canvas_w, canvas_h
                         w = max(1, int(photo.width()))
                         h = max(1, int(photo.height()))
                         scale = max(
@@ -1222,12 +1225,12 @@ def build_character_sheet(
                             1,
                         )
                         display = photo.subsample(scale) if scale > 1 else photo
-                        canvas.create_image(130, 160, image=display)
+                        canvas.create_image(cx, cy, image=display)
                         parent._bio_photo_ref = display
                         parent._bio_photo_orig = photo
                     else:
                         canvas.create_text(
-                            130, 160,
+                            cx, cy,
                             text="Preview unavailable",
                             fill=COLORS["fg_dim"],
                             font=FONTS["body"],
