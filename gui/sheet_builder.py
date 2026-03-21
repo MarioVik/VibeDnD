@@ -1175,24 +1175,11 @@ def build_character_sheet(
                 ttk.Label(
                     parent_frame, text=label, style="Subheading.TLabel"
                 ).pack(anchor="w", padx=8, pady=(4, 2))
-                text_widget = tk.Text(
+                WrappingLabel(
                     parent_frame,
-                    wrap=tk.WORD,
-                    bg=COLORS["bg_light"],
-                    fg=COLORS["fg"],
-                    font=FONTS["body"],
-                    borderwidth=0,
-                    highlightthickness=0,
-                    relief=tk.FLAT,
-                    spacing1=2,
-                    spacing3=2,
-                    padx=10,
-                    pady=8,
-                    height=min(8, max(2, content.count("\n") + 2)),
-                )
-                text_widget.pack(fill=tk.X, padx=8, pady=(0, 4))
-                text_widget.insert("1.0", content)
-                text_widget.configure(state=tk.DISABLED)
+                    text=content,
+                    foreground=COLORS["fg"],
+                ).pack(fill=tk.X, padx=16, pady=(0, 4))
 
             _make_readonly_textbox(bio_sec, "Backstory", backstory)
             _make_readonly_textbox(bio_sec, "Personality", personality)
