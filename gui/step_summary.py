@@ -8,7 +8,6 @@ from gui.sheet_builder import build_character_sheet
 from gui.theme import FONTS, COLORS
 from models.character_store import save_character
 from paths import characters_dir
-from gui.add_inventory_dialog import AddInventoryDialog
 
 
 class SummaryStep(WizardStep):
@@ -36,12 +35,6 @@ class SummaryStep(WizardStep):
             top, textvariable=self.name_var, width=25, font=FONTS["heading"]
         )
         name_entry.pack(side=tk.LEFT, padx=8)
-
-        ttk.Button(
-            top,
-            text="Add to inventory",
-            command=self._on_add_inventory,
-        ).pack(side=tk.RIGHT)
 
         # HP override container (populated in on_enter once class is known)
         self._hp_frame = ttk.Frame(self.frame)
@@ -203,10 +196,3 @@ class SummaryStep(WizardStep):
     def _on_name_change(self, *args):
         self.character.name = self.name_var.get()
 
-    def _on_add_inventory(self):
-        AddInventoryDialog(
-            self.frame,
-            self.character,
-            self.data,
-            on_changed=lambda: (self._on_sheet_changed(), self._refresh_sheet()),
-        )
