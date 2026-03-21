@@ -21,7 +21,8 @@
       "Bash(grep -n \"import.*WizardStep\\\\|from.*WizardStep\\\\|from gui\\\\|import gui\" /c/VibeDnD/gui/*.py)",
       "Bash(grep -r \"def.*spell\" /c/VibeDnD/gui/*.py)",
       "Bash(xargs grep:*)",
-      "Bash(jq '.[] | select\\(.name == \"\"Ranger\"\"\\)' /c/Repos/VibeDnD/data/classes.json)"
+      "Bash(jq '.[] | select\\(.name == \"\"Ranger\"\"\\)' /c/Repos/VibeDnD/data/classes.json)",
+      "Bash(python -c \":*)"
     ]
   }
 }

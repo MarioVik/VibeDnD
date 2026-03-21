@@ -497,11 +497,7 @@
       "3": [
         {
           "name": "Bonus Proficiencies",
-          "description": "You gain proficiency with three skills of your choice.",
-          "grants_proficiency": {
-            "count": 3,
-            "skills": ["Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception", "History", "Insight", "Intimidation", "Investigation", "Medicine", "Nature", "Perception", "Performance", "Persuasion", "Religion", "Sleight of Hand", "Stealth", "Survival"]
-          }
+          "description": "You gain proficiency with three skills of your choice."
         },
         {
           "name": "Cutting Words",
@@ -609,15 +605,7 @@
       "3": [
         {
           "name": "Blessings of Knowledge",
-          "description": "You gain proficiency with one type of Artisan’s Tools of your choice and in two of the following skills of your choice: Arcana, History, Nature, or Religion. You have Expertise in those two skills.",
-          "grants_proficiency": {
-            "count": 2,
-            "skills": ["Arcana", "History", "Nature", "Religion"]
-          },
-          "grants_expertise": {
-            "count": 2,
-            "from_granted": true
-          }
+          "description": "You gain proficiency with one type of Artisan’s Tools of your choice and in two of the following skills of your choice: Arcana, History, Nature, or Religion. You have Expertise in those two skills."
         },
         {
           "name": "Knowledge Domain Spells",
@@ -991,11 +979,7 @@
       "3": [
         {
           "name": "Knightly Envoy",
-          "description": "You know how to conduct yourself with grace as a noble ambassador. You gain the following benefits. Comprehension. You can cast the Comprehend Languages spell but only as a Ritual. Charisma is your spellcasting ability for it. Polyglot. You learn one language from the language tables in the Player’s Handbook or chapter 2 of this book. When you finish a Long Rest, you can replace a language learned from this benefit with another language you have heard, seen signed, or read in the past 24 hours. Well Spoken. You gain proficiency in one of the following skills of your choice: Insight, Intimidation, Persuasion, or Performance.",
-          "grants_proficiency": {
-            "count": 1,
-            "skills": ["Insight", "Intimidation", "Persuasion", "Performance"]
-          }
+          "description": "You know how to conduct yourself with grace as a noble ambassador. You gain the following benefits. Comprehension. You can cast the Comprehend Languages spell but only as a Ritual. Charisma is your spellcasting ability for it. Polyglot. You learn one language from the language tables in the Player’s Handbook or chapter 2 of this book. When you finish a Long Rest, you can replace a language learned from this benefit with another language you have heard, seen signed, or read in the past 24 hours. Well Spoken. You gain proficiency in one of the following skills of your choice: Insight, Intimidation, Persuasion, or Performance."
         },
         {
           "name": "Group Recovery",
@@ -1049,11 +1033,7 @@
         },
         {
           "name": "Student of War",
-          "description": "You gain proficiency with one type of Artisan’s Tools of your choice, and you gain proficiency in one skill of your choice from the skills available to Fighters at level 1.",
-          "grants_proficiency": {
-            "count": 1,
-            "skills": ["Acrobatics", "Animal Handling", "Athletics", "History", "Insight", "Intimidation", "Perception", "Survival"]
-          }
+          "description": "You gain proficiency with one type of Artisan’s Tools of your choice, and you gain proficiency in one skill of your choice from the skills available to Fighters at level 1."
         }
       ],
       "7": [
@@ -1252,12 +1232,7 @@
         },
         {
           "name": "Implements of Mercy",
-          "description": "You gain proficiency in the Insight and Medicine skills and proficiency with the Herbalism Kit.",
-          "grants_proficiency": {
-            "count": 2,
-            "skills": ["Insight", "Medicine"],
-            "automatic": true
-          }
+          "description": "You gain proficiency in the Insight and Medicine skills and proficiency with the Herbalism Kit."
         }
       ],
       "6": [
@@ -1557,12 +1532,8 @@
           "description": "When you reach a Paladin level specified in the Genie Spells table, you thereafter always have the listed spells prepared Genie Spells Paladin Level Spells 3 Chromatic Orb, Elementalism, Thunderous Smite 5 Mirror Image, Phantasmal Force 9 Fly, Gaseous Form 13 Conjure Minor Elementals, Summon Elemental 17 Banishing Smite, Contact Other Plane"
         },
         {
-          "name": "Genie’s Splendor",
-          "description": "When you aren’t wearing any armor, your base Armor Class equals 10 plus your Dexterity and Charisma modifiers. You can use a Shield and still gain this benefit. You also gain proficiency in one of the following skills of your choice: Acrobatics, Intimidation, Performance, or Persuasion.",
-          "grants_proficiency": {
-            "count": 1,
-            "skills": ["Acrobatics", "Intimidation", "Performance", "Persuasion"]
-          }
+          "name": "Genie's Splendor",
+          "description": "When you aren’t wearing any armor, your base Armor Class equals 10 plus your Dexterity and Charisma modifiers. You can use a Shield and still gain this benefit. You also gain proficiency in one of the following skills of your choice: Acrobatics, Intimidation, Performance, or Persuasion."
         }
       ],
       "7": [
@@ -1690,12 +1661,8 @@
           "description": "When you reach a Ranger level specified in the Fey Wanderer spells table, you thereafter always have the listed spells prepared. Fey Wanderer Spells Ranger Level Spell 3 Charm Person 5 Misty Step 9 Summon Fey 13 Dimension Door 17 Mislead You also possess a fey blessing. Choose it from the Feywild Gifts table or determine it randomly. Feywild Gifts 1d6 Gift 1 Illusory butterflies flutter around you while you take a Short or Long Rest. 2 Flowers bloom from your hair each dawn. 3 You faintly smell of cinnamon, lavender, nutmeg, or another comforting herb or spice. 4 Your shadow dances while no one is looking directly at it. 5 Horns or antlers sprout from your head. 6 Your skin and hair change color each dawn."
         },
         {
-          "name": "Otherworldly Glamour",
-          "description": "Whenever you make a Charisma check, you gain a bonus to the check equal to your Wisdom modifier (Minimum of +1). You also gain proficiency in one of these skills of your choice: Deception, Performance, or Persuasion.",
-          "grants_proficiency": {
-            "count": 1,
-            "skills": ["Deception", "Performance", "Persuasion"]
-          }
+          "name": "Otherworldly Glamour.",
+          "description": "Whenever you make a Charisma check, you gain a bonus to the check equal to your Wisdom modifier (Minimum of +1). You also gain proficiency in one of these skills of your choice: Deception, Performance, or Persuasion."
         }
       ],
       "7": [
@@ -2532,11 +2499,7 @@
         },
         {
           "name": "Training in War and Song",
-          "description": "You gain proficiency with all Melee Martial weapons that don’t have the Two-Handed or Heavy property. You can use a Melee weapon with which you have proficiency as a Spellcasting Focus for your Wizard spells. You also gain proficiency in one of the following skills of your choice: Acrobatics, Athletics, Performance, or Persuasion.",
-          "grants_proficiency": {
-            "count": 1,
-            "skills": ["Acrobatics", "Athletics", "Performance", "Persuasion"]
-          }
+          "description": "You gain proficiency with all Melee Martial weapons that don’t have the Two-Handed or Heavy property. You can use a Melee weapon with which you have proficiency as a Spellcasting Focus for your Wizard spells. You also gain proficiency in one of the following skills of your choice: Acrobatics, Athletics, Performance, or Persuasion."
         }
       ],
       "6": [
@@ -2860,17 +2823,7 @@
         },
         {
           "name": "Arcane Initiate",
-          "description": "You gain the following benefits. Arcane Knowledge. You gain proficiency in the Arcana skill if you don’t have it already. You also gain Expertise in the Arcana skill. Cantrips. You learn two Wizard cantrips of your choice. Whenever you gain a Cleric level, you can replace one of these cantrips with another Wizard cantrip.",
-          "grants_proficiency": {
-            "count": 1,
-            "skills": ["Arcana"],
-            "automatic": true
-          },
-          "grants_expertise": {
-            "count": 1,
-            "skills": ["Arcana"],
-            "automatic": true
-          }
+          "description": "You gain the following benefits. Arcane Knowledge. You gain proficiency in the Arcana skill if you don’t have it already. You also gain Expertise in the Arcana skill. Cantrips. You learn two Wizard cantrips of your choice. Whenever you gain a Cleric level, you can replace one of these cantrips with another Wizard cantrip."
         },
         {
           "name": "Modify Magic",
@@ -2989,12 +2942,7 @@
       "3": [
         {
           "name": "Arcane Archer Lore",
-          "description": "You learn magical theory and secrets of nature, granting you the following benefits. Cantrip. You know either the Druidcraft or Prestidigitation cantrip. Intelligence is your spellcasting ability for it. Skills. You gain proficiency in the Arcana and Nature skills. If you already have one of these proficiencies, you instead gain proficiency in a different skill of your choice (or with two other skills if you have both).",
-          "grants_proficiency": {
-            "count": 2,
-            "skills": ["Arcana", "Nature"],
-            "automatic": true
-          }
+          "description": "You learn magical theory and secrets of nature, granting you the following benefits. Cantrip. You know either the Druidcraft or Prestidigitation cantrip. Intelligence is your spellcasting ability for it. Skills. You gain proficiency in the Arcana and Nature skills. If you already have one of these proficiencies, you instead gain proficiency in a different skill of your choice (or with two other skills if you have both)."
         },
         {
           "name": "Arcane Shot",
@@ -3048,11 +2996,7 @@
       "3": [
         {
           "name": "Bonus Proficiency",
-          "description": "You gain proficiency in one the following skills of your choice: Animal Handling, History, Insight, Performance, or Persuasion. Alternatively, you learn one language of your choice.",
-          "grants_proficiency": {
-            "count": 1,
-            "skills": ["Animal Handling", "History", "Insight", "Performance", "Persuasion"]
-          }
+          "description": "You gain proficiency in one the following skills of your choice: Animal Handling, History, Insight, Performance, or Persuasion. Alternatively, you learn one language of your choice."
         },
         {
           "name": "Born to the Saddle",
@@ -3110,11 +3054,7 @@
         },
         {
           "name": "Combat Theatrics",
-          "description": "You’ve honed your combat skills to entertain, devastating opponents and dazzling onlookers. You gain the following benefits. Athletic Flair. Whenever you make a Dexterity (Acrobatics) or Strength (Athletics) check, you gain a bonus to the check equal to your Charisma modifier (minimum of +1). Bonus Proficiency. You gain proficiency in one of these skills of your choice: Acrobatics, Athletics, Deception, Intimidation, or Performance.",
-          "grants_proficiency": {
-            "count": 1,
-            "skills": ["Acrobatics", "Athletics", "Deception", "Intimidation", "Performance"]
-          }
+          "description": "You’ve honed your combat skills to entertain, devastating opponents and dazzling onlookers. You gain the following benefits. Athletic Flair. Whenever you make a Dexterity (Acrobatics) or Strength (Athletics) check, you gain a bonus to the check equal to your Charisma modifier (minimum of +1). Bonus Proficiency. You gain proficiency in one of these skills of your choice: Acrobatics, Athletics, Deception, Intimidation, or Performance."
         }
       ],
       "7": [
@@ -3202,12 +3142,7 @@
       "3": [
         {
           "name": "Bonus Proficiencies",
-          "description": "You gain proficiency in the Performance skill, or if you already have it, you gain proficiency in one skill of your choice from the skills available to Monks at level 1. You also gain proficiency with Brewer’s Supplies if you don’t already have it.",
-          "grants_proficiency": {
-            "count": 1,
-            "skills": ["Performance"],
-            "automatic": true
-          }
+          "description": "You gain proficiency in the Performance skill, or if you already have it, you gain proficiency in one skill of your choice from the skills available to Monks at level 1. You also gain proficiency with Brewer’s Supplies if you don’t already have it."
         },
         {
           "name": "Drunken Technique",
@@ -3480,12 +3415,8 @@
     "features": {
       "3": [
         {
-          "name": "Ancestor’s Lore",
-          "description": "You use your force of personality to channel your ancestor’s knowledge. When you make an Intelligence check, you gain a bonus to the check equal to your Charisma modifier (minimum of +1). You also gain proficiency in one of these skills of your choice: Arcana, History, Investigation, Nature, or Religion.",
-          "grants_proficiency": {
-            "count": 1,
-            "skills": ["Arcana", "History", "Investigation", "Nature", "Religion"]
-          }
+          "name": "Ancestor's Lore",
+          "description": "You use your force of personality to channel your ancestor’s knowledge. When you make an Intelligence check, you gain a bonus to the check equal to your Charisma modifier (minimum of +1). You also gain proficiency in one of these skills of your choice: Arcana, History, Investigation, Nature, or Religion."
         },
         {
           "name": "Ancestral Spells",
@@ -3673,17 +3604,7 @@
         },
         {
           "name": "Tyrants Herald",
-          "description": "You gain the following benefits. Intimidating Presence. You gain proficiency in the Intimidation skill if you don’t already have it. You also have Expertise in Intimidation. Voice of Tyranny. You can cast Command as a Bonus Action without expending a spell slot. You can do so a number of times equal to your Charisma modifier (minimum of once), and you regain all expended uses when you finish a Long Rest.",
-          "grants_proficiency": {
-            "count": 1,
-            "skills": ["Intimidation"],
-            "automatic": true
-          },
-          "grants_expertise": {
-            "count": 1,
-            "skills": ["Intimidation"],
-            "automatic": true
-          }
+          "description": "You gain the following benefits. Intimidating Presence. You gain proficiency in the Intimidation skill if you don’t already have it. You also have Expertise in Intimidation. Voice of Tyranny. You can cast Command as a Bonus Action without expending a spell slot. You can do so a number of times equal to your Charisma modifier (minimum of once), and you regain all expended uses when you finish a Long Rest."
         }
       ],
       "6": [
@@ -3855,11 +3776,7 @@
       "3": [
         {
           "name": "Enchanting Conversationalist",
-          "description": "You gain proficiency in one of the following skills of your choice: Deception, Intimidation, or Persuasion. In addition, when you make an ability check with the chosen skill, you gain a bonus to the check equal to your Intelligence modifier (minimum of +1).",
-          "grants_proficiency": {
-            "count": 1,
-            "skills": ["Deception", "Intimidation", "Persuasion"]
-          }
+          "description": "You gain proficiency in one of the following skills of your choice: Deception, Intimidation, or Persuasion. In addition, when you make an ability check with the chosen skill, you gain a bonus to the check equal to your Intelligence modifier (minimum of +1)."
         },
         {
           "name": "Enchantment Savant",
