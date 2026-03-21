@@ -443,7 +443,7 @@ def build_character_sheet(
                 # Only show features up to character's current level
                 try:
                     lvl_int = int(lvl)
-                except ValueError, TypeError:
+                except (ValueError, TypeError):
                     continue
                 if lvl_int > c.level:
                     continue
