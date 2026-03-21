@@ -7,7 +7,7 @@ name = "vibednd"
 version = "0.1.0"
 description = "D&D 2024 Character Creator"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4>=4.14.3",
     "requests>=2.32.5",
