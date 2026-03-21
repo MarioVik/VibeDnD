@@ -77,7 +77,7 @@ def check_prereqs() -> None:
     except ImportError:
         sys.exit("ERROR: PyInstaller not installed. Install with: pip install pyinstaller")
 
-    for tool in ("hdiutil", "sips", "iconutil"):
+    for tool in ("hdiutil", "sips", "iconutil", "codesign"):
         if shutil.which(tool) is None:
             sys.exit(f"ERROR: Required macOS tool not found: {tool}")
 
@@ -156,6 +156,30 @@ def build_app(icon_path: Path | None) -> Path:
     return app_path
 
 
+def sign_app(app_path: Path) -> None:
+    """Ad-hoc sign the app bundle.
+
+    Without any signature, macOS Gatekeeper silently blocks apps downloaded
+    from the internet (especially on Apple Silicon). An ad-hoc signature
+    (-) is not a Developer ID signature and will not pass notarization, but
+    it is enough for Gatekeeper to allow the app to run when the user
+    right-clicks → Open (or after approving it in System Settings → Privacy
+    & Security).  It also prevents the completely-silent-nothing-happens
+    failure that occurs with a fully unsigned bundle on modern macOS.
+    """
+    print("Ad-hoc signing app bundle...")
+    run(
+        [
+            "codesign",
+            "--force",
+            "--deep",
+            "--sign",
+            "-",
+            str(app_path),
+        ]
+    )
+
+
 def create_dmg(app_path: Path) -> Path:
     DMG_OUT_DIR.mkdir(parents=True, exist_ok=True)
     if DMG_STAGING.exists():
@@ -196,6 +220,7 @@ def main() -> None:
     check_prereqs()
     icon_path = maybe_make_icns()
     app_path = build_app(icon_path)
+    sign_app(app_path)
     dmg_path = create_dmg(app_path)
     print()
     print(f"Done. Send this file to Mac users: {dmg_path}")
