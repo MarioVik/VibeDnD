@@ -147,7 +147,7 @@ def main():
     if shutil.which("pdftoppm"):
         base = output.rsplit(".", 1)[0]
         subprocess.run(
-            ["pdftoppm", "-png", "-r", "400", output, base],
+            ["pdftoppm", "-png", "-r", "1200", output, base],
             check=True,
         )
         print(f"PNG pages saved to: {base}-*.png")
