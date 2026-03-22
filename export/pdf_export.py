@@ -1102,37 +1102,8 @@ class CharacterSheetPDF(FPDF):
                     ty_m += lines * 2.8 + 0.5
             ty_m += 1
 
-        total_h = max(ty_m - y + 2, 20)
-        self._section_box(x, y, w, total_h, "FEATS")
-        ty = y + 6 + 1.5
-
-        for feat_name, feat, source in feats_to_show:
-            self._serif("B", 6.5)
-            self.set_text_color(*C_BLACK)
-            self.set_xy(x + 2, ty)
-            self.cell(w - 4, 3.5, feat_name)
-            ty += 3.5
-
-            self._serif("I", 5)
-            self.set_text_color(*C_ACCENT_LIGHT)
-            self.set_xy(x + 2, ty)
-            self.cell(w - 4, 2.5, f"from {source}")
-            ty += 3.5
-
-            for benefit in feat.get("benefits", [])[:4]:
-                desc = benefit.get("description", "")[:200]
-                if desc:
-                    self._sans("", 5.5)
-                    self.set_text_color(*C_DARK_GRAY)
-                    self.set_xy(x + 2, ty)
-                    ben_name = benefit.get("name", "")
-                    text = f"{ben_name}: {desc}" if ben_name else desc
-                    self.multi_cell(w - 4, 2.8, text)
-                    ty = self.get_y() + 0.5
-            ty += 1
-
-        actual_h = max(ty - y + 2, 20)
-        # Redraw
+        actual_h = max(ty_m - y + 2, 20)
+        # Draw box at measured height
         self._shadow_rect(x, y, w, actual_h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x, y, w, actual_h, R_MD, "F")
@@ -1628,7 +1599,30 @@ class CharacterSheetPDF(FPDF):
 
     def _draw_personality(self, x, y, w):
         """Draw personality box."""
-        h = 30
+        fields = [
+            ("Backstory", getattr(self.c, "biography_backstory", "") or ""),
+            ("Personality", getattr(self.c, "biography_personality", "") or ""),
+            ("Description", getattr(self.c, "biography_description", "") or ""),
+        ]
+        lines: list[str] = []
+        for label, value in fields:
+            cleaned = " ".join(str(value).split())
+            if cleaned:
+                lines.append(f"{label}: {cleaned}")
+        if not lines:
+            lines = ["No biography details provided."]
+
+        # Estimate needed height from text length
+        self._sans("", 5.2)
+        text_w = w - 6  # usable width inside box
+        total_text_lines = 0
+        for line in lines:
+            line_w = self.get_string_width(self._sanitize(line))
+            # Word wrapping adds extra lines vs naive division; use ceiling + 1
+            total_text_lines += max(1, -(-int(line_w) // int(text_w)) + 1)
+        text_h = total_text_lines * 3.1
+        h = max(text_h + 8.5 + 4, 30)
+
         self._section_box(x, y, w, h, "PERSONALITY")
 
         # Redraw
@@ -1646,31 +1640,12 @@ class CharacterSheetPDF(FPDF):
         for ly in range(int(y + 11), int(y + h - 2), 5):
             self.line(x + 3, ly, x + w - 3, ly)
 
-        fields = [
-            ("Backstory", getattr(self.c, "biography_backstory", "") or ""),
-            ("Personality", getattr(self.c, "biography_personality", "") or ""),
-            ("Description", getattr(self.c, "biography_description", "") or ""),
-        ]
-        lines: list[str] = []
-        for label, value in fields:
-            cleaned = " ".join(str(value).split())
-            if cleaned:
-                lines.append(f"{label}: {cleaned}")
-        if not lines:
-            lines = ["No biography details provided."]
-
         self._sans("", 5.2)
         self.set_text_color(*C_BLACK)
-        text_x = x + 3
-        text_y = y + 8.5
-        max_y = y + h - 2.5
-        self.set_xy(text_x, text_y)
+        self.set_xy(x + 3, y + 8.5)
         for line in lines:
-            if self.get_y() >= max_y:
-                break
-            self.multi_cell(w - 6, 3.1, line)
-            if self.get_y() >= max_y:
-                break
+            self.set_x(x + 3)
+            self.multi_cell(text_w, 3.1, line)
 
         return y + h
 

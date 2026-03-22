@@ -107,7 +107,7 @@ def build_sample_character() -> Character:
     ]
 
     # Spells
-    char.selected_spells = ["Cure Wounds", "Hunter's Mark", "Goodberry"]
+    char.selected_spells = ["Cure Wounds", "Hunter S Mark", "Goodberry"]
 
     # Equipment
     char.equipment_choice_class = "A"
