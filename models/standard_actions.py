@@ -481,7 +481,9 @@ def build_standard_actions(
     if effective_equipped_keys is None and hasattr(character, "equipped_weapons"):
         ew = getattr(character, "equipped_weapons", None)
         if ew is not None:
-            effective_equipped_keys = set(ew)
+            effective_equipped_keys = set(
+                w.lower() if isinstance(w, str) else w for w in ew
+            )
 
     weapons = _weapon_actions(character, equipped_weapon_keys=effective_equipped_keys)
     upgraded = []

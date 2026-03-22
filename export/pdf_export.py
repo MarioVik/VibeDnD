@@ -85,13 +85,17 @@ class CharacterSheetPDF(FPDF):
         self.add_page()
         self._draw_page_1()
 
+        # Page 2: Class features, species traits, feats (full descriptions)
+        self.add_page()
+        self._draw_page_2_features()
+
         if (
             character.is_caster
             or character.selected_cantrips
             or character.selected_spells
         ):
             self.add_page()
-            self._draw_page_2()
+            self._draw_page_3_spells()
 
     def _register_fonts(self):
         """Register Georgia font family for serif typography."""
@@ -269,13 +273,9 @@ class CharacterSheetPDF(FPDF):
         self.set_fill_color(*C_FILL_GRAY)
         self._rounded_rect(x, y, w, h, R_SM, "F")
 
-        # Border
-        if accent_border:
-            self.set_draw_color(*C_ACCENT)
-            self.set_line_width(0.5)
-        else:
-            self.set_draw_color(*C_LIGHT_GRAY)
-            self.set_line_width(0.3)
+        # Border (consistent grey)
+        self.set_draw_color(*C_LIGHT_GRAY)
+        self.set_line_width(0.3)
         self._rounded_rect(x, y, w, h, R_SM, "D")
 
         # Value (large, centered)
@@ -361,39 +361,24 @@ class CharacterSheetPDF(FPDF):
         # Left column: Ability scores
         left_bottom = self._draw_ability_scores(x0, y, left_w)
 
-        # Right column
+        # Right column: weapons + proficiencies/languages/equipment
         right_y = y
         right_y = self._draw_weapons_section(right_x, right_y, right_w)
         right_y += 2
-        right_y = self._draw_class_features(right_x, right_y, right_w)
+
+        # Proficiencies (right column, below weapons)
+        right_y = self._draw_proficiencies(right_x, right_y, right_w)
         right_y += 2
 
-        # Species Traits + Feats side by side
+        # Languages + Equipment side by side
         half_w = (right_w - 2) / 2
-        traits_bottom = self._draw_species_traits(right_x, right_y, half_w)
-        feats_bottom = self._draw_feats(right_x + half_w + 2, right_y, half_w)
-        right_y = max(traits_bottom, feats_bottom)
+        lang_bottom = self._draw_languages(right_x, right_y, half_w)
+        equip_bottom = self._draw_equipment_list(right_x + half_w + 2, right_y, half_w)
+        right_y = max(lang_bottom, equip_bottom)
 
         # ─── Heroic Inspiration ───
         heroic_y = left_bottom + 2
         heroic_bottom = self._draw_heroic_inspiration(x0, heroic_y, left_w)
-
-        # ─── Bottom full-width sections ───
-        bottom_y = max(heroic_bottom, right_y) + 3
-
-        # Thin accent line separator
-        self.set_draw_color(*C_ACCENT_LIGHT)
-        self.set_line_width(0.2)
-        self.line(x0 + 10, bottom_y - 1.5, x0 + CONTENT_W - 10, bottom_y - 1.5)
-
-        half_bottom_w = CONTENT_W * 0.5 - 1
-        prof_bottom = self._draw_proficiencies(x0, bottom_y, half_bottom_w)
-
-        rb_x = x0 + CONTENT_W * 0.5 + 1
-        rb_w = CONTENT_W * 0.5 - 1
-        lang_bottom = self._draw_languages(rb_x, bottom_y, rb_w)
-        equip_y = lang_bottom + 2
-        equip_bottom = self._draw_equipment_list(rb_x, equip_y, rb_w)
 
         # Page footer ornament
         footer_y = PAGE_H - MARGIN - 1
@@ -445,19 +430,36 @@ class CharacterSheetPDF(FPDF):
         self._shadow_rect(bx, y, box_w, box_h, R_MD, 0.5)
         self.set_fill_color(*C_FILL_GRAY)
         self._rounded_rect(bx, y, box_w, box_h, R_MD, "F")
-        self.set_draw_color(*C_ACCENT)
-        self.set_line_width(0.4)
+        self.set_draw_color(*C_LIGHT_GRAY)
+        self.set_line_width(0.3)
         self._rounded_rect(bx, y, box_w, box_h, R_MD, "D")
 
-        self._sans("", 5)
+        # Accent top bar
+        self.set_fill_color(*C_ACCENT)
+        self._draw_rounded_rect(
+            bx, y, box_w, 2.5, RenderStyle.F, (Corner.TOP_LEFT, Corner.TOP_RIGHT), R_MD
+        )
+
+        self._sans("B", 5)
         self.set_text_color(*C_MED_GRAY)
-        self.set_xy(bx, y + 1.5)
-        self.cell(box_w, 4, "DEATH", align="C")
-        self.set_xy(bx, y + 5)
-        self.cell(box_w, 4, "SAVES", align="C")
+        self.set_xy(bx, y + 3.5)
+        self.cell(box_w, 3.5, "DEATH SAVES", align="C")
+
+        # Successes row
+        self._sans("", 4.5)
+        self.set_text_color(*C_MED_GRAY)
+        self.set_xy(bx + 1, y + 8)
+        self.cell(8, 3, "S")
         for i in range(3):
-            cx = bx + 5 + i * 3.5
-            self._small_circle(cx, y + 13.5, r=1.4)
+            cx = bx + 7 + i * 3.5
+            self._small_circle(cx, y + 9.5, r=1.2)
+
+        # Failures row
+        self.set_xy(bx + 1, y + 13)
+        self.cell(8, 3, "F")
+        for i in range(3):
+            cx = bx + 7 + i * 3.5
+            self._small_circle(cx, y + 14.5, r=1.2)
 
         # Left side: Character name
         left_w = boxes_x - x0 - 4
@@ -499,9 +501,9 @@ class CharacterSheetPDF(FPDF):
         # Fill
         self.set_fill_color(*C_FILL_GRAY)
         self._rounded_rect(x, y, w, h, R_MD, "F")
-        # Accent border
-        self.set_draw_color(*C_ACCENT)
-        self.set_line_width(0.4)
+        # Border (consistent grey)
+        self.set_draw_color(*C_LIGHT_GRAY)
+        self.set_line_width(0.3)
         self._rounded_rect(x, y, w, h, R_MD, "D")
 
         # Accent top bar (thin)
@@ -577,8 +579,8 @@ class CharacterSheetPDF(FPDF):
         self._shadow_rect(box_x, y, pa_w, row_h, R_SM, 0.4)
         self.set_fill_color(*C_FILL_GRAY)
         self._rounded_rect(box_x, y, pa_w, row_h, R_SM, "F")
-        self.set_draw_color(*C_ACCENT)
-        self.set_line_width(0.4)
+        self.set_draw_color(*C_LIGHT_GRAY)
+        self.set_line_width(0.3)
         self._rounded_rect(box_x, y, pa_w, row_h, R_SM, "D")
 
         self._serif("B", 7)
@@ -706,8 +708,8 @@ class CharacterSheetPDF(FPDF):
             self._shadow_rect(ab_box_x, ab_box_y, ab_w, ab_h, R_SM, 0.4)
             self.set_fill_color(*C_WHITE)
             self._rounded_rect(ab_box_x, ab_box_y, ab_w, ab_h, R_SM, "F")
-            self.set_draw_color(*C_ACCENT)
-            self.set_line_width(0.4)
+            self.set_draw_color(*C_LIGHT_GRAY)
+            self.set_line_width(0.3)
             self._rounded_rect(ab_box_x, ab_box_y, ab_w, ab_h, R_SM, "D")
 
             # Large modifier
@@ -798,7 +800,7 @@ class CharacterSheetPDF(FPDF):
         )
         row_count = max(4, len(rows))
         total_h_est = 12 + row_count * 5
-        self._section_box(x, y, w, total_h_est, "WEAPONS & DAMAGE CANTRIPS")
+        # Skip initial _section_box — will redraw at correct size below
         inner = y + 6
         ty = inner + 1
 
@@ -874,13 +876,50 @@ class CharacterSheetPDF(FPDF):
 
         return y + total_h
 
+    def _get_class_features(self):
+        """Collect class features from class_progressions data for all levels."""
+        import json
+
+        c = self.c
+        if not c.character_class:
+            return []
+
+        data_dir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data"
+        )
+        prog_path = os.path.join(data_dir, "class_progressions.json")
+        if not os.path.exists(prog_path):
+            return []
+
+        with open(prog_path, "r", encoding="utf-8") as f:
+            progressions = json.load(f)
+
+        prog_by_slug = {p["slug"]: p for p in progressions}
+        features = []
+        for cl in c.class_levels:
+            prog = prog_by_slug.get(cl.class_slug)
+            if not prog:
+                continue
+            for level_data in prog.get("levels", []):
+                if level_data.get("level") != cl.class_level:
+                    continue
+                for f in level_data.get("feature_details", []):
+                    if isinstance(f, dict) and f.get("name") not in ("-", "Ability Score Improvement"):
+                        features.append(f)
+                if not level_data.get("feature_details"):
+                    for name in level_data.get("features", []):
+                        if name not in ("-", "Ability Score Improvement"):
+                            features.append({"name": name, "description": ""})
+                break
+        return features
+
     def _draw_class_features(self, x, y, w):
         """Draw class features section with two-column layout."""
         c = self.c
         if not c.character_class:
             return y
 
-        features = c.character_class.get("level_1_features", [])
+        features = self._get_class_features()
         title = "CLASS FEATURES"
 
         if not features:
@@ -916,10 +955,9 @@ class CharacterSheetPDF(FPDF):
 
         content_h = max(left_ty, right_ty) - y + 3
 
-        # Draw the box
-        self._section_box(x, y, w, content_h, title)
+        # Skip initial _section_box — will redraw at correct size below
 
-        # Draw content
+        # Draw content (measurement pass)
         ty = y + 6 + 1.5
         left_ty = ty
         right_ty = ty
@@ -998,22 +1036,32 @@ class CharacterSheetPDF(FPDF):
 
         return y + total_h
 
+    def _get_species_traits(self):
+        """Get species traits, checking both 'features' and 'traits' keys."""
+        c = self.c
+        if not c.species:
+            return []
+        return c.species.get("features", []) or c.species.get("traits", [])
+
     def _draw_species_traits(self, x, y, w):
         """Draw species traits box."""
         c = self.c
+        traits = self._get_species_traits()
+
         # Measure content first
         ty_measure = y + 6 + 1.5
         if c.species:
             ty_measure += 4
-            for trait in c.species.get("traits", []):
+            for trait in traits:
                 ty_measure += 3
-                desc = trait.get("description", "")[:200]
+                desc = trait.get("description", "")
                 if desc:
-                    lines = len(desc) / (w * 0.5) + 1
+                    self._sans("", 5.5)
+                    lines = self.get_string_width(self._sanitize(desc)) / ((w - 4) * 0.55) + 1
                     ty_measure += lines * 2.8 + 1
 
         total_h = max(ty_measure - y + 2, 20)
-        self._section_box(x, y, w, total_h, "SPECIES TRAITS")
+        # Skip initial _section_box — will redraw at correct size below
         ty = y + 6 + 1.5
 
         if c.species:
@@ -1024,14 +1072,14 @@ class CharacterSheetPDF(FPDF):
             self.cell(w - 4, 3, f"Creature Type: {ct}")
             ty += 4
 
-            for trait in c.species.get("traits", []):
+            for trait in traits:
                 self._sans("B", 6)
                 self.set_text_color(*C_ACCENT_DARK)
                 self.set_xy(x + 2, ty)
                 self.multi_cell(w - 4, 3, f"{trait['name']}:")
                 ty = self.get_y()
 
-                desc = trait.get("description", "")[:200]
+                desc = trait.get("description", "")
                 if desc:
                     self._sans("", 5.5)
                     self.set_text_color(*C_DARK_GRAY)
@@ -1058,13 +1106,13 @@ class CharacterSheetPDF(FPDF):
             self.set_xy(x + 2, ty)
             self.cell(w - 4, 3, f"Creature Type: {ct}")
             ty += 4
-            for trait in c.species.get("traits", []):
+            for trait in traits:
                 self._sans("B", 6)
                 self.set_text_color(*C_ACCENT_DARK)
                 self.set_xy(x + 2, ty)
                 self.multi_cell(w - 4, 3, f"{trait['name']}:")
                 ty = self.get_y()
-                desc = trait.get("description", "")[:200]
+                desc = trait.get("description", "")
                 if desc:
                     self._sans("", 5.5)
                     self.set_text_color(*C_DARK_GRAY)
@@ -1091,39 +1139,21 @@ class CharacterSheetPDF(FPDF):
                 (c.species_origin_feat["name"], c.species_origin_feat, c.species_name)
             )
 
-        # Measure
-        ty_m = y + 6 + 1.5
-        for feat_name, feat, source in feats_to_show:
-            ty_m += 3.5 + 3.5
-            for benefit in feat.get("benefits", [])[:4]:
-                desc = benefit.get("description", "")[:200]
-                if desc:
-                    lines = len(desc) / (w * 0.5) + 1
-                    ty_m += lines * 2.8 + 0.5
-            ty_m += 1
-
-        total_h = max(ty_m - y + 2, 20)
-        self._section_box(x, y, w, total_h, "FEATS")
+        # Measure by drawing content first
         ty = y + 6 + 1.5
-
         for feat_name, feat, source in feats_to_show:
             self._serif("B", 6.5)
-            self.set_text_color(*C_BLACK)
             self.set_xy(x + 2, ty)
             self.cell(w - 4, 3.5, feat_name)
             ty += 3.5
-
             self._serif("I", 5)
-            self.set_text_color(*C_ACCENT_LIGHT)
             self.set_xy(x + 2, ty)
             self.cell(w - 4, 2.5, f"from {source}")
             ty += 3.5
-
-            for benefit in feat.get("benefits", [])[:4]:
-                desc = benefit.get("description", "")[:200]
+            for benefit in feat.get("benefits", []):
+                desc = benefit.get("description", "")
                 if desc:
                     self._sans("", 5.5)
-                    self.set_text_color(*C_DARK_GRAY)
                     self.set_xy(x + 2, ty)
                     ben_name = benefit.get("name", "")
                     text = f"{ben_name}: {desc}" if ben_name else desc
@@ -1132,7 +1162,7 @@ class CharacterSheetPDF(FPDF):
             ty += 1
 
         actual_h = max(ty - y + 2, 20)
-        # Redraw
+        # Draw box at measured height
         self._shadow_rect(x, y, w, actual_h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x, y, w, actual_h, R_MD, "F")
@@ -1154,8 +1184,8 @@ class CharacterSheetPDF(FPDF):
             self.set_xy(x + 2, ty)
             self.cell(w - 4, 2.5, f"from {source}")
             ty += 3.5
-            for benefit in feat.get("benefits", [])[:4]:
-                desc = benefit.get("description", "")[:200]
+            for benefit in feat.get("benefits", []):
+                desc = benefit.get("description", "")
                 if desc:
                     self._sans("", 5.5)
                     self.set_text_color(*C_DARK_GRAY)
@@ -1170,14 +1200,8 @@ class CharacterSheetPDF(FPDF):
 
     def _draw_heroic_inspiration(self, x, y, w):
         """Draw Heroic Inspiration box with accent circle."""
-        h = 13
-        self._section_box(x, y, w, h, "HEROIC INSPIRATION")
-        # Large empty circle for tracking
-        self.set_draw_color(*C_ACCENT)
-        self.set_line_width(0.5)
-        self.ellipse(x + w / 2 - 3, y + 7, 6, 6, "D")
-
-        # Redraw box
+        h = 14
+        # Draw box
         self._shadow_rect(x, y, w, h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x, y, w, h, R_MD, "F")
@@ -1185,10 +1209,12 @@ class CharacterSheetPDF(FPDF):
         self.set_line_width(0.3)
         self._rounded_rect(x, y, w, h, R_MD, "D")
         self._redraw_title(x, y, w, "HEROIC INSPIRATION")
-        # Redraw circle
+        # Circle centered in content area (title bar is 6mm, so content is y+6 to y+h)
+        content_mid_y = y + 6 + (h - 6) / 2
+        circle_r = 3
         self.set_draw_color(*C_ACCENT)
         self.set_line_width(0.5)
-        self.ellipse(x + w / 2 - 3, y + 7.5, 6, 6, "D")
+        self.ellipse(x + w / 2 - circle_r, content_mid_y - circle_r, circle_r * 2, circle_r * 2, "D")
         return y + h
 
     def _draw_proficiencies(self, x, y, w):
@@ -1201,7 +1227,7 @@ class CharacterSheetPDF(FPDF):
         ty_m = y + 6 + 2 + 5 + 5 + 5  # approx rows
         total_h_est = ty_m - y + 4
 
-        self._section_box(x, y, w, total_h_est, "EQUIPMENT TRAINING & PROFICIENCIES")
+        # Skip initial _section_box — will redraw at correct size below
         ty = y + 6 + 2
 
         # Armor
@@ -1320,7 +1346,7 @@ class CharacterSheetPDF(FPDF):
 
         languages = ["Common"]
         if c.species:
-            for trait in c.species.get("traits", []):
+            for trait in (c.species.get("features", []) or c.species.get("traits", [])):
                 name_lower = trait["name"].lower()
                 if "language" in name_lower or "tongue" in name_lower:
                     desc = trait.get("description", "")
@@ -1337,7 +1363,7 @@ class CharacterSheetPDF(FPDF):
         lines = len(lang_text) / (w * 0.55) + 1
         est_h = max(6 + 2 + lines * 4 + 3, 18)
 
-        self._section_box(x, y, w, est_h, "LANGUAGES")
+        # Skip initial _section_box — will redraw at correct size below
         ty = y + 6 + 2
 
         self._sans("B", 7)
@@ -1396,7 +1422,7 @@ class CharacterSheetPDF(FPDF):
         total_h = max(ty_m - y + 3, 20)
         total_h = min(total_h, remaining)
 
-        self._section_box(x, y, w, total_h, "EQUIPMENT")
+        # Skip initial _section_box — will redraw at correct size below
         ty = y + 6 + 2
 
         self._sans("", 6)
@@ -1446,7 +1472,31 @@ class CharacterSheetPDF(FPDF):
 
     # ── Page 2: Spellcasting ─────────────────────────────────
 
-    def _draw_page_2(self):
+    def _draw_page_2_features(self):
+        """Page 2: Class features, species traits, and feats with full descriptions."""
+        c = self.c
+        x0 = MARGIN
+        y = MARGIN
+
+        # Corner ornaments
+        self._draw_corner_ornament(x0, y, 5, "tl")
+        self._draw_corner_ornament(x0 + CONTENT_W, y, 5, "tr")
+
+        # ─── Class Features (full width) ───
+        y = self._draw_class_features(x0, y, CONTENT_W)
+        y += 3
+
+        # ─── Species Traits + Feats side by side ───
+        half_w = (CONTENT_W - 3) / 2
+        traits_bottom = self._draw_species_traits(x0, y, half_w)
+        feats_bottom = self._draw_feats(x0 + half_w + 3, y, half_w)
+        y = max(traits_bottom, feats_bottom)
+
+        # Footer ornament
+        footer_y = PAGE_H - MARGIN - 1
+        self._draw_ornamental_line(x0 + 30, footer_y, CONTENT_W - 60, 0.2)
+
+    def _draw_page_3_spells(self):
         c = self.c
         x0 = MARGIN
         y = MARGIN
@@ -1473,9 +1523,7 @@ class CharacterSheetPDF(FPDF):
         ]
         info_h = 6 + 2 + len(rows) * 6.5 + 2
 
-        self._section_box(x0, y, info_w, info_h, "SPELLCASTING")
-
-        # Redraw at correct size
+        # Draw box (single pass, no pre-draw needed)
         self._shadow_rect(x0, y, info_w, info_h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x0, y, info_w, info_h, R_MD, "F")
@@ -1501,9 +1549,7 @@ class CharacterSheetPDF(FPDF):
         slots_w = CONTENT_W - info_w - 3
         slots_h = info_h
 
-        self._section_box(slots_x, y, slots_w, slots_h, "SPELL SLOTS")
-
-        # Redraw
+        # Draw box (single pass)
         self._shadow_rect(slots_x, y, slots_w, slots_h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(slots_x, y, slots_w, slots_h, R_MD, "F")
@@ -1572,11 +1618,7 @@ class CharacterSheetPDF(FPDF):
         table_content_h = 6 + 1 + 4.5 + (num_spells + blank_rows) * 4.5 + 2
         table_content_h = min(table_content_h, PAGE_H - MARGIN - table_y)
 
-        self._section_box(
-            x0, table_y, table_w, table_content_h, "CANTRIPS & PREPARED SPELLS"
-        )
-
-        # Redraw box
+        # Draw box (single pass)
         self._shadow_rect(x0, table_y, table_w, table_content_h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x0, table_y, table_w, table_content_h, R_MD, "F")
@@ -1628,10 +1670,31 @@ class CharacterSheetPDF(FPDF):
 
     def _draw_personality(self, x, y, w):
         """Draw personality box."""
-        h = 30
-        self._section_box(x, y, w, h, "PERSONALITY")
+        fields = [
+            ("Backstory", getattr(self.c, "biography_backstory", "") or ""),
+            ("Personality", getattr(self.c, "biography_personality", "") or ""),
+            ("Description", getattr(self.c, "biography_description", "") or ""),
+        ]
+        lines: list[str] = []
+        for label, value in fields:
+            cleaned = " ".join(str(value).split())
+            if cleaned:
+                lines.append(f"{label}: {cleaned}")
+        if not lines:
+            lines = ["No biography details provided."]
 
-        # Redraw
+        # Estimate needed height from text length
+        self._sans("", 5.2)
+        text_w = w - 6  # usable width inside box
+        total_text_lines = 0
+        for line in lines:
+            line_w = self.get_string_width(self._sanitize(line))
+            # Word wrapping adds extra lines vs naive division; use ceiling + 1
+            total_text_lines += max(1, -(-int(line_w) // int(text_w)) + 1)
+        text_h = total_text_lines * 3.1
+        h = max(text_h + 8.5 + 4, 30)
+
+        # Draw box (single pass)
         self._shadow_rect(x, y, w, h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x, y, w, h, R_MD, "F")
@@ -1646,40 +1709,19 @@ class CharacterSheetPDF(FPDF):
         for ly in range(int(y + 11), int(y + h - 2), 5):
             self.line(x + 3, ly, x + w - 3, ly)
 
-        fields = [
-            ("Backstory", getattr(self.c, "biography_backstory", "") or ""),
-            ("Personality", getattr(self.c, "biography_personality", "") or ""),
-            ("Description", getattr(self.c, "biography_description", "") or ""),
-        ]
-        lines: list[str] = []
-        for label, value in fields:
-            cleaned = " ".join(str(value).split())
-            if cleaned:
-                lines.append(f"{label}: {cleaned}")
-        if not lines:
-            lines = ["No biography details provided."]
-
         self._sans("", 5.2)
         self.set_text_color(*C_BLACK)
-        text_x = x + 3
-        text_y = y + 8.5
-        max_y = y + h - 2.5
-        self.set_xy(text_x, text_y)
+        self.set_xy(x + 3, y + 8.5)
         for line in lines:
-            if self.get_y() >= max_y:
-                break
-            self.multi_cell(w - 6, 3.1, line)
-            if self.get_y() >= max_y:
-                break
+            self.set_x(x + 3)
+            self.multi_cell(text_w, 3.1, line)
 
         return y + h
 
     def _draw_portrait_placeholder(self, x, y, w):
         """Draw character portrait frame and image if available."""
         h = 42
-        self._section_box(x, y, w, h, "CHARACTER PORTRAIT / SYMBOL")
-
-        # Redraw
+        # Draw box (single pass)
         self._shadow_rect(x, y, w, h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x, y, w, h, R_MD, "F")
@@ -1708,7 +1750,19 @@ class CharacterSheetPDF(FPDF):
                 with tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=False) as tmp:
                     tmp.write(raw)
                     tmp_path = tmp.name
-                self.image(tmp_path, x=px + 0.4, y=py + 0.4, w=pw - 0.8, h=ph - 0.8)
+                # Preserve aspect ratio: fit within frame without distortion
+                from PIL import Image as PILImage
+                with PILImage.open(tmp_path) as img:
+                    img_w, img_h = img.size
+                avail_w = pw - 0.8
+                avail_h = ph - 0.8
+                scale = min(avail_w / img_w, avail_h / img_h)
+                draw_w = img_w * scale
+                draw_h = img_h * scale
+                # Center the image in the frame
+                draw_x = px + 0.4 + (avail_w - draw_w) / 2
+                draw_y = py + 0.4 + (avail_h - draw_h) / 2
+                self.image(tmp_path, x=draw_x, y=draw_y, w=draw_w, h=draw_h)
             except Exception:
                 self._sans("", 6)
                 self.set_text_color(*C_MED_GRAY)
@@ -1731,9 +1785,7 @@ class CharacterSheetPDF(FPDF):
     def _draw_coins(self, x, y, w):
         """Draw coins tracking section."""
         h = 26
-        self._section_box(x, y, w, h, "COINS")
-
-        # Redraw
+        # Draw box (single pass)
         self._shadow_rect(x, y, w, h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x, y, w, h, R_MD, "F")
