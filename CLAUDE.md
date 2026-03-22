@@ -365,7 +365,9 @@ uv run python preview_pdf.py /tmp/vibe_dnd_preview.pdf
 
 The script generates the PDF and automatically converts it to PNG pages (`/tmp/vibe_dnd_preview-1.png`, `/tmp/vibe_dnd_preview-2.png`).
 
-**IMPORTANT:** Use the **Read** tool on the `.png` files (NOT the `.pdf`) to display them inline. The chat interface renders PNG images visually but shows PDFs as just a file path. Always read the PNG files so the user can actually see the result.
+Then use the **Read** tool on `/tmp/vibe_dnd_preview.pdf` to display it inline in the conversation.
+
+**Display limitation:** The chat interface renders inline images at a small fixed thumbnail size (~424x600). This is good enough to verify layout and structure changes, but not for reading fine text. For detailed inspection, the user should check the committed PDF preview or download the file from the branch.
 
 ### The preview script
 
