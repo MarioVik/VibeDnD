@@ -350,6 +350,48 @@ There is no automated test framework. Testing is manual via running `python main
 
 ---
 
+## PDF Preview Workflow
+
+When making changes to the PDF character sheet (`export/pdf_export.py`), generate an inline preview so the user can visually verify changes without launching the GUI.
+
+### How to generate a preview
+
+```bash
+uv run python preview_pdf.py /tmp/vibe_dnd_preview.pdf
+```
+
+Then use the **Read** tool on `/tmp/vibe_dnd_preview.pdf` to display it inline in the conversation.
+
+### The preview script
+
+`preview_pdf.py` builds a sample Level 3 Half-Elf Ranger (Hunter) named "Thorn Ironvale" with:
+- Full ability scores, skills, proficiencies
+- Background feat (Alert), species traits
+- Spells (Cure Wounds, Hunter's Mark, Goodberry)
+- Equipped weapons (Longbow, Shortsword) and armor (Studded Leather)
+- Biography text and personality
+
+This exercises both pages of the PDF (main sheet + spellcasting/personality page).
+
+### When to update `preview_pdf.py`
+
+If a PDF change requires data the sample character doesn't have (e.g., cantrips, multiclass, portrait image), update `build_sample_character()` in `preview_pdf.py` to include the relevant data so the preview covers the changed section.
+
+### Workflow per change
+
+1. Edit `export/pdf_export.py` (or related export code)
+2. Run `uv run python preview_pdf.py /tmp/vibe_dnd_preview.pdf`
+3. Read `/tmp/vibe_dnd_preview.pdf` with the Read tool to show the user
+4. Iterate based on feedback
+
+### Notes
+
+- Georgia fonts are macOS-only; the preview will fall back to Helvetica on Linux — this is expected
+- The script has no GUI dependencies (no Tkinter) and runs headlessly
+- Output path can be overridden via CLI argument: `python preview_pdf.py /path/to/output.pdf`
+
+---
+
 ## Conventions
 
 - **Style:** PEP 8, type hints with `|` union syntax (Python 3.10+), dataclasses for models
