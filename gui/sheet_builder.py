@@ -150,7 +150,10 @@ def _show_level_features(parent: tk.Widget, character, game_data=None):
 
         extra = []
         if cl.feat_choice:
-            extra.append({"name": f"Feat: {cl.feat_choice}", "description": ""})
+            asi_desc = ""
+            if cl.asi_increases:
+                asi_desc = ", ".join(f"{a} +{v}" for a, v in cl.asi_increases.items())
+            extra.append({"name": f"Feat: {cl.feat_choice}", "description": asi_desc})
         if cl.subclass_slug:
             extra.append(
                 {

@@ -101,6 +101,7 @@ class LevelUpWizard(tk.Toplevel):
         self.hp_manual_var = tk.StringVar(value="")
         self.subclass_var = tk.StringVar()
         self.feat_var = tk.StringVar()
+        self.asi_selections: dict[str, int] = {}
         self.selected_new_cantrips: list[str] = []
         self.selected_new_spells: list[str] = []
 
@@ -606,6 +607,34 @@ class LevelUpWizard(tk.Toplevel):
                         "Please select a feat for your Ability Score Improvement.",
                     )
                     return False
+                # Validate ability score selections for ASI-type feats
+                feat = self.data.find_feat(self.feat_var.get())
+                asi_field = feat.get("ability_score_increase") if feat else None
+                if self.feat_var.get() == "Ability Score Improvement":
+                    if not self.asi_selections:
+                        AlertDialog(
+                            self,
+                            "Missing Choice",
+                            "Please select which ability scores to increase.",
+                        )
+                        return False
+                    for ab, amt in self.asi_selections.items():
+                        if self.character.ability_scores.total(ab) + amt > 20:
+                            AlertDialog(
+                                self,
+                                "Score Too High",
+                                f"{ab} would exceed 20. Please choose a different ability.",
+                            )
+                            return False
+                elif asi_field and not self.asi_selections:
+                    # Feat has ASI options (Choice, or multi-option parsed from benefits)
+                    # but fixed single-ability feats already set asi_selections in _build_asi_fixed
+                    AlertDialog(
+                        self,
+                        "Missing Choice",
+                        "Please select which ability score to increase.",
+                    )
+                    return False
             if any("Subclass" in f and "Feature" not in f for f in features):
                 if not self.subclass_var.get():
                     AlertDialog(self, "Missing Choice", "Please select a subclass.")
@@ -1074,13 +1103,255 @@ class LevelUpWizard(tk.Toplevel):
         feat_frame = ttk.Frame(self.step1_content)
         feat_frame.pack(fill=tk.X, padx=12, pady=4)
         self.feat_var.set("")
-        ttk.Combobox(
+        combo = ttk.Combobox(
             feat_frame,
             textvariable=self.feat_var,
             values=feat_options,
             state="readonly",
             width=40,
+        )
+        combo.pack(anchor="w")
+        combo.bind("<<ComboboxSelected>>", self._on_asi_feat_selected)
+
+        # Detail frame for feat description
+        self.asi_detail_frame = ttk.Frame(self.step1_content)
+        self.asi_detail_frame.pack(fill=tk.X, padx=12, pady=(4, 0))
+
+        # Frame for ability score increase UI
+        self.asi_choice_frame = ttk.Frame(self.step1_content)
+        self.asi_choice_frame.pack(fill=tk.X, padx=12, pady=4)
+
+        # Track ASI selections
+        self.asi_selections = {}
+        self._asi_mode_var = tk.StringVar(value="+2 to one ability")
+        self._asi_ability1_var = tk.StringVar()
+        self._asi_ability2_var = tk.StringVar()
+        self._asi_choice_var = tk.StringVar()
+
+    def _on_asi_feat_selected(self, *_):
+        """Update detail and ability score UI when a feat is selected."""
+        for w in self.asi_detail_frame.winfo_children():
+            w.destroy()
+        for w in self.asi_choice_frame.winfo_children():
+            w.destroy()
+        self.asi_selections = {}
+
+        name = self.feat_var.get()
+        if not name:
+            return
+
+        feat = self.data.find_feat(name)
+        if not feat:
+            return
+
+        # Show feat source
+        source = feat.get("source", "Unknown")
+        ttk.Label(
+            self.asi_detail_frame,
+            text=f"Source: {source}",
+            foreground=COLORS["fg_dim"],
         ).pack(anchor="w")
+
+        # Show prerequisites
+        prereqs = feat.get("prerequisites")
+        if prereqs:
+            parts = []
+            if prereqs.get("level"):
+                parts.append(f"Level {prereqs['level']}+")
+            for ab, val in prereqs.get("abilities", {}).items():
+                parts.append(f"{ab} {val}+")
+            if parts:
+                ttk.Label(
+                    self.asi_detail_frame,
+                    text=f"Prerequisites: {', '.join(parts)}",
+                    foreground=COLORS["fg_dim"],
+                ).pack(anchor="w")
+
+        # Show feat benefits
+        for benefit in feat.get("benefits", []):
+            bf = ttk.Frame(self.asi_detail_frame)
+            bf.pack(fill=tk.X, pady=2)
+            ttk.Label(
+                bf,
+                text=benefit.get("name", ""),
+                foreground=COLORS["accent"],
+                font=FONTS["subheading"],
+            ).pack(anchor="w")
+            desc = benefit.get("description", "")
+            if desc:
+                WrappingLabel(bf, text=desc, foreground=COLORS["fg_dim"]).pack(
+                    fill=tk.X, anchor="w", padx=(16, 0)
+                )
+
+        # Build ability score increase UI
+        asi_field = feat.get("ability_score_increase")
+        all_abilities = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
+
+        if name == "Ability Score Improvement":
+            # Full ASI: choose +2 to one or +1 to two
+            self._build_asi_full_choice(all_abilities)
+        elif asi_field:
+            # Parse actual options from benefit description text
+            asi_options = self._parse_asi_options(feat, all_abilities)
+            if len(asi_options) == 1:
+                # Truly fixed — one specific ability
+                self._build_asi_fixed(asi_options[0])
+            elif asi_options:
+                # Multiple abilities to choose from
+                self._build_asi_choice_one(asi_options)
+            else:
+                # Fallback: if "Choice", offer all abilities; otherwise use the field
+                if asi_field == "Choice":
+                    self._build_asi_choice_one(all_abilities)
+                else:
+                    self._build_asi_fixed(asi_field)
+
+    def _build_asi_full_choice(self, abilities: list[str]):
+        """Build UI for the Ability Score Improvement feat (+2/+1+1)."""
+        mode_frame = ttk.Frame(self.asi_choice_frame)
+        mode_frame.pack(fill=tk.X, pady=(4, 2))
+        ttk.Label(mode_frame, text="Mode:", foreground=COLORS["fg"]).pack(side=tk.LEFT)
+        self._asi_mode_var.set("+2 to one ability")
+        mode_combo = ttk.Combobox(
+            mode_frame,
+            textvariable=self._asi_mode_var,
+            values=["+2 to one ability", "+1 to two abilities"],
+            state="readonly",
+            width=22,
+        )
+        mode_combo.pack(side=tk.LEFT, padx=(8, 0))
+        mode_combo.bind("<<ComboboxSelected>>", lambda *_: self._rebuild_asi_dropdowns(abilities))
+
+        self._asi_dropdowns_frame = ttk.Frame(self.asi_choice_frame)
+        self._asi_dropdowns_frame.pack(fill=tk.X, pady=2)
+        self._rebuild_asi_dropdowns(abilities)
+
+    def _rebuild_asi_dropdowns(self, abilities: list[str]):
+        """Rebuild the ability dropdowns based on the selected mode."""
+        for w in self._asi_dropdowns_frame.winfo_children():
+            w.destroy()
+        self.asi_selections = {}
+        self._asi_ability1_var.set("")
+        self._asi_ability2_var.set("")
+
+        # Build ability options with current scores shown
+        def ability_label(ab):
+            score = self.character.ability_scores.total(ab)
+            return f"{ab} ({score})"
+
+        def ability_options():
+            return [ability_label(ab) for ab in abilities
+                    if self.character.ability_scores.total(ab) < 20]
+
+        mode = self._asi_mode_var.get()
+
+        if mode == "+2 to one ability":
+            row = ttk.Frame(self._asi_dropdowns_frame)
+            row.pack(fill=tk.X, pady=2)
+            ttk.Label(row, text="+2 to:", foreground=COLORS["fg"]).pack(side=tk.LEFT)
+            opts = [ability_label(ab) for ab in abilities
+                    if self.character.ability_scores.total(ab) <= 18]
+            c1 = ttk.Combobox(row, textvariable=self._asi_ability1_var,
+                              values=opts, state="readonly", width=24)
+            c1.pack(side=tk.LEFT, padx=(8, 0))
+            c1.bind("<<ComboboxSelected>>", lambda *_: self._update_asi_selections())
+        else:
+            row1 = ttk.Frame(self._asi_dropdowns_frame)
+            row1.pack(fill=tk.X, pady=2)
+            ttk.Label(row1, text="First +1:", foreground=COLORS["fg"]).pack(side=tk.LEFT)
+            c1 = ttk.Combobox(row1, textvariable=self._asi_ability1_var,
+                              values=ability_options(), state="readonly", width=24)
+            c1.pack(side=tk.LEFT, padx=(8, 0))
+            c1.bind("<<ComboboxSelected>>", lambda *_: self._update_asi_selections())
+
+            row2 = ttk.Frame(self._asi_dropdowns_frame)
+            row2.pack(fill=tk.X, pady=2)
+            ttk.Label(row2, text="Second +1:", foreground=COLORS["fg"]).pack(side=tk.LEFT)
+            c2 = ttk.Combobox(row2, textvariable=self._asi_ability2_var,
+                              values=ability_options(), state="readonly", width=24)
+            c2.pack(side=tk.LEFT, padx=(8, 0))
+            c2.bind("<<ComboboxSelected>>", lambda *_: self._update_asi_selections())
+
+    def _build_asi_choice_one(self, abilities: list[str]):
+        """Build UI for feats that grant +1 to a chosen ability."""
+        row = ttk.Frame(self.asi_choice_frame)
+        row.pack(fill=tk.X, pady=(4, 2))
+        ttk.Label(row, text="Ability +1:", foreground=COLORS["fg"]).pack(side=tk.LEFT)
+        self._asi_choice_var.set("")
+        opts = [f"{ab} ({self.character.ability_scores.total(ab)})" for ab in abilities
+                if self.character.ability_scores.total(ab) < 20]
+        c = ttk.Combobox(row, textvariable=self._asi_choice_var,
+                         values=opts, state="readonly", width=24)
+        c.pack(side=tk.LEFT, padx=(8, 0))
+        c.bind("<<ComboboxSelected>>", lambda *_: self._update_asi_selections())
+
+    def _build_asi_fixed(self, ability: str):
+        """Show a label for feats that grant +1 to a fixed ability."""
+        current = self.character.ability_scores.total(ability)
+        ttk.Label(
+            self.asi_choice_frame,
+            text=f"{ability} +1  (current: {current} → {min(current + 1, 20)})",
+            foreground=COLORS["fg"],
+            font=FONTS["subheading"],
+        ).pack(anchor="w", pady=(4, 2))
+        self.asi_selections = {ability: 1}
+
+    def _parse_asi_options(self, feat: dict, all_abilities: list[str]) -> list[str]:
+        """Parse ability score increase options from feat benefit description."""
+        for benefit in feat.get("benefits", []):
+            if benefit.get("name", "") == "Ability Score Increase":
+                desc = benefit.get("description", "")
+                # Match patterns like "Increase your Strength or Dexterity score"
+                # or "Increase your Intelligence, Wisdom, or Charisma score"
+                match = re.search(r"Increase your (.+?) scores?\b", desc)
+                if match:
+                    raw = match.group(1)
+                    # Split on ", " and " or " to get individual abilities
+                    parts = re.split(r",\s*(?:or\s+)?|\s+or\s+", raw)
+                    options = [p.strip() for p in parts if p.strip() in all_abilities]
+                    if options:
+                        return options
+        # Fallback: use the ability_score_increase field
+        asi_field = feat.get("ability_score_increase")
+        if asi_field and asi_field in all_abilities:
+            return [asi_field]
+        return []
+
+    def _update_asi_selections(self):
+        """Update asi_selections dict from the current dropdown values."""
+        self.asi_selections = {}
+        feat_name = self.feat_var.get()
+        feat = self.data.find_feat(feat_name) if feat_name else None
+        asi_field = feat.get("ability_score_increase") if feat else None
+
+        def extract_ability(label: str) -> str | None:
+            """Extract ability name from 'Strength (14)' format."""
+            if not label:
+                return None
+            return label.split(" (")[0]
+
+        if feat_name == "Ability Score Improvement":
+            mode = self._asi_mode_var.get()
+            if mode == "+2 to one ability":
+                ab = extract_ability(self._asi_ability1_var.get())
+                if ab:
+                    self.asi_selections = {ab: 2}
+            else:
+                ab1 = extract_ability(self._asi_ability1_var.get())
+                ab2 = extract_ability(self._asi_ability2_var.get())
+                if ab1:
+                    self.asi_selections[ab1] = self.asi_selections.get(ab1, 0) + 1
+                if ab2:
+                    self.asi_selections[ab2] = self.asi_selections.get(ab2, 0) + 1
+        elif asi_field and asi_field != "Choice":
+            # Feat with specific or multi-option ASI parsed from benefits
+            ab = extract_ability(self._asi_choice_var.get())
+            if ab:
+                self.asi_selections = {ab: 1}
+        elif asi_field == "Choice":
+            ab = extract_ability(self._asi_choice_var.get())
+            if ab:
+                self.asi_selections = {ab: 1}
 
     # ── Subclass ──────────────────────────────────────────────────
 
@@ -1926,6 +2197,25 @@ class LevelUpWizard(tk.Toplevel):
 
         if self.feat_var.get():
             cl.feat_choice = self.feat_var.get()
+            # Store and apply ability score increases
+            if self.asi_selections:
+                cl.asi_increases = dict(self.asi_selections)
+            else:
+                # Auto-apply fixed ASI from feat data
+                feat = self.data.find_feat(self.feat_var.get())
+                asi_field = feat.get("ability_score_increase") if feat else None
+                if asi_field and asi_field != "Choice" and asi_field in (
+                    "Strength", "Dexterity", "Constitution",
+                    "Intelligence", "Wisdom", "Charisma",
+                ):
+                    cl.asi_increases = {asi_field: 1}
+            for ability, amount in cl.asi_increases.items():
+                current = self.character.ability_scores.total(ability)
+                new_val = min(current + amount, 20)
+                increase = new_val - current
+                if increase > 0:
+                    old_base = self.character.ability_scores.base(ability)
+                    self.character.ability_scores.set_base(ability, old_base + increase)
 
         cl.new_cantrips = list(self.selected_new_cantrips)
         cl.new_spells = list(self.selected_new_spells)
