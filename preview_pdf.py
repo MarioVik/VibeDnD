@@ -140,6 +140,20 @@ def main():
     export_pdf(char, output)
     print(f"PDF saved to: {output}")
 
+    # Convert to PNG for inline display in Claude Code conversations
+    import shutil
+    import subprocess
+
+    if shutil.which("pdftoppm"):
+        base = output.rsplit(".", 1)[0]
+        subprocess.run(
+            ["pdftoppm", "-png", "-r", "200", output, base],
+            check=True,
+        )
+        print(f"PNG pages saved to: {base}-*.png")
+    else:
+        print("Install poppler-utils for automatic PNG preview conversion")
+
 
 if __name__ == "__main__":
     main()

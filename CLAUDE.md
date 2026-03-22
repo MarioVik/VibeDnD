@@ -357,10 +357,15 @@ When making changes to the PDF character sheet (`export/pdf_export.py`), generat
 ### How to generate a preview
 
 ```bash
+# Ensure poppler-utils is installed (for PDF→PNG conversion)
+which pdftoppm || apt-get install -y poppler-utils
+
 uv run python preview_pdf.py /tmp/vibe_dnd_preview.pdf
 ```
 
-Then use the **Read** tool on `/tmp/vibe_dnd_preview.pdf` to display it inline in the conversation.
+The script generates the PDF and automatically converts it to PNG pages (`/tmp/vibe_dnd_preview-1.png`, `/tmp/vibe_dnd_preview-2.png`).
+
+**IMPORTANT:** Use the **Read** tool on the `.png` files (NOT the `.pdf`) to display them inline. The chat interface renders PNG images visually but shows PDFs as just a file path. Always read the PNG files so the user can actually see the result.
 
 ### The preview script
 
@@ -381,7 +386,7 @@ If a PDF change requires data the sample character doesn't have (e.g., cantrips,
 
 1. Edit `export/pdf_export.py` (or related export code)
 2. Run `uv run python preview_pdf.py /tmp/vibe_dnd_preview.pdf`
-3. Read `/tmp/vibe_dnd_preview.pdf` with the Read tool to show the user
+3. Read `/tmp/vibe_dnd_preview-1.png` (and `-2.png` if page 2 exists) with the Read tool to show the user
 4. Iterate based on feedback
 
 ### Notes
@@ -389,6 +394,7 @@ If a PDF change requires data the sample character doesn't have (e.g., cantrips,
 - Georgia fonts are macOS-only; the preview will fall back to Helvetica on Linux — this is expected
 - The script has no GUI dependencies (no Tkinter) and runs headlessly
 - Output path can be overridden via CLI argument: `python preview_pdf.py /path/to/output.pdf`
+- Requires `poppler-utils` for PNG conversion (`apt-get install -y poppler-utils`)
 
 ---
 
