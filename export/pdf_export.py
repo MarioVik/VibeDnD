@@ -85,13 +85,17 @@ class CharacterSheetPDF(FPDF):
         self.add_page()
         self._draw_page_1()
 
+        # Page 2: Class features, species traits, feats (full descriptions)
+        self.add_page()
+        self._draw_page_2_features()
+
         if (
             character.is_caster
             or character.selected_cantrips
             or character.selected_spells
         ):
             self.add_page()
-            self._draw_page_2()
+            self._draw_page_3_spells()
 
     def _register_fonts(self):
         """Register Georgia font family for serif typography."""
@@ -357,42 +361,24 @@ class CharacterSheetPDF(FPDF):
         # Left column: Ability scores
         left_bottom = self._draw_ability_scores(x0, y, left_w)
 
-        # Right column
+        # Right column: weapons + proficiencies/languages/equipment
         right_y = y
         right_y = self._draw_weapons_section(right_x, right_y, right_w)
         right_y += 2
-        right_y = self._draw_class_features(right_x, right_y, right_w)
+
+        # Proficiencies (right column, below weapons)
+        right_y = self._draw_proficiencies(right_x, right_y, right_w)
         right_y += 2
 
-        # Species Traits + Feats side by side
+        # Languages + Equipment side by side
         half_w = (right_w - 2) / 2
-        traits_bottom = self._draw_species_traits(right_x, right_y, half_w)
-        feats_bottom = self._draw_feats(right_x + half_w + 2, right_y, half_w)
-        right_y = max(traits_bottom, feats_bottom)
+        lang_bottom = self._draw_languages(right_x, right_y, half_w)
+        equip_bottom = self._draw_equipment_list(right_x + half_w + 2, right_y, half_w)
+        right_y = max(lang_bottom, equip_bottom)
 
         # ─── Heroic Inspiration ───
         heroic_y = left_bottom + 2
         heroic_bottom = self._draw_heroic_inspiration(x0, heroic_y, left_w)
-
-        # ─── Bottom full-width sections ───
-        bottom_y = max(heroic_bottom, right_y) + 3
-        # Cap bottom_y to ensure we don't overflow the page
-        max_bottom_y = PAGE_H - MARGIN - 60  # reserve space for bottom sections
-        bottom_y = min(bottom_y, max_bottom_y)
-
-        # Thin accent line separator
-        self.set_draw_color(*C_ACCENT_LIGHT)
-        self.set_line_width(0.2)
-        self.line(x0 + 10, bottom_y - 1.5, x0 + CONTENT_W - 10, bottom_y - 1.5)
-
-        half_bottom_w = CONTENT_W * 0.5 - 1
-        prof_bottom = self._draw_proficiencies(x0, bottom_y, half_bottom_w)
-
-        rb_x = x0 + CONTENT_W * 0.5 + 1
-        rb_w = CONTENT_W * 0.5 - 1
-        lang_bottom = self._draw_languages(rb_x, bottom_y, rb_w)
-        equip_y = lang_bottom + 2
-        equip_bottom = self._draw_equipment_list(rb_x, equip_y, rb_w)
 
         # Page footer ornament
         footer_y = PAGE_H - MARGIN - 1
@@ -1486,7 +1472,31 @@ class CharacterSheetPDF(FPDF):
 
     # ── Page 2: Spellcasting ─────────────────────────────────
 
-    def _draw_page_2(self):
+    def _draw_page_2_features(self):
+        """Page 2: Class features, species traits, and feats with full descriptions."""
+        c = self.c
+        x0 = MARGIN
+        y = MARGIN
+
+        # Corner ornaments
+        self._draw_corner_ornament(x0, y, 5, "tl")
+        self._draw_corner_ornament(x0 + CONTENT_W, y, 5, "tr")
+
+        # ─── Class Features (full width) ───
+        y = self._draw_class_features(x0, y, CONTENT_W)
+        y += 3
+
+        # ─── Species Traits + Feats side by side ───
+        half_w = (CONTENT_W - 3) / 2
+        traits_bottom = self._draw_species_traits(x0, y, half_w)
+        feats_bottom = self._draw_feats(x0 + half_w + 3, y, half_w)
+        y = max(traits_bottom, feats_bottom)
+
+        # Footer ornament
+        footer_y = PAGE_H - MARGIN - 1
+        self._draw_ornamental_line(x0 + 30, footer_y, CONTENT_W - 60, 0.2)
+
+    def _draw_page_3_spells(self):
         c = self.c
         x0 = MARGIN
         y = MARGIN
