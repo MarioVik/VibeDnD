@@ -83,12 +83,12 @@ class BiographyStep(WizardStep):
         right.bind("<Configure>", self._on_portrait_frame_configure)
 
         btns = ttk.Frame(right)
-        btns.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
+        btns.grid(row=1, column=0, pady=(0, 10))
         ttk.Button(btns, text="Choose Image...", command=self._choose_image).pack(
-            side=tk.LEFT
+            side=tk.LEFT, padx=(0, 4)
         )
         ttk.Button(btns, text="Clear Image", command=self._clear_image).pack(
-            side=tk.LEFT, padx=(6, 0)
+            side=tk.LEFT, padx=(4, 0)
         )
 
         # Keep references so PhotoImage isn't garbage-collected

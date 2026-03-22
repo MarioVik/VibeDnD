@@ -300,12 +300,12 @@ class CharacterViewer(ttk.Frame):
         right.bind("<Configure>", self._on_bio_portrait_frame_configure)
 
         btns = ttk.Frame(right)
-        btns.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
+        btns.grid(row=1, column=0, pady=(0, 10))
         ttk.Button(
             btns, text="Choose Image...", command=self._choose_biography_image
-        ).pack(side=tk.LEFT)
+        ).pack(side=tk.LEFT, padx=(0, 4))
         ttk.Button(btns, text="Clear Image", command=self._clear_biography_image).pack(
-            side=tk.LEFT, padx=(6, 0)
+            side=tk.LEFT, padx=(4, 0)
         )
 
         for widget in (
