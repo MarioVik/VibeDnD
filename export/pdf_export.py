@@ -814,7 +814,7 @@ class CharacterSheetPDF(FPDF):
         )
         row_count = max(4, len(rows))
         total_h_est = 12 + row_count * 5
-        self._section_box(x, y, w, total_h_est, "WEAPONS & DAMAGE CANTRIPS")
+        # Skip initial _section_box — will redraw at correct size below
         inner = y + 6
         ty = inner + 1
 
@@ -969,10 +969,9 @@ class CharacterSheetPDF(FPDF):
 
         content_h = max(left_ty, right_ty) - y + 3
 
-        # Draw the box
-        self._section_box(x, y, w, content_h, title)
+        # Skip initial _section_box — will redraw at correct size below
 
-        # Draw content
+        # Draw content (measurement pass)
         ty = y + 6 + 1.5
         left_ty = ty
         right_ty = ty
@@ -1076,7 +1075,7 @@ class CharacterSheetPDF(FPDF):
                     ty_measure += lines * 2.8 + 1
 
         total_h = max(ty_measure - y + 2, 20)
-        self._section_box(x, y, w, total_h, "SPECIES TRAITS")
+        # Skip initial _section_box — will redraw at correct size below
         ty = y + 6 + 1.5
 
         if c.species:
@@ -1242,7 +1241,7 @@ class CharacterSheetPDF(FPDF):
         ty_m = y + 6 + 2 + 5 + 5 + 5  # approx rows
         total_h_est = ty_m - y + 4
 
-        self._section_box(x, y, w, total_h_est, "EQUIPMENT TRAINING & PROFICIENCIES")
+        # Skip initial _section_box — will redraw at correct size below
         ty = y + 6 + 2
 
         # Armor
@@ -1378,7 +1377,7 @@ class CharacterSheetPDF(FPDF):
         lines = len(lang_text) / (w * 0.55) + 1
         est_h = max(6 + 2 + lines * 4 + 3, 18)
 
-        self._section_box(x, y, w, est_h, "LANGUAGES")
+        # Skip initial _section_box — will redraw at correct size below
         ty = y + 6 + 2
 
         self._sans("B", 7)
@@ -1437,7 +1436,7 @@ class CharacterSheetPDF(FPDF):
         total_h = max(ty_m - y + 3, 20)
         total_h = min(total_h, remaining)
 
-        self._section_box(x, y, w, total_h, "EQUIPMENT")
+        # Skip initial _section_box — will redraw at correct size below
         ty = y + 6 + 2
 
         self._sans("", 6)
@@ -1514,9 +1513,7 @@ class CharacterSheetPDF(FPDF):
         ]
         info_h = 6 + 2 + len(rows) * 6.5 + 2
 
-        self._section_box(x0, y, info_w, info_h, "SPELLCASTING")
-
-        # Redraw at correct size
+        # Draw box (single pass, no pre-draw needed)
         self._shadow_rect(x0, y, info_w, info_h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x0, y, info_w, info_h, R_MD, "F")
@@ -1542,9 +1539,7 @@ class CharacterSheetPDF(FPDF):
         slots_w = CONTENT_W - info_w - 3
         slots_h = info_h
 
-        self._section_box(slots_x, y, slots_w, slots_h, "SPELL SLOTS")
-
-        # Redraw
+        # Draw box (single pass)
         self._shadow_rect(slots_x, y, slots_w, slots_h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(slots_x, y, slots_w, slots_h, R_MD, "F")
@@ -1613,11 +1608,7 @@ class CharacterSheetPDF(FPDF):
         table_content_h = 6 + 1 + 4.5 + (num_spells + blank_rows) * 4.5 + 2
         table_content_h = min(table_content_h, PAGE_H - MARGIN - table_y)
 
-        self._section_box(
-            x0, table_y, table_w, table_content_h, "CANTRIPS & PREPARED SPELLS"
-        )
-
-        # Redraw box
+        # Draw box (single pass)
         self._shadow_rect(x0, table_y, table_w, table_content_h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x0, table_y, table_w, table_content_h, R_MD, "F")
@@ -1693,9 +1684,7 @@ class CharacterSheetPDF(FPDF):
         text_h = total_text_lines * 3.1
         h = max(text_h + 8.5 + 4, 30)
 
-        self._section_box(x, y, w, h, "PERSONALITY")
-
-        # Redraw
+        # Draw box (single pass)
         self._shadow_rect(x, y, w, h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x, y, w, h, R_MD, "F")
@@ -1722,9 +1711,7 @@ class CharacterSheetPDF(FPDF):
     def _draw_portrait_placeholder(self, x, y, w):
         """Draw character portrait frame and image if available."""
         h = 42
-        self._section_box(x, y, w, h, "CHARACTER PORTRAIT / SYMBOL")
-
-        # Redraw
+        # Draw box (single pass)
         self._shadow_rect(x, y, w, h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x, y, w, h, R_MD, "F")
@@ -1788,9 +1775,7 @@ class CharacterSheetPDF(FPDF):
     def _draw_coins(self, x, y, w):
         """Draw coins tracking section."""
         h = 26
-        self._section_box(x, y, w, h, "COINS")
-
-        # Redraw
+        # Draw box (single pass)
         self._shadow_rect(x, y, w, h, R_MD)
         self.set_fill_color(*C_WHITE)
         self._rounded_rect(x, y, w, h, R_MD, "F")
