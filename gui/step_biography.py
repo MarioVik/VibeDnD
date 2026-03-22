@@ -59,28 +59,28 @@ class BiographyStep(WizardStep):
         right = ttk.LabelFrame(self.frame, text="Portrait")
         right.grid(row=0, column=1, sticky="nsew", padx=(0, 8), pady=(8, 8))
         right.columnconfigure(0, weight=1)
-        right.rowconfigure(0, weight=1)
+        self._portrait_frame = right
 
         self._canvas = tk.Canvas(
             right,
             width=260,
-            height=320,
+            height=100,
             bg=COLORS["bg_light"],
             highlightthickness=1,
             highlightbackground=COLORS["border"],
             relief=tk.FLAT,
         )
-        self._canvas.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        self._canvas.grid(row=0, column=0, padx=10, pady=10)
         self._canvas.create_text(
-            130, 160,
+            130, 50,
             text="No image selected",
             fill=COLORS["fg_dim"],
             font=FONTS["body"],
             justify=tk.CENTER,
             tags=("placeholder",),
         )
-        self._last_canvas_size = (0, 0)
-        self._canvas.bind("<Configure>", self._on_canvas_configure)
+        self._last_portrait_width = 0
+        right.bind("<Configure>", self._on_portrait_frame_configure)
 
         btns = ttk.Frame(right)
         btns.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
@@ -136,32 +136,31 @@ class BiographyStep(WizardStep):
 
     # ---- image handling ----
 
-    def _canvas_center(self):
-        cw = self._canvas.winfo_width()
-        ch = self._canvas.winfo_height()
-        if cw <= 1:
-            cw = self._canvas.winfo_reqwidth()
-        if ch <= 1:
-            ch = self._canvas.winfo_reqheight()
-        return cw, ch
-
-    def _on_canvas_configure(self, event):
-        new_size = (event.width, event.height)
-        if new_size != self._last_canvas_size and new_size[0] > 1 and new_size[1] > 1:
-            self._last_canvas_size = new_size
+    def _on_portrait_frame_configure(self, event):
+        # Use the frame's width (minus padding) to scale the image
+        new_width = event.width
+        if new_width > 1 and new_width != self._last_portrait_width:
+            self._last_portrait_width = new_width
             self._refresh_image()
+
+    def _get_portrait_width(self):
+        """Return the available width for the portrait image."""
+        fw = self._portrait_frame.winfo_width()
+        if fw > 1:
+            return max(100, fw - 24)  # subtract padding (10px each side + borders)
+        return 260  # fallback before layout
 
     def _refresh_image(self):
         self._canvas.delete("all")
         self._photo = None
         self._photo_display = None
-        cw, ch = self._canvas_center()
-        cx, cy = cw // 2, ch // 2
+        cw = self._get_portrait_width()
 
         data = self.character.biography_image_data or ""
         if not data:
+            self._canvas.configure(height=100)
             self._canvas.create_text(
-                cx, cy,
+                cw // 2, 50,
                 text="No image selected",
                 fill=COLORS["fg_dim"],
                 font=FONTS["body"],
@@ -172,8 +171,9 @@ class BiographyStep(WizardStep):
         try:
             raw = base64.b64decode(data)
         except Exception:
+            self._canvas.configure(height=100)
             self._canvas.create_text(
-                cx, cy,
+                cw // 2, 50,
                 text="Image data is invalid",
                 fill=COLORS["fg_dim"],
                 font=FONTS["body_small"],
@@ -184,10 +184,12 @@ class BiographyStep(WizardStep):
         try:
             if Image is not None and ImageTk is not None:
                 pil_img = Image.open(io.BytesIO(raw))
-                pil_img.thumbnail((cw, ch))
+                pil_img.thumbnail((cw, cw * 4))
+                iw, ih = pil_img.size
+                self._canvas.configure(width=iw, height=ih)
                 display = ImageTk.PhotoImage(pil_img)
                 self._photo_display = display
-                self._canvas.create_image(cx, cy, image=display)
+                self._canvas.create_image(iw // 2, ih // 2, image=display)
                 return
 
             img_format = (self.character.biography_image_format or "").lower()
@@ -196,8 +198,9 @@ class BiographyStep(WizardStep):
             else:
                 raise tk.TclError("Unsupported preview format")
         except Exception:
+            self._canvas.configure(height=100)
             self._canvas.create_text(
-                cx, cy,
+                cw // 2, 50,
                 text="Image loaded for export\nbut preview is unavailable",
                 fill=COLORS["fg_dim"],
                 font=FONTS["body_small"],
@@ -205,14 +208,15 @@ class BiographyStep(WizardStep):
             )
             return
 
-        max_w, max_h = cw, ch
         w = max(1, int(photo.width()))
         h = max(1, int(photo.height()))
-        scale = max((w + max_w - 1) // max_w, (h + max_h - 1) // max_h, 1)
+        scale = max((w + cw - 1) // cw, 1)
         display = photo.subsample(scale) if scale > 1 else photo
+        dw, dh = int(display.width()), int(display.height())
+        self._canvas.configure(width=dw, height=dh)
         self._photo = photo
         self._photo_display = display
-        self._canvas.create_image(cx, cy, image=display)
+        self._canvas.create_image(dw // 2, dh // 2, image=display)
 
     def _choose_image(self):
         path = filedialog.askopenfilename(

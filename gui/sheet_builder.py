@@ -1189,10 +1189,11 @@ def build_character_sheet(
                 ttk.Label(
                     bio_sec, text="Portrait", style="Subheading.TLabel"
                 ).pack(anchor="w", padx=8, pady=(4, 2))
+                canvas_w = 260
                 canvas = tk.Canvas(
                     bio_sec,
-                    width=260,
-                    height=320,
+                    width=canvas_w,
+                    height=100,
                     bg=COLORS["bg_light"],
                     highlightthickness=1,
                     highlightbackground=COLORS["border"],
@@ -1202,42 +1203,38 @@ def build_character_sheet(
 
                 try:
                     raw = base64.b64decode(image_data)
-                    canvas_w = int(canvas["width"])
-                    canvas_h = int(canvas["height"])
-                    cx, cy = canvas_w // 2, canvas_h // 2
                     if Image is not None and ImageTk is not None:
                         pil_img = Image.open(io.BytesIO(raw))
-                        pil_img.thumbnail((canvas_w, canvas_h))
+                        pil_img.thumbnail((canvas_w, canvas_w * 4))
+                        iw, ih = pil_img.size
+                        canvas.configure(width=iw, height=ih)
                         display = ImageTk.PhotoImage(pil_img)
-                        canvas.create_image(cx, cy, image=display)
-                        # Prevent garbage collection
+                        canvas.create_image(iw // 2, ih // 2, image=display)
                         parent._bio_photo_ref = display
                     elif img_format in {"png", ""}:
                         photo = tk.PhotoImage(
                             data=base64.b64encode(raw).decode("ascii")
                         )
-                        max_w, max_h = canvas_w, canvas_h
                         w = max(1, int(photo.width()))
                         h = max(1, int(photo.height()))
-                        scale = max(
-                            (w + max_w - 1) // max_w,
-                            (h + max_h - 1) // max_h,
-                            1,
-                        )
+                        scale = max((w + canvas_w - 1) // canvas_w, 1)
                         display = photo.subsample(scale) if scale > 1 else photo
-                        canvas.create_image(cx, cy, image=display)
+                        dw, dh = int(display.width()), int(display.height())
+                        canvas.configure(width=dw, height=dh)
+                        canvas.create_image(dw // 2, dh // 2, image=display)
                         parent._bio_photo_ref = display
                         parent._bio_photo_orig = photo
                     else:
                         canvas.create_text(
-                            cx, cy,
+                            canvas_w // 2, 50,
                             text="Preview unavailable",
                             fill=COLORS["fg_dim"],
                             font=FONTS["body"],
                         )
                 except Exception:
+                    canvas.configure(height=100)
                     canvas.create_text(
-                        130, 160,
+                        canvas_w // 2, 50,
                         text="Image data is invalid",
                         fill=COLORS["fg_dim"],
                         font=FONTS["body"],
