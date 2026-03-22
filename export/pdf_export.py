@@ -662,53 +662,72 @@ class CharacterSheetPDF(FPDF):
         return y + row_h
 
     def _draw_ability_scores(self, x, y, w):
-        """Draw ability score blocks vertically with saves & skills."""
+        """Draw ability score blocks vertically with saves & skills, grouped in backdrop boxes."""
         c = self.c
         col_y = y
         profs = c.all_skill_proficiencies
 
         ab_w = 19
         ab_h = 23
-        skills_x = x + ab_w + 2
+        group_pad_left = 1.5
+        group_pad_right = 1.5
+        group_pad_top = 1.5
+        group_pad_bottom = 1.5
+        row_h = 4.5
+        ab_box_x = x + group_pad_left
 
         for ability in ABILITIES:
             total = c.ability_scores.total(ability)
             mod = c.ability_scores.modifier(ability)
             skills = SKILLS_BY_ABILITY.get(ability, [])
 
-            # Ability name label above box
+            # Ability name label above group box
             self._serif("B", 7)
             self.set_text_color(*C_ACCENT)
             self.set_xy(x, col_y)
-            self.cell(ab_w, 4, ability, align="C")
+            self.cell(w, 4, ability, align="C")
             col_y += 4
 
-            # Shadow + outer box
-            self._shadow_rect(x, col_y, ab_w, ab_h, R_SM, 0.4)
+            # Calculate group box height based on content
+            num_rows = 1 + len(skills)  # saving throw + skills
+            skills_content_h = group_pad_top + num_rows * row_h + group_pad_bottom
+            group_h = max(ab_h + group_pad_top + group_pad_bottom, skills_content_h)
+
+            # ── Group backdrop box ──
+            self._shadow_rect(x, col_y, w, group_h, R_MD, 0.4)
             self.set_fill_color(*C_FILL_GRAY)
-            self._rounded_rect(x, col_y, ab_w, ab_h, R_SM, "F")
+            self._rounded_rect(x, col_y, w, group_h, R_MD, "F")
+            self.set_draw_color(*C_LIGHT_GRAY)
+            self.set_line_width(0.3)
+            self._rounded_rect(x, col_y, w, group_h, R_MD, "D")
+
+            # ── Ability score box (inside group, left side) ──
+            ab_box_y = col_y + (group_h - ab_h) / 2
+            self._shadow_rect(ab_box_x, ab_box_y, ab_w, ab_h, R_SM, 0.4)
+            self.set_fill_color(*C_WHITE)
+            self._rounded_rect(ab_box_x, ab_box_y, ab_w, ab_h, R_SM, "F")
             self.set_draw_color(*C_ACCENT)
             self.set_line_width(0.4)
-            self._rounded_rect(x, col_y, ab_w, ab_h, R_SM, "D")
+            self._rounded_rect(ab_box_x, ab_box_y, ab_w, ab_h, R_SM, "D")
 
             # Large modifier
             mod_str = self._modifier_str(mod)
             self._sans("B", 17)
             self.set_text_color(*C_BLACK)
-            self.set_xy(x, col_y + 1)
+            self.set_xy(ab_box_x, ab_box_y + 1)
             self.cell(ab_w, 9, mod_str, align="C")
 
             # "MODIFIER" label
             self._sans("", 4)
             self.set_text_color(*C_MED_GRAY)
-            self.set_xy(x, col_y + 10)
+            self.set_xy(ab_box_x, ab_box_y + 10)
             self.cell(ab_w, 3, "MODIFIER", align="C")
 
             # Score in small inner box
             score_w = 12
             score_h = 6.5
-            score_x = x + (ab_w - score_w) / 2
-            score_y = col_y + ab_h - score_h - 1.5
+            score_x = ab_box_x + (ab_w - score_w) / 2
+            score_y = ab_box_y + ab_h - score_h - 1.5
             self.set_fill_color(*C_WHITE)
             self._rounded_rect(score_x, score_y, score_w, score_h, 1.2, "F")
             self.set_draw_color(*C_ACCENT_LIGHT)
@@ -719,11 +738,20 @@ class CharacterSheetPDF(FPDF):
             self.set_xy(score_x, score_y + 0.3)
             self.cell(score_w, score_h, str(total), align="C")
 
+            # ── Saving throw & skills (right side of group box) ──
+            skills_x = ab_box_x + ab_w + 2
+            sk_y = col_y + group_pad_top
+
+            # Thin separator line between ability box and skills area
+            sep_x = ab_box_x + ab_w + 1
+            self.set_draw_color(*C_LIGHT_GRAY)
+            self.set_line_width(0.15)
+            self.line(sep_x, col_y + 3, sep_x, col_y + group_h - 3)
+
             # Saving throw
             save_prof = c.is_proficient_save(ability)
             save_mod = c.saving_throw_modifier(ability)
 
-            sk_y = col_y + 1
             self._small_circle(skills_x + 1.5, sk_y + 1.8, r=1.3, filled=save_prof)
             self._sans("B" if save_prof else "", 7)
             self.set_text_color(*C_BLACK)
@@ -733,7 +761,13 @@ class CharacterSheetPDF(FPDF):
             self.set_text_color(*C_MED_GRAY)
             self.set_xy(skills_x + 12, sk_y + 0.3)
             self.cell(22, 3, "Saving Throw")
-            sk_y += 4.5
+            sk_y += row_h
+
+            # Divider between saving throw and skills
+            if skills:
+                self.set_draw_color(*C_LIGHT_GRAY)
+                self.set_line_width(0.15)
+                self.line(skills_x, sk_y - 0.5, x + w - group_pad_right, sk_y - 0.5)
 
             # Skills
             for skill_name in skills:
@@ -749,9 +783,9 @@ class CharacterSheetPDF(FPDF):
                 self.set_text_color(*C_DARK_GRAY)
                 self.set_xy(skills_x + 12, sk_y + 0.3)
                 self.cell(22, 3, skill_name)
-                sk_y += 4.5
+                sk_y += row_h
 
-            col_y += ab_h + 3
+            col_y += group_h + 2
 
         return col_y
 
