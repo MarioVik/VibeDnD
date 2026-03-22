@@ -140,17 +140,31 @@ def main():
     export_pdf(char, output)
     print(f"PDF saved to: {output}")
 
-    # Convert to PNG for inline display in Claude Code conversations
+    # Convert to PNG crops for inline display in Claude Code conversations.
+    # The chat interface shrinks full-page images to ~424x600 thumbnails,
+    # so we split each page into top/bottom halves for readable text.
     import shutil
     import subprocess
+    from PIL import Image
 
     if shutil.which("pdftoppm"):
         base = output.rsplit(".", 1)[0]
         subprocess.run(
-            ["pdftoppm", "-png", "-r", "1200", output, base],
+            ["pdftoppm", "-png", "-r", "300", output, base],
             check=True,
         )
-        print(f"PNG pages saved to: {base}-*.png")
+        # Split each page into top and bottom halves
+        import glob
+        for png_path in sorted(glob.glob(f"{base}-*.png")):
+            img = Image.open(png_path)
+            w, h = img.size
+            mid = h // 2
+            page = png_path.rsplit("-", 1)[1].split(".")[0]  # e.g. "1"
+            img.crop((0, 0, w, mid)).save(f"{base}-p{page}-top.png")
+            img.crop((0, mid, w, h)).save(f"{base}-p{page}-bottom.png")
+            print(f"  {base}-p{page}-top.png ({w}x{mid})")
+            print(f"  {base}-p{page}-bottom.png ({w}x{h - mid})")
+        print(f"Cropped PNG halves saved to: {base}-p*-top/bottom.png")
     else:
         print("Install poppler-utils for automatic PNG preview conversion")
 
