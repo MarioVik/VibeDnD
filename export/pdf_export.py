@@ -97,6 +97,10 @@ class CharacterSheetPDF(FPDF):
             self.add_page()
             self._draw_page_3_spells()
 
+        # Spell description pages (manages its own page breaks)
+        if character.selected_cantrips or character.selected_spells:
+            self._draw_spell_descriptions_pages()
+
     def _register_fonts(self):
         """Register Georgia font family for serif typography."""
         import os
@@ -1857,6 +1861,259 @@ class CharacterSheetPDF(FPDF):
             parts.append("S")
         if comps.get("M") or comps.get("material"):
             parts.append("M")
+        return ", ".join(parts)
+
+    # ── Spell Description Pages ─────────────────────────
+
+    def _draw_spell_descriptions_pages(self):
+        """Render full spell descriptions across one or more pages."""
+        c = self.c
+        spell_data = self._get_spell_data()
+
+        # Gather all spells: cantrips first, then leveled spells sorted by level
+        spells_to_render = []
+        for name in sorted(c.selected_cantrips):
+            sd = spell_data.get(name)
+            if sd:
+                spells_to_render.append(sd)
+
+        leveled = []
+        for name in c.selected_spells:
+            sd = spell_data.get(name)
+            if sd:
+                leveled.append(sd)
+        leveled.sort(key=lambda s: (s.get("level", 0), s.get("name", "")))
+        spells_to_render.extend(leveled)
+
+        if not spells_to_render:
+            return
+
+        self.add_page()
+        x0 = MARGIN
+        y = MARGIN
+
+        # Page title
+        self._draw_corner_ornament(x0, y, 5, "tl")
+        self._draw_corner_ornament(x0 + CONTENT_W, y, 5, "tr")
+
+        col_w = (CONTENT_W - 3) / 2  # two columns with 3mm gap
+        col_x = [x0, x0 + col_w + 3]
+        col_y = [y, y]  # track y for each column
+        current_col = 0
+        max_y = PAGE_H - MARGIN - 8  # leave room for footer
+
+        for spell in spells_to_render:
+            card_h = self._measure_spell_card(spell, col_w)
+
+            # Check if card fits in current column
+            if col_y[current_col] + card_h > max_y:
+                if current_col == 0:
+                    # Try second column
+                    current_col = 1
+                    if col_y[1] + card_h > max_y:
+                        # Neither column has room — new page
+                        self._draw_page_footer()
+                        self.add_page()
+                        self._draw_corner_ornament(x0, MARGIN, 5, "tl")
+                        self._draw_corner_ornament(x0 + CONTENT_W, MARGIN, 5, "tr")
+                        col_y = [MARGIN, MARGIN]
+                        current_col = 0
+                else:
+                    # Second column full — new page
+                    self._draw_page_footer()
+                    self.add_page()
+                    self._draw_corner_ornament(x0, MARGIN, 5, "tl")
+                    self._draw_corner_ornament(x0 + CONTENT_W, MARGIN, 5, "tr")
+                    col_y = [MARGIN, MARGIN]
+                    current_col = 0
+
+            col_y[current_col] = self._draw_spell_card(
+                col_x[current_col], col_y[current_col], col_w, spell
+            )
+            col_y[current_col] += 2  # gap between cards
+
+            # After drawing, try to balance columns
+            if current_col == 0 and col_y[0] > col_y[1] + 20:
+                current_col = 1
+            elif current_col == 1 and col_y[1] > col_y[0] + 20:
+                current_col = 0
+
+        self._draw_page_footer()
+
+    def _draw_page_footer(self):
+        """Draw footer ornament on current page."""
+        footer_y = PAGE_H - MARGIN - 1
+        self._draw_ornamental_line(MARGIN + 30, footer_y, CONTENT_W - 60, 0.2)
+
+    def _measure_spell_card(self, spell, w):
+        """Estimate the height of a spell description card."""
+        inner_w = w - 4  # padding
+        h = 6  # title bar
+        h += 1.5  # top padding
+        h += 3.5  # level/school line
+        h += 3  # casting time + range
+        h += 3  # duration + components line
+        h += 2  # gap before description
+
+        desc = spell.get("description", "")
+        if desc:
+            self._sans("", 5.5)
+            lines = self.multi_cell(inner_w, 2.8, desc, dry_run=True, output="LINES")
+            h += len(lines) * 2.8 + 1
+
+        higher = spell.get("higher_levels")
+        if higher:
+            h += 3.5  # "At Higher Levels" label
+            self._sans("", 5.5)
+            lines = self.multi_cell(inner_w, 2.8, higher, dry_run=True, output="LINES")
+            h += len(lines) * 2.8 + 1
+
+        cantrip_up = spell.get("cantrip_upgrade")
+        if cantrip_up:
+            h += 3.5  # label
+            self._sans("", 5.5)
+            lines = self.multi_cell(inner_w, 2.8, cantrip_up, dry_run=True, output="LINES")
+            h += len(lines) * 2.8 + 1
+
+        h += 2  # bottom padding
+        return h
+
+    def _draw_spell_card(self, x, y, w, spell):
+        """Draw a single spell description card. Returns bottom y."""
+        inner_w = w - 4
+        inner_x = x + 2
+
+        # Measure first
+        card_h = self._measure_spell_card(spell, w)
+
+        # Draw box
+        self._shadow_rect(x, y, w, card_h, R_MD)
+        self.set_fill_color(*C_WHITE)
+        self._rounded_rect(x, y, w, card_h, R_MD, "F")
+        self.set_draw_color(*C_LIGHT_GRAY)
+        self.set_line_width(0.3)
+        self._rounded_rect(x, y, w, card_h, R_MD, "D")
+
+        # Title bar with spell name
+        self._redraw_title(x, y, w, spell.get("name", "Spell"))
+
+        ty = y + 6 + 1.5
+
+        # Level / School line
+        level = spell.get("level", 0)
+        school = spell.get("school", "")
+        if level == 0:
+            level_text = f"Cantrip — {school}"
+        else:
+            ordinal = {1: "1st", 2: "2nd", 3: "3rd"}.get(level, f"{level}th")
+            level_text = f"{ordinal}-level {school}"
+
+        conc = spell.get("concentration", False)
+        ritual = spell.get("ritual", False)
+        tags = []
+        if conc:
+            tags.append("Concentration")
+        if ritual:
+            tags.append("Ritual")
+        if tags:
+            level_text += f"  ({', '.join(tags)})"
+
+        self._sans("I", 5.5)
+        self.set_text_color(*C_MED_GRAY)
+        self.set_xy(inner_x, ty)
+        self.cell(inner_w, 3.5, level_text)
+        ty += 3.5
+
+        # Stats: Casting Time | Range
+        self._sans("B", 5.5)
+        self.set_text_color(*C_ACCENT_DARK)
+        self.set_xy(inner_x, ty)
+        self.cell(14, 3, "Casting Time:")
+        self._sans("", 5.5)
+        self.set_text_color(*C_DARK_GRAY)
+        self.cell(inner_w / 2 - 14, 3, f"  {spell.get('casting_time', '')}")
+
+        self._sans("B", 5.5)
+        self.set_text_color(*C_ACCENT_DARK)
+        self.cell(8, 3, "Range:")
+        self._sans("", 5.5)
+        self.set_text_color(*C_DARK_GRAY)
+        self.cell(inner_w / 2 - 8, 3, f"  {spell.get('range', '')}")
+        ty += 3
+
+        # Duration | Components
+        self._sans("B", 5.5)
+        self.set_text_color(*C_ACCENT_DARK)
+        self.set_xy(inner_x, ty)
+        self.cell(10, 3, "Duration:")
+        self._sans("", 5.5)
+        self.set_text_color(*C_DARK_GRAY)
+        self.cell(inner_w / 2 - 10, 3, f"  {spell.get('duration', '')}")
+
+        self._sans("B", 5.5)
+        self.set_text_color(*C_ACCENT_DARK)
+        self.cell(14, 3, "Components:")
+        self._sans("", 5.5)
+        self.set_text_color(*C_DARK_GRAY)
+        comp_str = self._format_components_full(spell)
+        self.cell(inner_w / 2 - 14, 3, f"  {comp_str}")
+        ty += 3
+
+        ty += 2  # gap
+
+        # Description
+        desc = spell.get("description", "")
+        if desc:
+            self._sans("", 5.5)
+            self.set_text_color(*C_BLACK)
+            self.set_xy(inner_x, ty)
+            self.multi_cell(inner_w, 2.8, desc)
+            ty = self.get_y() + 1
+
+        # At Higher Levels
+        higher = spell.get("higher_levels")
+        if higher:
+            self._sans("B", 5.5)
+            self.set_text_color(*C_ACCENT_DARK)
+            self.set_xy(inner_x, ty)
+            self.cell(inner_w, 3, "At Higher Levels:")
+            ty += 3.5
+            self._sans("", 5.5)
+            self.set_text_color(*C_DARK_GRAY)
+            self.set_xy(inner_x, ty)
+            self.multi_cell(inner_w, 2.8, higher)
+            ty = self.get_y() + 1
+
+        # Cantrip Upgrade
+        cantrip_up = spell.get("cantrip_upgrade")
+        if cantrip_up:
+            self._sans("B", 5.5)
+            self.set_text_color(*C_ACCENT_DARK)
+            self.set_xy(inner_x, ty)
+            self.cell(inner_w, 3, "Cantrip Upgrade:")
+            ty += 3.5
+            self._sans("", 5.5)
+            self.set_text_color(*C_DARK_GRAY)
+            self.set_xy(inner_x, ty)
+            self.multi_cell(inner_w, 2.8, cantrip_up)
+            ty = self.get_y() + 1
+
+        return y + card_h
+
+    def _format_components_full(self, spell):
+        """Format spell components as a readable string."""
+        comps = spell.get("components", {})
+        parts = []
+        if comps.get("V") or comps.get("verbal"):
+            parts.append("V")
+        if comps.get("S") or comps.get("somatic"):
+            parts.append("S")
+        mat = comps.get("M") or comps.get("material")
+        if mat:
+            if isinstance(mat, str) and mat not in ("true", "True"):
+                parts.append(f"M ({mat})")
+            else:
+                parts.append("M")
         return ", ".join(parts)
 
     def _get_spell_data(self) -> dict[str, dict]:
