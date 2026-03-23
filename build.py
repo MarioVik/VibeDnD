@@ -63,6 +63,16 @@ COLLECT_ALL = [
     "fpdf",
 ]
 
+# Third-party packages that PyInstaller's import analysis may miss because
+# they are imported lazily (inside functions rather than at module level).
+HIDDEN_IMPORTS = [
+    "fpdf",
+    "fpdf.enums",
+    "fpdf.drawing",
+    "fpdf.output",
+    "fpdf.syntax",
+]
+
 
 def check_prerequisites():
     """Make sure data files and PyInstaller are available."""
@@ -97,6 +107,10 @@ def build(onefile: bool = False):
     for pkg in COLLECT_ALL:
         collect_flags += ["--collect-all", pkg]
 
+    hidden_flags = []
+    for mod in HIDDEN_IMPORTS:
+        hidden_flags += ["--hidden-import", mod]
+
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--noconfirm",
@@ -115,7 +129,7 @@ def build(onefile: bool = False):
     else:
         cmd.append("--onedir")
 
-    cmd += add_data + exclude_flags + collect_flags
+    cmd += add_data + exclude_flags + collect_flags + hidden_flags
     cmd.append(os.path.join(ROOT, "main.py"))
 
     print(f"{'='*60}")

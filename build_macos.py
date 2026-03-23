@@ -55,6 +55,16 @@ COLLECT_ALL = [
     "fpdf",
 ]
 
+# Third-party packages that PyInstaller's import analysis may miss because
+# they are imported lazily (inside functions rather than at module level).
+HIDDEN_IMPORTS = [
+    "fpdf",
+    "fpdf.enums",
+    "fpdf.drawing",
+    "fpdf.output",
+    "fpdf.syntax",
+]
+
 
 def run(cmd: list[str], cwd: Path | None = None) -> None:
     print("Running:", " ".join(cmd))
@@ -133,6 +143,10 @@ def build_app(icon_path: Path | None) -> Path:
     for pkg in COLLECT_ALL:
         collect_flags += ["--collect-all", pkg]
 
+    hidden_flags: list[str] = []
+    for mod in HIDDEN_IMPORTS:
+        hidden_flags += ["--hidden-import", mod]
+
     cmd = [
         sys.executable,
         "-m",
@@ -150,7 +164,7 @@ def build_app(icon_path: Path | None) -> Path:
     if icon_path is not None:
         cmd += ["--icon", str(icon_path)]
 
-    cmd += add_data + exclude_flags + collect_flags + [str(ROOT / "main.py")]
+    cmd += add_data + exclude_flags + collect_flags + hidden_flags + [str(ROOT / "main.py")]
     run(cmd)
 
     app_path = DIST / APP_NAME
