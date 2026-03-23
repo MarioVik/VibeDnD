@@ -1461,7 +1461,15 @@ class CharacterViewer(ttk.Frame):
             AlertDialog(self.winfo_toplevel(), "Export", f"Character saved to {path}")
 
     def _export_pdf(self):
-        from export.pdf_export import export_pdf
+        try:
+            from export.pdf_export import export_pdf
+        except ImportError as e:
+            AlertDialog(
+                self.winfo_toplevel(),
+                "Export Error",
+                f"PDF export is not available:\n{e}",
+            )
+            return
 
         self._save_biography_fields_to_character()
 
