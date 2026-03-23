@@ -3,6 +3,8 @@
 import sys
 import os
 
+import fpdf  # noqa: F401 — ensure PyInstaller bundles fpdf2 for PDF export
+
 # Ensure project root is on path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
