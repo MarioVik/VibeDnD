@@ -22,7 +22,8 @@
       "Bash(grep -r \"def.*spell\" /c/VibeDnD/gui/*.py)",
       "Bash(xargs grep:*)",
       "Bash(jq '.[] | select\\(.name == \"\"Ranger\"\"\\)' /c/Repos/VibeDnD/data/classes.json)",
-      "Bash(python -c \":*)"
+      "Bash(python -c \":*)",
+      "Bash(uv export:*)"
     ]
   }
 }
