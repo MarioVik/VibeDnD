@@ -107,6 +107,7 @@ def build_sample_character() -> Character:
     ]
 
     # Spells
+    char.selected_cantrips = ["Druidcraft", "Guidance"]
     char.selected_spells = ["Cure Wounds", "Hunter S Mark", "Goodberry"]
 
     # Equipment
