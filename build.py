@@ -60,6 +60,7 @@ COLLECT_ALL = [
     "gui",
     "models",
     "export",
+    "fpdf",
 ]
 
 
