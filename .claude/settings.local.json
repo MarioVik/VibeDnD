@@ -23,7 +23,24 @@
       "Bash(xargs grep:*)",
       "Bash(jq '.[] | select\\(.name == \"\"Ranger\"\"\\)' /c/Repos/VibeDnD/data/classes.json)",
       "Bash(python -c \":*)",
-      "Bash(uv export:*)"
+      "Bash(uv export:*)",
+      "Bash(uv run python -c \":*)",
+      "Read(//Users/viktor.olsson/.local/**)",
+      "Read(//opt/homebrew/bin/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(export PATH=\"$HOME/.local/bin:$HOME/.cargo/bin:$PATH\")",
+      "Bash(/usr/bin/python3 -c \"import ast; ast.parse\\(open\\(''gui/theme.py''\\).read\\(\\)\\); print\\(''Syntax OK''\\)\")",
+      "Bash(/usr/bin/python3 -m py_compile gui/theme.py)",
+      "Bash(/usr/bin/python3 -c \"import ast; ast.parse\\(open\\(''gui/widgets.py''\\).read\\(\\)\\); print\\(''Syntax OK''\\)\")",
+      "Bash(/usr/bin/python3 -c \"import ast; ast.parse\\(open\\(''gui/sidebar.py''\\).read\\(\\)\\); print\\(''Syntax OK''\\)\")",
+      "Bash(/usr/bin/python3 -c \"import ast; ast.parse\\(open\\(''/Users/viktor.olsson/Repos/VibeDnD/gui/character_viewer.py''\\).read\\(\\)\\); print\\(''Syntax OK''\\)\")",
+      "Bash(/usr/bin/python3 -c \":*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(/usr/bin/python3 --version)",
+      "Bash(ls /Users/viktor.olsson/Repos/VibeDnD/.venv/bin/python*)",
+      "Bash(ls /opt/homebrew/bin/python3*)",
+      "Bash(ls /usr/local/bin/python3*)",
+      "Bash(/opt/homebrew/bin/uv run:*)"
     ]
   }
 }

@@ -1,140 +1,293 @@
-"""TTK theme configuration for the D&D character creator."""
+"""TTK theme configuration — Mythic Modern dark design system."""
 
 import sys
 import tkinter as tk
 from tkinter import ttk
 
-# Color palette - parchment/fantasy inspired
+# ---------------------------------------------------------------------------
+# Color palette — Mythic Modern (crimson / charcoal)
+# ---------------------------------------------------------------------------
 COLORS = {
-    "bg": "#2b2b2b",
-    "bg_light": "#3c3c3c",
-    "bg_card": "#404040",
-    "fg": "#ede2d0",
-    "fg_dim": "#bfab94",
-    "fg_bright": "#f8f0e0",
-    "accent": "#c4956a",
-    "accent_dark": "#8b6542",
+    # Surface hierarchy (darkest → lightest)
+    "bg_deepest": "#0e0e0e",
+    "bg": "#131313",
+    "bg_surface": "#1b1b1b",
+    "bg_container": "#20201f",
+    "bg_high": "#2a2a2a",
+    "bg_highest": "#353535",
+    # Primary accent — crimson
+    "accent": "#9B1B30",
+    "accent_text": "#ffb3b5",
+    "accent_on": "#680018",
+    # Secondary accent — gold
+    "gold": "#e9c176",
+    "gold_dark": "#604403",
+    "gold_on_dark": "#dab36a",
+    # Foreground / text
+    "fg": "#e5e2e1",
+    "fg_dim": "#e0bfbf",
+    # Borders
+    "outline": "#a78a8a",
+    "outline_dim": "#584141",
+    # Semantic
     "positive": "#6aaa64",
-    "negative": "#c9534a",
-    "border": "#555555",
-    "select_bg": "#5a4a3a",
-    "select_fg": "#f5ead6",
+    "negative": "#ffb4ab",
+    "error_bg": "#93000a",
+    # Selection
+    "select_bg": "#353535",
+    "select_fg": "#ffb3b5",
+    # ----- backward-compat aliases (old code still referencing these) -----
+    "bg_light": "#2a2a2a",      # → bg_high
+    "bg_card": "#1b1b1b",       # → bg_surface
+    "fg_bright": "#e5e2e1",     # → fg
+    "accent_dark": "#9B1B30",   # → accent
+    "border": "#584141",        # → outline_dim
 }
 
+# ---------------------------------------------------------------------------
+# Fonts
+# ---------------------------------------------------------------------------
 if sys.platform == "darwin":
     _SANS = "Helvetica Neue"
+    _SERIF = "Georgia"
     _MONO = "Menlo"
 elif sys.platform == "win32":
     _SANS = "Segoe UI"
+    _SERIF = "Georgia"
     _MONO = "Consolas"
 else:
     _SANS = "DejaVu Sans"
+    _SERIF = "DejaVu Serif"
     _MONO = "DejaVu Sans Mono"
 
 FONTS = {
+    # Serif headings (Newsreader equivalent)
+    "heading_serif_lg": (_SERIF, 28, "bold italic"),
+    "heading_serif": (_SERIF, 20, "italic"),
+    "heading_serif_sm": (_SERIF, 14, "italic"),
+    # Sans headings (legacy)
     "heading": (_SANS, 18, "bold"),
     "subheading": (_SANS, 13, "bold"),
+    # Body
     "body": (_SANS, 11),
     "body_small": (_SANS, 10),
-    "mono": (_MONO, 11),
+    "body_bold": (_SANS, 11, "bold"),
+    # Labels — small uppercase style
+    "label_upper": (_SANS, 9),
+    "label_upper_bold": (_SANS, 9, "bold"),
+    "label_tiny": (_SANS, 8, "bold"),
+    # Stats
     "stat": (_SANS, 15, "bold"),
+    "stat_large": (_SERIF, 28, "bold"),
     "stat_mod": (_SANS, 12),
+    # Monospace
+    "mono": (_MONO, 11),
 }
 
 
 def apply_theme(root: tk.Tk):
-    """Apply the dark parchment theme to the application."""
+    """Apply the Mythic Modern dark theme to the application."""
     style = ttk.Style(root)
     style.theme_use("clam")
 
-    # General
+    # ------------------------------------------------------------------
+    # General defaults
+    # ------------------------------------------------------------------
     style.configure(
-        ".", background=COLORS["bg"], foreground=COLORS["fg"], font=FONTS["body"]
+        ".",
+        background=COLORS["bg"],
+        foreground=COLORS["fg"],
+        font=FONTS["body"],
     )
 
+    # ------------------------------------------------------------------
     # Frames
+    # ------------------------------------------------------------------
     style.configure("TFrame", background=COLORS["bg"])
-    style.configure("Card.TFrame", background=COLORS["bg_card"])
+    style.configure("Card.TFrame", background=COLORS["bg_surface"])
+    style.configure("Surface.TFrame", background=COLORS["bg_surface"])
+    style.configure("Container.TFrame", background=COLORS["bg_container"])
+    style.configure("High.TFrame", background=COLORS["bg_high"])
+    style.configure("Highest.TFrame", background=COLORS["bg_highest"])
+    style.configure("Sidebar.TFrame", background=COLORS["bg_surface"])
+    style.configure("Accent.TFrame", background=COLORS["accent"])
 
+    # ------------------------------------------------------------------
     # Labels
+    # ------------------------------------------------------------------
     style.configure(
-        "TLabel", background=COLORS["bg"], foreground=COLORS["fg"], font=FONTS["body"]
+        "TLabel",
+        background=COLORS["bg"],
+        foreground=COLORS["fg"],
+        font=FONTS["body"],
     )
     style.configure(
-        "Heading.TLabel", font=FONTS["heading"], foreground=COLORS["accent"]
+        "Heading.TLabel",
+        font=FONTS["heading_serif"],
+        foreground=COLORS["fg"],
     )
     style.configure(
-        "Subheading.TLabel", font=FONTS["subheading"], foreground=COLORS["fg_bright"]
+        "HeadingLg.TLabel",
+        font=FONTS["heading_serif_lg"],
+        foreground=COLORS["fg"],
+    )
+    style.configure(
+        "HeadingSm.TLabel",
+        font=FONTS["heading_serif_sm"],
+        foreground=COLORS["fg"],
+    )
+    style.configure(
+        "Subheading.TLabel",
+        font=FONTS["subheading"],
+        foreground=COLORS["fg"],
     )
     style.configure("Dim.TLabel", foreground=COLORS["fg_dim"])
-    style.configure("Stat.TLabel", font=FONTS["stat"], foreground=COLORS["fg_bright"])
+    style.configure(
+        "Accent.TLabel",
+        foreground=COLORS["accent_text"],
+    )
+    style.configure(
+        "AccentHeading.TLabel",
+        font=FONTS["heading_serif"],
+        foreground=COLORS["accent_text"],
+    )
+    style.configure("Stat.TLabel", font=FONTS["stat"], foreground=COLORS["fg"])
+    style.configure("StatLarge.TLabel", font=FONTS["stat_large"], foreground=COLORS["fg"])
     style.configure("StatMod.TLabel", font=FONTS["stat_mod"])
     style.configure("Positive.TLabel", foreground=COLORS["positive"])
     style.configure("Negative.TLabel", foreground=COLORS["negative"])
+    style.configure("Gold.TLabel", foreground=COLORS["gold"])
+    # Card-background labels
     style.configure(
-        "Card.TLabel", background=COLORS["bg_card"], foreground=COLORS["fg"]
+        "Card.TLabel",
+        background=COLORS["bg_surface"],
+        foreground=COLORS["fg"],
     )
     style.configure(
         "CardHeading.TLabel",
-        background=COLORS["bg_card"],
-        foreground=COLORS["accent"],
-        font=FONTS["subheading"],
+        background=COLORS["bg_surface"],
+        foreground=COLORS["accent_text"],
+        font=FONTS["heading_serif_sm"],
+    )
+    # Uppercase label (for stat names, section labels)
+    style.configure(
+        "Upper.TLabel",
+        font=FONTS["label_upper_bold"],
+        foreground=COLORS["fg_dim"],
+    )
+    # Nav labels (sidebar)
+    style.configure(
+        "Nav.TLabel",
+        background=COLORS["bg_surface"],
+        foreground=COLORS["fg_dim"],
+        font=FONTS["label_upper_bold"],
+    )
+    style.configure(
+        "NavActive.TLabel",
+        background=COLORS["bg_highest"],
+        foreground=COLORS["accent_text"],
+        font=FONTS["label_upper_bold"],
+    )
+    # Chip labels (tags/badges)
+    style.configure(
+        "Chip.TLabel",
+        background=COLORS["gold_dark"],
+        foreground=COLORS["gold_on_dark"],
+        font=FONTS["label_tiny"],
+        padding=[6, 2],
+    )
+    style.configure(
+        "AccentChip.TLabel",
+        background=COLORS["accent"],
+        foreground=COLORS["accent_text"],
+        font=FONTS["label_tiny"],
+        padding=[6, 2],
     )
 
+    # ------------------------------------------------------------------
     # LabelFrame
-    style.configure("TLabelframe", background=COLORS["bg"], foreground=COLORS["fg"])
+    # ------------------------------------------------------------------
+    style.configure(
+        "TLabelframe",
+        background=COLORS["bg"],
+        foreground=COLORS["fg"],
+    )
     style.configure(
         "TLabelframe.Label",
         background=COLORS["bg"],
-        foreground=COLORS["accent"],
-        font=FONTS["subheading"],
+        foreground=COLORS["accent_text"],
+        font=FONTS["heading_serif_sm"],
     )
-    style.configure("Card.TLabelframe", background=COLORS["bg_card"])
+    style.configure("Card.TLabelframe", background=COLORS["bg_surface"])
     style.configure(
         "Card.TLabelframe.Label",
-        background=COLORS["bg_card"],
-        foreground=COLORS["accent"],
-        font=FONTS["subheading"],
+        background=COLORS["bg_surface"],
+        foreground=COLORS["accent_text"],
+        font=FONTS["heading_serif_sm"],
     )
 
-    # Notebook
+    # ------------------------------------------------------------------
+    # Notebook (still used by wizard steps internally)
+    # ------------------------------------------------------------------
     style.configure("TNotebook", background=COLORS["bg"], borderwidth=0)
     style.configure(
         "TNotebook.Tab",
-        background=COLORS["bg_light"],
+        background=COLORS["bg_high"],
         foreground=COLORS["fg_dim"],
         padding=[14, 7],
         font=FONTS["body"],
     )
     style.map(
         "TNotebook.Tab",
-        background=[("selected", COLORS["bg_card"])],
-        foreground=[("selected", COLORS["accent"])],
+        background=[("selected", COLORS["bg_surface"])],
+        foreground=[("selected", COLORS["accent_text"])],
     )
 
+    # ------------------------------------------------------------------
     # Buttons
+    # ------------------------------------------------------------------
     style.configure(
         "TButton",
-        background=COLORS["accent_dark"],
-        foreground=COLORS["fg_bright"],
+        background=COLORS["bg_highest"],
+        foreground=COLORS["fg"],
         padding=[12, 6],
         font=FONTS["body"],
     )
     style.map(
         "TButton",
-        background=[("active", COLORS["accent"]), ("disabled", COLORS["bg_light"])],
+        background=[
+            ("active", COLORS["bg_high"]),
+            ("disabled", COLORS["bg_high"]),
+        ],
         foreground=[("disabled", COLORS["fg_dim"])],
     )
 
     style.configure(
         "Accent.TButton",
         background=COLORS["accent"],
-        foreground=COLORS["fg_bright"],
-        font=FONTS["body"],
+        foreground=COLORS["fg"],
+        font=FONTS["body_bold"],
     )
-    style.map("Accent.TButton", background=[("active", COLORS["accent_dark"])])
+    style.map(
+        "Accent.TButton",
+        background=[("active", COLORS["accent_on"])],
+    )
 
+    style.configure(
+        "Gold.TButton",
+        background=COLORS["gold_dark"],
+        foreground=COLORS["gold"],
+        font=FONTS["body_bold"],
+    )
+    style.map(
+        "Gold.TButton",
+        background=[("active", COLORS["gold"])],
+        foreground=[("active", COLORS["gold_dark"])],
+    )
+
+    # ------------------------------------------------------------------
     # Radiobuttons and Checkbuttons
+    # ------------------------------------------------------------------
     style.configure(
         "TRadiobutton",
         background=COLORS["bg"],
@@ -142,7 +295,9 @@ def apply_theme(root: tk.Tk):
         font=FONTS["body"],
     )
     style.configure(
-        "Card.TRadiobutton", background=COLORS["bg_card"], foreground=COLORS["fg"]
+        "Card.TRadiobutton",
+        background=COLORS["bg_surface"],
+        foreground=COLORS["fg"],
     )
     style.configure(
         "TCheckbutton",
@@ -151,45 +306,57 @@ def apply_theme(root: tk.Tk):
         font=FONTS["body"],
     )
     style.configure(
-        "Card.TCheckbutton", background=COLORS["bg_card"], foreground=COLORS["fg"]
+        "Card.TCheckbutton",
+        background=COLORS["bg_surface"],
+        foreground=COLORS["fg"],
     )
 
+    # ------------------------------------------------------------------
     # Combobox
+    # ------------------------------------------------------------------
     style.configure(
         "TCombobox",
-        fieldbackground=COLORS["bg_light"],
+        fieldbackground=COLORS["bg_high"],
         foreground=COLORS["fg"],
         selectbackground=COLORS["select_bg"],
         selectforeground=COLORS["select_fg"],
     )
-    style.map("TCombobox", fieldbackground=[("readonly", COLORS["bg_light"])])
+    style.map("TCombobox", fieldbackground=[("readonly", COLORS["bg_high"])])
 
+    # ------------------------------------------------------------------
     # Entry
+    # ------------------------------------------------------------------
     style.configure(
-        "TEntry", fieldbackground=COLORS["bg_light"], foreground=COLORS["fg"]
+        "TEntry",
+        fieldbackground=COLORS["bg_high"],
+        foreground=COLORS["fg"],
     )
 
+    # ------------------------------------------------------------------
     # Spinbox
+    # ------------------------------------------------------------------
     style.configure(
         "TSpinbox",
-        fieldbackground=COLORS["bg_light"],
+        fieldbackground=COLORS["bg_high"],
         foreground=COLORS["fg"],
         arrowcolor=COLORS["fg"],
     )
 
+    # ------------------------------------------------------------------
     # Treeview
+    # ------------------------------------------------------------------
     style.configure(
         "Treeview",
-        background=COLORS["bg_light"],
+        background=COLORS["bg_surface"],
         foreground=COLORS["fg"],
-        fieldbackground=COLORS["bg_light"],
+        fieldbackground=COLORS["bg_surface"],
         font=FONTS["body"],
     )
     style.configure(
         "Treeview.Heading",
-        background=COLORS["bg_card"],
-        foreground=COLORS["accent"],
-        font=FONTS["subheading"],
+        background=COLORS["bg_highest"],
+        foreground=COLORS["fg_dim"],
+        font=FONTS["label_upper_bold"],
     )
     style.map(
         "Treeview",
@@ -197,75 +364,64 @@ def apply_theme(root: tk.Tk):
         foreground=[("selected", COLORS["select_fg"])],
     )
 
-    # Scrollbar – fully themed so every scrollbar is consistently dark
-    style.configure(
-        "TScrollbar",
-        background=COLORS["bg_light"],
+    # ------------------------------------------------------------------
+    # Scrollbar
+    # ------------------------------------------------------------------
+    _sb_cfg = dict(
+        background=COLORS["bg_high"],
         troughcolor=COLORS["bg"],
         bordercolor=COLORS["bg"],
         arrowcolor=COLORS["fg_dim"],
-        lightcolor=COLORS["bg_light"],
+        lightcolor=COLORS["bg_high"],
         darkcolor=COLORS["bg"],
         gripcount=0,
     )
-    style.map(
-        "TScrollbar",
+    _sb_map = dict(
         background=[
-            ("active", COLORS["accent_dark"]),
-            ("pressed", COLORS["accent_dark"]),
+            ("active", COLORS["outline_dim"]),
+            ("pressed", COLORS["outline_dim"]),
             ("disabled", COLORS["bg"]),
         ],
         arrowcolor=[
-            ("active", COLORS["fg_bright"]),
-            ("pressed", COLORS["fg_bright"]),
+            ("active", COLORS["fg"]),
+            ("pressed", COLORS["fg"]),
             ("disabled", COLORS["fg_dim"]),
         ],
     )
-    # Ensure vertical/horizontal sub-styles also pick up the dark colours
+    style.configure("TScrollbar", **_sb_cfg)
+    style.map("TScrollbar", **_sb_map)
     for orient in ("Vertical", "Horizontal"):
-        style.configure(
-            f"{orient}.TScrollbar",
-            background=COLORS["bg_light"],
-            troughcolor=COLORS["bg"],
-            bordercolor=COLORS["bg"],
-            arrowcolor=COLORS["fg_dim"],
-            lightcolor=COLORS["bg_light"],
-            darkcolor=COLORS["bg"],
-            gripcount=0,
-        )
-        style.map(
-            f"{orient}.TScrollbar",
-            background=[
-                ("active", COLORS["accent_dark"]),
-                ("pressed", COLORS["accent_dark"]),
-                ("disabled", COLORS["bg"]),
-            ],
-            arrowcolor=[
-                ("active", COLORS["fg_bright"]),
-                ("pressed", COLORS["fg_bright"]),
-                ("disabled", COLORS["fg_dim"]),
-            ],
-        )
+        style.configure(f"{orient}.TScrollbar", **_sb_cfg)
+        style.map(f"{orient}.TScrollbar", **_sb_map)
 
+    # ------------------------------------------------------------------
     # Separator
-    style.configure("TSeparator", background=COLORS["border"])
+    # ------------------------------------------------------------------
+    style.configure("TSeparator", background=COLORS["outline_dim"])
 
+    # ------------------------------------------------------------------
     # PanedWindow
-    style.configure("TPanedwindow", background=COLORS["border"])
+    # ------------------------------------------------------------------
+    style.configure("TPanedwindow", background=COLORS["outline_dim"])
 
-    # Progressbar (for point buy budget)
+    # ------------------------------------------------------------------
+    # Progressbar
+    # ------------------------------------------------------------------
     style.configure(
-        "TProgressbar", background=COLORS["accent"], troughcolor=COLORS["bg_light"]
+        "TProgressbar",
+        background=COLORS["accent"],
+        troughcolor=COLORS["bg_high"],
     )
 
+    # ------------------------------------------------------------------
     # Root window
+    # ------------------------------------------------------------------
     root.configure(bg=COLORS["bg"])
 
-    # Override native Tk scrollbar defaults (affects any tk.Scrollbar or
-    # internal scrollbar rendering that bypasses ttk theming)
-    root.option_add("*Scrollbar.background", COLORS["bg_light"])
+    # Override native Tk scrollbar defaults
+    root.option_add("*Scrollbar.background", COLORS["bg_high"])
     root.option_add("*Scrollbar.troughColor", COLORS["bg"])
-    root.option_add("*Scrollbar.activeBackground", COLORS["accent_dark"])
+    root.option_add("*Scrollbar.activeBackground", COLORS["outline_dim"])
     root.option_add("*Scrollbar.highlightBackground", COLORS["bg"])
     root.option_add("*Scrollbar.highlightColor", COLORS["bg"])
     root.option_add("*Scrollbar.borderWidth", 0)

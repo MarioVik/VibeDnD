@@ -1,4 +1,4 @@
-"""Read-only character sheet viewer with export and edit buttons."""
+"""Character viewer with Mythic Modern sidebar + 6-view layout."""
 
 import base64
 import io
@@ -14,14 +14,32 @@ except ImportError:  # pragma: no cover
     ImageTk = None
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import ScrollableFrame, AlertDialog, SectionedListbox
+from gui.widgets import (
+    ScrollableFrame,
+    AlertDialog,
+    SectionedListbox,
+    StatCard,
+    SectionHeader,
+    Chip,
+    HPBar,
+    WrappingLabel,
+)
+from gui.sidebar import Sidebar
 from gui.sheet_builder import build_character_sheet, _container_contents
 from models.character_store import save_character
 from paths import characters_dir
 from gui.add_inventory_dialog import AddInventoryDialog, ARMOR_AC_ORDER
-from models.inventory_service import format_coins, normalize_item_key, remove_item
+from models.inventory_service import (
+    format_coins,
+    normalize_item_key,
+    remove_item,
+    current_wealth_cp,
+    cp_to_coins,
+)
+from models.enums import ALL_SKILLS
 from models.standard_actions import (
     WEAPON_DATA,
+    build_standard_actions,
     get_selected_armor_counts,
     get_selected_non_weapon_items,
     get_selected_weapon_counts,
@@ -29,8 +47,26 @@ from models.standard_actions import (
 from gui.rest_dialog import RestDialog, can_short_rest, can_long_rest
 
 
+# View keys
+_DASHBOARD = "dashboard"
+_COMBAT = "combat"
+_SPELLBOOK = "spellbook"
+_INVENTORY = "inventory"
+_FEATURES = "features"
+_BACKSTORY = "backstory"
+
+_NAV_ITEMS = [
+    {"key": _DASHBOARD, "text": "Dashboard", "icon": "\u25a3"},
+    {"key": _COMBAT, "text": "Combat", "icon": "\u2694"},
+    {"key": _SPELLBOOK, "text": "Spellbook", "icon": "\u2728"},
+    {"key": _INVENTORY, "text": "Inventory", "icon": "\u1F4E6"},
+    {"key": _FEATURES, "text": "Features", "icon": "\u2605"},
+    {"key": _BACKSTORY, "text": "Backstory", "icon": "\u270E"},
+]
+
+
 class CharacterViewer(ttk.Frame):
-    """Full-screen read-only character sheet with navigation and export."""
+    """Full-screen character sheet with sidebar navigation and six views."""
 
     def __init__(self, parent, character, save_path, game_data, app):
         super().__init__(parent)
@@ -49,183 +85,809 @@ class CharacterViewer(ttk.Frame):
         }
         self._inventory_entries_by_name = {}
         self._selected_inventory_name = ""
-        self._tab_dirty = {
-            "general": False,
-            "inventory": False,
-            "spells": False,
-            "biography": False,
+
+        self._view_dirty = {
+            _DASHBOARD: True,
+            _COMBAT: True,
+            _SPELLBOOK: True,
+            _INVENTORY: True,
+            _FEATURES: True,
+            _BACKSTORY: True,
         }
-        self._spells_tab_visible = False
-        self._spells_tab_built = False
-        self._biography_tab_built = False
+        self._view_built = {k: False for k in self._view_dirty}
+        self._current_view = _DASHBOARD
+
         self._bio_loading = False
         self._bio_photo = None
         self._bio_photo_display = None
+
         self._build_ui()
 
+    # ================================================================
+    # UI construction
+    # ================================================================
+
     def _build_ui(self):
-        # ── Top bar ─────────────────────────────────────────────
-        top = ttk.Frame(self)
-        top.pack(fill=tk.X, padx=20, pady=(16, 6))
+        self.columnconfigure(1, weight=1)
+        self.rowconfigure(0, weight=1)
 
-        ttk.Button(
-            top,
-            text="\u25c0  Back to Menu",
-            command=self._on_back,
-        ).pack(side=tk.LEFT)
+        # ── Sidebar ──
+        nav_items = list(_NAV_ITEMS)
+        # Hide spellbook if no spells
+        if not self._character_has_spells():
+            nav_items = [n for n in nav_items if n["key"] != _SPELLBOOK]
 
-        if self.character.level < 20:
-            ttk.Button(
-                top,
-                text="Level Up",
-                command=self._on_level_up,
-            ).pack(side=tk.LEFT, padx=8)
+        bottom_buttons = [
+            {"text": "Export PDF", "command": self._export_pdf},
+            {"text": "Export JSON", "command": self._export_json},
+            {"text": "Respec Character", "command": self._on_edit},
+            {"text": "\u25c0  Back to Menu", "command": self._on_back},
+        ]
 
-        ttk.Button(
-            top,
-            text="Add to inventory",
-            command=self._on_add_inventory,
-        ).pack(side=tk.LEFT, padx=4)
-
-        short_rest_btn = ttk.Button(
-            top,
-            text="Short Rest",
-            command=self._on_short_rest,
-            state=tk.NORMAL if can_short_rest(self.character) else tk.DISABLED,
+        self.sidebar = Sidebar(
+            self,
+            nav_items=nav_items,
+            on_navigate=self._on_navigate,
+            bottom_buttons=bottom_buttons,
+            show_character_info=True,
         )
-        short_rest_btn.pack(side=tk.LEFT, padx=4)
+        self.sidebar.grid(row=0, column=0, sticky="nsew")
 
-        long_rest_btn = ttk.Button(
-            top,
-            text="Long Rest",
-            command=self._on_long_rest,
-            state=tk.NORMAL if can_long_rest(self.character) else tk.DISABLED,
-        )
-        long_rest_btn.pack(side=tk.LEFT, padx=4)
-
-        # Character name
-        ttk.Label(
-            top,
-            text=self.character.name or "Unnamed",
-            font=("Segoe UI", 18, "bold"),
-            foreground=COLORS["accent"],
-        ).pack(side=tk.LEFT, padx=8)
-
-        # Export buttons (right side)
-        ttk.Button(top, text="Export Character", command=self._export_json).pack(
-            side=tk.RIGHT, padx=4
-        )
-        ttk.Button(top, text="Export PDF", command=self._export_pdf).pack(
-            side=tk.RIGHT, padx=4
+        # Set character info in sidebar
+        summary = self.character.summary_text()
+        self.sidebar.set_character_info(
+            name=self.character.name or "Unnamed",
+            summary=summary,
+            image_data=getattr(self.character, "biography_image_data", "") or None,
+            image_format=getattr(self.character, "biography_image_format", "png"),
         )
 
-        ttk.Button(
-            top,
-            text="Respec character",
-            command=self._on_edit,
-        ).pack(side=tk.RIGHT, padx=8)
+        # ── Content area ──
+        self._content = tk.Frame(self, bg=COLORS["bg"])
+        self._content.grid(row=0, column=1, sticky="nsew")
 
-        # ── Character tabs ──────────────────────────────────────
-        self.tabs = ttk.Notebook(self)
-        self.tabs.pack(fill=tk.BOTH, expand=True, padx=20, pady=(6, 16))
+        # Create view frames
+        self._views: dict[str, tk.Frame] = {}
+        for key in self._view_dirty:
+            frame = tk.Frame(self._content, bg=COLORS["bg"])
+            self._views[key] = frame
 
-        self.general_tab = ttk.Frame(self.tabs)
-        self.inventory_tab = ttk.Frame(self.tabs)
-        self.spells_tab = ttk.Frame(self.tabs)
-        self.biography_tab = ttk.Frame(self.tabs)
+        # Show initial view
+        self.sidebar.set_active(_DASHBOARD)
+        self._show_view(_DASHBOARD)
 
-        self.tabs.add(self.general_tab, text="General")
-        self.tabs.add(self.inventory_tab, text="Inventory")
-        self._tab_widgets = {
-            "general": self.general_tab,
-            "inventory": self.inventory_tab,
-            "spells": self.spells_tab,
-            "biography": self.biography_tab,
+    def _on_navigate(self, key: str):
+        self._show_view(key)
+
+    def _show_view(self, key: str):
+        # Hide current
+        for name, frame in self._views.items():
+            frame.pack_forget()
+
+        self._current_view = key
+        view = self._views[key]
+        view.pack(fill=tk.BOTH, expand=True)
+
+        # Build or refresh if needed
+        if not self._view_built.get(key):
+            self._build_view(key)
+            self._view_built[key] = True
+            self._view_dirty[key] = False
+        elif self._view_dirty.get(key):
+            self._refresh_view(key)
+            self._view_dirty[key] = False
+
+    def _build_view(self, key: str):
+        builders = {
+            _DASHBOARD: self._build_dashboard,
+            _COMBAT: self._build_combat,
+            _SPELLBOOK: self._build_spellbook,
+            _INVENTORY: self._build_inventory,
+            _FEATURES: self._build_features,
+            _BACKSTORY: self._build_backstory,
         }
-        self._tab_titles = {
-            "general": "General",
-            "inventory": "Inventory",
-            "spells": "Spells",
-            "biography": "Biography",
-        }
-        self.tabs.bind("<<NotebookTabChanged>>", self._on_tab_changed)
+        builder = builders.get(key)
+        if builder:
+            builder()
 
-        general_scroll = ScrollableFrame(self.general_tab)
-        general_scroll.pack(fill=tk.BOTH, expand=True)
-        self._general_parent = general_scroll.inner
-
-        inventory_scroll = ScrollableFrame(self.inventory_tab)
-        inventory_scroll.pack(fill=tk.BOTH, expand=True)
-        self._inventory_parent = inventory_scroll.inner
-
-        self._build_biography_tab()
-        self._biography_tab_built = True
-        self.tabs.add(self.biography_tab, text="Biography")
-
-        self._sync_spells_tab_visibility()
-        self._refresh_tabs(force=True)
+    def _refresh_view(self, key: str):
+        # Destroy children and rebuild
+        frame = self._views[key]
+        for w in frame.winfo_children():
+            w.destroy()
+        self._view_built[key] = False
+        self._build_view(key)
+        self._view_built[key] = True
 
     def _character_has_spells(self) -> bool:
         return bool(self.character.selected_cantrips or self.character.selected_spells)
 
-    def _sync_spells_tab_visibility(self):
-        show_spells = self._character_has_spells()
+    # ================================================================
+    # DASHBOARD VIEW
+    # ================================================================
 
-        if show_spells and not self._spells_tab_visible:
-            tab_ids = list(self.tabs.tabs())
-            if str(self.biography_tab) in tab_ids:
-                bio_idx = tab_ids.index(str(self.biography_tab))
-                self.tabs.insert(bio_idx, self.spells_tab, text="Spells")
-            else:
-                self.tabs.add(self.spells_tab, text="Spells")
-            self._spells_tab_visible = True
-            if not self._spells_tab_built:
-                self._build_spells_tab()
-                self._spells_tab_built = True
-            self._tab_dirty["spells"] = True
+    def _build_dashboard(self):
+        parent = self._views[_DASHBOARD]
+        scroll = ScrollableFrame(parent)
+        scroll.pack(fill=tk.BOTH, expand=True)
+        inner = scroll.inner
+
+        c = self.character
+
+        # ── Hero section ──
+        hero = tk.Frame(inner, bg=COLORS["bg_surface"], padx=16, pady=16)
+        hero.pack(fill=tk.X, pady=(0, 12))
+
+        # Name and summary
+        name_frame = tk.Frame(hero, bg=COLORS["bg_surface"])
+        name_frame.pack(fill=tk.X)
+
+        tk.Label(
+            name_frame,
+            text=c.name or "Unnamed",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack(side=tk.LEFT)
+
+        tk.Label(
+            name_frame,
+            text=f"Level {c.level}",
+            font=FONTS["body_bold"],
+            fg=COLORS["gold"],
+            bg=COLORS["bg_surface"],
+        ).pack(side=tk.RIGHT, padx=8)
+
+        tk.Label(
+            hero,
+            text=c.summary_text(),
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", pady=(2, 0))
+
+        if c.background_name:
+            tk.Label(
+                hero,
+                text=f"Background: {c.background_name}",
+                font=FONTS["label_upper"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(anchor="w")
+
+        # HP and AC row
+        hp_ac = tk.Frame(inner, bg=COLORS["bg"])
+        hp_ac.pack(fill=tk.X, pady=(0, 12))
+
+        # AC card
+        ac_card = tk.Frame(hp_ac, bg=COLORS["bg_surface"], padx=16, pady=12)
+        ac_card.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 8))
+        tk.Label(
+            ac_card,
+            text="ARMOR CLASS",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack()
+        tk.Label(
+            ac_card,
+            text=str(c.armor_class),
+            font=FONTS["stat_large"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack()
+
+        # HP card
+        hp_card = tk.Frame(hp_ac, bg=COLORS["bg_surface"], padx=16, pady=12)
+        hp_card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        hp_top = tk.Frame(hp_card, bg=COLORS["bg_surface"])
+        hp_top.pack(fill=tk.X)
+        tk.Label(
+            hp_top,
+            text="HIT POINTS",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(side=tk.LEFT)
+
+        hp_val = tk.Frame(hp_card, bg=COLORS["bg_surface"])
+        hp_val.pack(fill=tk.X, pady=(4, 0))
+        tk.Label(
+            hp_val,
+            text=str(c.hit_points),
+            font=FONTS["stat_large"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack(side=tk.LEFT)
+        tk.Label(
+            hp_val,
+            text=f"/ {c.hit_points}",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(side=tk.LEFT, padx=(4, 0))
+
+        hp_bar = HPBar(hp_card, width=300, height=4)
+        hp_bar.pack(fill=tk.X, pady=(6, 0))
+        hp_bar.set_hp(c.hit_points, c.hit_points)
+
+        # ── Ability Scores ──
+        SectionHeader(inner, text="Ability Scores").pack(fill=tk.X, pady=(0, 8))
+
+        ab_row = tk.Frame(inner, bg=COLORS["bg"])
+        ab_row.pack(fill=tk.X, pady=(0, 12))
+        ab_row.columnconfigure(list(range(6)), weight=1)
+
+        saving_throws = (c.character_class or {}).get("saving_throws", [])
+        saving_throws_lower = [s.lower() for s in saving_throws]
+
+        for i, ability_name in enumerate(
+            ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
+        ):
+            total = c.ability_scores.total(ability_name)
+            mod_str = c.ability_scores.modifier_str(ability_name)
+            is_save_prof = ability_name.lower() in saving_throws_lower
+
+            card = StatCard(
+                ab_row,
+                label=ability_name[:3],
+                value=str(total),
+                modifier=mod_str,
+                highlight=is_save_prof,
+            )
+            card.grid(row=0, column=i, padx=3, sticky="nsew")
+
+            # Add save info below modifier
+            save_mod = c.ability_scores.modifier(ability_name)
+            if is_save_prof:
+                save_mod += c.proficiency_bonus
+            save_str = f"+{save_mod}" if save_mod >= 0 else str(save_mod)
+            save_prefix = "\u2713 " if is_save_prof else ""
+
+            save_lbl = tk.Label(
+                card,
+                text=f"{save_prefix}{save_str} SAVE",
+                font=FONTS["label_tiny"],
+                fg=COLORS["accent_text"] if is_save_prof else COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            )
+            save_lbl.pack(pady=(4, 0))
+
+        # ── Secondary vitals ──
+        vitals_row = tk.Frame(inner, bg=COLORS["bg"])
+        vitals_row.pack(fill=tk.X, pady=(0, 12))
+        vitals_row.columnconfigure(list(range(4)), weight=1)
+
+        vitals = [
+            ("Proficiency", f"+{c.proficiency_bonus}"),
+            ("Initiative", f"+{c.initiative}" if c.initiative >= 0 else str(c.initiative)),
+            ("Speed", str(c.speed), "ft"),
+            ("Hit Dice", str(c.level), f"d{(c.character_class or {}).get('hit_die', 8)}"),
+        ]
+
+        for i, v in enumerate(vitals):
+            label = v[0]
+            value = v[1]
+            suffix = v[2] if len(v) > 2 else ""
+            sc = StatCard(vitals_row, label=label, value=value, suffix=suffix)
+            sc.grid(row=0, column=i, padx=3, sticky="nsew")
+
+        # ── Skills ──
+        SectionHeader(inner, text="Skills").pack(fill=tk.X, pady=(0, 8))
+
+        skills_frame = tk.Frame(inner, bg=COLORS["bg_surface"], padx=12, pady=8)
+        skills_frame.pack(fill=tk.X, pady=(0, 12))
+        skills_frame.columnconfigure(0, weight=1)
+        skills_frame.columnconfigure(1, weight=1)
+
+        all_profs = c.all_skill_proficiencies
+        all_expertise = getattr(c, "all_skill_expertise", set())
+
+        for idx, skill_enum in enumerate(ALL_SKILLS):
+            skill_display = skill_enum.display_name
+            ability = skill_enum.ability
+            col = idx % 2
+            row_idx = idx // 2
+
+            skill_row = tk.Frame(skills_frame, bg=COLORS["bg_surface"])
+            skill_row.grid(row=row_idx, column=col, sticky="ew", padx=4, pady=1)
+
+            is_prof = skill_display in all_profs
+            is_expert = skill_display in all_expertise
+
+            # Proficiency indicator
+            indicator = "\u25cf" if is_prof else "\u25cb"
+            if is_expert:
+                indicator = "\u25c9"
+            fg_color = COLORS["accent_text"] if is_prof else COLORS["fg_dim"]
+
+            tk.Label(
+                skill_row,
+                text=indicator,
+                font=FONTS["body_small"],
+                fg=fg_color,
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT, padx=(0, 4))
+
+            tk.Label(
+                skill_row,
+                text=skill_display.upper(),
+                font=FONTS["label_upper_bold"] if is_prof else FONTS["label_upper"],
+                fg=fg_color,
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT)
+
+            tk.Label(
+                skill_row,
+                text=f"({ability.value[:3].upper()})",
+                font=FONTS["label_tiny"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT, padx=(4, 0))
+
+            mod_val = c.skill_modifier(skill_display)
+            mod_text = f"+{mod_val}" if mod_val >= 0 else str(mod_val)
+            tk.Label(
+                skill_row,
+                text=mod_text,
+                font=FONTS["heading_serif_sm"],
+                fg=fg_color,
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.RIGHT)
+
+        # ── Senses ──
+        SectionHeader(inner, text="Senses").pack(fill=tk.X, pady=(0, 8))
+
+        senses_frame = tk.Frame(inner, bg=COLORS["bg_surface"], padx=16, pady=12)
+        senses_frame.pack(fill=tk.X, pady=(0, 12))
+
+        wis_mod = c.ability_scores.modifier("Wisdom")
+        int_mod = c.ability_scores.modifier("Intelligence")
+        perception_prof = "Perception" in all_profs
+        insight_prof = "Insight" in all_profs
+        investigation_prof = "Investigation" in all_profs
+
+        senses = [
+            ("Passive Perception", 10 + wis_mod + (c.proficiency_bonus if perception_prof else 0)),
+            ("Passive Insight", 10 + wis_mod + (c.proficiency_bonus if insight_prof else 0)),
+            ("Passive Investigation", 10 + int_mod + (c.proficiency_bonus if investigation_prof else 0)),
+        ]
+
+        for label, value in senses:
+            row = tk.Frame(senses_frame, bg=COLORS["bg_surface"])
+            row.pack(fill=tk.X, pady=2)
+            tk.Label(
+                row,
+                text=label.upper(),
+                font=FONTS["label_upper"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT)
+            tk.Label(
+                row,
+                text=str(value),
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["gold"] if label == "Passive Perception" else COLORS["fg"],
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.RIGHT)
+
+        # ── Proficiencies ──
+        SectionHeader(inner, text="Proficiencies").pack(fill=tk.X, pady=(0, 8))
+
+        prof_frame = tk.Frame(inner, bg=COLORS["bg_surface"], padx=16, pady=12)
+        prof_frame.pack(fill=tk.X, pady=(0, 12))
+
+        cls = c.character_class or {}
+        weapon_profs = cls.get("weapon_proficiencies", [])
+        armor_profs = cls.get("armor_proficiencies", [])
+
+        if weapon_profs or armor_profs:
+            chip_frame = tk.Frame(prof_frame, bg=COLORS["bg_surface"])
+            chip_frame.pack(fill=tk.X, anchor="w")
+
+            for p in weapon_profs + armor_profs:
+                Chip(chip_frame, text=p, style="gold").pack(
+                    side=tk.LEFT, padx=(0, 4), pady=2
+                )
+
+        # Languages
+        species = c.species or {}
+        languages = []
+        for feat in species.get("features", []):
+            if "language" in feat.get("name", "").lower():
+                desc = feat.get("description", "")
+                languages.append(desc if desc else feat.get("name", ""))
+        if languages:
+            lang_frame = tk.Frame(prof_frame, bg=COLORS["bg_surface"])
+            lang_frame.pack(fill=tk.X, anchor="w", pady=(8, 0))
+            for lang in languages:
+                for l_part in lang.split(","):
+                    l_part = l_part.strip()
+                    if l_part:
+                        Chip(lang_frame, text=l_part, style="default").pack(
+                            side=tk.LEFT, padx=(0, 4), pady=2
+                        )
+
+        # ── Action buttons ──
+        action_frame = tk.Frame(inner, bg=COLORS["bg"])
+        action_frame.pack(fill=tk.X, pady=(8, 16))
+
+        if c.level < 20:
+            ttk.Button(
+                action_frame,
+                text="Level Up",
+                style="Accent.TButton",
+                command=self._on_level_up,
+            ).pack(side=tk.LEFT, padx=(0, 8))
+
+        short_state = tk.NORMAL if can_short_rest(c) else tk.DISABLED
+        long_state = tk.NORMAL if can_long_rest(c) else tk.DISABLED
+
+        ttk.Button(
+            action_frame,
+            text="Short Rest",
+            command=self._on_short_rest,
+            state=short_state,
+        ).pack(side=tk.LEFT, padx=(0, 4))
+
+        ttk.Button(
+            action_frame,
+            text="Long Rest",
+            command=self._on_long_rest,
+            state=long_state,
+        ).pack(side=tk.LEFT, padx=(0, 4))
+
+    # ================================================================
+    # COMBAT VIEW
+    # ================================================================
+
+    def _build_combat(self):
+        parent = self._views[_COMBAT]
+        scroll = ScrollableFrame(parent)
+        scroll.pack(fill=tk.BOTH, expand=True)
+        inner = scroll.inner
+        c = self.character
+
+        # ── Header ──
+        tk.Label(
+            inner,
+            text="Combat & Actions",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg"],
+        ).pack(anchor="w", pady=(0, 4))
+
+        info_text = f"Initiative +{c.initiative}  \u2022  Speed {c.speed}ft  \u2022  AC {c.armor_class}  \u2022  HP {c.hit_points}"
+        tk.Label(
+            inner,
+            text=info_text,
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg"],
+        ).pack(anchor="w", pady=(0, 16))
+
+        # ── Weapon Attacks ──
+        SectionHeader(inner, text="Weapon Attacks").pack(fill=tk.X, pady=(0, 8))
+
+        attacks_frame = tk.Frame(inner, bg=COLORS["bg_surface"], padx=12, pady=8)
+        attacks_frame.pack(fill=tk.X, pady=(0, 12))
+
+        actions = build_standard_actions(
+            c,
+            spells_by_name=self._spell_index,
+            equipped_weapon_keys=set(c.equipped_weapons or []),
+        )
+
+        if actions:
+            for action in actions:
+                row = tk.Frame(attacks_frame, bg=COLORS["bg_container"], padx=12, pady=8)
+                row.pack(fill=tk.X, pady=2)
+
+                # Name and properties
+                name_col = tk.Frame(row, bg=COLORS["bg_container"])
+                name_col.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+                tk.Label(
+                    name_col,
+                    text=action.get("name", "Unknown"),
+                    font=FONTS["heading_serif_sm"],
+                    fg=COLORS["fg"],
+                    bg=COLORS["bg_container"],
+                ).pack(anchor="w")
+
+                props = action.get("properties", "")
+                if props:
+                    tk.Label(
+                        name_col,
+                        text=props.upper(),
+                        font=FONTS["label_tiny"],
+                        fg=COLORS["fg_dim"],
+                        bg=COLORS["bg_container"],
+                    ).pack(anchor="w")
+
+                # To Hit
+                attack_bonus = action.get("attack_bonus", 0)
+                hit_str = f"+{attack_bonus}" if attack_bonus >= 0 else str(attack_bonus)
+
+                hit_col = tk.Frame(row, bg=COLORS["bg_container"])
+                hit_col.pack(side=tk.RIGHT, padx=(16, 0))
+
+                tk.Label(
+                    hit_col,
+                    text="TO HIT",
+                    font=FONTS["label_tiny"],
+                    fg=COLORS["fg_dim"],
+                    bg=COLORS["bg_container"],
+                ).pack()
+                tk.Label(
+                    hit_col,
+                    text=hit_str,
+                    font=FONTS["heading_serif_sm"],
+                    fg=COLORS["accent_text"],
+                    bg=COLORS["bg_container"],
+                ).pack()
+
+                # Damage
+                damage = action.get("damage", "")
+                dmg_type = action.get("damage_type", "")
+
+                dmg_col = tk.Frame(row, bg=COLORS["bg_container"])
+                dmg_col.pack(side=tk.RIGHT, padx=(16, 0))
+
+                tk.Label(
+                    dmg_col,
+                    text="DAMAGE",
+                    font=FONTS["label_tiny"],
+                    fg=COLORS["fg_dim"],
+                    bg=COLORS["bg_container"],
+                ).pack()
+                tk.Label(
+                    dmg_col,
+                    text=f"{damage} {dmg_type}",
+                    font=FONTS["heading_serif_sm"],
+                    fg=COLORS["fg"],
+                    bg=COLORS["bg_container"],
+                ).pack()
+        else:
+            tk.Label(
+                attacks_frame,
+                text="No weapon attacks available.",
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(pady=8)
+
+        # ── Standard Actions ──
+        SectionHeader(inner, text="Actions").pack(fill=tk.X, pady=(8, 8))
+
+        from models.standard_actions import STANDARD_ACTIONS
+
+        actions_grid = tk.Frame(inner, bg=COLORS["bg"])
+        actions_grid.pack(fill=tk.X, pady=(0, 12))
+        actions_grid.columnconfigure(0, weight=1)
+        actions_grid.columnconfigure(1, weight=1)
+
+        selected = getattr(c, "standard_action_options", {}) or {}
+
+        row_idx = 0
+        col_idx = 0
+        for action in STANDARD_ACTIONS:
+            name = action.get("name", "")
+            desc = action.get("description", "")
+            action_type = action.get("type", "Action")
+
+            card = tk.Frame(actions_grid, bg=COLORS["bg_container"], padx=12, pady=8)
+            card.grid(row=row_idx, column=col_idx, padx=3, pady=3, sticky="nsew")
+
+            header = tk.Frame(card, bg=COLORS["bg_container"])
+            header.pack(fill=tk.X)
+
+            tk.Label(
+                header,
+                text=name,
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_container"],
+            ).pack(side=tk.LEFT)
+
+            tk.Label(
+                header,
+                text=action_type.upper(),
+                font=FONTS["label_tiny"],
+                fg=COLORS["gold"],
+                bg=COLORS["bg_deepest"],
+                padx=4,
+                pady=1,
+            ).pack(side=tk.RIGHT)
+
+            WrappingLabel(
+                card,
+                text=desc,
+                font=FONTS["body_small"],
+                foreground=COLORS["fg_dim"],
+                background=COLORS["bg_container"],
+            ).pack(fill=tk.X, pady=(4, 0))
+
+            col_idx += 1
+            if col_idx >= 2:
+                col_idx = 0
+                row_idx += 1
+
+        # ── Spell slots (if caster) ──
+        if self._character_has_spells():
+            SectionHeader(inner, text="Spell Slots").pack(fill=tk.X, pady=(8, 8))
+            self._build_spell_slot_display(inner)
+
+    def _build_spell_slot_display(self, parent):
+        """Build spell slot indicators."""
+        c = self.character
+        cls = c.character_class or {}
+        if not cls:
             return
 
-        if not show_spells and self._spells_tab_visible:
-            if self.tabs.select() == str(self.spells_tab):
-                self.tabs.select(self.general_tab)
-            self.tabs.forget(self.spells_tab)
-            self._spells_tab_visible = False
+        # Get spell slots from class data
+        spell_slots = cls.get("spell_slots", {})
+        if not spell_slots:
+            # Try progression data
+            if self.data:
+                level_data = self.data.get_level_data(
+                    cls.get("slug", ""),
+                    c.level,
+                )
+                if level_data:
+                    spell_slots = level_data.get("spell_slots", {})
 
-    def _build_spells_tab(self):
-        self.spells_tab.columnconfigure(0, weight=0)
-        self.spells_tab.columnconfigure(1, weight=1)
-        self.spells_tab.rowconfigure(0, weight=1)
+        if not spell_slots:
+            return
 
-        left = ttk.Frame(self.spells_tab, width=300)
-        left.grid(row=0, column=0, sticky="nsew", padx=(0, 6), pady=(2, 2))
+        slots_frame = tk.Frame(parent, bg=COLORS["bg_surface"], padx=16, pady=12)
+        slots_frame.pack(fill=tk.X, pady=(0, 12))
+
+        for slot_level, count in sorted(spell_slots.items(), key=lambda x: x[0]):
+            if count <= 0:
+                continue
+            row = tk.Frame(slots_frame, bg=COLORS["bg_surface"])
+            row.pack(fill=tk.X, pady=2)
+
+            tk.Label(
+                row,
+                text=f"LEVEL {slot_level}".replace("st", "").replace("nd", "").replace("rd", "").replace("th", "").upper(),
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT)
+
+            tk.Label(
+                row,
+                text=f"{count} / {count}",
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["accent_text"],
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.RIGHT)
+
+            # Slot indicator dots
+            dots_frame = tk.Frame(row, bg=COLORS["bg_surface"])
+            dots_frame.pack(side=tk.RIGHT, padx=(0, 8))
+            for j in range(count):
+                dot = tk.Frame(
+                    dots_frame,
+                    bg=COLORS["accent_text"],
+                    width=10,
+                    height=10,
+                )
+                dot.pack(side=tk.LEFT, padx=2)
+                dot.pack_propagate(False)
+
+    # ================================================================
+    # SPELLBOOK VIEW
+    # ================================================================
+
+    def _build_spellbook(self):
+        parent = self._views[_SPELLBOOK]
+
+        # Header
+        tk.Label(
+            parent,
+            text="The Spellbook",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg"],
+        ).pack(anchor="w", padx=16, pady=(16, 4))
+
+        c = self.character
+        cls = c.character_class or {}
+
+        # Spellcasting stats header
+        cast_ability = cls.get("spellcasting_ability")
+        if cast_ability:
+            stats_frame = tk.Frame(parent, bg=COLORS["bg"], padx=16)
+            stats_frame.pack(fill=tk.X, pady=(0, 12))
+
+            spell_mod = c.ability_scores.modifier(cast_ability)
+            attack_bonus = spell_mod + c.proficiency_bonus
+            save_dc = 8 + spell_mod + c.proficiency_bonus
+            ability_score = c.ability_scores.total(cast_ability)
+
+            for label, value, sub in [
+                ("Spell Attack", f"+{attack_bonus}", f"PROF + {cast_ability[:3].upper()}"),
+                ("Save DC", str(save_dc), "BASE 8"),
+                ("Spell Ability", cast_ability[:3].upper(), f"{ability_score} (+{spell_mod})"),
+            ]:
+                stat_col = tk.Frame(stats_frame, bg=COLORS["bg"])
+                stat_col.pack(side=tk.LEFT, padx=(0, 24))
+
+                tk.Label(
+                    stat_col,
+                    text=label.upper(),
+                    font=FONTS["label_upper_bold"],
+                    fg=COLORS["fg_dim"],
+                    bg=COLORS["bg"],
+                ).pack(anchor="w")
+
+                val_row = tk.Frame(stat_col, bg=COLORS["bg"])
+                val_row.pack(anchor="w")
+
+                tk.Label(
+                    val_row,
+                    text=value,
+                    font=FONTS["stat_large"],
+                    fg=COLORS["accent_text"],
+                    bg=COLORS["bg"],
+                ).pack(side=tk.LEFT)
+
+                tk.Label(
+                    val_row,
+                    text=sub,
+                    font=FONTS["label_tiny"],
+                    fg=COLORS["gold"],
+                    bg=COLORS["bg_highest"],
+                    padx=4,
+                    pady=1,
+                ).pack(side=tk.LEFT, padx=(8, 0))
+
+        # Spell list (reuse existing pattern with split view)
+        spell_area = tk.Frame(parent, bg=COLORS["bg"])
+        spell_area.pack(fill=tk.BOTH, expand=True, padx=16, pady=(0, 16))
+        spell_area.columnconfigure(0, weight=0)
+        spell_area.columnconfigure(1, weight=1)
+        spell_area.rowconfigure(0, weight=1)
+
+        # Left: spell list
+        left = tk.Frame(spell_area, bg=COLORS["bg_surface"], width=280)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
         left.grid_propagate(False)
 
-        ttk.Label(left, text="Known Spells", style="Heading.TLabel").pack(
-            anchor="w", pady=(0, 2)
-        )
+        tk.Label(
+            left,
+            text="Known Spells",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", padx=8, pady=(8, 4))
+
         self.spells_list = SectionedListbox(left, on_select=self._on_spell_select)
-        self.spells_list.pack(fill=tk.BOTH, expand=True)
-        self.spells_list.search_entry.configure(style="ViewerCompactSpells.TEntry")
+        self.spells_list.pack(fill=tk.BOTH, expand=True, padx=4, pady=(0, 8))
 
-        style = ttk.Style(self)
-        style.configure("ViewerCompactSpells.TEntry", padding=(6, 2))
-
-        right = ttk.LabelFrame(self.spells_tab, text="Spell Details")
-        right.grid(row=0, column=1, sticky="nsew", pady=(2, 2))
+        # Right: spell details
+        right = tk.Frame(spell_area, bg=COLORS["bg_surface"])
+        right.grid(row=0, column=1, sticky="nsew")
         right.columnconfigure(0, weight=1)
         right.rowconfigure(1, weight=1)
 
-        self.spell_title = ttk.Label(
+        self.spell_title = tk.Label(
             right,
             text="Select a spell",
-            style="Subheading.TLabel",
+            font=FONTS["heading_serif"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
         )
-        self.spell_title.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
+        self.spell_title.grid(row=0, column=0, sticky="w", padx=12, pady=(12, 4))
 
         self.spell_detail_text = tk.Text(
             right,
             wrap=tk.WORD,
-            bg=COLORS["bg_light"],
+            bg=COLORS["bg_container"],
             fg=COLORS["fg"],
             font=FONTS["body"],
             borderwidth=0,
@@ -234,59 +896,183 @@ class CharacterViewer(ttk.Frame):
             state=tk.DISABLED,
             spacing1=2,
             spacing3=2,
-            padx=10,
+            padx=12,
             pady=8,
         )
-        self.spell_detail_text.grid(row=1, column=0, sticky="nsew", padx=8, pady=4)
+        self.spell_detail_text.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0, 8))
         self.spell_detail_text.tag_configure(
             "label", font=(FONTS["body"][0], FONTS["body"][1], "bold")
         )
 
-    def _build_biography_tab(self):
-        self.biography_tab.columnconfigure(0, weight=2)
-        self.biography_tab.columnconfigure(1, weight=1)
-        self.biography_tab.rowconfigure(0, weight=1)
+        self._refresh_spells_tab()
 
-        left = ttk.Frame(self.biography_tab)
-        left.grid(row=0, column=0, sticky="nsew", padx=(0, 6), pady=(2, 2))
+    # ================================================================
+    # INVENTORY VIEW
+    # ================================================================
+
+    def _build_inventory(self):
+        parent = self._views[_INVENTORY]
+        scroll = ScrollableFrame(parent)
+        scroll.pack(fill=tk.BOTH, expand=True)
+        inner = scroll.inner
+        c = self.character
+
+        # ── Header ──
+        tk.Label(
+            inner,
+            text="Vault & Provisions",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg"],
+        ).pack(anchor="w", pady=(0, 12))
+
+        # ── Currency ──
+        wealth_cp = current_wealth_cp(c)
+        gp, sp, cp = cp_to_coins(wealth_cp)
+
+        currency_frame = tk.Frame(inner, bg=COLORS["bg"])
+        currency_frame.pack(fill=tk.X, pady=(0, 12))
+        currency_frame.columnconfigure(list(range(3)), weight=1)
+
+        for i, (label, value, color) in enumerate([
+            ("Gold", str(gp), COLORS["gold"]),
+            ("Silver", str(sp), COLORS["fg"]),
+            ("Copper", str(cp), "#cd7f32"),
+        ]):
+            card = tk.Frame(currency_frame, bg=COLORS["bg_surface"], padx=12, pady=8)
+            card.grid(row=0, column=i, padx=3, sticky="nsew")
+            tk.Label(
+                card,
+                text=label.upper(),
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack()
+            tk.Label(
+                card,
+                text=value,
+                font=FONTS["heading_serif"],
+                fg=color,
+                bg=COLORS["bg_surface"],
+            ).pack()
+
+        # ── Add Inventory button ──
+        ttk.Button(
+            inner,
+            text="Add Item",
+            style="Accent.TButton",
+            command=self._on_add_inventory,
+        ).pack(anchor="w", pady=(0, 12))
+
+        # ── Inventory split view ──
+        self._inventory_parent = inner
+        self._render_inventory_split_view()
+
+    # ================================================================
+    # FEATURES VIEW
+    # ================================================================
+
+    def _build_features(self):
+        parent = self._views[_FEATURES]
+        scroll = ScrollableFrame(parent)
+        scroll.pack(fill=tk.BOTH, expand=True)
+        inner = scroll.inner
+        c = self.character
+
+        tk.Label(
+            inner,
+            text="Features & Traits",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg"],
+        ).pack(anchor="w", pady=(0, 16))
+
+        # Use the existing sheet builder logic for features
+        build_character_sheet(
+            inner,
+            c,
+            self.data,
+            on_change=self._on_sheet_changed,
+            compact=True,
+            include_sections={
+                "species_traits",
+                "class_features",
+                "subclass",
+                "feats",
+            },
+        )
+
+    # ================================================================
+    # BACKSTORY VIEW
+    # ================================================================
+
+    def _build_backstory(self):
+        parent = self._views[_BACKSTORY]
+        c = self.character
+
+        # Main layout: two columns
+        parent.columnconfigure(0, weight=2)
+        parent.columnconfigure(1, weight=1)
+        parent.rowconfigure(0, weight=1)
+
+        # Left column: text areas
+        left = tk.Frame(parent, bg=COLORS["bg"])
+        left.grid(row=0, column=0, sticky="nsew", padx=(16, 8), pady=16)
         left.columnconfigure(0, weight=1)
         left.rowconfigure(1, weight=1)
         left.rowconfigure(3, weight=1)
         left.rowconfigure(5, weight=1)
 
-        ttk.Label(left, text="Backstory", style="Subheading.TLabel").grid(
-            row=0, column=0, sticky="w", pady=(0, 4)
-        )
+        tk.Label(
+            left,
+            text="The Chronicles",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg"],
+        ).pack(anchor="w", pady=(0, 12))
+
+        # Backstory
+        SectionHeader(left, text="Character Backstory").pack(fill=tk.X, pady=(0, 4))
+
         self.bio_backstory_text = self._make_bio_textbox(left)
-        self.bio_backstory_text.grid(row=1, column=0, sticky="nsew", pady=(0, 8))
+        self.bio_backstory_text.pack(fill=tk.BOTH, expand=True, pady=(0, 12))
 
-        ttk.Label(left, text="Personality", style="Subheading.TLabel").grid(
-            row=2, column=0, sticky="w", pady=(0, 4)
-        )
+        # Personality
+        SectionHeader(left, text="Personality").pack(fill=tk.X, pady=(0, 4))
+
         self.bio_personality_text = self._make_bio_textbox(left)
-        self.bio_personality_text.grid(row=3, column=0, sticky="nsew", pady=(0, 8))
+        self.bio_personality_text.pack(fill=tk.BOTH, expand=True, pady=(0, 12))
 
-        ttk.Label(left, text="Description", style="Subheading.TLabel").grid(
-            row=4, column=0, sticky="w", pady=(0, 4)
-        )
+        # Description
+        SectionHeader(left, text="Physical Description").pack(fill=tk.X, pady=(0, 4))
+
         self.bio_description_text = self._make_bio_textbox(left)
-        self.bio_description_text.grid(row=5, column=0, sticky="nsew")
+        self.bio_description_text.pack(fill=tk.BOTH, expand=True)
 
-        right = ttk.LabelFrame(self.biography_tab, text="Portrait")
-        right.grid(row=0, column=1, sticky="nsew", pady=(2, 2))
+        # Right column: portrait
+        right = tk.Frame(parent, bg=COLORS["bg_surface"])
+        right.grid(row=0, column=1, sticky="nsew", padx=(8, 16), pady=16)
         right.columnconfigure(0, weight=1)
         self._bio_portrait_frame = right
+
+        tk.Label(
+            right,
+            text="Portrait",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", padx=12, pady=(12, 8))
 
         self.bio_image_canvas = tk.Canvas(
             right,
             width=260,
             height=100,
-            bg=COLORS["bg_light"],
+            bg=COLORS["bg_container"],
             highlightthickness=1,
-            highlightbackground=COLORS["border"],
+            highlightbackground=COLORS["outline_dim"],
             relief=tk.FLAT,
         )
-        self.bio_image_canvas.grid(row=0, column=0, padx=10, pady=10)
+        self.bio_image_canvas.pack(padx=12, pady=(0, 8))
         self.bio_image_canvas.create_text(
             130,
             50,
@@ -299,8 +1085,8 @@ class CharacterViewer(ttk.Frame):
         self._last_bio_portrait_width = 0
         right.bind("<Configure>", self._on_bio_portrait_frame_configure)
 
-        btns = ttk.Frame(right)
-        btns.grid(row=1, column=0, pady=(0, 10))
+        btns = tk.Frame(right, bg=COLORS["bg_surface"])
+        btns.pack(pady=(0, 12))
         ttk.Button(
             btns, text="Choose Image...", command=self._choose_biography_image
         ).pack(side=tk.LEFT, padx=(0, 4))
@@ -315,11 +1101,18 @@ class CharacterViewer(ttk.Frame):
         ):
             widget.bind("<FocusOut>", self._on_biography_focus_out)
 
+        self._biography_tab_built = True
+        self._refresh_biography_tab()
+
+    # ================================================================
+    # Shared biography helpers
+    # ================================================================
+
     def _make_bio_textbox(self, parent) -> tk.Text:
         text = tk.Text(
             parent,
             wrap=tk.WORD,
-            bg=COLORS["bg_light"],
+            bg=COLORS["bg_container"],
             fg=COLORS["fg"],
             font=FONTS["body"],
             borderwidth=0,
@@ -333,7 +1126,7 @@ class CharacterViewer(ttk.Frame):
         return text
 
     def _refresh_biography_tab(self):
-        if not self._biography_tab_built:
+        if not getattr(self, "_biography_tab_built", False):
             return
         self._bio_loading = True
         try:
@@ -361,7 +1154,7 @@ class CharacterViewer(ttk.Frame):
         return widget.get("1.0", tk.END).rstrip("\n")
 
     def _save_biography_fields_to_character(self) -> bool:
-        if self._bio_loading or not self._biography_tab_built:
+        if self._bio_loading or not getattr(self, "_biography_tab_built", False):
             return False
         updates = {
             "biography_backstory": self._text_value(self.bio_backstory_text),
@@ -392,7 +1185,7 @@ class CharacterViewer(ttk.Frame):
         return 260
 
     def _refresh_biography_image_preview(self):
-        if not self._biography_tab_built:
+        if not getattr(self, "_biography_tab_built", False):
             return
         self.bio_image_canvas.delete("all")
         self._bio_photo = None
@@ -516,755 +1309,9 @@ class CharacterViewer(ttk.Frame):
         self._refresh_biography_image_preview()
         self._on_sheet_changed()
 
-    def _refresh_tabs(self, force: bool = False):
-        self._sync_spells_tab_visibility()
-        if force:
-            self._tab_dirty = {
-                "general": True,
-                "inventory": True,
-                "spells": True,
-                "biography": True,
-            }
-            self._apply_tab_labels()
-
-        selected = self._selected_tab_key()
-        if selected:
-            self._refresh_tab(selected)
-
-    def _apply_tab_labels(self):
-        pass
-
-    def _selected_tab_key(self) -> str:
-        if not self.winfo_exists() or not self.tabs.winfo_exists():
-            return ""
-        current = self.tabs.select()
-        if current == str(self.general_tab):
-            return "general"
-        if current == str(self.inventory_tab):
-            return "inventory"
-        if current == str(self.spells_tab):
-            return "spells"
-        if current == str(self.biography_tab):
-            return "biography"
-        return ""
-
-    def _refresh_tab(self, key: str):
-        if key == "general":
-            build_character_sheet(
-                self._general_parent,
-                self.character,
-                self.data,
-                on_change=self._on_sheet_changed,
-                compact=True,
-                include_sections={
-                    "header",
-                    "combat",
-                    "abilities",
-                    "saving_throws",
-                    "skills",
-                    "standard_actions",
-                    "species_traits",
-                    "class_features",
-                    "subclass",
-                    "feats",
-                },
-            )
-            self._tab_dirty["general"] = False
-            self._apply_tab_labels()
-            return
-
-        if key == "inventory":
-            build_character_sheet(
-                self._inventory_parent,
-                self.character,
-                self.data,
-                on_change=self._on_sheet_changed,
-                compact=True,
-                include_sections={"wealth"},
-            )
-            self._render_inventory_split_view()
-            self._tab_dirty["inventory"] = False
-            self._apply_tab_labels()
-            return
-
-        if key == "spells":
-            self._refresh_spells_tab()
-            self._tab_dirty["spells"] = False
-            self._apply_tab_labels()
-            return
-
-        if key == "biography":
-            self._refresh_biography_tab()
-            self._tab_dirty["biography"] = False
-            self._apply_tab_labels()
-
-    def _mark_tabs_dirty(self, include_current: bool = False):
-        current = self._selected_tab_key()
-        for key in self._tab_dirty.keys():
-            if include_current or key != current:
-                self._tab_dirty[key] = True
-        self._apply_tab_labels()
-
-    def _on_tab_changed(self, _event=None):
-        key = self._selected_tab_key()
-        if not key:
-            return
-        if self._tab_dirty.get(key):
-            self._refresh_tab(key)
-
-    def _parse_item_qty(self, text: str) -> tuple[str, int]:
-        raw = str(text or "").strip()
-        parts = raw.split(" ", 1)
-        qty = 1
-        name = raw
-        if len(parts) == 2 and parts[0].isdigit():
-            qty = max(1, int(parts[0]))
-            name = parts[1].strip()
-
-        m = re.match(r"^(.*)\((\d+)(?:\s+([^)]+))?\)\s*$", name)
-        if m:
-            stripped = m.group(1).strip()
-            paren_qty = max(1, int(m.group(2)))
-            qualifier = str(m.group(3) or "").strip().lower()
-            is_quantity_suffix = (not qualifier) or qualifier in {"day", "days"}
-            if not is_quantity_suffix:
-                return name, qty
-            if stripped:
-                name = stripped
-            qty *= paren_qty
-
-        return name, qty
-
-    def _effective_inventory_pools(self):
-        c = self.character
-        weapon_counts = dict(get_selected_weapon_counts(c))
-        armor_counts = dict(get_selected_armor_counts(c))
-        inventory_items = list(get_selected_non_weapon_items(c))
-
-        for ent in getattr(c, "custom_inventory", []) or []:
-            name = str(ent.get("name", "")).strip()
-            if not name:
-                continue
-            qty = max(1, int(ent.get("qty", 1)))
-            category = str(ent.get("category", "Adventuring Gear"))
-            key = normalize_item_key(name)
-            if category == "Weapons":
-                weapon_counts[key] = weapon_counts.get(key, 0) + qty
-            elif category == "Armor":
-                armor_counts[key] = armor_counts.get(key, 0) + qty
-            else:
-                inventory_items.append(f"{qty} {name}" if qty > 1 else name)
-
-        removed = {
-            normalize_item_key(k): int(v)
-            for k, v in (getattr(c, "removed_items", {}) or {}).items()
-            if int(v) > 0
-        }
-
-        for key, rem in removed.items():
-            if key in weapon_counts:
-                weapon_counts[key] = max(0, weapon_counts[key] - rem)
-                if weapon_counts[key] <= 0:
-                    weapon_counts.pop(key, None)
-            if key in armor_counts:
-                armor_counts[key] = max(0, armor_counts[key] - rem)
-                if armor_counts[key] <= 0:
-                    armor_counts.pop(key, None)
-
-        inv_map: dict[str, int] = {}
-        inv_name: dict[str, str] = {}
-        order: list[str] = []
-        for line in inventory_items:
-            base_name, qty = self._parse_item_qty(line)
-            if not base_name:
-                continue
-            key = normalize_item_key(base_name)
-            if key not in inv_map:
-                order.append(key)
-                inv_name[key] = base_name
-            inv_map[key] = inv_map.get(key, 0) + qty
-
-        for key, rem in removed.items():
-            if key in inv_map:
-                inv_map[key] = max(0, inv_map[key] - rem)
-
-        inv_entries = []
-        for key in order:
-            qty = inv_map.get(key, 0)
-            if qty <= 0:
-                continue
-            inv_entries.append({"name": inv_name[key], "key": key, "qty": qty})
-
-        return weapon_counts, armor_counts, inv_entries
-
-    # ── Armor proficiency helpers (mirrors sheet_builder logic) ──
-
-    ARMOR_REQUIRED = {
-        "padded armor": "light",
-        "leather armor": "light",
-        "studded leather armor": "light",
-        "hide armor": "medium",
-        "chain shirt": "medium",
-        "scale mail": "medium",
-        "breastplate": "medium",
-        "half plate armor": "medium",
-        "ring mail": "heavy",
-        "chain mail": "heavy",
-        "splint armor": "heavy",
-        "plate armor": "heavy",
-        "shield": "shield",
-    }
-
-    def _armor_profs(self) -> set[str]:
-        out: set[str] = set()
-        for p in (self.character.character_class or {}).get("armor_proficiencies", []):
-            t = str(p).lower()
-            for k in ("shield", "heavy", "medium", "light"):
-                if k in t:
-                    out.add(k)
-        return out
-
-    def _can_equip_armor(self, armor_key: str) -> tuple[bool, str]:
-        req = self.ARMOR_REQUIRED.get(armor_key, "light")
-        if req in self._armor_profs():
-            return True, ""
-        label = "Shields" if req == "shield" else f"{req.title()} armor"
-        return False, f"{self.character.class_name} is not proficient with {label}."
-
-    def _has_weapon_proficiency(self, weapon_key: str) -> bool:
-        cls = self.character.character_class or {}
-        profs = [str(p).lower() for p in cls.get("weapon_proficiencies", [])]
-        if any(weapon_key in p for p in profs):
-            return True
-        meta = WEAPON_DATA.get(weapon_key, {})
-        cat = meta.get("category", "")
-        if cat == "simple" and any("simple" in p for p in profs):
-            return True
-        if cat == "martial" and any("martial" in p for p in profs):
-            return True
-        return False
-
-    # ── Inventory split view ────────────────────────────────────
-
-    def _render_inventory_split_view(self):
-        split = ttk.LabelFrame(self._inventory_parent, text="Item Details")
-        split.pack(fill=tk.BOTH, expand=True, pady=3)
-        split.columnconfigure(0, weight=1)
-        split.columnconfigure(1, weight=1)
-        split.rowconfigure(0, weight=1)
-
-        # ── Left: Treeview with Equip / Item / Qty columns ──
-        left = ttk.Frame(split)
-        left.grid(row=0, column=0, sticky="nsew", padx=(8, 6), pady=(0, 8))
-        left.rowconfigure(0, weight=1)
-        left.columnconfigure(0, weight=1)
-
-        self.inv_tree = ttk.Treeview(
-            left,
-            columns=("equip", "qty"),
-            show="tree headings",
-            selectmode="browse",
-        )
-        self.inv_tree.heading("#0", text="Item", anchor="w")
-        self.inv_tree.heading("equip", text="Equip", anchor="center")
-        self.inv_tree.heading("qty", text="Qty", anchor="center")
-
-        self.inv_tree.column("#0", width=300, minwidth=140, stretch=True, anchor="w")
-        self.inv_tree.column(
-            "equip", width=55, minwidth=55, stretch=False, anchor="center"
-        )
-        self.inv_tree.column(
-            "qty", width=45, minwidth=45, stretch=False, anchor="center"
-        )
-
-        tree_scroll = ttk.Scrollbar(
-            left, orient=tk.VERTICAL, command=self.inv_tree.yview
-        )
-        self.inv_tree.configure(yscrollcommand=tree_scroll.set)
-        self.inv_tree.grid(row=0, column=0, sticky="nsew")
-        tree_scroll.grid(row=0, column=1, sticky="ns")
-
-        self.inv_tree.bind("<<TreeviewSelect>>", self._on_tree_select)
-        self.inv_tree.bind("<ButtonRelease-1>", self._on_tree_click)
-
-        self._inv_tree_entries: dict[str, dict] = {}
-
-        # ── Right: detail panel ──
-        right = ttk.Frame(split)
-        right.grid(row=0, column=1, sticky="nsew", padx=(0, 8), pady=(0, 8))
-        right.columnconfigure(0, weight=1)
-        right.rowconfigure(1, weight=1)
-
-        self.inventory_detail_title = ttk.Label(
-            right, text="Select an item", style="Subheading.TLabel"
-        )
-        self.inventory_detail_title.grid(row=0, column=0, sticky="w", pady=(0, 4))
-
-        self.inventory_detail_text = tk.Text(
-            right,
-            wrap=tk.WORD,
-            bg=COLORS["bg_light"],
-            fg=COLORS["fg"],
-            font=FONTS["body"],
-            borderwidth=0,
-            highlightthickness=0,
-            relief=tk.FLAT,
-            state=tk.DISABLED,
-            spacing1=2,
-            spacing3=2,
-            padx=10,
-            pady=8,
-        )
-        self.inventory_detail_text.grid(row=1, column=0, sticky="nsew")
-
-        actions = ttk.Frame(right)
-        actions.grid(row=2, column=0, sticky="e", pady=(6, 0))
-
-        self.remove_one_btn = ttk.Button(
-            actions,
-            text="Remove one",
-            command=self._remove_one_selected_item,
-            state=tk.DISABLED,
-        )
-        self.remove_one_btn.pack(side=tk.LEFT)
-
-        self.remove_all_btn = ttk.Button(
-            actions,
-            text="Remove all",
-            command=self._remove_all_selected_item,
-            state=tk.DISABLED,
-        )
-        self.remove_all_btn.pack(side=tk.LEFT, padx=(6, 0))
-
-        self._refresh_inventory_split_items()
-
-    _EQUIP_CHECK = "\u2611"  # ☑
-    _EQUIP_UNCHECK = "\u2610"  # ☐
-    _SECTION_PREFIX = "\u2500\u2500 "  # ──
-    _SECTION_SUFFIX = " \u2500\u2500"  #  ──
-
-    def _refresh_inventory_split_items(self):
-        weapon_counts, armor_counts, inv_entries = self._effective_inventory_pools()
-        equipped_weapons = set(self.character.equipped_weapons or [])
-        equipped_armor = set(self.character.equipped_armor or [])
-
-        self._inv_tree_entries = {}
-        self.inv_tree.delete(*self.inv_tree.get_children())
-
-        # ── Weapons section ──
-        self.inv_tree.insert(
-            "",
-            tk.END,
-            text=f"{self._SECTION_PREFIX}Equipment • Weapons{self._SECTION_SUFFIX}",
-            values=("", ""),
-            tags=("section",),
-        )
-        for key in sorted(weapon_counts.keys()):
-            qty = weapon_counts[key]
-            name = key.title()
-            equipped = key in equipped_weapons
-            check = self._EQUIP_CHECK if equipped else self._EQUIP_UNCHECK
-            iid = self.inv_tree.insert(
-                "",
-                tk.END,
-                text=name,
-                values=(check, str(qty)),
-            )
-            self._inv_tree_entries[iid] = {
-                "name": name,
-                "key": key,
-                "qty": qty,
-                "category": "Weapons",
-                "equippable": True,
-                "equipped": equipped,
-            }
-
-        # ── Armor section ──
-        self.inv_tree.insert(
-            "",
-            tk.END,
-            text=f"{self._SECTION_PREFIX}Equipment • Armor & Shields{self._SECTION_SUFFIX}",
-            values=("", ""),
-            tags=("section",),
-        )
-        ac_order_keys = [normalize_item_key(n) for n in ARMOR_AC_ORDER]
-        ordered_armor_keys = [k for k in ac_order_keys if k in armor_counts]
-        remaining_armor_keys = sorted(
-            k for k in armor_counts if k not in set(ac_order_keys)
-        )
-        for key in ordered_armor_keys + remaining_armor_keys:
-            qty = armor_counts[key]
-            name = key.title()
-            equipped = key in equipped_armor
-            check = self._EQUIP_CHECK if equipped else self._EQUIP_UNCHECK
-            iid = self.inv_tree.insert(
-                "",
-                tk.END,
-                text=name,
-                values=(check, str(qty)),
-            )
-            self._inv_tree_entries[iid] = {
-                "name": name,
-                "key": key,
-                "qty": qty,
-                "category": "Armor",
-                "equippable": True,
-                "equipped": equipped,
-            }
-
-        # ── Inventory section ──
-        if inv_entries:
-            self.inv_tree.insert(
-                "",
-                tk.END,
-                text=f"{self._SECTION_PREFIX}Inventory{self._SECTION_SUFFIX}",
-                values=("", ""),
-                tags=("section",),
-            )
-            for e in sorted(inv_entries, key=lambda x: x.get("name", "").casefold()):
-                iid = self.inv_tree.insert(
-                    "",
-                    tk.END,
-                    text=e["name"],
-                    values=("", str(e["qty"])),
-                )
-                self._inv_tree_entries[iid] = {
-                    "name": e["name"],
-                    "key": e["key"],
-                    "qty": e["qty"],
-                    "category": "Inventory",
-                    "equippable": False,
-                    "equipped": False,
-                }
-                # Show pack/container sub-items as clickable children
-                container = _container_contents(e["name"])
-                if container:
-                    _, contents = container
-                    for sub in contents:
-                        sub_name = sub.strip()
-                        clean_sub_name, sub_qty = self._parse_item_qty(sub_name)
-                        total_sub_qty = max(1, int(e.get("qty", 1))) * sub_qty
-                        sub_key = normalize_item_key(clean_sub_name)
-                        removed_sub_qty = int(
-                            (getattr(self.character, "removed_items", {}) or {}).get(
-                                sub_key, 0
-                            )
-                        )
-                        remaining_sub_qty = max(0, total_sub_qty - removed_sub_qty)
-                        if remaining_sub_qty <= 0:
-                            continue
-                        sub_iid = self.inv_tree.insert(
-                            iid,
-                            tk.END,
-                            text=f"  {clean_sub_name}",
-                            values=("", str(remaining_sub_qty)),
-                            tags=("subitem",),
-                        )
-                        self._inv_tree_entries[sub_iid] = {
-                            "name": clean_sub_name,
-                            "key": sub_key,
-                            "qty": remaining_sub_qty,
-                            "category": "Inventory",
-                            "equippable": False,
-                            "equipped": False,
-                            "is_subitem": True,
-                            "parent_name": e["name"],
-                        }
-                    self.inv_tree.item(iid, open=True)
-
-        # Style section header rows and sub-items
-        self.inv_tree.tag_configure("section", foreground=COLORS["accent"])
-        self.inv_tree.tag_configure("subitem", foreground=COLORS["fg_dim"])
-
-        # Restore selection
-        if self._selected_inventory_name:
-            for iid, entry in self._inv_tree_entries.items():
-                if entry.get("name") == self._selected_inventory_name:
-                    self.inv_tree.selection_set(iid)
-                    self.inv_tree.see(iid)
-                    self._on_inventory_select_entry(entry)
-                    return
-
-        # Select first item
-        for iid in self.inv_tree.get_children():
-            if iid in self._inv_tree_entries:
-                self.inv_tree.selection_set(iid)
-                self.inv_tree.see(iid)
-                self._on_inventory_select_entry(self._inv_tree_entries[iid])
-                return
-
-        self._selected_inventory_name = ""
-        self.remove_one_btn.configure(state=tk.DISABLED)
-        self.remove_all_btn.configure(state=tk.DISABLED)
-        self.inventory_detail_title.configure(text="No items")
-        self._set_inventory_detail_text("No inventory items available.")
-
-    def _on_tree_select(self, event=None):
-        sel = self.inv_tree.selection()
-        if not sel:
-            return
-        iid = sel[0]
-        entry = self._inv_tree_entries.get(iid)
-        if not entry:
-            return
-        self._on_inventory_select_entry(entry)
-
-    def _on_tree_click(self, event=None):
-        if event is None:
-            return
-        region = self.inv_tree.identify_region(event.x, event.y)
-        if region != "cell":
-            return
-        col = self.inv_tree.identify_column(event.x)
-        if col != "#1":  # Equip column
-            return
-        iid = self.inv_tree.identify_row(event.y)
-        if not iid:
-            return
-        entry = self._inv_tree_entries.get(iid)
-        if not entry or not entry.get("equippable"):
-            return
-        self._toggle_equip(iid, entry)
-
-    def _toggle_equip(self, iid: str, entry: dict):
-        key = entry["key"]
-        cat = entry["category"]
-        currently_equipped = entry.get("equipped", False)
-        new_state = not currently_equipped
-
-        if cat == "Weapons":
-            equipped = list(self.character.equipped_weapons or [])
-            if new_state:
-                if not self._has_weapon_proficiency(key):
-                    AlertDialog(
-                        self.winfo_toplevel(),
-                        "Weapon Proficiency",
-                        f"You are not proficient with {key.title()}. "
-                        "You can still equip it, but your proficiency bonus "
-                        "will not be added to attack rolls.",
-                    )
-                if key not in equipped:
-                    equipped.append(key)
-            else:
-                equipped = [w for w in equipped if w != key]
-            self.character.equipped_weapons = sorted(equipped)
-
-        elif cat == "Armor":
-            equipped = list(self.character.equipped_armor or [])
-            if new_state:
-                ok, reason = self._can_equip_armor(key)
-                if not ok:
-                    AlertDialog(
-                        self.winfo_toplevel(),
-                        "Armor Training Required",
-                        reason,
-                    )
-                    return
-                if key != "shield":
-                    equipped = [a for a in equipped if a == "shield"]
-                if key not in equipped:
-                    equipped.append(key)
-            else:
-                equipped = [a for a in equipped if a != key]
-            self.character.equipped_armor = self._normalize_equipped_armor(
-                set(equipped)
-            )
-
-        self._on_sheet_changed()
-
-        # Sync all equip visuals to match actual character state
-        current_weapons = set(self.character.equipped_weapons or [])
-        current_armor = set(self.character.equipped_armor or [])
-        for tree_iid, tree_entry in self._inv_tree_entries.items():
-            if not tree_entry.get("equippable"):
-                continue
-            ekey = tree_entry["key"]
-            ecat = tree_entry["category"]
-            if ecat == "Weapons":
-                is_eq = ekey in current_weapons
-            elif ecat == "Armor":
-                is_eq = ekey in current_armor
-            else:
-                continue
-            tree_entry["equipped"] = is_eq
-            self.inv_tree.set(
-                tree_iid,
-                "equip",
-                self._EQUIP_CHECK if is_eq else self._EQUIP_UNCHECK,
-            )
-
-        # Update detail panel for selected item
-        self._on_inventory_select_entry(entry)
-
-    def _on_inventory_select_entry(self, entry: dict):
-        self._selected_inventory_name = entry.get("name", "")
-        qty = int(entry.get("qty", 1) or 1)
-        self.remove_one_btn.configure(state=tk.NORMAL)
-        self.remove_all_btn.configure(state=tk.DISABLED if qty <= 1 else tk.NORMAL)
-        self._show_inventory_details(entry)
-
-    def _find_item_record(self, entry: dict) -> dict | None:
-        key = entry.get("key", "")
-        for ent in getattr(self.character, "custom_inventory", []) or []:
-            if normalize_item_key(ent.get("name", "")) != key:
-                continue
-            item_id = str(ent.get("item_id", ""))
-            if (
-                item_id
-                and self.data
-                and item_id in getattr(self.data, "items_by_id", {})
-            ):
-                return self.data.items_by_id[item_id]
-
-        raw_name = str(entry.get("name", "")).strip()
-        variants = {key, normalize_item_key(raw_name)}
-
-        no_paren = re.sub(r"\s*\([^)]*\)", "", raw_name).strip()
-        if no_paren:
-            variants.add(normalize_item_key(no_paren))
-
-        no_comma = raw_name.replace(",", " ")
-        if no_comma:
-            variants.add(normalize_item_key(no_comma))
-
-        for var in list(variants):
-            if var.endswith("s") and len(var) > 3:
-                variants.add(var[:-1])
-
-        for var in variants:
-            if var in self._item_by_norm_name:
-                return self._item_by_norm_name[var]
-
-        for var in sorted(variants, key=len, reverse=True):
-            if len(var) < 4:
-                continue
-            for item_key, item in self._item_by_norm_name.items():
-                if var in item_key or item_key in var:
-                    return item
-
-        return None
-
-    def _on_inventory_select(self, label: str):
-        entry = self._inventory_entries_by_name.get(label)
-        if not entry:
-            self.remove_one_btn.configure(state=tk.DISABLED)
-            self.remove_all_btn.configure(state=tk.DISABLED)
-            return
-        self._on_inventory_select_entry(entry)
-
-    def _show_inventory_details(self, entry: dict):
-        self.inventory_detail_title.configure(text=entry.get("name", "Item"))
-        record = self._find_item_record(entry)
-
-        lines = []
-        if entry.get("is_subitem"):
-            lines.append(f"Part of: {entry.get('parent_name', 'Unknown')}")
-        else:
-            lines.append(f"Category: {entry.get('category', 'Unknown')}")
-            lines.append(f"Quantity: {entry.get('qty', 1)}")
-        if entry.get("equippable"):
-            lines.append(f"Equipped: {'Yes' if entry.get('equipped') else 'No'}")
-        if record:
-            item_type = str(record.get("type", "")).strip() or "Item"
-            lines.append(f"Type: {item_type}")
-            if record.get("category") == "Magic Items":
-                lines.append(f"Rarity: {record.get('rarity', 'Unknown')}")
-            cost_cp = int(record.get("cost_cp", 0))
-            if cost_cp > 0:
-                lines.append(f"Cost: {format_coins(cost_cp, compact=True)}")
-            else:
-                lines.append("Cost: Varies/Unavailable")
-            lines.append("")
-            desc = record.get("full_description") or record.get("description") or ""
-            desc = desc.strip()
-            cat = str(record.get("category", "")).lower()
-            if desc and cat in ("weapons", "armor"):
-                for part in desc.split(";"):
-                    part = part.strip()
-                    if part:
-                        lines.append(part)
-            else:
-                lines.append(
-                    desc.replace("; Function:", "\nFunction:")
-                    if desc
-                    else "No description available."
-                )
-            sub = record.get("sub_items") or []
-            if sub:
-                lines.append("")
-                lines.append("Contains:")
-                lines.extend([f"- {s}" for s in sub])
-        else:
-            weapon_meta = WEAPON_DATA.get(entry.get("key", ""), {})
-            container = _container_contents(entry.get("name", ""))
-            lines.append("")
-            if weapon_meta:
-                dmg = weapon_meta.get("damage", "-")
-                props = ", ".join(weapon_meta.get("properties", []) or []) or "None"
-                mastery = weapon_meta.get("mastery") or "-"
-                lines.append(f"Damage: {dmg}")
-                lines.append(f"Properties: {props}")
-                lines.append(f"Mastery: {mastery}")
-            elif container:
-                _, contents = container
-                lines.append("Contains:")
-                lines.extend([f"- {c}" for c in contents])
-            else:
-                lines.append(
-                    "No description available for this item in the current data set."
-                )
-
-        self._set_inventory_detail_text("\n".join(lines))
-
-    def _set_inventory_detail_text(self, text: str):
-        self.inventory_detail_text.configure(state=tk.NORMAL)
-        self.inventory_detail_text.delete("1.0", tk.END)
-        self.inventory_detail_text.insert("1.0", text)
-        self.inventory_detail_text.configure(state=tk.DISABLED)
-
-    def _normalize_equipped_armor(self, keys: set[str]) -> list[str]:
-        has_shield = "shield" in keys
-        body = sorted(k for k in keys if k != "shield")
-        out = []
-        if has_shield:
-            out.append("shield")
-        out.extend(body[:1])
-        return out
-
-    def _remove_selected_item(self):
-        self._remove_selected_item_qty(remove_all=False)
-
-    def _remove_one_selected_item(self):
-        self._remove_selected_item_qty(remove_all=False)
-
-    def _remove_all_selected_item(self):
-        self._remove_selected_item_qty(remove_all=True)
-
-    def _remove_selected_item_qty(self, remove_all: bool):
-        sel = self.inv_tree.selection()
-        if not sel:
-            return
-        iid = sel[0]
-        entry = self._inv_tree_entries.get(iid)
-        if not entry:
-            return
-        qty = max(1, int(entry.get("qty", 1) or 1)) if remove_all else 1
-
-        ok, msg = remove_item(self.character, entry.get("name", ""), qty=qty)
-        if not ok:
-            AlertDialog(self.winfo_toplevel(), "Remove Item", msg)
-            return
-
-        weapon_counts, armor_counts, _ = self._effective_inventory_pools()
-        self.character.equipped_weapons = [
-            w for w in (self.character.equipped_weapons or []) if w in weapon_counts
-        ]
-        self.character.equipped_armor = self._normalize_equipped_armor(
-            {a for a in (self.character.equipped_armor or []) if a in armor_counts}
-        )
-
-        self._on_sheet_changed()
-        self._refresh_tab("inventory")
+    # ================================================================
+    # Shared spell helpers
+    # ================================================================
 
     def _refresh_spells_tab(self):
         cantrips = list(dict.fromkeys(self.character.selected_cantrips or []))
@@ -1382,22 +1429,683 @@ class CharacterViewer(ttk.Frame):
 
         self.spell_detail_text.configure(state=tk.DISABLED)
 
+    # ================================================================
+    # Inventory helpers (preserved from original)
+    # ================================================================
+
+    def _parse_item_qty(self, text: str) -> tuple[str, int]:
+        raw = str(text or "").strip()
+        parts = raw.split(" ", 1)
+        qty = 1
+        name = raw
+        if len(parts) == 2 and parts[0].isdigit():
+            qty = max(1, int(parts[0]))
+            name = parts[1].strip()
+
+        m = re.match(r"^(.*)\((\d+)(?:\s+([^)]+))?\)\s*$", name)
+        if m:
+            stripped = m.group(1).strip()
+            paren_qty = max(1, int(m.group(2)))
+            qualifier = str(m.group(3) or "").strip().lower()
+            is_quantity_suffix = (not qualifier) or qualifier in {"day", "days"}
+            if not is_quantity_suffix:
+                return name, qty
+            if stripped:
+                name = stripped
+            qty *= paren_qty
+
+        return name, qty
+
+    def _effective_inventory_pools(self):
+        c = self.character
+        weapon_counts = dict(get_selected_weapon_counts(c))
+        armor_counts = dict(get_selected_armor_counts(c))
+        inventory_items = list(get_selected_non_weapon_items(c))
+
+        for ent in getattr(c, "custom_inventory", []) or []:
+            name = str(ent.get("name", "")).strip()
+            if not name:
+                continue
+            qty = max(1, int(ent.get("qty", 1)))
+            category = str(ent.get("category", "Adventuring Gear"))
+            key = normalize_item_key(name)
+            if category == "Weapons":
+                weapon_counts[key] = weapon_counts.get(key, 0) + qty
+            elif category == "Armor":
+                armor_counts[key] = armor_counts.get(key, 0) + qty
+            else:
+                inventory_items.append(f"{qty} {name}" if qty > 1 else name)
+
+        removed = {
+            normalize_item_key(k): int(v)
+            for k, v in (getattr(c, "removed_items", {}) or {}).items()
+            if int(v) > 0
+        }
+
+        for key, rem in removed.items():
+            if key in weapon_counts:
+                weapon_counts[key] = max(0, weapon_counts[key] - rem)
+                if weapon_counts[key] <= 0:
+                    weapon_counts.pop(key, None)
+            if key in armor_counts:
+                armor_counts[key] = max(0, armor_counts[key] - rem)
+                if armor_counts[key] <= 0:
+                    armor_counts.pop(key, None)
+
+        inv_map: dict[str, int] = {}
+        inv_name: dict[str, str] = {}
+        order: list[str] = []
+        for line in inventory_items:
+            base_name, qty = self._parse_item_qty(line)
+            if not base_name:
+                continue
+            key = normalize_item_key(base_name)
+            if key not in inv_map:
+                order.append(key)
+                inv_name[key] = base_name
+            inv_map[key] = inv_map.get(key, 0) + qty
+
+        for key, rem in removed.items():
+            if key in inv_map:
+                inv_map[key] = max(0, inv_map[key] - rem)
+
+        inv_entries = []
+        for key in order:
+            qty = inv_map.get(key, 0)
+            if qty <= 0:
+                continue
+            inv_entries.append({"name": inv_name[key], "key": key, "qty": qty})
+
+        return weapon_counts, armor_counts, inv_entries
+
+    # ── Armor proficiency helpers ──
+
+    ARMOR_REQUIRED = {
+        "padded armor": "light",
+        "leather armor": "light",
+        "studded leather armor": "light",
+        "hide armor": "medium",
+        "chain shirt": "medium",
+        "scale mail": "medium",
+        "breastplate": "medium",
+        "half plate armor": "medium",
+        "ring mail": "heavy",
+        "chain mail": "heavy",
+        "splint armor": "heavy",
+        "plate armor": "heavy",
+        "shield": "shield",
+    }
+
+    def _armor_profs(self) -> set[str]:
+        out: set[str] = set()
+        for p in (self.character.character_class or {}).get("armor_proficiencies", []):
+            t = str(p).lower()
+            for k in ("shield", "heavy", "medium", "light"):
+                if k in t:
+                    out.add(k)
+        return out
+
+    def _can_equip_armor(self, armor_key: str) -> tuple[bool, str]:
+        req = self.ARMOR_REQUIRED.get(armor_key, "light")
+        if req in self._armor_profs():
+            return True, ""
+        label = "Shields" if req == "shield" else f"{req.title()} armor"
+        return False, f"{self.character.class_name} is not proficient with {label}."
+
+    def _has_weapon_proficiency(self, weapon_key: str) -> bool:
+        cls = self.character.character_class or {}
+        profs = [str(p).lower() for p in cls.get("weapon_proficiencies", [])]
+        if any(weapon_key in p for p in profs):
+            return True
+        meta = WEAPON_DATA.get(weapon_key, {})
+        cat = meta.get("category", "")
+        if cat == "simple" and any("simple" in p for p in profs):
+            return True
+        if cat == "martial" and any("martial" in p for p in profs):
+            return True
+        return False
+
+    # ── Inventory split view ──
+
+    def _render_inventory_split_view(self):
+        parent = self._inventory_parent
+
+        split = tk.Frame(parent, bg=COLORS["bg_surface"])
+        split.pack(fill=tk.BOTH, expand=True, pady=3)
+        split.columnconfigure(0, weight=1)
+        split.columnconfigure(1, weight=1)
+        split.rowconfigure(0, weight=1)
+
+        # Left: Treeview
+        left = tk.Frame(split, bg=COLORS["bg_surface"])
+        left.grid(row=0, column=0, sticky="nsew", padx=(8, 6), pady=8)
+        left.rowconfigure(0, weight=1)
+        left.columnconfigure(0, weight=1)
+
+        self.inv_tree = ttk.Treeview(
+            left,
+            columns=("equip", "qty"),
+            show="tree headings",
+            selectmode="browse",
+        )
+        self.inv_tree.heading("#0", text="Item", anchor="w")
+        self.inv_tree.heading("equip", text="Equip", anchor="center")
+        self.inv_tree.heading("qty", text="Qty", anchor="center")
+
+        self.inv_tree.column("#0", width=300, minwidth=140, stretch=True, anchor="w")
+        self.inv_tree.column(
+            "equip", width=55, minwidth=55, stretch=False, anchor="center"
+        )
+        self.inv_tree.column(
+            "qty", width=45, minwidth=45, stretch=False, anchor="center"
+        )
+
+        tree_scroll = ttk.Scrollbar(
+            left, orient=tk.VERTICAL, command=self.inv_tree.yview
+        )
+        self.inv_tree.configure(yscrollcommand=tree_scroll.set)
+        self.inv_tree.grid(row=0, column=0, sticky="nsew")
+        tree_scroll.grid(row=0, column=1, sticky="ns")
+
+        self.inv_tree.bind("<<TreeviewSelect>>", self._on_tree_select)
+        self.inv_tree.bind("<ButtonRelease-1>", self._on_tree_click)
+
+        self._inv_tree_entries: dict[str, dict] = {}
+
+        # Right: detail panel
+        right = tk.Frame(split, bg=COLORS["bg_surface"])
+        right.grid(row=0, column=1, sticky="nsew", padx=(0, 8), pady=8)
+        right.columnconfigure(0, weight=1)
+        right.rowconfigure(1, weight=1)
+
+        self.inventory_detail_title = tk.Label(
+            right,
+            text="Select an item",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        )
+        self.inventory_detail_title.grid(row=0, column=0, sticky="w", pady=(0, 4), padx=8)
+
+        self.inventory_detail_text = tk.Text(
+            right,
+            wrap=tk.WORD,
+            bg=COLORS["bg_container"],
+            fg=COLORS["fg"],
+            font=FONTS["body"],
+            borderwidth=0,
+            highlightthickness=0,
+            relief=tk.FLAT,
+            state=tk.DISABLED,
+            spacing1=2,
+            spacing3=2,
+            padx=10,
+            pady=8,
+        )
+        self.inventory_detail_text.grid(row=1, column=0, sticky="nsew", padx=8)
+
+        actions = tk.Frame(right, bg=COLORS["bg_surface"])
+        actions.grid(row=2, column=0, sticky="e", pady=(6, 0), padx=8)
+
+        self.remove_one_btn = ttk.Button(
+            actions,
+            text="Remove one",
+            command=self._remove_one_selected_item,
+            state=tk.DISABLED,
+        )
+        self.remove_one_btn.pack(side=tk.LEFT)
+
+        self.remove_all_btn = ttk.Button(
+            actions,
+            text="Remove all",
+            command=self._remove_all_selected_item,
+            state=tk.DISABLED,
+        )
+        self.remove_all_btn.pack(side=tk.LEFT, padx=(6, 0))
+
+        self._refresh_inventory_split_items()
+
+    _EQUIP_CHECK = "\u2611"
+    _EQUIP_UNCHECK = "\u2610"
+    _SECTION_PREFIX = "\u2500\u2500 "
+    _SECTION_SUFFIX = " \u2500\u2500"
+
+    def _refresh_inventory_split_items(self):
+        weapon_counts, armor_counts, inv_entries = self._effective_inventory_pools()
+        equipped_weapons = set(self.character.equipped_weapons or [])
+        equipped_armor = set(self.character.equipped_armor or [])
+
+        self._inv_tree_entries = {}
+        self.inv_tree.delete(*self.inv_tree.get_children())
+
+        # Weapons section
+        self.inv_tree.insert(
+            "",
+            tk.END,
+            text=f"{self._SECTION_PREFIX}Equipment \u2022 Weapons{self._SECTION_SUFFIX}",
+            values=("", ""),
+            tags=("section",),
+        )
+        for key in sorted(weapon_counts.keys()):
+            qty = weapon_counts[key]
+            name = key.title()
+            equipped = key in equipped_weapons
+            check = self._EQUIP_CHECK if equipped else self._EQUIP_UNCHECK
+            iid = self.inv_tree.insert(
+                "",
+                tk.END,
+                text=name,
+                values=(check, str(qty)),
+            )
+            self._inv_tree_entries[iid] = {
+                "name": name,
+                "key": key,
+                "qty": qty,
+                "category": "Weapons",
+                "equippable": True,
+                "equipped": equipped,
+            }
+
+        # Armor section
+        self.inv_tree.insert(
+            "",
+            tk.END,
+            text=f"{self._SECTION_PREFIX}Equipment \u2022 Armor & Shields{self._SECTION_SUFFIX}",
+            values=("", ""),
+            tags=("section",),
+        )
+        ac_order_keys = [normalize_item_key(n) for n in ARMOR_AC_ORDER]
+        ordered_armor_keys = [k for k in ac_order_keys if k in armor_counts]
+        remaining_armor_keys = sorted(
+            k for k in armor_counts if k not in set(ac_order_keys)
+        )
+        for key in ordered_armor_keys + remaining_armor_keys:
+            qty = armor_counts[key]
+            name = key.title()
+            equipped = key in equipped_armor
+            check = self._EQUIP_CHECK if equipped else self._EQUIP_UNCHECK
+            iid = self.inv_tree.insert(
+                "",
+                tk.END,
+                text=name,
+                values=(check, str(qty)),
+            )
+            self._inv_tree_entries[iid] = {
+                "name": name,
+                "key": key,
+                "qty": qty,
+                "category": "Armor",
+                "equippable": True,
+                "equipped": equipped,
+            }
+
+        # Inventory section
+        if inv_entries:
+            self.inv_tree.insert(
+                "",
+                tk.END,
+                text=f"{self._SECTION_PREFIX}Inventory{self._SECTION_SUFFIX}",
+                values=("", ""),
+                tags=("section",),
+            )
+            for e in sorted(inv_entries, key=lambda x: x.get("name", "").casefold()):
+                iid = self.inv_tree.insert(
+                    "",
+                    tk.END,
+                    text=e["name"],
+                    values=("", str(e["qty"])),
+                )
+                self._inv_tree_entries[iid] = {
+                    "name": e["name"],
+                    "key": e["key"],
+                    "qty": e["qty"],
+                    "category": "Inventory",
+                    "equippable": False,
+                    "equipped": False,
+                }
+                container = _container_contents(e["name"])
+                if container:
+                    _, contents = container
+                    for sub in contents:
+                        sub_name = sub.strip()
+                        clean_sub_name, sub_qty = self._parse_item_qty(sub_name)
+                        total_sub_qty = max(1, int(e.get("qty", 1))) * sub_qty
+                        sub_key = normalize_item_key(clean_sub_name)
+                        removed_sub_qty = int(
+                            (getattr(self.character, "removed_items", {}) or {}).get(
+                                sub_key, 0
+                            )
+                        )
+                        remaining_sub_qty = max(0, total_sub_qty - removed_sub_qty)
+                        if remaining_sub_qty <= 0:
+                            continue
+                        sub_iid = self.inv_tree.insert(
+                            iid,
+                            tk.END,
+                            text=f"  {clean_sub_name}",
+                            values=("", str(remaining_sub_qty)),
+                            tags=("subitem",),
+                        )
+                        self._inv_tree_entries[sub_iid] = {
+                            "name": clean_sub_name,
+                            "key": sub_key,
+                            "qty": remaining_sub_qty,
+                            "category": "Inventory",
+                            "equippable": False,
+                            "equipped": False,
+                            "is_subitem": True,
+                            "parent_name": e["name"],
+                        }
+                    self.inv_tree.item(iid, open=True)
+
+        self.inv_tree.tag_configure("section", foreground=COLORS["accent_text"])
+        self.inv_tree.tag_configure("subitem", foreground=COLORS["fg_dim"])
+
+        # Restore selection
+        if self._selected_inventory_name:
+            for iid, entry in self._inv_tree_entries.items():
+                if entry.get("name") == self._selected_inventory_name:
+                    self.inv_tree.selection_set(iid)
+                    self.inv_tree.see(iid)
+                    self._on_inventory_select_entry(entry)
+                    return
+
+        for iid in self.inv_tree.get_children():
+            if iid in self._inv_tree_entries:
+                self.inv_tree.selection_set(iid)
+                self.inv_tree.see(iid)
+                self._on_inventory_select_entry(self._inv_tree_entries[iid])
+                return
+
+        self._selected_inventory_name = ""
+        self.remove_one_btn.configure(state=tk.DISABLED)
+        self.remove_all_btn.configure(state=tk.DISABLED)
+        self.inventory_detail_title.configure(text="No items")
+        self._set_inventory_detail_text("No inventory items available.")
+
+    def _on_tree_select(self, event=None):
+        sel = self.inv_tree.selection()
+        if not sel:
+            return
+        iid = sel[0]
+        entry = self._inv_tree_entries.get(iid)
+        if not entry:
+            return
+        self._on_inventory_select_entry(entry)
+
+    def _on_tree_click(self, event=None):
+        if event is None:
+            return
+        region = self.inv_tree.identify_region(event.x, event.y)
+        if region != "cell":
+            return
+        col = self.inv_tree.identify_column(event.x)
+        if col != "#1":
+            return
+        iid = self.inv_tree.identify_row(event.y)
+        if not iid:
+            return
+        entry = self._inv_tree_entries.get(iid)
+        if not entry or not entry.get("equippable"):
+            return
+        self._toggle_equip(iid, entry)
+
+    def _toggle_equip(self, iid: str, entry: dict):
+        key = entry["key"]
+        cat = entry["category"]
+        currently_equipped = entry.get("equipped", False)
+        new_state = not currently_equipped
+
+        if cat == "Weapons":
+            equipped = list(self.character.equipped_weapons or [])
+            if new_state:
+                if not self._has_weapon_proficiency(key):
+                    AlertDialog(
+                        self.winfo_toplevel(),
+                        "Weapon Proficiency",
+                        f"You are not proficient with {key.title()}. "
+                        "You can still equip it, but your proficiency bonus "
+                        "will not be added to attack rolls.",
+                    )
+                if key not in equipped:
+                    equipped.append(key)
+            else:
+                equipped = [w for w in equipped if w != key]
+            self.character.equipped_weapons = sorted(equipped)
+
+        elif cat == "Armor":
+            equipped = list(self.character.equipped_armor or [])
+            if new_state:
+                ok, reason = self._can_equip_armor(key)
+                if not ok:
+                    AlertDialog(
+                        self.winfo_toplevel(),
+                        "Armor Training Required",
+                        reason,
+                    )
+                    return
+                if key != "shield":
+                    equipped = [a for a in equipped if a == "shield"]
+                if key not in equipped:
+                    equipped.append(key)
+            else:
+                equipped = [a for a in equipped if a != key]
+            self.character.equipped_armor = self._normalize_equipped_armor(
+                set(equipped)
+            )
+
+        self._on_sheet_changed()
+
+        current_weapons = set(self.character.equipped_weapons or [])
+        current_armor = set(self.character.equipped_armor or [])
+        for tree_iid, tree_entry in self._inv_tree_entries.items():
+            if not tree_entry.get("equippable"):
+                continue
+            ekey = tree_entry["key"]
+            ecat = tree_entry["category"]
+            if ecat == "Weapons":
+                is_eq = ekey in current_weapons
+            elif ecat == "Armor":
+                is_eq = ekey in current_armor
+            else:
+                continue
+            tree_entry["equipped"] = is_eq
+            self.inv_tree.set(
+                tree_iid,
+                "equip",
+                self._EQUIP_CHECK if is_eq else self._EQUIP_UNCHECK,
+            )
+
+        self._on_inventory_select_entry(entry)
+
+    def _on_inventory_select_entry(self, entry: dict):
+        self._selected_inventory_name = entry.get("name", "")
+        qty = int(entry.get("qty", 1) or 1)
+        self.remove_one_btn.configure(state=tk.NORMAL)
+        self.remove_all_btn.configure(state=tk.DISABLED if qty <= 1 else tk.NORMAL)
+        self._show_inventory_details(entry)
+
+    def _find_item_record(self, entry: dict) -> dict | None:
+        key = entry.get("key", "")
+        for ent in getattr(self.character, "custom_inventory", []) or []:
+            if normalize_item_key(ent.get("name", "")) != key:
+                continue
+            item_id = str(ent.get("item_id", ""))
+            if (
+                item_id
+                and self.data
+                and item_id in getattr(self.data, "items_by_id", {})
+            ):
+                return self.data.items_by_id[item_id]
+
+        raw_name = str(entry.get("name", "")).strip()
+        variants = {key, normalize_item_key(raw_name)}
+
+        no_paren = re.sub(r"\s*\([^)]*\)", "", raw_name).strip()
+        if no_paren:
+            variants.add(normalize_item_key(no_paren))
+
+        no_comma = raw_name.replace(",", " ")
+        if no_comma:
+            variants.add(normalize_item_key(no_comma))
+
+        for var in list(variants):
+            if var.endswith("s") and len(var) > 3:
+                variants.add(var[:-1])
+
+        for var in variants:
+            if var in self._item_by_norm_name:
+                return self._item_by_norm_name[var]
+
+        for var in sorted(variants, key=len, reverse=True):
+            if len(var) < 4:
+                continue
+            for item_key, item in self._item_by_norm_name.items():
+                if var in item_key or item_key in var:
+                    return item
+
+        return None
+
+    def _show_inventory_details(self, entry: dict):
+        self.inventory_detail_title.configure(text=entry.get("name", "Item"))
+        record = self._find_item_record(entry)
+
+        lines = []
+        if entry.get("is_subitem"):
+            lines.append(f"Part of: {entry.get('parent_name', 'Unknown')}")
+        else:
+            lines.append(f"Category: {entry.get('category', 'Unknown')}")
+            lines.append(f"Quantity: {entry.get('qty', 1)}")
+        if entry.get("equippable"):
+            lines.append(f"Equipped: {'Yes' if entry.get('equipped') else 'No'}")
+        if record:
+            item_type = str(record.get("type", "")).strip() or "Item"
+            lines.append(f"Type: {item_type}")
+            if record.get("category") == "Magic Items":
+                lines.append(f"Rarity: {record.get('rarity', 'Unknown')}")
+            cost_cp = int(record.get("cost_cp", 0))
+            if cost_cp > 0:
+                lines.append(f"Cost: {format_coins(cost_cp, compact=True)}")
+            else:
+                lines.append("Cost: Varies/Unavailable")
+            lines.append("")
+            desc = record.get("full_description") or record.get("description") or ""
+            desc = desc.strip()
+            cat = str(record.get("category", "")).lower()
+            if desc and cat in ("weapons", "armor"):
+                for part in desc.split(";"):
+                    part = part.strip()
+                    if part:
+                        lines.append(part)
+            else:
+                lines.append(
+                    desc.replace("; Function:", "\nFunction:")
+                    if desc
+                    else "No description available."
+                )
+            sub = record.get("sub_items") or []
+            if sub:
+                lines.append("")
+                lines.append("Contains:")
+                lines.extend([f"- {s}" for s in sub])
+        else:
+            weapon_meta = WEAPON_DATA.get(entry.get("key", ""), {})
+            container = _container_contents(entry.get("name", ""))
+            lines.append("")
+            if weapon_meta:
+                dmg = weapon_meta.get("damage", "-")
+                props = ", ".join(weapon_meta.get("properties", []) or []) or "None"
+                mastery = weapon_meta.get("mastery") or "-"
+                lines.append(f"Damage: {dmg}")
+                lines.append(f"Properties: {props}")
+                lines.append(f"Mastery: {mastery}")
+            elif container:
+                _, contents = container
+                lines.append("Contains:")
+                lines.extend([f"- {c}" for c in contents])
+            else:
+                lines.append(
+                    "No description available for this item in the current data set."
+                )
+
+        self._set_inventory_detail_text("\n".join(lines))
+
+    def _set_inventory_detail_text(self, text: str):
+        self.inventory_detail_text.configure(state=tk.NORMAL)
+        self.inventory_detail_text.delete("1.0", tk.END)
+        self.inventory_detail_text.insert("1.0", text)
+        self.inventory_detail_text.configure(state=tk.DISABLED)
+
+    def _normalize_equipped_armor(self, keys: set[str]) -> list[str]:
+        has_shield = "shield" in keys
+        body = sorted(k for k in keys if k != "shield")
+        out = []
+        if has_shield:
+            out.append("shield")
+        out.extend(body[:1])
+        return out
+
+    def _remove_one_selected_item(self):
+        self._remove_selected_item_qty(remove_all=False)
+
+    def _remove_all_selected_item(self):
+        self._remove_selected_item_qty(remove_all=True)
+
+    def _remove_selected_item_qty(self, remove_all: bool):
+        sel = self.inv_tree.selection()
+        if not sel:
+            return
+        iid = sel[0]
+        entry = self._inv_tree_entries.get(iid)
+        if not entry:
+            return
+        qty = max(1, int(entry.get("qty", 1) or 1)) if remove_all else 1
+
+        ok, msg = remove_item(self.character, entry.get("name", ""), qty=qty)
+        if not ok:
+            AlertDialog(self.winfo_toplevel(), "Remove Item", msg)
+            return
+
+        weapon_counts, armor_counts, _ = self._effective_inventory_pools()
+        self.character.equipped_weapons = [
+            w for w in (self.character.equipped_weapons or []) if w in weapon_counts
+        ]
+        self.character.equipped_armor = self._normalize_equipped_armor(
+            {a for a in (self.character.equipped_armor or []) if a in armor_counts}
+        )
+
+        self._on_sheet_changed()
+        self._view_dirty[_INVENTORY] = True
+        self._show_view(_INVENTORY)
+
+    # ================================================================
+    # State management
+    # ================================================================
+
     def _on_sheet_changed(self):
         if self.save_path:
             save_character(
                 self.character, characters_dir(), existing_filename=self.save_path
             )
-        self._sync_spells_tab_visibility()
-        # Avoid rebuilding the active tab during interaction; refresh it only
-        # when revisiting to prevent visible flicker.
-        self._mark_tabs_dirty(include_current=False)
+        # Mark all views dirty except current
+        for key in self._view_dirty:
+            if key != self._current_view:
+                self._view_dirty[key] = True
 
-    # ── Navigation ──────────────────────────────────────────────
+    def _mark_all_dirty(self):
+        for key in self._view_dirty:
+            self._view_dirty[key] = True
+
+    # ================================================================
+    # Navigation and actions
+    # ================================================================
 
     def _on_back(self):
+        self._save_biography_fields_to_character()
         self.app.show_home()
 
     def _on_edit(self):
+        self._save_biography_fields_to_character()
         self.app.show_wizard(self.character, self.save_path)
 
     def _on_add_inventory(self):
@@ -1407,7 +2115,8 @@ class CharacterViewer(ttk.Frame):
             self.data,
             on_changed=lambda: (
                 self._on_sheet_changed(),
-                self._refresh_tabs(force=True),
+                self._mark_all_dirty(),
+                self._show_view(self._current_view),
             ),
         )
 
@@ -1417,7 +2126,11 @@ class CharacterViewer(ttk.Frame):
             self.character,
             self.data,
             rest_type="short",
-            on_changed=lambda: (self._on_sheet_changed(), self._refresh_tabs()),
+            on_changed=lambda: (
+                self._on_sheet_changed(),
+                self._mark_all_dirty(),
+                self._show_view(self._current_view),
+            ),
         )
 
     def _on_long_rest(self):
@@ -1426,14 +2139,17 @@ class CharacterViewer(ttk.Frame):
             self.character,
             self.data,
             rest_type="long",
-            on_changed=lambda: (self._on_sheet_changed(), self._refresh_tabs()),
+            on_changed=lambda: (
+                self._on_sheet_changed(),
+                self._mark_all_dirty(),
+                self._show_view(self._current_view),
+            ),
         )
 
     def _on_level_up(self):
         from gui.level_up_wizard import LevelUpWizard
 
         def on_complete():
-            # Save and refresh
             save_character(
                 self.character, characters_dir(), existing_filename=self.save_path
             )
@@ -1441,7 +2157,7 @@ class CharacterViewer(ttk.Frame):
 
         LevelUpWizard(self, self.character, self.data, on_complete=on_complete)
 
-    # ── Exports (same pattern as SummaryStep) ───────────────────
+    # ── Exports ──
 
     def _export_json(self):
         from models.character_store import character_to_save_dict
