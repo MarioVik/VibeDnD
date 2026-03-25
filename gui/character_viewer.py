@@ -840,7 +840,7 @@ class CharacterViewer(ttk.Frame):
 
         tk.Label(
             spell_hero.inner,
-            text="The Spellbook",
+            text="Spellbook",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg_hero"],
@@ -971,7 +971,7 @@ class CharacterViewer(ttk.Frame):
 
         tk.Label(
             inv_hero.inner,
-            text="Vault & Provisions",
+            text="Inventory",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg_hero"],
@@ -1063,50 +1063,48 @@ class CharacterViewer(ttk.Frame):
         parent = self._views[_BACKSTORY]
         c = self.character
 
-        # Main layout: two columns
-        parent.columnconfigure(0, weight=2)
-        parent.columnconfigure(1, weight=1)
-        parent.rowconfigure(0, weight=1)
+        scroll = ScrollableFrame(parent)
+        scroll.pack(fill=tk.BOTH, expand=True)
+        inner = scroll.inner
 
-        # Left column: text areas
-        left = tk.Frame(parent, bg=COLORS["bg"])
-        left.grid(row=0, column=0, sticky="nsew", padx=(SPACING["lg"], SPACING["sm"]), pady=SPACING["lg"])
-        left.columnconfigure(0, weight=1)
-        left.rowconfigure(1, weight=1)
-        left.rowconfigure(3, weight=1)
-        left.rowconfigure(5, weight=1)
-
-        back_hero = GradientHeader(left, min_height=50)
-        back_hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        # Hero header (full width)
+        back_hero = GradientHeader(inner, min_height=50)
+        back_hero.grid(row=0, column=0, columnspan=2, sticky="ew", padx=(SPACING["lg"], 16), pady=(SPACING["lg"], SPACING["section_gap"]))
         tk.Label(
             back_hero.inner,
-            text="The Chronicles",
+            text="Biography",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg_hero"],
         ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
 
-        # Backstory
-        SectionHeader(left, text="Character Backstory").pack(fill=tk.X, pady=(0, 4))
+        # 2x2 grid layout: 4 even tiles
+        inner.columnconfigure(0, weight=1)
+        inner.columnconfigure(1, weight=1)
+        inner.rowconfigure(1, weight=1)
+        inner.rowconfigure(2, weight=1)
 
-        self.bio_backstory_text = self._make_bio_textbox(left)
-        self.bio_backstory_text.pack(fill=tk.BOTH, expand=True, pady=(0, 12))
+        # Top-left: Backstory
+        tl = tk.Frame(inner, bg=COLORS["bg"])
+        tl.grid(row=1, column=0, sticky="nsew", padx=(SPACING["lg"], SPACING["sm"]), pady=(0, SPACING["sm"]))
+        tl.columnconfigure(0, weight=1)
+        tl.rowconfigure(1, weight=1)
+        SectionHeader(tl, text="Character Backstory").pack(fill=tk.X, pady=(0, 4))
+        self.bio_backstory_text = self._make_bio_textbox(tl)
+        self.bio_backstory_text.pack(fill=tk.BOTH, expand=True)
 
-        # Personality
-        SectionHeader(left, text="Personality").pack(fill=tk.X, pady=(0, 4))
+        # Top-right: Personality
+        tr = tk.Frame(inner, bg=COLORS["bg"])
+        tr.grid(row=1, column=1, sticky="nsew", padx=(SPACING["sm"], 16), pady=(0, SPACING["sm"]))
+        tr.columnconfigure(0, weight=1)
+        tr.rowconfigure(1, weight=1)
+        SectionHeader(tr, text="Personality").pack(fill=tk.X, pady=(0, 4))
+        self.bio_personality_text = self._make_bio_textbox(tr)
+        self.bio_personality_text.pack(fill=tk.BOTH, expand=True)
 
-        self.bio_personality_text = self._make_bio_textbox(left)
-        self.bio_personality_text.pack(fill=tk.BOTH, expand=True, pady=(0, 12))
-
-        # Description
-        SectionHeader(left, text="Physical Description").pack(fill=tk.X, pady=(0, 4))
-
-        self.bio_description_text = self._make_bio_textbox(left)
-        self.bio_description_text.pack(fill=tk.BOTH, expand=True)
-
-        # Right column: portrait
-        right = tk.Frame(parent, bg=COLORS["bg_surface"])
-        right.grid(row=0, column=1, sticky="nsew", padx=(8, 16), pady=16)
+        # Bottom-left: Portrait
+        right = tk.Frame(inner, bg=COLORS["bg_surface"])
+        right.grid(row=2, column=0, sticky="nsew", padx=(SPACING["lg"], SPACING["sm"]), pady=(SPACING["sm"], SPACING["lg"]))
         right.columnconfigure(0, weight=1)
         self._bio_portrait_frame = right
 
@@ -1147,6 +1145,15 @@ class CharacterViewer(ttk.Frame):
         ttk.Button(btns, text="Clear Image", command=self._clear_biography_image).pack(
             side=tk.LEFT, padx=(4, 0)
         )
+
+        # Bottom-right: Physical Description
+        br = tk.Frame(inner, bg=COLORS["bg"])
+        br.grid(row=2, column=1, sticky="nsew", padx=(SPACING["sm"], 16), pady=(SPACING["sm"], SPACING["lg"]))
+        br.columnconfigure(0, weight=1)
+        br.rowconfigure(1, weight=1)
+        SectionHeader(br, text="Physical Description").pack(fill=tk.X, pady=(0, 4))
+        self.bio_description_text = self._make_bio_textbox(br)
+        self.bio_description_text.pack(fill=tk.BOTH, expand=True)
 
         for widget in (
             self.bio_backstory_text,
