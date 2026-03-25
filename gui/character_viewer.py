@@ -1044,20 +1044,237 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_hero"],
         ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
 
-        # Use the existing sheet builder logic for features
-        build_character_sheet(
-            inner,
-            c,
-            self.data,
-            on_change=self._on_sheet_changed,
-            compact=True,
-            include_sections={
-                "species_traits",
-                "class_features",
-                "subclass",
-                "feats",
-            },
-        )
+        # ── Species Traits ──
+        if c.species and c.species.get("traits"):
+            SectionHeader(inner, text=f"{c.species_name} Traits").pack(
+                fill=tk.X, pady=(0, SPACING["sm"])
+            )
+            traits_grid = tk.Frame(inner, bg=COLORS["bg"])
+            traits_grid.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+            traits_grid.columnconfigure(0, weight=1)
+            traits_grid.columnconfigure(1, weight=1)
+            for i, trait in enumerate(c.species["traits"]):
+                card = CardFrame(traits_grid, bg=COLORS["bg_container"],
+                                 border_color=COLORS["border_subtle"], pad=SPACING["lg"])
+                card.grid(row=i // 2, column=i % 2, padx=4, pady=4, sticky="nsew")
+                tk.Label(
+                    card.inner,
+                    text=trait["name"],
+                    font=FONTS["heading_serif_sm"],
+                    fg=COLORS["fg"],
+                    bg=COLORS["bg_container"],
+                ).pack(anchor="w")
+                if trait.get("description"):
+                    WrappingLabel(
+                        card.inner,
+                        text=trait["description"],
+                        font=FONTS["body_small"],
+                        foreground=COLORS["fg_dim"],
+                        background=COLORS["bg_container"],
+                    ).pack(fill=tk.X, pady=(6, 0))
+
+        # ── Class Features ──
+        if c.character_class and c.class_levels:
+            feat_title = "Class Features" if c.is_multiclass else f"{c.class_name} Features"
+            SectionHeader(inner, text=feat_title).pack(
+                fill=tk.X, pady=(0, SPACING["sm"])
+            )
+            features_grid = tk.Frame(inner, bg=COLORS["bg"])
+            features_grid.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+            features_grid.columnconfigure(0, weight=1)
+            features_grid.columnconfigure(1, weight=1)
+            card_idx = 0
+            for cl in c.class_levels:
+                level_data = self.data.get_level_data(cl.class_slug, cl.class_level) if self.data else None
+                feature_details = []
+                if level_data:
+                    feature_details = [
+                        f for f in level_data.get("feature_details", [])
+                        if isinstance(f, dict) and f.get("name") not in ("-", "Ability Score Improvement")
+                    ]
+                    if not feature_details:
+                        for name in level_data.get("features", []):
+                            if name not in ("-", "Ability Score Improvement"):
+                                feature_details.append({"name": name, "description": ""})
+                extra = []
+                if cl.feat_choice:
+                    asi_desc = ""
+                    if cl.asi_increases:
+                        asi_desc = ", ".join(f"{a} +{v}" for a, v in cl.asi_increases.items())
+                    extra.append({"name": f"Feat: {cl.feat_choice}", "description": asi_desc})
+                if cl.subclass_slug:
+                    extra.append({"name": f"Subclass: {cl.subclass_slug.replace('-', ' ').title()}", "description": ""})
+                all_items = feature_details + extra
+                if not all_items:
+                    continue
+                prefix = f"{cl.class_slug.title()} " if c.is_multiclass else ""
+                level_label = f"{prefix}Level {cl.class_level}"
+                for feat in all_items:
+                    card = CardFrame(features_grid, bg=COLORS["bg_container"],
+                                     border_color=COLORS["border_subtle"], pad=SPACING["lg"])
+                    card.grid(row=card_idx // 2, column=card_idx % 2, padx=4, pady=4, sticky="nsew")
+                    header = tk.Frame(card.inner, bg=COLORS["bg_container"])
+                    header.pack(fill=tk.X)
+                    tk.Label(
+                        header,
+                        text=feat.get("name", ""),
+                        font=FONTS["heading_serif_sm"],
+                        fg=COLORS["fg"],
+                        bg=COLORS["bg_container"],
+                    ).pack(side=tk.LEFT)
+                    PillBadge(
+                        header,
+                        text=level_label.upper(),
+                        bg_color=COLORS["badge_glass_dim"],
+                        fg_color=COLORS["gold"],
+                    ).pack(side=tk.RIGHT)
+                    if feat.get("description"):
+                        WrappingLabel(
+                            card.inner,
+                            text=feat["description"],
+                            font=FONTS["body_small"],
+                            foreground=COLORS["fg_dim"],
+                            background=COLORS["bg_container"],
+                        ).pack(fill=tk.X, pady=(6, 0))
+                    card_idx += 1
+
+        # ── Subclass Features ──
+        if c.current_subclass:
+            sub_name = c.current_subclass.replace("-", " ").title()
+            SectionHeader(inner, text=f"Subclass: {sub_name}").pack(
+                fill=tk.X, pady=(0, SPACING["sm"])
+            )
+            subclass_data = None
+            if self.data and c.character_class:
+                primary_slug = c.character_class.get("slug", "")
+                subclasses_for_class = self.data.get_subclasses_for_class(primary_slug)
+                subclass_data = next(
+                    (s for s in subclasses_for_class if s.get("slug") == c.current_subclass), None
+                )
+            if subclass_data:
+                desc = (subclass_data.get("description") or "").strip()
+                if desc:
+                    intro = re.split(r"\bLevel\s+\d+\s*:", desc, maxsplit=1)[0].strip()
+                    if intro:
+                        WrappingLabel(
+                            inner, text=intro, font=FONTS["body_small"],
+                            foreground=COLORS["fg_dim"],
+                        ).pack(fill=tk.X, pady=(0, SPACING["sm"]))
+                sub_grid = tk.Frame(inner, bg=COLORS["bg"])
+                sub_grid.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+                sub_grid.columnconfigure(0, weight=1)
+                sub_grid.columnconfigure(1, weight=1)
+                sub_idx = 0
+                features_by_level = subclass_data.get("features", {})
+                for lvl in sorted(features_by_level.keys(), key=lambda x: int(x) if str(x).isdigit() else 99):
+                    try:
+                        lvl_int = int(lvl)
+                    except (ValueError, TypeError):
+                        continue
+                    if lvl_int > c.level:
+                        continue
+                    for feat in features_by_level.get(lvl, []):
+                        card = CardFrame(sub_grid, bg=COLORS["bg_container"],
+                                         border_color=COLORS["border_subtle"], pad=SPACING["lg"])
+                        card.grid(row=sub_idx // 2, column=sub_idx % 2, padx=4, pady=4, sticky="nsew")
+                        header = tk.Frame(card.inner, bg=COLORS["bg_container"])
+                        header.pack(fill=tk.X)
+                        tk.Label(
+                            header,
+                            text=feat.get("name", ""),
+                            font=FONTS["heading_serif_sm"],
+                            fg=COLORS["fg"],
+                            bg=COLORS["bg_container"],
+                        ).pack(side=tk.LEFT)
+                        PillBadge(
+                            header,
+                            text=f"LEVEL {lvl}",
+                            bg_color=COLORS["badge_glass_dim"],
+                            fg_color=COLORS["gold"],
+                        ).pack(side=tk.RIGHT)
+                        if feat.get("description"):
+                            WrappingLabel(
+                                card.inner,
+                                text=feat["description"],
+                                font=FONTS["body_small"],
+                                foreground=COLORS["fg_dim"],
+                                background=COLORS["bg_container"],
+                            ).pack(fill=tk.X, pady=(6, 0))
+                        sub_idx += 1
+
+        # ── Feats ──
+        has_any_feat = c.feat or c.species_origin_feat
+        if has_any_feat:
+            SectionHeader(inner, text="Feats").pack(
+                fill=tk.X, pady=(0, SPACING["sm"])
+            )
+            feats_grid = tk.Frame(inner, bg=COLORS["bg"])
+            feats_grid.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+            feats_grid.columnconfigure(0, weight=1)
+            feats_grid.columnconfigure(1, weight=1)
+            feat_idx = 0
+            if c.feat:
+                feat_name = (
+                    c.background.get("feat", c.feat.get("name", ""))
+                    if c.background else c.feat.get("name", "")
+                )
+                card = CardFrame(feats_grid, bg=COLORS["bg_container"],
+                                 border_color=COLORS["border_subtle"], pad=SPACING["lg"])
+                card.grid(row=feat_idx // 2, column=feat_idx % 2, padx=4, pady=4, sticky="nsew")
+                header = tk.Frame(card.inner, bg=COLORS["bg_container"])
+                header.pack(fill=tk.X)
+                tk.Label(
+                    header,
+                    text=feat_name,
+                    font=FONTS["heading_serif_sm"],
+                    fg=COLORS["fg"],
+                    bg=COLORS["bg_container"],
+                ).pack(side=tk.LEFT)
+                PillBadge(
+                    header,
+                    text="BACKGROUND",
+                    bg_color=COLORS["badge_glass_dim"],
+                    fg_color=COLORS["gold"],
+                ).pack(side=tk.RIGHT)
+                benefits = [f"{b['name']}: {b.get('description', '')}" for b in c.feat.get("benefits", [])]
+                if benefits:
+                    WrappingLabel(
+                        card.inner,
+                        text="\n".join(benefits),
+                        font=FONTS["body_small"],
+                        foreground=COLORS["fg_dim"],
+                        background=COLORS["bg_container"],
+                    ).pack(fill=tk.X, pady=(6, 0))
+                feat_idx += 1
+            if c.species_origin_feat:
+                sp_name = c.species_name if c.species else "Species"
+                card = CardFrame(feats_grid, bg=COLORS["bg_container"],
+                                 border_color=COLORS["border_subtle"], pad=SPACING["lg"])
+                card.grid(row=feat_idx // 2, column=feat_idx % 2, padx=4, pady=4, sticky="nsew")
+                header = tk.Frame(card.inner, bg=COLORS["bg_container"])
+                header.pack(fill=tk.X)
+                tk.Label(
+                    header,
+                    text=c.species_origin_feat["name"],
+                    font=FONTS["heading_serif_sm"],
+                    fg=COLORS["fg"],
+                    bg=COLORS["bg_container"],
+                ).pack(side=tk.LEFT)
+                PillBadge(
+                    header,
+                    text=sp_name.upper(),
+                    bg_color=COLORS["badge_glass_dim"],
+                    fg_color=COLORS["gold"],
+                ).pack(side=tk.RIGHT)
+                benefits = [f"{b['name']}: {b.get('description', '')}" for b in c.species_origin_feat.get("benefits", [])]
+                if benefits:
+                    WrappingLabel(
+                        card.inner,
+                        text="\n".join(benefits),
+                        font=FONTS["body_small"],
+                        foreground=COLORS["fg_dim"],
+                        background=COLORS["bg_container"],
+                    ).pack(fill=tk.X, pady=(6, 0))
 
     # ================================================================
     # BACKSTORY VIEW
