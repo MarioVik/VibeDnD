@@ -40,7 +40,13 @@
       "Bash(ls /Users/viktor.olsson/Repos/VibeDnD/.venv/bin/python*)",
       "Bash(ls /opt/homebrew/bin/python3*)",
       "Bash(ls /usr/local/bin/python3*)",
-      "Bash(/opt/homebrew/bin/uv run:*)"
+      "Bash(/opt/homebrew/bin/uv run:*)",
+      "Bash(/usr/bin/python3 -c \"import ast; ast.parse\\(open\\(''/Users/viktor.olsson/Repos/VibeDnD/gui/widgets.py''\\).read\\(\\)\\); print\\(''Syntax OK''\\)\")",
+      "Bash(/usr/bin/python3 -c \"import ast; ast.parse\\(open\\(''/Users/viktor.olsson/Repos/VibeDnD/gui/widgets.py''\\).read\\(\\)\\); print\\(''widgets OK''\\)\")",
+      "Bash(/usr/bin/python3 -c \"import ast; ast.parse\\(open\\(''/Users/viktor.olsson/Repos/VibeDnD/gui/character_viewer.py''\\).read\\(\\)\\); print\\(''viewer OK''\\)\")",
+      "Bash(/usr/bin/python3 -c \"import ast; ast.parse\\(open\\(''/Users/viktor.olsson/Repos/VibeDnD/gui/character_viewer.py''\\).read\\(\\)\\); print\\(''OK''\\)\")",
+      "Bash(/usr/bin/python3 -c \"import ast; ast.parse\\(open\\(''/Users/viktor.olsson/Repos/VibeDnD/gui/widgets.py''\\).read\\(\\)\\); print\\(''OK''\\)\")",
+      "Bash(/usr/bin/python3 -c \"import ast; ast.parse\\(open\\(''/Users/viktor.olsson/Repos/VibeDnD/gui/character_viewer.py''\\).read\\(\\)\\); ast.parse\\(open\\(''/Users/viktor.olsson/Repos/VibeDnD/gui/widgets.py''\\).read\\(\\)\\); print\\(''OK''\\)\")"
     ]
   }
 }

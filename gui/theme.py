@@ -13,6 +13,7 @@ COLORS = {
     "bg": "#131313",
     "bg_surface": "#1b1b1b",
     "bg_container": "#20201f",
+    "bg_hero": "#171717",
     "bg_high": "#2a2a2a",
     "bg_highest": "#353535",
     # Primary accent — crimson
@@ -36,12 +37,34 @@ COLORS = {
     # Selection
     "select_bg": "#353535",
     "select_fg": "#ffb3b5",
+    # Pre-blended transparency colors (Tkinter has no opacity)
+    "border_subtle":    "#231f1f",   # outline_dim at 10% on bg_surface
+    "border_medium":    "#2d2525",   # outline_dim at 20% on bg_surface
+    "badge_glass":      "#303030",   # bg_highest at 80% on bg_surface
+    "badge_glass_dim":  "#252525",   # bg_highest at 40% on bg
+    "border_subtle_bg": "#191616",   # outline_dim at 10% on bg
+    "border_medium_bg": "#201c1c",   # outline_dim at 20% on bg
     # ----- backward-compat aliases (old code still referencing these) -----
     "bg_light": "#2a2a2a",      # → bg_high
     "bg_card": "#1b1b1b",       # → bg_surface
     "fg_bright": "#e5e2e1",     # → fg
     "accent_dark": "#9B1B30",   # → accent
     "border": "#584141",        # → outline_dim
+}
+
+# ---------------------------------------------------------------------------
+# Spacing constants
+# ---------------------------------------------------------------------------
+SPACING = {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "card_pad": 20,
+    "section_gap": 16,
+    "card_gap": 8,
 }
 
 # ---------------------------------------------------------------------------
@@ -398,6 +421,7 @@ def apply_theme(root: tk.Tk):
     # Separator
     # ------------------------------------------------------------------
     style.configure("TSeparator", background=COLORS["outline_dim"])
+    style.configure("Subtle.TSeparator", background=COLORS["border_subtle"])
 
     # ------------------------------------------------------------------
     # PanedWindow

@@ -13,7 +13,7 @@ except ImportError:  # pragma: no cover
     Image = None
     ImageTk = None
 
-from gui.theme import COLORS, FONTS
+from gui.theme import COLORS, FONTS, SPACING
 from gui.widgets import (
     ScrollableFrame,
     AlertDialog,
@@ -23,6 +23,9 @@ from gui.widgets import (
     Chip,
     HPBar,
     WrappingLabel,
+    CardFrame,
+    GradientHeader,
+    PillBadge,
 )
 from gui.sidebar import Sidebar
 from gui.sheet_builder import build_character_sheet, _container_contents
@@ -214,74 +217,80 @@ class CharacterViewer(ttk.Frame):
 
         c = self.character
 
-        # ── Hero section ──
-        hero = tk.Frame(inner, bg=COLORS["bg_surface"], padx=16, pady=16)
-        hero.pack(fill=tk.X, pady=(0, 12))
+        # ── Hero section (gradient) ──
+        hero = GradientHeader(inner, min_height=100)
+        hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        hero_inner = hero.inner
 
-        # Name and summary
-        name_frame = tk.Frame(hero, bg=COLORS["bg_surface"])
-        name_frame.pack(fill=tk.X)
+        _hero_bg = COLORS["bg_hero"]
+
+        # Name and level badge row
+        name_frame = tk.Frame(hero_inner, bg=_hero_bg)
+        name_frame.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(SPACING["xl"], 0))
 
         tk.Label(
             name_frame,
             text=c.name or "Unnamed",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
-            bg=COLORS["bg_surface"],
+            bg=_hero_bg,
         ).pack(side=tk.LEFT)
 
-        tk.Label(
+        level_pill = PillBadge(
             name_frame,
-            text=f"Level {c.level}",
-            font=FONTS["body_bold"],
-            fg=COLORS["gold"],
-            bg=COLORS["bg_surface"],
-        ).pack(side=tk.RIGHT, padx=8)
+            text=f"LEVEL {c.level}",
+            bg_color=COLORS["badge_glass"],
+            fg_color=COLORS["gold"],
+        )
+        level_pill.pack(side=tk.RIGHT, padx=8)
+
+        summary_frame = tk.Frame(hero_inner, bg=_hero_bg)
+        summary_frame.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(4, SPACING["xl"]))
 
         tk.Label(
-            hero,
+            summary_frame,
             text=c.summary_text(),
             font=FONTS["label_upper_bold"],
             fg=COLORS["fg_dim"],
-            bg=COLORS["bg_surface"],
-        ).pack(anchor="w", pady=(2, 0))
+            bg=_hero_bg,
+        ).pack(anchor="w")
 
         if c.background_name:
             tk.Label(
-                hero,
+                summary_frame,
                 text=f"Background: {c.background_name}",
                 font=FONTS["label_upper"],
                 fg=COLORS["fg_dim"],
-                bg=COLORS["bg_surface"],
+                bg=_hero_bg,
             ).pack(anchor="w")
 
         # HP and AC row
         hp_ac = tk.Frame(inner, bg=COLORS["bg"])
-        hp_ac.pack(fill=tk.X, pady=(0, 12))
+        hp_ac.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
 
-        # AC card
-        ac_card = tk.Frame(hp_ac, bg=COLORS["bg_surface"], padx=16, pady=12)
-        ac_card.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 8))
+        # AC card (CardFrame)
+        ac_cf = CardFrame(hp_ac, pad=SPACING["card_pad"])
+        ac_cf.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
         tk.Label(
-            ac_card,
+            ac_cf.inner,
             text="ARMOR CLASS",
             font=FONTS["label_upper_bold"],
             fg=COLORS["fg_dim"],
             bg=COLORS["bg_surface"],
         ).pack()
         tk.Label(
-            ac_card,
+            ac_cf.inner,
             text=str(c.armor_class),
             font=FONTS["stat_large"],
             fg=COLORS["fg"],
             bg=COLORS["bg_surface"],
         ).pack()
 
-        # HP card
-        hp_card = tk.Frame(hp_ac, bg=COLORS["bg_surface"], padx=16, pady=12)
-        hp_card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        # HP card (CardFrame with accent left border)
+        hp_cf = CardFrame(hp_ac, accent_left=True, pad=SPACING["card_pad"])
+        hp_cf.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        hp_top = tk.Frame(hp_card, bg=COLORS["bg_surface"])
+        hp_top = tk.Frame(hp_cf.inner, bg=COLORS["bg_surface"])
         hp_top.pack(fill=tk.X)
         tk.Label(
             hp_top,
@@ -291,7 +300,7 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_surface"],
         ).pack(side=tk.LEFT)
 
-        hp_val = tk.Frame(hp_card, bg=COLORS["bg_surface"])
+        hp_val = tk.Frame(hp_cf.inner, bg=COLORS["bg_surface"])
         hp_val.pack(fill=tk.X, pady=(4, 0))
         tk.Label(
             hp_val,
@@ -308,15 +317,17 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_surface"],
         ).pack(side=tk.LEFT, padx=(4, 0))
 
-        hp_bar = HPBar(hp_card, width=300, height=4)
-        hp_bar.pack(fill=tk.X, pady=(6, 0))
+        hp_bar = HPBar(hp_cf.inner, width=300, height=6)
+        hp_bar.pack(fill=tk.X, pady=(8, 0))
         hp_bar.set_hp(c.hit_points, c.hit_points)
 
         # ── Ability Scores ──
-        SectionHeader(inner, text="Ability Scores").pack(fill=tk.X, pady=(0, 8))
+        SectionHeader(inner, text="Ability Scores").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
 
         ab_row = tk.Frame(inner, bg=COLORS["bg"])
-        ab_row.pack(fill=tk.X, pady=(0, 12))
+        ab_row.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
         ab_row.columnconfigure(list(range(6)), weight=1)
 
         saving_throws = (c.character_class or {}).get("saving_throws", [])
@@ -356,7 +367,7 @@ class CharacterViewer(ttk.Frame):
 
         # ── Secondary vitals ──
         vitals_row = tk.Frame(inner, bg=COLORS["bg"])
-        vitals_row.pack(fill=tk.X, pady=(0, 12))
+        vitals_row.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
         vitals_row.columnconfigure(list(range(4)), weight=1)
 
         vitals = [
@@ -374,10 +385,13 @@ class CharacterViewer(ttk.Frame):
             sc.grid(row=0, column=i, padx=3, sticky="nsew")
 
         # ── Skills ──
-        SectionHeader(inner, text="Skills").pack(fill=tk.X, pady=(0, 8))
+        SectionHeader(inner, text="Skills").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
 
-        skills_frame = tk.Frame(inner, bg=COLORS["bg_surface"], padx=12, pady=8)
-        skills_frame.pack(fill=tk.X, pady=(0, 12))
+        skills_card = CardFrame(inner, pad=SPACING["lg"])
+        skills_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        skills_frame = skills_card.inner
         skills_frame.columnconfigure(0, weight=1)
         skills_frame.columnconfigure(1, weight=1)
 
@@ -391,7 +405,27 @@ class CharacterViewer(ttk.Frame):
             row_idx = idx // 2
 
             skill_row = tk.Frame(skills_frame, bg=COLORS["bg_surface"])
-            skill_row.grid(row=row_idx, column=col, sticky="ew", padx=4, pady=1)
+            skill_row.grid(row=row_idx, column=col, sticky="ew", padx=4, pady=3)
+
+            # Hover effect on skill rows
+            def _hover_in(e, w=skill_row):
+                w.configure(bg=COLORS["bg_container"])
+                for ch in w.winfo_children():
+                    try:
+                        ch.configure(bg=COLORS["bg_container"])
+                    except tk.TclError:
+                        pass
+
+            def _hover_out(e, w=skill_row):
+                w.configure(bg=COLORS["bg_surface"])
+                for ch in w.winfo_children():
+                    try:
+                        ch.configure(bg=COLORS["bg_surface"])
+                    except tk.TclError:
+                        pass
+
+            skill_row.bind("<Enter>", _hover_in)
+            skill_row.bind("<Leave>", _hover_out)
 
             is_prof = skill_display in all_profs
             is_expert = skill_display in all_expertise
@@ -437,10 +471,13 @@ class CharacterViewer(ttk.Frame):
             ).pack(side=tk.RIGHT)
 
         # ── Senses ──
-        SectionHeader(inner, text="Senses").pack(fill=tk.X, pady=(0, 8))
+        SectionHeader(inner, text="Senses").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
 
-        senses_frame = tk.Frame(inner, bg=COLORS["bg_surface"], padx=16, pady=12)
-        senses_frame.pack(fill=tk.X, pady=(0, 12))
+        senses_card = CardFrame(inner, pad=SPACING["lg"])
+        senses_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        senses_frame = senses_card.inner
 
         wis_mod = c.ability_scores.modifier("Wisdom")
         int_mod = c.ability_scores.modifier("Intelligence")
@@ -473,10 +510,13 @@ class CharacterViewer(ttk.Frame):
             ).pack(side=tk.RIGHT)
 
         # ── Proficiencies ──
-        SectionHeader(inner, text="Proficiencies").pack(fill=tk.X, pady=(0, 8))
+        SectionHeader(inner, text="Proficiencies").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
 
-        prof_frame = tk.Frame(inner, bg=COLORS["bg_surface"], padx=16, pady=12)
-        prof_frame.pack(fill=tk.X, pady=(0, 12))
+        prof_card = CardFrame(inner, pad=SPACING["lg"])
+        prof_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        prof_frame = prof_card.inner
 
         cls = c.character_class or {}
         weapon_profs = cls.get("weapon_proficiencies", [])
@@ -549,29 +589,35 @@ class CharacterViewer(ttk.Frame):
         inner = scroll.inner
         c = self.character
 
-        # ── Header ──
+        # ── Header (gradient) ──
+        combat_hero = GradientHeader(inner, min_height=80)
+        combat_hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+
         tk.Label(
-            inner,
+            combat_hero.inner,
             text="Combat & Actions",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
-            bg=COLORS["bg"],
-        ).pack(anchor="w", pady=(0, 4))
+            bg=COLORS["bg_hero"],
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], 4))
 
         info_text = f"Initiative +{c.initiative}  \u2022  Speed {c.speed}ft  \u2022  AC {c.armor_class}  \u2022  HP {c.hit_points}"
         tk.Label(
-            inner,
+            combat_hero.inner,
             text=info_text,
             font=FONTS["body"],
             fg=COLORS["fg_dim"],
-            bg=COLORS["bg"],
-        ).pack(anchor="w", pady=(0, 16))
+            bg=COLORS["bg_hero"],
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(0, SPACING["xl"]))
 
         # ── Weapon Attacks ──
-        SectionHeader(inner, text="Weapon Attacks").pack(fill=tk.X, pady=(0, 8))
+        SectionHeader(inner, text="Weapon Attacks").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
 
-        attacks_frame = tk.Frame(inner, bg=COLORS["bg_surface"], padx=12, pady=8)
-        attacks_frame.pack(fill=tk.X, pady=(0, 12))
+        attacks_card = CardFrame(inner, pad=SPACING["md"])
+        attacks_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        attacks_frame = attacks_card.inner
 
         actions = build_standard_actions(
             c,
@@ -581,8 +627,8 @@ class CharacterViewer(ttk.Frame):
 
         if actions:
             for action in actions:
-                row = tk.Frame(attacks_frame, bg=COLORS["bg_container"], padx=12, pady=8)
-                row.pack(fill=tk.X, pady=2)
+                row = tk.Frame(attacks_frame, bg=COLORS["bg_container"], padx=12, pady=10)
+                row.pack(fill=tk.X, pady=3)
 
                 # Name and properties
                 name_col = tk.Frame(row, bg=COLORS["bg_container"])
@@ -659,12 +705,14 @@ class CharacterViewer(ttk.Frame):
             ).pack(pady=8)
 
         # ── Standard Actions ──
-        SectionHeader(inner, text="Actions").pack(fill=tk.X, pady=(8, 8))
+        SectionHeader(inner, text="Actions").pack(
+            fill=tk.X, pady=(SPACING["sm"], SPACING["sm"])
+        )
 
         from models.standard_actions import STANDARD_ACTIONS
 
         actions_grid = tk.Frame(inner, bg=COLORS["bg"])
-        actions_grid.pack(fill=tk.X, pady=(0, 12))
+        actions_grid.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
         actions_grid.columnconfigure(0, weight=1)
         actions_grid.columnconfigure(1, weight=1)
 
@@ -677,10 +725,12 @@ class CharacterViewer(ttk.Frame):
             desc = action.get("description", "")
             action_type = action.get("type", "Action")
 
-            card = tk.Frame(actions_grid, bg=COLORS["bg_container"], padx=12, pady=8)
-            card.grid(row=row_idx, column=col_idx, padx=3, pady=3, sticky="nsew")
+            card = CardFrame(actions_grid, bg=COLORS["bg_container"],
+                             border_color=COLORS["border_subtle"], pad=SPACING["lg"])
+            card.grid(row=row_idx, column=col_idx, padx=4, pady=4, sticky="nsew")
+            card.set_hover()
 
-            header = tk.Frame(card, bg=COLORS["bg_container"])
+            header = tk.Frame(card.inner, bg=COLORS["bg_container"])
             header.pack(fill=tk.X)
 
             tk.Label(
@@ -691,23 +741,20 @@ class CharacterViewer(ttk.Frame):
                 bg=COLORS["bg_container"],
             ).pack(side=tk.LEFT)
 
-            tk.Label(
+            PillBadge(
                 header,
                 text=action_type.upper(),
-                font=FONTS["label_tiny"],
-                fg=COLORS["gold"],
-                bg=COLORS["bg_deepest"],
-                padx=4,
-                pady=1,
+                bg_color=COLORS["badge_glass_dim"],
+                fg_color=COLORS["gold"],
             ).pack(side=tk.RIGHT)
 
             WrappingLabel(
-                card,
+                card.inner,
                 text=desc,
                 font=FONTS["body_small"],
                 foreground=COLORS["fg_dim"],
                 background=COLORS["bg_container"],
-            ).pack(fill=tk.X, pady=(4, 0))
+            ).pack(fill=tk.X, pady=(6, 0))
 
             col_idx += 1
             if col_idx >= 2:
@@ -716,7 +763,9 @@ class CharacterViewer(ttk.Frame):
 
         # ── Spell slots (if caster) ──
         if self._character_has_spells():
-            SectionHeader(inner, text="Spell Slots").pack(fill=tk.X, pady=(8, 8))
+            SectionHeader(inner, text="Spell Slots").pack(
+                fill=tk.X, pady=(SPACING["sm"], SPACING["sm"])
+            )
             self._build_spell_slot_display(inner)
 
     def _build_spell_slot_display(self, parent):
@@ -741,14 +790,15 @@ class CharacterViewer(ttk.Frame):
         if not spell_slots:
             return
 
-        slots_frame = tk.Frame(parent, bg=COLORS["bg_surface"], padx=16, pady=12)
-        slots_frame.pack(fill=tk.X, pady=(0, 12))
+        slots_card = CardFrame(parent, pad=SPACING["lg"])
+        slots_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        slots_frame = slots_card.inner
 
         for slot_level, count in sorted(spell_slots.items(), key=lambda x: x[0]):
             if count <= 0:
                 continue
             row = tk.Frame(slots_frame, bg=COLORS["bg_surface"])
-            row.pack(fill=tk.X, pady=2)
+            row.pack(fill=tk.X, pady=3)
 
             tk.Label(
                 row,
@@ -766,18 +816,16 @@ class CharacterViewer(ttk.Frame):
                 bg=COLORS["bg_surface"],
             ).pack(side=tk.RIGHT)
 
-            # Slot indicator dots
+            # Slot indicator dots (rounded via Canvas)
             dots_frame = tk.Frame(row, bg=COLORS["bg_surface"])
             dots_frame.pack(side=tk.RIGHT, padx=(0, 8))
             for j in range(count):
-                dot = tk.Frame(
-                    dots_frame,
-                    bg=COLORS["accent_text"],
-                    width=10,
-                    height=10,
+                dot = tk.Canvas(
+                    dots_frame, width=12, height=12,
+                    bg=COLORS["bg_surface"], highlightthickness=0,
                 )
+                dot.create_oval(1, 1, 11, 11, fill=COLORS["accent_text"], outline="")
                 dot.pack(side=tk.LEFT, padx=2)
-                dot.pack_propagate(False)
 
     # ================================================================
     # SPELLBOOK VIEW
@@ -786,14 +834,17 @@ class CharacterViewer(ttk.Frame):
     def _build_spellbook(self):
         parent = self._views[_SPELLBOOK]
 
-        # Header
+        # Header (gradient)
+        spell_hero = GradientHeader(parent, min_height=60)
+        spell_hero.pack(fill=tk.X)
+
         tk.Label(
-            parent,
+            spell_hero.inner,
             text="The Spellbook",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
-            bg=COLORS["bg"],
-        ).pack(anchor="w", padx=16, pady=(16, 4))
+            bg=COLORS["bg_hero"],
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], 4))
 
         c = self.character
         cls = c.character_class or {}
@@ -801,8 +852,8 @@ class CharacterViewer(ttk.Frame):
         # Spellcasting stats header
         cast_ability = cls.get("spellcasting_ability")
         if cast_ability:
-            stats_frame = tk.Frame(parent, bg=COLORS["bg"], padx=16)
-            stats_frame.pack(fill=tk.X, pady=(0, 12))
+            stats_frame = tk.Frame(parent, bg=COLORS["bg"], padx=SPACING["lg"])
+            stats_frame.pack(fill=tk.X, pady=(SPACING["sm"], SPACING["section_gap"]))
 
             spell_mod = c.ability_scores.modifier(cast_ability)
             attack_bonus = spell_mod + c.proficiency_bonus
@@ -814,18 +865,18 @@ class CharacterViewer(ttk.Frame):
                 ("Save DC", str(save_dc), "BASE 8"),
                 ("Spell Ability", cast_ability[:3].upper(), f"{ability_score} (+{spell_mod})"),
             ]:
-                stat_col = tk.Frame(stats_frame, bg=COLORS["bg"])
-                stat_col.pack(side=tk.LEFT, padx=(0, 24))
+                stat_cf = CardFrame(stats_frame, pad=SPACING["md"])
+                stat_cf.pack(side=tk.LEFT, padx=(0, SPACING["card_gap"]))
 
                 tk.Label(
-                    stat_col,
+                    stat_cf.inner,
                     text=label.upper(),
                     font=FONTS["label_upper_bold"],
                     fg=COLORS["fg_dim"],
-                    bg=COLORS["bg"],
+                    bg=COLORS["bg_surface"],
                 ).pack(anchor="w")
 
-                val_row = tk.Frame(stat_col, bg=COLORS["bg"])
+                val_row = tk.Frame(stat_cf.inner, bg=COLORS["bg_surface"])
                 val_row.pack(anchor="w")
 
                 tk.Label(
@@ -833,22 +884,19 @@ class CharacterViewer(ttk.Frame):
                     text=value,
                     font=FONTS["stat_large"],
                     fg=COLORS["accent_text"],
-                    bg=COLORS["bg"],
+                    bg=COLORS["bg_surface"],
                 ).pack(side=tk.LEFT)
 
-                tk.Label(
+                PillBadge(
                     val_row,
                     text=sub,
-                    font=FONTS["label_tiny"],
-                    fg=COLORS["gold"],
-                    bg=COLORS["bg_highest"],
-                    padx=4,
-                    pady=1,
+                    bg_color=COLORS["badge_glass_dim"],
+                    fg_color=COLORS["gold"],
                 ).pack(side=tk.LEFT, padx=(8, 0))
 
         # Spell list (reuse existing pattern with split view)
         spell_area = tk.Frame(parent, bg=COLORS["bg"])
-        spell_area.pack(fill=tk.BOTH, expand=True, padx=16, pady=(0, 16))
+        spell_area.pack(fill=tk.BOTH, expand=True, padx=SPACING["lg"], pady=(0, SPACING["lg"]))
         spell_area.columnconfigure(0, weight=0)
         spell_area.columnconfigure(1, weight=1)
         spell_area.rowconfigure(0, weight=1)
@@ -917,21 +965,24 @@ class CharacterViewer(ttk.Frame):
         inner = scroll.inner
         c = self.character
 
-        # ── Header ──
+        # ── Header (gradient) ──
+        inv_hero = GradientHeader(inner, min_height=60)
+        inv_hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+
         tk.Label(
-            inner,
+            inv_hero.inner,
             text="Vault & Provisions",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
-            bg=COLORS["bg"],
-        ).pack(anchor="w", pady=(0, 12))
+            bg=COLORS["bg_hero"],
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
 
         # ── Currency ──
         wealth_cp = current_wealth_cp(c)
         gp, sp, cp = cp_to_coins(wealth_cp)
 
         currency_frame = tk.Frame(inner, bg=COLORS["bg"])
-        currency_frame.pack(fill=tk.X, pady=(0, 12))
+        currency_frame.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
         currency_frame.columnconfigure(list(range(3)), weight=1)
 
         for i, (label, value, color) in enumerate([
@@ -939,17 +990,17 @@ class CharacterViewer(ttk.Frame):
             ("Silver", str(sp), COLORS["fg"]),
             ("Copper", str(cp), "#cd7f32"),
         ]):
-            card = tk.Frame(currency_frame, bg=COLORS["bg_surface"], padx=12, pady=8)
-            card.grid(row=0, column=i, padx=3, sticky="nsew")
+            card = CardFrame(currency_frame, pad=SPACING["lg"])
+            card.grid(row=0, column=i, padx=4, sticky="nsew")
             tk.Label(
-                card,
+                card.inner,
                 text=label.upper(),
                 font=FONTS["label_upper_bold"],
                 fg=COLORS["fg_dim"],
                 bg=COLORS["bg_surface"],
             ).pack()
             tk.Label(
-                card,
+                card.inner,
                 text=value,
                 font=FONTS["heading_serif"],
                 fg=color,
@@ -962,7 +1013,7 @@ class CharacterViewer(ttk.Frame):
             text="Add Item",
             style="Accent.TButton",
             command=self._on_add_inventory,
-        ).pack(anchor="w", pady=(0, 12))
+        ).pack(anchor="w", pady=(0, SPACING["section_gap"]))
 
         # ── Inventory split view ──
         self._inventory_parent = inner
@@ -979,13 +1030,15 @@ class CharacterViewer(ttk.Frame):
         inner = scroll.inner
         c = self.character
 
+        feat_hero = GradientHeader(inner, min_height=60)
+        feat_hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
         tk.Label(
-            inner,
+            feat_hero.inner,
             text="Features & Traits",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
-            bg=COLORS["bg"],
-        ).pack(anchor="w", pady=(0, 16))
+            bg=COLORS["bg_hero"],
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
 
         # Use the existing sheet builder logic for features
         build_character_sheet(
@@ -1017,19 +1070,21 @@ class CharacterViewer(ttk.Frame):
 
         # Left column: text areas
         left = tk.Frame(parent, bg=COLORS["bg"])
-        left.grid(row=0, column=0, sticky="nsew", padx=(16, 8), pady=16)
+        left.grid(row=0, column=0, sticky="nsew", padx=(SPACING["lg"], SPACING["sm"]), pady=SPACING["lg"])
         left.columnconfigure(0, weight=1)
         left.rowconfigure(1, weight=1)
         left.rowconfigure(3, weight=1)
         left.rowconfigure(5, weight=1)
 
+        back_hero = GradientHeader(left, min_height=50)
+        back_hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
         tk.Label(
-            left,
+            back_hero.inner,
             text="The Chronicles",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
-            bg=COLORS["bg"],
-        ).pack(anchor="w", pady=(0, 12))
+            bg=COLORS["bg_hero"],
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
 
         # Backstory
         SectionHeader(left, text="Character Backstory").pack(fill=tk.X, pady=(0, 4))
@@ -1068,8 +1123,7 @@ class CharacterViewer(ttk.Frame):
             width=260,
             height=100,
             bg=COLORS["bg_container"],
-            highlightthickness=1,
-            highlightbackground=COLORS["outline_dim"],
+            highlightthickness=0,
             relief=tk.FLAT,
         )
         self.bio_image_canvas.pack(padx=12, pady=(0, 8))

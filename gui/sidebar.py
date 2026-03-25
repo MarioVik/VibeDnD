@@ -38,7 +38,9 @@ class Sidebar(tk.Frame):
         show_character_info: bool = False,
         width: int = SIDEBAR_WIDTH,
     ):
-        super().__init__(parent, bg=COLORS["bg_surface"], width=width)
+        super().__init__(parent, bg=COLORS["bg_surface"], width=width,
+                         highlightbackground=COLORS["border_medium"],
+                         highlightthickness=1)
         self.pack_propagate(False)
         self._on_navigate = on_navigate
         self._nav_buttons: dict[str, NavButton] = {}
@@ -54,7 +56,7 @@ class Sidebar(tk.Frame):
 
         # ---- Separator ----
         if show_character_info:
-            tk.Frame(self, bg=COLORS["outline_dim"], height=1).pack(
+            tk.Frame(self, bg=COLORS["border_subtle"], height=1).pack(
                 fill=tk.X, padx=16, pady=(0, 8)
             )
 
@@ -75,7 +77,7 @@ class Sidebar(tk.Frame):
 
         # ---- Bottom actions ----
         if bottom_buttons:
-            tk.Frame(self, bg=COLORS["outline_dim"], height=1).pack(
+            tk.Frame(self, bg=COLORS["border_subtle"], height=1).pack(
                 fill=tk.X, padx=16, pady=(8, 4)
             )
             btn_frame = tk.Frame(self, bg=COLORS["bg_surface"])

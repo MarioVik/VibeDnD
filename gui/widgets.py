@@ -668,9 +668,9 @@ class NavButton(tk.Frame):
     def set_active(self, active: bool):
         self._active = active
         if active:
-            bg = COLORS["bg_highest"]
+            bg = COLORS["bg_container"]
             fg = COLORS["accent_text"]
-            self._indicator.configure(bg=COLORS["accent"])
+            self._indicator.configure(bg="#4a2028")
         else:
             bg = COLORS["bg_surface"]
             fg = COLORS["fg_dim"]
@@ -706,13 +706,16 @@ class StatCard(tk.Frame):
         highlight: bool = False,
         **kwargs,
     ):
+        _bg = COLORS["bg_surface"]
         super().__init__(
             parent,
-            bg=COLORS["bg_surface"],
-            padx=12,
-            pady=10,
+            bg=_bg,
+            padx=20,
+            pady=16,
+            highlightthickness=0,
             **kwargs,
         )
+        self._card_bg = _bg
 
         # Uppercase stat name
         self._lbl = tk.Label(
@@ -720,7 +723,7 @@ class StatCard(tk.Frame):
             text=label.upper(),
             font=FONTS["label_upper_bold"],
             fg=COLORS["fg_dim"],
-            bg=COLORS["bg_surface"],
+            bg=_bg,
         )
         self._lbl.pack()
 
@@ -730,7 +733,7 @@ class StatCard(tk.Frame):
             text=value,
             font=FONTS["stat_large"],
             fg=COLORS["fg"],
-            bg=COLORS["bg_surface"],
+            bg=_bg,
         )
         self._val.pack()
 
@@ -741,7 +744,7 @@ class StatCard(tk.Frame):
                 text=suffix,
                 font=FONTS["body_small"],
                 fg=COLORS["fg_dim"],
-                bg=COLORS["bg_surface"],
+                bg=_bg,
             )
             self._suffix.pack()
         else:
@@ -757,20 +760,21 @@ class StatCard(tk.Frame):
             self._apply_highlight()
 
     def _build_modifier(self, modifier: str):
-        self._mod_frame = tk.Frame(self, bg=COLORS["bg_highest"], padx=8, pady=2)
+        mod_bg = COLORS["bg_container"]
+        self._mod_frame = tk.Frame(self, bg=mod_bg, padx=8, pady=2)
         self._mod_frame.pack(pady=(4, 0))
         self._mod_lbl = tk.Label(
             self._mod_frame,
             text=modifier,
             font=FONTS["body_bold"],
             fg=COLORS["fg"],
-            bg=COLORS["bg_highest"],
+            bg=mod_bg,
         )
         self._mod_lbl.pack()
 
     def _apply_highlight(self):
         """Highlight card with accent ring (for proficient saves etc.)."""
-        self.configure(highlightbackground=COLORS["accent"], highlightthickness=1)
+        self.configure(highlightbackground="#4a2028", highlightthickness=1)
         self._lbl.configure(fg=COLORS["accent_text"])
 
     def update_values(self, value: str, modifier: str = "", highlight: bool = False):
@@ -807,8 +811,8 @@ class SectionHeader(tk.Frame):
         )
         self._heading.pack(side=tk.LEFT, padx=(0, 12))
 
-        # Horizontal line
-        self._line = tk.Frame(self, bg=COLORS["outline_dim"], height=1)
+        # Horizontal line (subtle)
+        self._line = tk.Frame(self, bg=COLORS["border_subtle"], height=1)
         self._line.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=1)
 
         if right_text:
@@ -857,8 +861,8 @@ class Chip(tk.Label):
             font=FONTS["label_tiny"],
             fg=fg,
             bg=bg,
-            padx=6,
-            pady=2,
+            padx=10,
+            pady=3,
             **kwargs,
         )
 
@@ -895,8 +899,192 @@ class HPBar(tk.Canvas):
         else:
             color = COLORS["negative"]
 
-        if fill_w > 0:
-            self.create_rectangle(
-                0, 0, fill_w, self._bar_height,
-                fill=color, outline="",
+        h = self._bar_height
+        r = h // 2  # radius for rounded ends
+
+        # Draw rounded trough
+        self.create_oval(0, 0, h, h, fill=COLORS["bg_highest"], outline="")
+        self.create_oval(self._bar_width - h, 0, self._bar_width, h,
+                         fill=COLORS["bg_highest"], outline="")
+        self.create_rectangle(r, 0, self._bar_width - r, h,
+                              fill=COLORS["bg_highest"], outline="")
+
+        if fill_w > h:
+            self.create_oval(0, 0, h, h, fill=color, outline="")
+            self.create_oval(fill_w - h, 0, fill_w, h, fill=color, outline="")
+            self.create_rectangle(r, 0, fill_w - r, h, fill=color, outline="")
+        elif fill_w > 0:
+            self.create_oval(0, 0, h, h, fill=color, outline="")
+
+
+def _hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
+    """Convert #RRGGBB to (r, g, b) tuple."""
+    h = hex_color.lstrip("#")
+    return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+
+
+def _rgb_to_hex(r: int, g: int, b: int) -> str:
+    """Convert (r, g, b) to #RRGGBB."""
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+def _lerp_color(c1: str, c2: str, t: float) -> str:
+    """Linearly interpolate between two hex colors. t=0 → c1, t=1 → c2."""
+    r1, g1, b1 = _hex_to_rgb(c1)
+    r2, g2, b2 = _hex_to_rgb(c2)
+    return _rgb_to_hex(
+        int(r1 + (r2 - r1) * t),
+        int(g1 + (g2 - g1) * t),
+        int(b1 + (b2 - b1) * t),
+    )
+
+
+class CardFrame(tk.Frame):
+    """Card container with subtle border and optional accent left stripe.
+
+    Use ``.inner`` to pack children inside the card.
+    """
+
+    def __init__(
+        self,
+        parent,
+        bg: str = COLORS["bg_surface"],
+        border_color: str = COLORS["border_subtle"],
+        accent_left: bool = False,
+        pad: int = 20,
+        **kwargs,
+    ):
+        super().__init__(
+            parent,
+            bg=bg,
+            highlightbackground=border_color,
+            highlightthickness=0,
+            **kwargs,
+        )
+
+        if accent_left:
+            tk.Frame(self, bg="#4a2028", width=3).pack(
+                side=tk.LEFT, fill=tk.Y
             )
+
+        self.inner = tk.Frame(self, bg=bg)
+        self.inner.pack(fill=tk.BOTH, expand=True, padx=pad, pady=pad)
+
+    def set_hover(self, hover_border: str = COLORS["border_medium"]):
+        """Enable hover effect — border becomes more visible on mouse enter."""
+        normal_border = self.cget("highlightbackground")
+        self.bind("<Enter>", lambda _: self.configure(highlightbackground=hover_border))
+        self.bind("<Leave>", lambda _: self.configure(highlightbackground=normal_border))
+
+
+class GradientHeader(tk.Frame):
+    """Hero header section with elevated background and accent bottom border.
+
+    Children go in ``.inner``.  The section has a lighter surface background
+    than the page body, plus a thin crimson accent line at the bottom to
+    create clear visual separation.
+    """
+
+    def __init__(
+        self,
+        parent,
+        color_top: str = COLORS["bg_hero"],
+        color_bottom: str = COLORS["bg"],
+        min_height: int = 120,
+        **kwargs,
+    ):
+        kwargs.pop("highlightthickness", None)
+        super().__init__(parent, bg=color_bottom, **kwargs)
+
+        # Main content area with elevated bg
+        self.inner = tk.Frame(self, bg=color_top)
+        self.inner.pack(fill=tk.X, side=tk.TOP)
+
+        # Subtle accent bottom border (muted crimson, 2px)
+        accent_line = tk.Frame(self, bg="#4a2028", height=2)
+        accent_line.pack(fill=tk.X, side=tk.TOP)
+        accent_line.pack_propagate(False)
+
+
+class PillBadge(tk.Canvas):
+    """Pill-shaped badge with simulated glass background.
+
+    Draws a rounded pill and places text centered inside it.
+    """
+
+    def __init__(
+        self,
+        parent,
+        text: str = "",
+        bg_color: str = COLORS["badge_glass"],
+        fg_color: str = COLORS["gold"],
+        font=None,
+        **kwargs,
+    ):
+        self._text = text
+        self._bg_color = bg_color
+        self._fg_color = fg_color
+        self._font = font or FONTS["label_tiny"]
+
+        # Inherit parent background so canvas blends in
+        try:
+            parent_bg = parent.cget("bg") or parent.cget("background")
+        except Exception:
+            parent_bg = COLORS["bg"]
+        super().__init__(
+            parent,
+            highlightthickness=0,
+            bg=parent_bg,
+            **kwargs,
+        )
+        self._draw_id = None
+        self.bind("<Configure>", self._redraw)
+        # Initial draw after idle so geometry is known
+        self.after_idle(self._measure_and_draw)
+
+    def _measure_and_draw(self):
+        # Temporary text to measure
+        tmp = self.create_text(0, 0, text=self._text, font=self._font, anchor="nw")
+        bbox = self.bbox(tmp)
+        self.delete(tmp)
+        if not bbox:
+            return
+        tw = bbox[2] - bbox[0]
+        th = bbox[3] - bbox[1]
+        pad_x, pad_y = 14, 6
+        w = tw + pad_x * 2
+        h = th + pad_y * 2
+        self.configure(width=w, height=h)
+        self._draw(w, h)
+
+    def _redraw(self, event=None):
+        w = self.winfo_width()
+        h = self.winfo_height()
+        if w > 1 and h > 1:
+            self._draw(w, h)
+
+    def _draw(self, w: int, h: int):
+        self.delete("all")
+        r = h // 2  # full pill radius
+
+        # Draw pill shape
+        self.create_oval(0, 0, h, h, fill=self._bg_color, outline="")
+        self.create_oval(w - h, 0, w, h, fill=self._bg_color, outline="")
+        if w > h:
+            self.create_rectangle(r, 0, w - r, h, fill=self._bg_color, outline="")
+
+        # Draw subtle border
+        self.create_arc(0, 0, h, h, start=90, extent=180,
+                        outline=COLORS["border_medium"], style="arc")
+        self.create_arc(w - h, 0, w, h, start=270, extent=180,
+                        outline=COLORS["border_medium"], style="arc")
+        self.create_line(r, 0, w - r, 0, fill=COLORS["border_medium"])
+        self.create_line(r, h, w - r, h, fill=COLORS["border_medium"])
+
+        # Centered text
+        self.create_text(w // 2, h // 2, text=self._text, font=self._font,
+                         fill=self._fg_color, anchor="center")
+
+    def set_text(self, text: str):
+        self._text = text
+        self._measure_and_draw()

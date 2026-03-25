@@ -204,7 +204,7 @@ class HomeScreen:
 
         # Hover effects
         def on_enter(e):
-            card.configure(highlightbackground=COLORS["accent"])
+            card.configure(highlightbackground="#4a2028")
 
         def on_leave(e):
             card.configure(highlightbackground=COLORS["outline_dim"])
