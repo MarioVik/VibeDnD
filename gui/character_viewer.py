@@ -36,6 +36,7 @@ from models.inventory_service import (
     format_coins,
     normalize_item_key,
     remove_item,
+    base_wealth_cp,
     current_wealth_cp,
     cp_to_coins,
 )
@@ -983,18 +984,54 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_hero"],
         ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
 
-        # ── Currency stat cards (spellbook style) ──
-        wealth_cp = current_wealth_cp(c)
-        gp, sp, cp = cp_to_coins(wealth_cp)
-
+        # ── Currency (editable, spellbook-card style) ──
         currency_frame = tk.Frame(wrapper, bg=COLORS["bg"])
         currency_frame.pack(fill=tk.X, pady=(SPACING["sm"], SPACING["section_gap"]))
 
-        for label, value, color in [
-            ("Gold", str(gp), COLORS["gold"]),
-            ("Silver", str(sp), COLORS["fg"]),
-            ("Copper", str(cp), "#cd7f32"),
-        ]:
+        coin_defs = [
+            ("Gold", "gp", 100, COLORS["gold"]),
+            ("Silver", "sp", 10, COLORS["fg"]),
+            ("Copper", "cp", 1, "#cd7f32"),
+        ]
+
+        gp, sp, cp_val = cp_to_coins(current_wealth_cp(c))
+        coin_values = {"gp": gp, "sp": sp, "cp": cp_val}
+        self._coin_vars: dict[str, tk.StringVar] = {}
+
+        def _refresh_coin_display():
+            g, s, co = cp_to_coins(current_wealth_cp(self.character))
+            for k, v in {"gp": g, "sp": s, "cp": co}.items():
+                self._coin_vars[k].set(str(v))
+
+        def _commit_coins(event=None):
+            parsed = {}
+            for _, coin_key, _, _ in coin_defs:
+                raw = self._coin_vars[coin_key].get().strip()
+                if raw == "":
+                    raw = "0"
+                if not raw.isdigit():
+                    AlertDialog(self.winfo_toplevel(), "Wealth", "Please enter whole numbers only.")
+                    _refresh_coin_display()
+                    return False
+                parsed[coin_key] = int(raw)
+            new_total_cp = parsed["gp"] * 100 + parsed["sp"] * 10 + parsed["cp"]
+            self.character.wealth_adjust_cp = int(new_total_cp - base_wealth_cp(self.character))
+            _refresh_coin_display()
+            self._on_sheet_changed()
+            return True
+
+        def _adjust_wealth(delta_cp: int):
+            if not _commit_coins():
+                return
+            cur = current_wealth_cp(self.character)
+            if delta_cp < 0 and cur < abs(delta_cp):
+                AlertDialog(self.winfo_toplevel(), "Wealth", "You do not have enough wealth for that reduction.")
+                return
+            self.character.wealth_adjust_cp = int(getattr(self.character, "wealth_adjust_cp", 0)) + int(delta_cp)
+            _refresh_coin_display()
+            self._on_sheet_changed()
+
+        for label, coin_key, unit_cp, color in coin_defs:
             stat_cf = CardFrame(currency_frame, pad=SPACING["md"])
             stat_cf.pack(side=tk.LEFT, padx=(0, SPACING["card_gap"]))
 
@@ -1007,14 +1044,36 @@ class CharacterViewer(ttk.Frame):
             ).pack(anchor="w")
 
             val_row = tk.Frame(stat_cf.inner, bg=COLORS["bg_surface"])
-            val_row.pack(anchor="w")
+            val_row.pack(anchor="w", fill=tk.X)
 
-            tk.Label(
+            var = tk.StringVar(value=str(coin_values.get(coin_key, 0)))
+            self._coin_vars[coin_key] = var
+
+            entry = tk.Entry(
                 val_row,
-                text=value,
+                textvariable=var,
                 font=FONTS["stat_large"],
+                bg=COLORS["bg_container"],
                 fg=color,
-                bg=COLORS["bg_surface"],
+                insertbackground=color,
+                relief=tk.FLAT,
+                borderwidth=0,
+                highlightthickness=0,
+                width=4,
+            )
+            entry.pack(side=tk.LEFT)
+            entry.bind("<FocusOut>", _commit_coins)
+            entry.bind("<Return>", _commit_coins)
+
+            btn_frame = tk.Frame(val_row, bg=COLORS["bg_surface"])
+            btn_frame.pack(side=tk.LEFT, padx=(6, 0))
+            ttk.Button(
+                btn_frame, text="+", width=2,
+                command=lambda d=unit_cp: _adjust_wealth(d),
+            ).pack(side=tk.LEFT, padx=(0, 2))
+            ttk.Button(
+                btn_frame, text="\u2212", width=2,
+                command=lambda d=unit_cp: _adjust_wealth(-d),
             ).pack(side=tk.LEFT)
 
         # ── Inventory split view ──
