@@ -902,14 +902,13 @@ class CharacterViewer(ttk.Frame):
         # Spell list (reuse existing pattern with split view)
         spell_area = tk.Frame(wrapper, bg=COLORS["bg"])
         spell_area.pack(fill=tk.BOTH, expand=True)
-        spell_area.columnconfigure(0, weight=0)
-        spell_area.columnconfigure(1, weight=1)
+        spell_area.columnconfigure(0, weight=3)
+        spell_area.columnconfigure(1, weight=6)
         spell_area.rowconfigure(0, weight=1)
 
         # Left: spell list
-        left = tk.Frame(spell_area, bg=COLORS["bg_surface"], width=280)
+        left = tk.Frame(spell_area, bg=COLORS["bg_surface"])
         left.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
-        left.grid_propagate(False)
 
         tk.Label(
             left,
@@ -1911,14 +1910,13 @@ class CharacterViewer(ttk.Frame):
 
         split = tk.Frame(parent, bg=COLORS["bg"])
         split.pack(fill=tk.BOTH, expand=True)
-        split.columnconfigure(0, weight=0)
-        split.columnconfigure(1, weight=1)
+        split.columnconfigure(0, weight=3)
+        split.columnconfigure(1, weight=6)
         split.rowconfigure(0, weight=1)
 
-        # Left: item list (fixed width, matching spellbook)
-        left = tk.Frame(split, bg=COLORS["bg_surface"], width=280)
+        # Left: item list
+        left = tk.Frame(split, bg=COLORS["bg_surface"])
         left.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
-        left.grid_propagate(False)
 
         tk.Label(
             left,
@@ -1928,7 +1926,7 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_surface"],
         ).pack(anchor="w", padx=8, pady=(8, 4))
 
-        self.inv_list = SectionedListbox(left, on_select=self._on_inv_list_select)
+        self.inv_list = SectionedListbox(left, on_select=self._on_inv_list_select, on_sub_select=self._on_inv_sub_select)
         self.inv_list.pack(fill=tk.BOTH, expand=True, padx=4, pady=(0, 4))
 
         btn_row = tk.Frame(left, bg=COLORS["bg_surface"])
@@ -2148,6 +2146,18 @@ class CharacterViewer(ttk.Frame):
         if not entry:
             return
         self._on_inventory_select_entry(entry)
+
+    def _on_inv_sub_select(self, parent_item: str, sub_item: str):
+        """Handle sub-item selection (e.g. items inside a pack)."""
+        # sub_item text comes with the SUB_ITEM_PREFIX stripped by SectionedListbox
+        # Try to match against our entries
+        entry = self._inv_list_entries.get(sub_item)
+        if not entry:
+            # Try stripping leading whitespace/prefix
+            clean = sub_item.strip().lstrip("- ")
+            entry = self._inv_list_entries.get(clean)
+        if entry:
+            self._on_inventory_select_entry(entry)
 
     def _toggle_equip_selected(self):
         """Toggle equip on the currently selected inventory item."""
