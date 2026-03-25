@@ -76,6 +76,7 @@ class Sidebar(tk.Frame):
             self._nav_buttons[item["key"]] = btn
 
         # ---- Bottom actions ----
+        self._action_buttons: dict[str, "ttk.Button"] = {}
         if bottom_buttons:
             tk.Frame(self, bg=COLORS["border_subtle"], height=1).pack(
                 fill=tk.X, padx=16, pady=(8, 4)
@@ -87,13 +88,22 @@ class Sidebar(tk.Frame):
 
             for btn_cfg in bottom_buttons:
                 style = btn_cfg.get("style", "TButton")
+                state = btn_cfg.get("state", tk.NORMAL)
                 b = ttk.Button(
                     btn_frame,
                     text=btn_cfg["text"],
                     command=btn_cfg["command"],
                     style=style,
+                    state=state,
                 )
                 b.pack(fill=tk.X, pady=2)
+                key = btn_cfg.get("key")
+                if key:
+                    self._action_buttons[key] = b
+
+    def get_action_button(self, key: str):
+        """Return a bottom action button by key, or None."""
+        return self._action_buttons.get(key)
 
     def _build_character_info(self):
         """Build the character portrait + name area at the top."""

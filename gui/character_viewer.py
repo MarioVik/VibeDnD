@@ -121,12 +121,23 @@ class CharacterViewer(ttk.Frame):
         if not self._character_has_spells():
             nav_items = [n for n in nav_items if n["key"] != _SPELLBOOK]
 
-        bottom_buttons = [
+        c = self.character
+        short_state = tk.NORMAL if can_short_rest(c) else tk.DISABLED
+        long_state = tk.NORMAL if can_long_rest(c) else tk.DISABLED
+
+        bottom_buttons = []
+        if c.level < 20:
+            bottom_buttons.append(
+                {"text": "Level Up", "command": self._on_level_up, "style": "Accent.TButton", "key": "level_up"},
+            )
+        bottom_buttons.extend([
+            {"text": "Short Rest", "command": self._on_short_rest, "state": short_state, "key": "short_rest"},
+            {"text": "Long Rest", "command": self._on_long_rest, "state": long_state, "key": "long_rest"},
             {"text": "Export PDF", "command": self._export_pdf},
             {"text": "Export JSON", "command": self._export_json},
             {"text": "Respec Character", "command": self._on_edit},
             {"text": "\u25c0  Back to Menu", "command": self._on_back},
-        ]
+        ])
 
         self.sidebar = Sidebar(
             self,
@@ -550,34 +561,6 @@ class CharacterViewer(ttk.Frame):
                             side=tk.LEFT, padx=(0, 4), pady=2
                         )
 
-        # ── Action buttons ──
-        action_frame = tk.Frame(inner, bg=COLORS["bg"])
-        action_frame.pack(fill=tk.X, pady=(8, 16))
-
-        if c.level < 20:
-            ttk.Button(
-                action_frame,
-                text="Level Up",
-                style="Accent.TButton",
-                command=self._on_level_up,
-            ).pack(side=tk.LEFT, padx=(0, 8))
-
-        short_state = tk.NORMAL if can_short_rest(c) else tk.DISABLED
-        long_state = tk.NORMAL if can_long_rest(c) else tk.DISABLED
-
-        ttk.Button(
-            action_frame,
-            text="Short Rest",
-            command=self._on_short_rest,
-            state=short_state,
-        ).pack(side=tk.LEFT, padx=(0, 4))
-
-        ttk.Button(
-            action_frame,
-            text="Long Rest",
-            command=self._on_long_rest,
-            state=long_state,
-        ).pack(side=tk.LEFT, padx=(0, 4))
 
     # ================================================================
     # COMBAT VIEW
@@ -1385,13 +1368,7 @@ class CharacterViewer(ttk.Frame):
         right.columnconfigure(0, weight=1)
         self._bio_portrait_frame = right
 
-        tk.Label(
-            right,
-            text="Portrait",
-            font=FONTS["heading_serif_sm"],
-            fg=COLORS["fg"],
-            bg=COLORS["bg_surface"],
-        ).pack(anchor="w", padx=12, pady=(12, 8))
+        SectionHeader(right, text="Portrait").pack(fill=tk.X, pady=(0, 4))
 
         self.bio_image_canvas = tk.Canvas(
             right,
@@ -2398,6 +2375,17 @@ class CharacterViewer(ttk.Frame):
         for key in self._view_dirty:
             if key != self._current_view:
                 self._view_dirty[key] = True
+        self._refresh_sidebar_action_states()
+
+    def _refresh_sidebar_action_states(self):
+        """Update rest button enabled/disabled states in the sidebar."""
+        c = self.character
+        short_btn = self.sidebar.get_action_button("short_rest")
+        long_btn = self.sidebar.get_action_button("long_rest")
+        if short_btn:
+            short_btn.configure(state=tk.NORMAL if can_short_rest(c) else tk.DISABLED)
+        if long_btn:
+            long_btn.configure(state=tk.NORMAL if can_long_rest(c) else tk.DISABLED)
 
     def _mark_all_dirty(self):
         for key in self._view_dirty:
