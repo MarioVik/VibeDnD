@@ -834,9 +834,13 @@ class CharacterViewer(ttk.Frame):
     def _build_spellbook(self):
         parent = self._views[_SPELLBOOK]
 
+        # Outer padding to match ScrollableFrame inner_padding (16px)
+        wrapper = tk.Frame(parent, bg=COLORS["bg"])
+        wrapper.pack(fill=tk.BOTH, expand=True, padx=16, pady=16)
+
         # Header (gradient)
-        spell_hero = GradientHeader(parent, min_height=60)
-        spell_hero.pack(fill=tk.X)
+        spell_hero = GradientHeader(wrapper, min_height=60)
+        spell_hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
 
         tk.Label(
             spell_hero.inner,
@@ -844,7 +848,7 @@ class CharacterViewer(ttk.Frame):
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg_hero"],
-        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], 4))
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
 
         c = self.character
         cls = c.character_class or {}
@@ -852,7 +856,7 @@ class CharacterViewer(ttk.Frame):
         # Spellcasting stats header
         cast_ability = cls.get("spellcasting_ability")
         if cast_ability:
-            stats_frame = tk.Frame(parent, bg=COLORS["bg"], padx=SPACING["lg"])
+            stats_frame = tk.Frame(wrapper, bg=COLORS["bg"])
             stats_frame.pack(fill=tk.X, pady=(SPACING["sm"], SPACING["section_gap"]))
 
             spell_mod = c.ability_scores.modifier(cast_ability)
@@ -895,8 +899,8 @@ class CharacterViewer(ttk.Frame):
                 ).pack(side=tk.LEFT, padx=(8, 0))
 
         # Spell list (reuse existing pattern with split view)
-        spell_area = tk.Frame(parent, bg=COLORS["bg"])
-        spell_area.pack(fill=tk.BOTH, expand=True, padx=SPACING["lg"], pady=(0, SPACING["lg"]))
+        spell_area = tk.Frame(wrapper, bg=COLORS["bg"])
+        spell_area.pack(fill=tk.BOTH, expand=True)
         spell_area.columnconfigure(0, weight=0)
         spell_area.columnconfigure(1, weight=1)
         spell_area.rowconfigure(0, weight=1)
@@ -1069,7 +1073,7 @@ class CharacterViewer(ttk.Frame):
 
         # Hero header (full width)
         back_hero = GradientHeader(inner, min_height=50)
-        back_hero.grid(row=0, column=0, columnspan=2, sticky="ew", padx=(SPACING["lg"], 16), pady=(SPACING["lg"], SPACING["section_gap"]))
+        back_hero.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, SPACING["section_gap"]))
         tk.Label(
             back_hero.inner,
             text="Biography",
