@@ -11,7 +11,7 @@ import re
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-from gui.theme import COLORS, FONTS
+from gui.theme import COLORS, FONTS, SPACING
 from gui.spell_swap_panel import SpellSwapPanel
 from gui.widgets import (
     ScrollableFrame,
@@ -20,6 +20,9 @@ from gui.widgets import (
     AlertDialog,
     configure_modal_dialog,
     _wheel_units,
+    CardFrame,
+    PillBadge,
+    SectionHeader,
 )
 from models.character import Character
 from models.class_level import ClassLevel
@@ -886,12 +889,15 @@ class LevelUpWizard(tk.Toplevel):
         if not features:
             return
 
-        ttk.Label(
-            self.step1_content,
-            text="New Features",
-            font=FONTS["heading"],
-            foreground=COLORS["accent"],
-        ).pack(anchor="w", pady=(8, 4))
+        SectionHeader(self.step1_content, text="New Features").pack(
+            fill=tk.X, pady=(8, 4)
+        )
+
+        grid = tk.Frame(self.step1_content, bg=COLORS["bg"])
+        grid.pack(fill=tk.X, pady=(0, SPACING["sm"]))
+        grid.columnconfigure(0, weight=1)
+        grid.columnconfigure(1, weight=1)
+        card_idx = 0
 
         for feat_name in features:
             if feat_name in ("-", "Ability Score Improvement"):
@@ -899,19 +905,8 @@ class LevelUpWizard(tk.Toplevel):
 
             sub_slug = self.character.subclass_for_class(self.class_slug)
             if feat_name == "Subclass Feature" and sub_slug:
-                self._show_subclass_features()
+                card_idx = self._show_subclass_features(grid, card_idx)
                 continue
-
-            frame = ttk.Frame(self.step1_content, style="Card.TFrame")
-            frame.pack(fill=tk.X, pady=2, padx=4)
-
-            ttk.Label(
-                frame,
-                text=feat_name,
-                font=FONTS["subheading"],
-                foreground=COLORS["fg_bright"],
-                background=COLORS["bg_card"],
-            ).pack(anchor="w", padx=8, pady=(4, 0))
 
             desc = ""
             feat_lower = feat_name.lower().replace("\u2019", "'")
@@ -933,13 +928,34 @@ class LevelUpWizard(tk.Toplevel):
                                 break
                         if desc:
                             break
+
+            card = CardFrame(grid, bg=COLORS["bg_container"],
+                             border_color=COLORS["border_subtle"], pad=SPACING["lg"])
+            card.grid(row=card_idx // 2, column=card_idx % 2, padx=4, pady=4, sticky="nsew")
+            header = tk.Frame(card.inner, bg=COLORS["bg_container"])
+            header.pack(fill=tk.X)
+            tk.Label(
+                header,
+                text=feat_name,
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_container"],
+            ).pack(side=tk.LEFT)
+            PillBadge(
+                header,
+                text=f"LEVEL {self.new_class_level}",
+                bg_color=COLORS["badge_glass_dim"],
+                fg_color=COLORS["gold"],
+            ).pack(side=tk.RIGHT)
             if desc:
                 WrappingLabel(
-                    frame,
+                    card.inner,
                     text=desc,
+                    font=FONTS["body_small"],
                     foreground=COLORS["fg_dim"],
-                    background=COLORS["bg_card"],
-                ).pack(fill=tk.X, anchor="w", padx=8, pady=(0, 4))
+                    background=COLORS["bg_container"],
+                ).pack(fill=tk.X, pady=(6, 0))
+            card_idx += 1
 
         extra = self.level_data.get("extra", {})
         if extra:
@@ -951,7 +967,7 @@ class LevelUpWizard(tk.Toplevel):
                         foreground=COLORS["fg"],
                     ).pack(anchor="w", padx=12, pady=1)
 
-    def _show_subclass_features(self):
+    def _show_subclass_features(self, grid, card_idx):
         sub_slug = self.character.subclass_for_class(self.class_slug)
         subclass = self.data.get_subclass(self.class_slug, sub_slug)
         if not subclass:
@@ -960,7 +976,7 @@ class LevelUpWizard(tk.Toplevel):
                 text=f"Subclass Feature (data not available for {sub_slug})",
                 foreground=COLORS["fg_dim"],
             ).pack(anchor="w", padx=12, pady=2)
-            return
+            return card_idx
 
         sub_features = subclass.get("features", {}).get(str(self.new_class_level), [])
         if not sub_features:
@@ -970,26 +986,38 @@ class LevelUpWizard(tk.Toplevel):
                 text=f"{sub_name} Feature (Level {self.new_class_level})",
                 foreground=COLORS["fg"],
             ).pack(anchor="w", padx=12, pady=2)
-            return
+            return card_idx
 
         for feat in sub_features:
-            frame = ttk.Frame(self.step1_content, style="Card.TFrame")
-            frame.pack(fill=tk.X, pady=2, padx=4)
-            ttk.Label(
-                frame,
+            card = CardFrame(grid, bg=COLORS["bg_container"],
+                             border_color=COLORS["border_subtle"], pad=SPACING["lg"])
+            card.grid(row=card_idx // 2, column=card_idx % 2, padx=4, pady=4, sticky="nsew")
+            header = tk.Frame(card.inner, bg=COLORS["bg_container"])
+            header.pack(fill=tk.X)
+            tk.Label(
+                header,
                 text=f"{feat['name']} (Subclass)",
-                font=FONTS["subheading"],
-                foreground=COLORS["fg_bright"],
-                background=COLORS["bg_card"],
-            ).pack(anchor="w", padx=8, pady=(4, 0))
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_container"],
+            ).pack(side=tk.LEFT)
+            PillBadge(
+                header,
+                text=f"LEVEL {self.new_class_level}",
+                bg_color=COLORS["badge_glass_dim"],
+                fg_color=COLORS["gold"],
+            ).pack(side=tk.RIGHT)
             desc = feat.get("description", "")
             if desc:
                 WrappingLabel(
-                    frame,
+                    card.inner,
                     text=desc,
+                    font=FONTS["body_small"],
                     foreground=COLORS["fg_dim"],
-                    background=COLORS["bg_card"],
-                ).pack(fill=tk.X, anchor="w", padx=8, pady=(0, 4))
+                    background=COLORS["bg_container"],
+                ).pack(fill=tk.X, pady=(6, 0))
+            card_idx += 1
+        return card_idx
 
     # ── HP ────────────────────────────────────────────────────────
 
