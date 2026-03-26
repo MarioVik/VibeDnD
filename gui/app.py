@@ -246,7 +246,11 @@ class CharacterCreatorApp:
         if spells_key in self._wizard_sidebar._nav_buttons:
             btn = self._wizard_sidebar._nav_buttons[spells_key]
             if self.character.is_caster:
-                btn.pack(fill=tk.X, pady=1)
+                # Repack all nav buttons in order to preserve position
+                for key, _, _, _ in _WIZARD_STEPS:
+                    if key in self._wizard_sidebar._nav_buttons:
+                        self._wizard_sidebar._nav_buttons[key].pack_forget()
+                        self._wizard_sidebar._nav_buttons[key].pack(fill=tk.X, pady=1)
             else:
                 btn.pack_forget()
                 # If currently on spells step, move away
