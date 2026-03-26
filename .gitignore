@@ -208,3 +208,6 @@ __marimo__/
 
 # Saved character files (use Export/Import to share)
 characters/
+
+# Claude Code local settings
+.claude/settings.local.json
