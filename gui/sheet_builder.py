@@ -22,7 +22,7 @@ from models.standard_actions import (
     get_selected_non_weapon_items,
     get_selected_weapon_counts,
 )
-from gui.widgets import AlertDialog, WrappingLabel
+from gui.widgets import AlertDialog, WrappingLabel, FormattedDescription
 from models.inventory_service import (
     base_wealth_cp,
     cp_to_coins,
@@ -184,11 +184,11 @@ def _show_level_features(parent: tk.Widget, character, game_data=None):
                 font=FONTS["body"],
             ).pack(anchor="w", padx=8)
             if feat_desc:
-                WrappingLabel(
+                FormattedDescription(
                     parent,
-                    text=f"      {feat_desc}",
+                    text=feat_desc,
                     foreground=COLORS["fg_dim"],
-                ).pack(fill=tk.X, anchor="w", padx=8, pady=(0, 4))
+                ).pack(fill=tk.X, anchor="w", padx=16, pady=(0, 4))
 
 
 def build_character_sheet(
@@ -384,11 +384,18 @@ def build_character_sheet(
         traits_frame = ttk.LabelFrame(parent, text=f"{c.species_name} Traits")
         traits_frame.pack(fill=tk.X, pady=section_pady)
         for trait in c.species["traits"]:
-            WrappingLabel(
+            ttk.Label(
                 traits_frame,
-                text=f"  {trait['name']}: {trait.get('description', '')}",
-                foreground=COLORS["fg_dim"],
-            ).pack(fill=tk.X, anchor="w", padx=8, pady=1)
+                text=f"  {trait['name']}",
+                foreground=COLORS["accent"],
+                font=FONTS["subheading"],
+            ).pack(anchor="w", padx=8)
+            if trait.get("description"):
+                FormattedDescription(
+                    traits_frame,
+                    text=trait["description"],
+                    foreground=COLORS["fg_dim"],
+                ).pack(fill=tk.X, anchor="w", padx=16, pady=(0, 4))
 
     # ── Class Features ──────────────────────────────────────────
     if _show("class_features") and c.character_class:
@@ -410,11 +417,11 @@ def build_character_sheet(
                     font=FONTS["subheading"],
                 ).pack(anchor="w", padx=8)
                 if feat.get("description"):
-                    WrappingLabel(
+                    FormattedDescription(
                         feat_frame,
-                        text=f"    {feat['description']}",
+                        text=feat["description"],
                         foreground=COLORS["fg_dim"],
-                    ).pack(fill=tk.X, anchor="w", padx=8, pady=(0, 4))
+                    ).pack(fill=tk.X, anchor="w", padx=16, pady=(0, 4))
 
     # ── Subclass ──────────────────────────────────────────────
     if _show("subclass") and c.current_subclass:
@@ -443,8 +450,8 @@ def build_character_sheet(
             if desc:
                 intro = re.split(r"\bLevel\s+\d+\s*:", desc, maxsplit=1)[0].strip()
                 if intro:
-                    WrappingLabel(
-                        sub_frame, text=f"  {intro}", foreground=COLORS["fg_dim"]
+                    FormattedDescription(
+                        sub_frame, text=intro, foreground=COLORS["fg_dim"]
                     ).pack(fill=tk.X, anchor="w", padx=8, pady=(4, 0))
 
             features_by_level = subclass_data.get("features", {})
@@ -475,11 +482,11 @@ def build_character_sheet(
                         font=FONTS["body"],
                     ).pack(anchor="w", padx=8)
                     if feat_desc:
-                        WrappingLabel(
+                        FormattedDescription(
                             sub_frame,
-                            text=f"      {feat_desc}",
+                            text=feat_desc,
                             foreground=COLORS["fg_dim"],
-                        ).pack(fill=tk.X, anchor="w", padx=8, pady=(0, 4))
+                        ).pack(fill=tk.X, anchor="w", padx=16, pady=(0, 4))
         else:
             ttk.Label(
                 sub_frame, text=f"  {sub_name}", foreground=COLORS["accent"]

@@ -16,6 +16,7 @@ from gui.spell_swap_panel import SpellSwapPanel
 from gui.widgets import (
     ScrollableFrame,
     WrappingLabel,
+    FormattedDescription,
     ConfirmDialog,
     AlertDialog,
     configure_modal_dialog,
@@ -948,7 +949,7 @@ class LevelUpWizard(tk.Toplevel):
                 fg_color=COLORS["gold"],
             ).pack(side=tk.RIGHT)
             if desc:
-                WrappingLabel(
+                FormattedDescription(
                     card.inner,
                     text=desc,
                     font=FONTS["body_small"],
@@ -1009,7 +1010,7 @@ class LevelUpWizard(tk.Toplevel):
             ).pack(side=tk.RIGHT)
             desc = feat.get("description", "")
             if desc:
-                WrappingLabel(
+                FormattedDescription(
                     card.inner,
                     text=desc,
                     font=FONTS["body_small"],

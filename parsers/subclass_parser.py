@@ -7,7 +7,7 @@ Parses from three sources in priority order:
 """
 
 import re
-from parsers.base_parser import extract_source, extract_description
+from parsers.base_parser import extract_source, extract_description, join_description_lines
 from parsers.class_parser import MAIN_CLASSES
 
 
@@ -79,14 +79,12 @@ def _parse_subclass_features(content: str) -> dict[int, list[dict]]:
             features_by_level[current_level].append(
                 {
                     "name": current_name,
-                    "description": " ".join(current_desc_lines).strip(),
+                    "description": join_description_lines(current_desc_lines),
                 }
             )
 
     for line in lines:
         stripped = line.strip()
-        if not stripped:
-            continue
 
         m = re.match(r"^Level\s+(\d+)\s*:\s*(.+)", stripped)
         if m:

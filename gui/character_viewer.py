@@ -23,6 +23,7 @@ from gui.widgets import (
     Chip,
     HPBar,
     WrappingLabel,
+    FormattedDescription,
     CardFrame,
     GradientHeader,
     PillBadge,
@@ -1104,7 +1105,7 @@ class CharacterViewer(ttk.Frame):
                     bg=COLORS["bg_container"],
                 ).pack(anchor="w")
                 if trait.get("description"):
-                    WrappingLabel(
+                    FormattedDescription(
                         card.inner,
                         text=trait["description"],
                         font=FONTS["body_small"],
@@ -1168,7 +1169,7 @@ class CharacterViewer(ttk.Frame):
                         fg_color=COLORS["gold"],
                     ).pack(side=tk.RIGHT)
                     if feat.get("description"):
-                        WrappingLabel(
+                        FormattedDescription(
                             card.inner,
                             text=feat["description"],
                             font=FONTS["body_small"],
@@ -1232,7 +1233,7 @@ class CharacterViewer(ttk.Frame):
                             fg_color=COLORS["gold"],
                         ).pack(side=tk.RIGHT)
                         if feat.get("description"):
-                            WrappingLabel(
+                            FormattedDescription(
                                 card.inner,
                                 text=feat["description"],
                                 font=FONTS["body_small"],

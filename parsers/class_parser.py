@@ -8,6 +8,7 @@ from parsers.base_parser import (
     extract_description,
     split_comma_list,
     parse_choose_pattern,
+    join_description_lines,
 )
 
 # Known main classes (by URL slug before :main)
@@ -381,12 +382,11 @@ def parse_level_1_features(content: str, feature_names: list[str]) -> list[dict]
 
     for line in section.split("\n"):
         stripped = line.strip()
-        if not stripped:
-            continue
 
         # Check if this line is a feature header (ends with period, short, title case)
         if (
-            stripped.endswith(".")
+            stripped
+            and stripped.endswith(".")
             and len(stripped) < 60
             and not stripped[0].islower()
             and stripped[:-1].replace("'", "").replace(" ", "").isalpha()
@@ -396,7 +396,7 @@ def parse_level_1_features(content: str, feature_names: list[str]) -> list[dict]
                 features.append(
                     {
                         "name": current_name,
-                        "description": " ".join(current_desc_lines).strip(),
+                        "description": join_description_lines(current_desc_lines),
                     }
                 )
             current_name = stripped.rstrip(".")
@@ -404,7 +404,7 @@ def parse_level_1_features(content: str, feature_names: list[str]) -> list[dict]
         elif current_name:
             current_desc_lines.append(stripped)
         # Also check for "Feature Name" without period as header
-        elif any(
+        elif stripped and any(
             stripped.lower().startswith(
                 fn.lower().split(",")[0].strip().split("(")[0].strip()
             )
@@ -415,7 +415,7 @@ def parse_level_1_features(content: str, feature_names: list[str]) -> list[dict]
                 features.append(
                     {
                         "name": current_name,
-                        "description": " ".join(current_desc_lines).strip(),
+                        "description": join_description_lines(current_desc_lines),
                     }
                 )
             current_name = stripped.rstrip(".")
@@ -426,7 +426,7 @@ def parse_level_1_features(content: str, feature_names: list[str]) -> list[dict]
         features.append(
             {
                 "name": current_name,
-                "description": " ".join(current_desc_lines).strip(),
+                "description": join_description_lines(current_desc_lines),
             }
         )
 

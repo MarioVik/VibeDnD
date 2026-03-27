@@ -3,6 +3,48 @@
 import re
 
 
+def _is_subheading(line: str) -> bool:
+    """Detect sub-headings like 'Plans Known.' or 'Creating an Item.'"""
+    return (
+        len(line) < 50
+        and line.endswith(".")
+        and line[0].isupper()
+        and line.count(".") == 1
+        and len(line.split()) <= 4
+        and not line.startswith("See ")
+    )
+
+
+def join_description_lines(lines: list[str]) -> str:
+    """Join description lines preserving paragraph breaks and sub-headings.
+
+    Blank lines become paragraph breaks (\\n\\n).
+    Short title-cased lines ending with '.' are treated as sub-headings
+    and get their own paragraph.
+    """
+    paragraphs: list[str] = []
+    current: list[str] = []
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            if current:
+                paragraphs.append(" ".join(current))
+                current = []
+        elif _is_subheading(stripped):
+            if current:
+                paragraphs.append(" ".join(current))
+                current = []
+            paragraphs.append(stripped)
+        else:
+            current.append(stripped)
+
+    if current:
+        paragraphs.append(" ".join(current))
+
+    return "\n\n".join(paragraphs)
+
+
 def extract_name_from_url(url: str) -> str:
     """Convert URL slug to display name.
 
@@ -154,7 +196,7 @@ def extract_description(content: str, after_source: bool = True) -> str:
         desc_lines.append(stripped)
 
     if desc_lines:
-        return " ".join(desc_lines).strip()
+        return join_description_lines(desc_lines)
 
     # Fallback: collect trailing text after all known field headers.
     # Walk past header/value pairs (header line + one value line each),
@@ -193,7 +235,7 @@ def extract_description(content: str, after_source: bool = True) -> str:
         if stripped:
             tail_lines.append(stripped)
 
-    return " ".join(tail_lines).strip()
+    return join_description_lines(tail_lines)
 
 
 def is_school_index(entry: dict) -> bool:

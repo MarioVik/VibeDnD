@@ -85,6 +85,100 @@ class WrappingLabel(ttk.Label):
                 self.configure(wraplength=new_wrap)
 
 
+class FormattedDescription(tk.Text):
+    """A read-only Text widget that renders multi-paragraph descriptions.
+
+    Sub-headings (short lines ending with '.') are rendered in bold.
+    Paragraph breaks (\\n\\n) produce visible spacing.
+    Accepts the same font/foreground/background kwargs as WrappingLabel.
+    """
+
+    def __init__(self, master=None, text="", font=None, foreground=None, background=None, **kwargs):
+        bg = background or kwargs.pop("bg", COLORS["bg"])
+        fg = foreground or kwargs.pop("fg", COLORS["fg_dim"])
+        base_font = font or FONTS["body_small"]
+
+        super().__init__(
+            master,
+            wrap="word",
+            borderwidth=0,
+            highlightthickness=0,
+            padx=0,
+            pady=0,
+            bg=bg,
+            fg=fg,
+            font=base_font,
+            cursor="",
+            spacing3=4,  # space after each line/paragraph
+            **kwargs,
+        )
+
+        # Bold tag for sub-headings
+        bold_font = (base_font[0], base_font[1], "bold") if isinstance(base_font, tuple) else base_font
+        self.tag_configure("subheading", font=bold_font, foreground=fg)
+
+        if text:
+            self._set_text(text)
+
+        self.configure(state="disabled")
+        self._last_width = 0
+        self.bind("<Configure>", self._on_configure)
+
+    @staticmethod
+    def _is_subheading(line: str) -> bool:
+        return (
+            len(line) < 50
+            and line.endswith(".")
+            and line[0].isupper()
+            and line.count(".") == 1
+            and len(line.split()) <= 4
+            and not line.startswith("See ")
+        )
+
+    def _set_text(self, text: str):
+        self.configure(state="normal")
+        self.delete("1.0", "end")
+        paragraphs = text.split("\n\n")
+        for i, para in enumerate(paragraphs):
+            if i > 0:
+                self.insert("end", "\n")
+            para = para.strip()
+            if not para:
+                continue
+            if self._is_subheading(para):
+                self.insert("end", para, "subheading")
+            else:
+                self.insert("end", para)
+        self.configure(state="disabled")
+
+    def _on_configure(self, event):
+        if abs(event.width - self._last_width) < 3:
+            return
+        self._last_width = event.width
+        self.after_idle(self._resize_height)
+
+    def _resize_height(self):
+        self.update_idletasks()
+        # Count how many display lines the text occupies
+        num_lines = int(self.index("end-1c").split(".")[0])
+        total_display_lines = 0
+        for i in range(1, num_lines + 1):
+            info = self.dlineinfo(f"{i}.0")
+            if info is None:
+                # Widget not yet mapped; estimate
+                total_display_lines += 1
+                continue
+            # Count wrapped display lines for this text line
+            bbox_start = self.count(f"{i}.0", f"{i}.end", "displaylines")
+            if bbox_start:
+                total_display_lines += bbox_start[0] + 1
+            else:
+                total_display_lines += 1
+
+        if total_display_lines > 0:
+            self.configure(height=total_display_lines)
+
+
 class SearchableListbox(ttk.Frame):
     """A listbox with a search/filter entry above it."""
 

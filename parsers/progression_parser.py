@@ -1,6 +1,7 @@
 """Parser for full level 1-20 class progression tables from dnd2024_data.json."""
 
 import re
+from parsers.base_parser import join_description_lines
 from parsers.class_parser import MAIN_CLASSES, CASTER_TYPES
 
 # Standard spell slot columns
@@ -370,13 +371,11 @@ def _parse_feature_descriptions(content: str) -> dict[int, list[dict]]:
             features_by_level.setdefault(current_level, [])
             features_by_level[current_level].append({
                 "name": current_name,
-                "description": " ".join(current_desc_lines).strip(),
+                "description": join_description_lines(current_desc_lines),
             })
 
     for i in range(desc_start, len(lines)):
         stripped = lines[i].strip()
-        if not stripped:
-            continue
 
         m = re.match(r'^Level\s+(\d+)\s*:\s*(.+)', stripped)
         if m:
