@@ -62,9 +62,9 @@ _BACKSTORY = "backstory"
 
 _NAV_ITEMS = [
     {"key": _DASHBOARD, "text": "Dashboard", "icon": "\u25a3"},
-    {"key": _COMBAT, "text": "Combat", "icon": "\u2694"},
-    {"key": _SPELLBOOK, "text": "Spellbook", "icon": "\u2728"},
-    {"key": _INVENTORY, "text": "Inventory", "icon": "\u1F4E6"},
+    {"key": _COMBAT, "text": "Combat", "icon": "\u2694\ufe0e"},
+    {"key": _SPELLBOOK, "text": "Spellbook", "icon": "\u2726"},
+    {"key": _INVENTORY, "text": "Inventory", "icon": "\u229e"},
     {"key": _FEATURES, "text": "Features", "icon": "\u2605"},
     {"key": _BACKSTORY, "text": "Backstory", "icon": "\u270E"},
 ]
