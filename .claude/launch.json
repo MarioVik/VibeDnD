@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "VibeDnD App",
+      "runtimeExecutable": "/opt/homebrew/bin/uv",
+      "runtimeArgs": ["run", "python", "main.py"],
+      "port": 0
+    },
+    {
+      "name": "PDF Preview",
+      "runtimeExecutable": "/opt/homebrew/bin/uv",
+      "runtimeArgs": ["run", "python", "preview_pdf.py", "/tmp/vibe_dnd_preview.pdf"],
+      "port": 0
+    }
+  ]
+}

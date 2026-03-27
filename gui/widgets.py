@@ -85,6 +85,102 @@ class WrappingLabel(ttk.Label):
                 self.configure(wraplength=new_wrap)
 
 
+class FormattedDescription(tk.Text):
+    """A read-only Text widget that renders multi-paragraph descriptions.
+
+    Sub-headings (short lines ending with '.') are rendered in bold.
+    Paragraph breaks (\\n\\n) produce visible spacing.
+    Accepts the same font/foreground/background kwargs as WrappingLabel.
+    """
+
+    def __init__(self, master=None, text="", font=None, foreground=None, background=None, **kwargs):
+        bg = background or kwargs.pop("bg", COLORS["bg"])
+        fg = foreground or kwargs.pop("fg", COLORS["fg_dim"])
+        base_font = font or FONTS["body_small"]
+
+        super().__init__(
+            master,
+            wrap="word",
+            borderwidth=0,
+            highlightthickness=0,
+            padx=0,
+            pady=0,
+            bg=bg,
+            fg=fg,
+            font=base_font,
+            cursor="",
+            spacing3=4,  # space after each line/paragraph
+            **kwargs,
+        )
+
+        # Bold tag for sub-headings
+        bold_font = (base_font[0], base_font[1], "bold") if isinstance(base_font, tuple) else base_font
+        self.tag_configure("subheading", font=bold_font, foreground=fg)
+
+        if text:
+            self._set_text(text)
+
+        self.configure(state="disabled")
+        self._last_width = 0
+        self.bind("<Configure>", self._on_configure)
+
+    @staticmethod
+    def _is_subheading(line: str) -> bool:
+        return (
+            len(line) < 50
+            and line.endswith(".")
+            and line[0].isupper()
+            and line.count(".") == 1
+            and len(line.split()) <= 4
+            and not line.startswith("See ")
+        )
+
+    def _set_text(self, text: str):
+        self.configure(state="normal")
+        self.delete("1.0", "end")
+        paragraphs = text.split("\n\n")
+        first = True
+        for para in paragraphs:
+            para = para.strip()
+            if not para:
+                continue
+            if not first:
+                self.insert("end", "\n\n")  # blank line between paragraphs
+            first = False
+            if self._is_subheading(para):
+                self.insert("end", para, "subheading")
+            else:
+                self.insert("end", para)
+        self.configure(state="disabled")
+
+    def _on_configure(self, event):
+        if abs(event.width - self._last_width) < 3:
+            return
+        self._last_width = event.width
+        self.after_idle(self._resize_height)
+
+    def _resize_height(self):
+        self.update_idletasks()
+        # Count how many display lines the text occupies
+        num_lines = int(self.index("end-1c").split(".")[0])
+        total_display_lines = 0
+        for i in range(1, num_lines + 1):
+            info = self.dlineinfo(f"{i}.0")
+            if info is None:
+                # Widget not yet mapped; estimate
+                total_display_lines += 1
+                continue
+            # Count wrapped display lines for this text line
+            bbox_start = self.count(f"{i}.0", f"{i}.end", "displaylines")
+            if bbox_start:
+                total_display_lines += bbox_start[0] + 1
+            else:
+                total_display_lines += 1
+
+        if total_display_lines > 0:
+            self.configure(height=total_display_lines)
+
+
 class SearchableListbox(ttk.Frame):
     """A listbox with a search/filter entry above it."""
 
@@ -587,3 +683,512 @@ class ThemedTable(ttk.Frame):
     def clear(self):
         for item in self.tree.get_children():
             self.tree.delete(item)
+
+
+# ---------------------------------------------------------------------------
+# Mythic Modern widgets
+# ---------------------------------------------------------------------------
+
+
+class NavButton(tk.Frame):
+    """Sidebar navigation item with icon text, active indicator, and hover."""
+
+    def __init__(
+        self,
+        parent,
+        text: str,
+        key: str,
+        icon_char: str = "",
+        on_click=None,
+        **kwargs,
+    ):
+        super().__init__(parent, bg=COLORS["bg_surface"], cursor="hand2", **kwargs)
+        self.key = key
+        self._on_click = on_click
+        self._active = False
+
+        # Accent left-border indicator (hidden by default)
+        self._indicator = tk.Frame(self, bg=COLORS["bg_surface"], width=3)
+        self._indicator.pack(side=tk.LEFT, fill=tk.Y)
+
+        # Content area
+        inner = tk.Frame(self, bg=COLORS["bg_surface"])
+        inner.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(8, 12), pady=8)
+
+        if icon_char:
+            self._icon = tk.Label(
+                inner,
+                text=icon_char,
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            )
+            self._icon.pack(side=tk.LEFT, padx=(0, 8))
+        else:
+            self._icon = None
+
+        self._label = tk.Label(
+            inner,
+            text=text.upper(),
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+        )
+        self._label.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        # Bind click and hover to all child widgets
+        for widget in (self, inner, self._label) + ((self._icon,) if self._icon else ()):
+            widget.bind("<Button-1>", self._handle_click)
+            widget.bind("<Enter>", self._on_enter)
+            widget.bind("<Leave>", self._on_leave)
+
+    def _handle_click(self, _event=None):
+        if self._on_click:
+            self._on_click(self.key)
+
+    def _on_enter(self, _event=None):
+        if not self._active:
+            bg = COLORS["bg_container"]
+            self.configure(bg=bg)
+            for child in self.winfo_children():
+                self._set_bg_recursive(child, bg)
+
+    def _on_leave(self, _event=None):
+        if not self._active:
+            bg = COLORS["bg_surface"]
+            self.configure(bg=bg)
+            for child in self.winfo_children():
+                self._set_bg_recursive(child, bg)
+
+    def set_active(self, active: bool):
+        self._active = active
+        if active:
+            bg = COLORS["bg_container"]
+            fg = COLORS["accent_text"]
+            self._indicator.configure(bg="#4a2028")
+        else:
+            bg = COLORS["bg_surface"]
+            fg = COLORS["fg_dim"]
+            self._indicator.configure(bg=COLORS["bg_surface"])
+
+        self.configure(bg=bg)
+        for child in self.winfo_children():
+            self._set_bg_recursive(child, bg)
+        self._label.configure(fg=fg)
+        if self._icon:
+            self._icon.configure(fg=fg)
+
+    @staticmethod
+    def _set_bg_recursive(widget, bg):
+        try:
+            widget.configure(bg=bg)
+        except tk.TclError:
+            pass
+        for child in widget.winfo_children():
+            NavButton._set_bg_recursive(child, bg)
+
+
+class StatCard(tk.Frame):
+    """Bento-style stat card: uppercase label, large number, optional modifier badge."""
+
+    def __init__(
+        self,
+        parent,
+        label: str,
+        value: str = "",
+        modifier: str = "",
+        suffix: str = "",
+        highlight: bool = False,
+        **kwargs,
+    ):
+        _bg = COLORS["bg_surface"]
+        super().__init__(
+            parent,
+            bg=_bg,
+            padx=20,
+            pady=16,
+            highlightthickness=0,
+            **kwargs,
+        )
+        self._card_bg = _bg
+
+        # Uppercase stat name
+        self._lbl = tk.Label(
+            self,
+            text=label.upper(),
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=_bg,
+        )
+        self._lbl.pack()
+
+        # Large number (+ inline suffix if present)
+        if suffix:
+            val_row = tk.Frame(self, bg=_bg)
+            val_row.pack()
+            self._val = tk.Label(
+                val_row,
+                text=value,
+                font=FONTS["stat_large"],
+                fg=COLORS["fg"],
+                bg=_bg,
+            )
+            self._val.pack(side=tk.LEFT)
+            self._suffix = tk.Label(
+                val_row,
+                text=suffix,
+                font=FONTS["body_small"],
+                fg=COLORS["fg_dim"],
+                bg=_bg,
+            )
+            self._suffix.pack(side=tk.LEFT, padx=(4, 0), anchor="s", pady=(0, 4))
+        else:
+            self._val = tk.Label(
+                self,
+                text=value,
+                font=FONTS["stat_large"],
+                fg=COLORS["fg"],
+                bg=_bg,
+            )
+            self._val.pack()
+            self._suffix = None
+
+        # Modifier badge
+        self._mod_frame = None
+        self._mod_lbl = None
+        if modifier:
+            self._build_modifier(modifier)
+
+        if highlight:
+            self._apply_highlight()
+
+    def _build_modifier(self, modifier: str):
+        mod_bg = COLORS["bg_container"]
+        self._mod_frame = tk.Frame(self, bg=mod_bg, padx=8, pady=2)
+        self._mod_frame.pack(pady=(4, 0))
+        self._mod_lbl = tk.Label(
+            self._mod_frame,
+            text=modifier,
+            font=FONTS["body_bold"],
+            fg=COLORS["fg"],
+            bg=mod_bg,
+        )
+        self._mod_lbl.pack()
+
+    def _apply_highlight(self):
+        """Highlight card with accent ring (for proficient saves etc.)."""
+        self.configure(highlightbackground="#4a2028", highlightthickness=1)
+        self._lbl.configure(fg=COLORS["accent_text"])
+
+    def update_values(self, value: str, modifier: str = "", highlight: bool = False):
+        self._val.configure(text=value)
+        if modifier and self._mod_lbl:
+            self._mod_lbl.configure(text=modifier)
+        elif modifier and not self._mod_lbl:
+            self._build_modifier(modifier)
+        if highlight:
+            self._apply_highlight()
+        else:
+            self.configure(highlightthickness=0)
+            self._lbl.configure(fg=COLORS["fg_dim"])
+
+
+class SectionHeader(tk.Frame):
+    """Serif italic heading with horizontal separator line and optional right label."""
+
+    def __init__(
+        self,
+        parent,
+        text: str,
+        right_text: str = "",
+        **kwargs,
+    ):
+        super().__init__(parent, bg=COLORS["bg"], **kwargs)
+
+        self._heading = tk.Label(
+            self,
+            text=text,
+            font=FONTS["heading_serif"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg"],
+        )
+        self._heading.pack(side=tk.LEFT, padx=(0, 12))
+
+        # Horizontal line (subtle)
+        self._line = tk.Frame(self, bg=COLORS["border_subtle"], height=1)
+        self._line.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=1)
+
+        if right_text:
+            self._right = tk.Label(
+                self,
+                text=right_text.upper(),
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg"],
+            )
+            self._right.pack(side=tk.RIGHT, padx=(12, 0))
+        else:
+            self._right = None
+
+    def set_bg(self, bg: str):
+        """Update background for all parts of the header."""
+        self.configure(bg=bg)
+        self._heading.configure(bg=bg)
+        if self._right:
+            self._right.configure(bg=bg)
+
+
+class Chip(tk.Label):
+    """Small tag/badge label — used for proficiencies, spell components, etc."""
+
+    def __init__(
+        self,
+        parent,
+        text: str,
+        style: str = "gold",
+        **kwargs,
+    ):
+        if style == "gold":
+            bg = COLORS["gold_dark"]
+            fg = COLORS["gold_on_dark"]
+        elif style == "accent":
+            bg = COLORS["accent"]
+            fg = COLORS["accent_text"]
+        else:
+            bg = COLORS["bg_highest"]
+            fg = COLORS["fg_dim"]
+
+        super().__init__(
+            parent,
+            text=text.upper(),
+            font=FONTS["label_tiny"],
+            fg=fg,
+            bg=bg,
+            padx=10,
+            pady=3,
+            **kwargs,
+        )
+
+
+class HPBar(tk.Canvas):
+    """Horizontal HP bar showing current/max with accent fill."""
+
+    def __init__(self, parent, width: int = 200, height: int = 8, **kwargs):
+        super().__init__(
+            parent,
+            width=width,
+            height=height,
+            bg=COLORS["bg_highest"],
+            highlightthickness=0,
+            **kwargs,
+        )
+        self._bar_width = width
+        self._bar_height = height
+        self._fill_rect = None
+
+    def set_hp(self, current: int, maximum: int):
+        """Update the bar fill based on current/max HP."""
+        self.delete("all")
+        if maximum <= 0:
+            return
+        ratio = max(0, min(1, current / maximum))
+        fill_w = int(self._bar_width * ratio)
+
+        # Choose color based on HP percentage
+        if ratio > 0.5:
+            color = COLORS["accent_text"]
+        elif ratio > 0.25:
+            color = COLORS["gold"]
+        else:
+            color = COLORS["negative"]
+
+        h = self._bar_height
+        r = h // 2  # radius for rounded ends
+
+        # Draw rounded trough
+        self.create_oval(0, 0, h, h, fill=COLORS["bg_highest"], outline="")
+        self.create_oval(self._bar_width - h, 0, self._bar_width, h,
+                         fill=COLORS["bg_highest"], outline="")
+        self.create_rectangle(r, 0, self._bar_width - r, h,
+                              fill=COLORS["bg_highest"], outline="")
+
+        if fill_w > h:
+            self.create_oval(0, 0, h, h, fill=color, outline="")
+            self.create_oval(fill_w - h, 0, fill_w, h, fill=color, outline="")
+            self.create_rectangle(r, 0, fill_w - r, h, fill=color, outline="")
+        elif fill_w > 0:
+            self.create_oval(0, 0, h, h, fill=color, outline="")
+
+
+def _hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
+    """Convert #RRGGBB to (r, g, b) tuple."""
+    h = hex_color.lstrip("#")
+    return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+
+
+def _rgb_to_hex(r: int, g: int, b: int) -> str:
+    """Convert (r, g, b) to #RRGGBB."""
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+def _lerp_color(c1: str, c2: str, t: float) -> str:
+    """Linearly interpolate between two hex colors. t=0 → c1, t=1 → c2."""
+    r1, g1, b1 = _hex_to_rgb(c1)
+    r2, g2, b2 = _hex_to_rgb(c2)
+    return _rgb_to_hex(
+        int(r1 + (r2 - r1) * t),
+        int(g1 + (g2 - g1) * t),
+        int(b1 + (b2 - b1) * t),
+    )
+
+
+class CardFrame(tk.Frame):
+    """Card container with subtle border and optional accent left stripe.
+
+    Use ``.inner`` to pack children inside the card.
+    """
+
+    def __init__(
+        self,
+        parent,
+        bg: str = COLORS["bg_surface"],
+        border_color: str = COLORS["border_subtle"],
+        accent_left: bool = False,
+        pad: int = 20,
+        **kwargs,
+    ):
+        super().__init__(
+            parent,
+            bg=bg,
+            highlightbackground=border_color,
+            highlightthickness=0,
+            **kwargs,
+        )
+
+        if accent_left:
+            tk.Frame(self, bg="#4a2028", width=3).pack(
+                side=tk.LEFT, fill=tk.Y
+            )
+
+        self.inner = tk.Frame(self, bg=bg)
+        self.inner.pack(fill=tk.BOTH, expand=True, padx=pad, pady=pad)
+
+    def set_hover(self, hover_border: str = COLORS["border_medium"]):
+        """Enable hover effect — border becomes more visible on mouse enter."""
+        normal_border = self.cget("highlightbackground")
+        self.bind("<Enter>", lambda _: self.configure(highlightbackground=hover_border))
+        self.bind("<Leave>", lambda _: self.configure(highlightbackground=normal_border))
+
+
+class GradientHeader(tk.Frame):
+    """Hero header section with elevated background and accent bottom border.
+
+    Children go in ``.inner``.  The section has a lighter surface background
+    than the page body, plus a thin crimson accent line at the bottom to
+    create clear visual separation.
+    """
+
+    def __init__(
+        self,
+        parent,
+        color_top: str = COLORS["bg_hero"],
+        color_bottom: str = COLORS["bg"],
+        min_height: int = 120,
+        **kwargs,
+    ):
+        kwargs.pop("highlightthickness", None)
+        super().__init__(parent, bg=color_bottom, **kwargs)
+
+        # Main content area with elevated bg
+        self.inner = tk.Frame(self, bg=color_top)
+        self.inner.pack(fill=tk.X, side=tk.TOP)
+
+        # Subtle accent bottom border (muted crimson, 2px)
+        accent_line = tk.Frame(self, bg="#4a2028", height=2)
+        accent_line.pack(fill=tk.X, side=tk.TOP)
+        accent_line.pack_propagate(False)
+
+
+class PillBadge(tk.Canvas):
+    """Pill-shaped badge with simulated glass background.
+
+    Draws a rounded pill and places text centered inside it.
+    """
+
+    def __init__(
+        self,
+        parent,
+        text: str = "",
+        bg_color: str = COLORS["badge_glass"],
+        fg_color: str = COLORS["gold"],
+        font=None,
+        **kwargs,
+    ):
+        self._text = text
+        self._bg_color = bg_color
+        self._fg_color = fg_color
+        self._font = font or FONTS["label_tiny"]
+
+        # Inherit parent background so canvas blends in
+        try:
+            parent_bg = parent.cget("bg") or parent.cget("background")
+        except Exception:
+            parent_bg = COLORS["bg"]
+        super().__init__(
+            parent,
+            highlightthickness=0,
+            bg=parent_bg,
+            **kwargs,
+        )
+        self._draw_id = None
+        self.bind("<Configure>", self._redraw)
+        # Initial draw after idle so geometry is known
+        self.after_idle(self._measure_and_draw)
+
+    def _measure_and_draw(self):
+        # Temporary text to measure
+        tmp = self.create_text(0, 0, text=self._text, font=self._font, anchor="nw")
+        bbox = self.bbox(tmp)
+        self.delete(tmp)
+        if not bbox:
+            return
+        tw = bbox[2] - bbox[0]
+        th = bbox[3] - bbox[1]
+        pad_x, pad_y = 14, 6
+        w = tw + pad_x * 2
+        h = th + pad_y * 2
+        self.configure(width=w, height=h)
+        self._draw(w, h)
+
+    def _redraw(self, event=None):
+        w = self.winfo_width()
+        h = self.winfo_height()
+        if w > 1 and h > 1:
+            self._draw(w, h)
+
+    def _draw(self, w: int, h: int):
+        self.delete("all")
+        r = h // 2  # full pill radius
+
+        # Draw pill shape
+        self.create_oval(0, 0, h, h, fill=self._bg_color, outline="")
+        self.create_oval(w - h, 0, w, h, fill=self._bg_color, outline="")
+        if w > h:
+            self.create_rectangle(r, 0, w - r, h, fill=self._bg_color, outline="")
+
+        # Draw subtle border
+        self.create_arc(0, 0, h, h, start=90, extent=180,
+                        outline=COLORS["border_medium"], style="arc")
+        self.create_arc(w - h, 0, w, h, start=270, extent=180,
+                        outline=COLORS["border_medium"], style="arc")
+        self.create_line(r, 0, w - r, 0, fill=COLORS["border_medium"])
+        self.create_line(r, h, w - r, h, fill=COLORS["border_medium"])
+
+        # Centered text
+        self.create_text(w // 2, h // 2, text=self._text, font=self._font,
+                         fill=self._fg_color, anchor="center")
+
+    def set_text(self, text: str):
+        self._text = text
+        self._measure_and_draw()

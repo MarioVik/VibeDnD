@@ -1,7 +1,7 @@
 """Parser for feat entries from dnd2024_data.json."""
 
 import re
-from parsers.base_parser import extract_name_from_url, extract_source
+from parsers.base_parser import extract_name_from_url, extract_source, join_description_lines
 
 
 def parse_prerequisites(content: str) -> dict | None:
@@ -119,7 +119,7 @@ def parse_benefits(feat_name: str, content: str) -> list[dict]:
             if current_name or current_desc_lines:
                 benefits.append({
                     "name": current_name or feat_name,
-                    "description": " ".join(current_desc_lines).strip(),
+                    "description": join_description_lines(current_desc_lines),
                 })
             current_name = header_text
             current_desc_lines = []
@@ -129,7 +129,7 @@ def parse_benefits(feat_name: str, content: str) -> list[dict]:
     if current_name or current_desc_lines:
         benefits.append({
             "name": current_name or feat_name,
-            "description": " ".join(current_desc_lines).strip(),
+            "description": join_description_lines(current_desc_lines),
         })
 
     return benefits

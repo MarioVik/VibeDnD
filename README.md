@@ -34,6 +34,10 @@ If you want to run VibeDnD from source or contribute:
 ### Prerequisites
 - **Python 3.12+**
 - **uv** (recommended) or **pip**
+- **Tkinter** — included with Python on Windows and most Linux distros, but on macOS requires a separate install:
+  ```bash
+  brew install python-tk@3.14  # match your Python version
+  ```
 
 ### Run from Source
 ```bash

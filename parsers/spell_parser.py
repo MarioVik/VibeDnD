@@ -1,7 +1,7 @@
 """Parser for spell entries from dnd2024_data.json."""
 
 import re
-from parsers.base_parser import extract_name_from_url, extract_source, extract_field, is_school_index
+from parsers.base_parser import extract_name_from_url, extract_source, extract_field, is_school_index, join_description_lines
 
 
 def parse_spell_header(content: str) -> dict:
@@ -175,7 +175,7 @@ def parse_spells(raw_data: list[dict]) -> list[dict]:
                 else:
                     desc_lines.append(stripped)
 
-            description = " ".join(desc_lines)
+            description = join_description_lines(desc_lines)
 
         spells.append({
             "name": name,

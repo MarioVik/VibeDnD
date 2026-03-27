@@ -1,13 +1,12 @@
 """Main application: screen manager for home, wizard and viewer screens."""
 
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog
 
 from gui.theme import apply_theme, COLORS, FONTS
 from gui.data_loader import GameData
-from gui.widgets import ScrollableFrame, WrappingLabel, AlertDialog
-from models.character import Character
-from models.enums import ALL_SKILLS
+from gui.sidebar import Sidebar
+from gui.widgets import AlertDialog
 
 from gui.step_species import SpeciesStep
 from gui.step_class import ClassStep
@@ -22,13 +21,28 @@ from gui.step_summary import SummaryStep
 from gui.home_screen import HomeScreen
 from gui.character_viewer import CharacterViewer
 
+# Wizard step definitions: (key, label, icon, StepClass)
+_WIZARD_STEPS = [
+    ("species", "Species", "\U0001F9EC", SpeciesStep),
+    ("class", "Class", "\u2694\ufe0f", ClassStep),
+    ("background", "Background", "\U0001F4DC", BackgroundStep),
+    ("abilities", "Ability Scores", "\U0001F3B2", AbilityScoresStep),
+    ("feat", "Feat", "\u2B50", FeatStep),
+    ("spells", "Spells", "\u2728", SpellsStep),
+    ("equipment", "Equipment", "\U0001F6E1\ufe0f", EquipmentStep),
+    ("biography", "Biography", "\U0001F4D6", BiographyStep),
+    ("summary", "Summary", "\u2705", SummaryStep),
+]
+
+SPELLS_INDEX = 5  # index of spells step in _WIZARD_STEPS
+
 
 class CharacterCreatorApp:
     """Main application window with screen management."""
 
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("D&D 2024 Character Creator")
+        self.root.title("VibeDnD — D&D 2024 Character Creator")
         self.root.geometry("1600x1050")
         self.root.minsize(1100, 750)
 
@@ -41,8 +55,8 @@ class CharacterCreatorApp:
 
         # Screen references
         self.home_screen = HomeScreen(self.container, self)
-        self.wizard_frame = None  # built lazily
-        self.viewer_frame = None  # built lazily
+        self.wizard_frame = None
+        self.viewer_frame = None
 
         # State
         self.character = None
@@ -60,14 +74,11 @@ class CharacterCreatorApp:
         self.home_screen.frame.pack(fill=tk.BOTH, expand=True)
 
     def show_wizard(self, character=None, save_path=None):
-        """Switch to the character creation wizard.
-
-        If *character* is provided (edit mode), the wizard is populated
-        with that character's data.
-        """
+        """Switch to the character creation wizard."""
         self._hide_all()
 
         if character is None:
+            from models.character import Character
             character = Character()
         self.character = character
         self.current_save_path = save_path
@@ -101,208 +112,242 @@ class CharacterCreatorApp:
     # ── Wizard builder ──────────────────────────────────────────
 
     def _build_wizard(self, character, save_path=None):
-        """Create the wizard frame containing the step notebook."""
-        frame = ttk.Frame(self.container)
+        """Create the wizard with sidebar step navigation."""
+        frame = tk.Frame(self.container, bg=COLORS["bg"])
 
-        # Top bar with back button + save/export buttons
-        top = ttk.Frame(frame)
-        top.pack(fill=tk.X, padx=8, pady=(6, 2))
-        if save_path:
-            # Edit mode: go back to the character viewer
-            back_text = "\u25c0  Back to Character"
-            back_cmd = lambda: self.show_viewer(character, save_path)
-        else:
-            # New character: go back to home
-            back_text = "\u25c0  Back to Menu"
-            back_cmd = self.show_home
+        # -- Content area (right side) --
+        content_area = tk.Frame(frame, bg=COLORS["bg"])
 
-        ttk.Button(
-            top,
-            text=back_text,
-            command=back_cmd,
-        ).pack(side=tk.LEFT)
+        # Bottom nav bar with Back / Next / Save buttons (pack FIRST so it claims space)
+        nav_bar = tk.Frame(content_area, bg=COLORS["bg_surface"])
+        nav_bar.pack(fill=tk.X, side=tk.BOTTOM)
 
-        ttk.Button(
-            top,
-            text="Save & Finish",
-            style="Accent.TButton",
-            command=self._save_and_finish,
-        ).pack(side=tk.LEFT, padx=12)
+        # Step content container — steps are packed here one at a time
+        self._step_container = tk.Frame(content_area, bg=COLORS["bg"])
+        self._step_container.pack(fill=tk.BOTH, expand=True)
 
-        # Navigation buttons at bottom
-        self.nav_frame = ttk.Frame(frame, padding=(12, 12))
-        self.nav_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        nav_inner = tk.Frame(nav_bar, bg=COLORS["bg_surface"])
+        nav_inner.pack(fill=tk.X, padx=16, pady=10)
 
-        self.back_btn = ttk.Button(
-            self.nav_frame, text="\u25c0  Back", command=self._wizard_back
+        self._back_btn = ttk.Button(
+            nav_inner,
+            text="\u25c0  Back",
+            command=self._wizard_back,
         )
-        self.back_btn.pack(side=tk.LEFT)
+        self._back_btn.pack(side=tk.LEFT)
 
-        self.next_btn = ttk.Button(
-            self.nav_frame,
+        self._next_btn = ttk.Button(
+            nav_inner,
             text="Next  \u25b6",
             style="Accent.TButton",
             command=self._wizard_next,
         )
-        self.next_btn.pack(side=tk.RIGHT)
+        self._next_btn.pack(side=tk.RIGHT)
 
-        # Notebook for wizard steps
-        self.wizard_notebook = ttk.Notebook(frame)
-        self.wizard_notebook.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+        ttk.Button(
+            nav_inner,
+            text="Save & Finish",
+            style="Gold.TButton",
+            command=self._save_and_finish,
+        ).pack(side=tk.RIGHT, padx=(0, 8))
 
-        # Create wizard steps
-        self.wizard_steps = [
-            SpeciesStep(self.wizard_notebook, character, self.data),
-            ClassStep(self.wizard_notebook, character, self.data),
-            BackgroundStep(self.wizard_notebook, character, self.data),
-            AbilityScoresStep(self.wizard_notebook, character, self.data),
-            FeatStep(self.wizard_notebook, character, self.data),
-            SpellsStep(self.wizard_notebook, character, self.data),
-            EquipmentStep(self.wizard_notebook, character, self.data),
-            BiographyStep(self.wizard_notebook, character, self.data),
-            SummaryStep(
-                self.wizard_notebook,
-                character,
-                self.data,
-                app=self,
-                save_path=save_path,
-            ),
-        ]
+        # -- Create wizard steps --
+        self.wizard_steps = []
+        self._step_keys = []
+        self._current_step_idx = 0
+        # Track which steps have been reached (for progressive disclosure)
+        self._reached_step = 0 if not save_path else len(_WIZARD_STEPS) - 1
 
-        # Add on_change callback to ClassStep index (1) to toggle spells tab
+        for key, label, icon, StepClass in _WIZARD_STEPS:
+            if StepClass is SummaryStep:
+                step = StepClass(
+                    self._step_container, character, self.data,
+                    app=self, save_path=save_path,
+                )
+            else:
+                step = StepClass(self._step_container, character, self.data)
+            self.wizard_steps.append(step)
+            self._step_keys.append(key)
+
+        # Register callbacks
+        # ClassStep (index 1) toggles spells visibility
         self.wizard_steps[1].on_change_callbacks.append(self._update_spells_visibility)
-
-        # Register nav updates for all steps
         for step in self.wizard_steps:
             step.on_change_callbacks.append(self._update_nav_buttons)
 
-        # Hide all except first initially if new character
-        if not save_path:
-            for i in range(1, len(self.wizard_steps)):
-                self.wizard_notebook.tab(i, state="hidden")
+        # -- Sidebar (left side) --
+        nav_items = []
+        for key, label, icon, _ in _WIZARD_STEPS:
+            nav_items.append({"key": key, "text": label, "icon": icon})
 
-        # Initial spells visibility check
+        if save_path:
+            back_text = "\u25c0  Back to Character"
+            back_cmd = lambda: self.show_viewer(character, save_path)
+        else:
+            back_text = "\u25c0  Back to Menu"
+            back_cmd = self.show_home
+
+        self._wizard_sidebar = Sidebar(
+            frame,
+            nav_items=nav_items,
+            on_navigate=self._on_sidebar_nav,
+            bottom_buttons=[
+                {"text": back_text, "command": back_cmd},
+            ],
+        )
+        self._wizard_sidebar.pack(side=tk.LEFT, fill=tk.Y)
+
+        # Pack content after sidebar
+        content_area.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Initial state
         self._update_spells_visibility()
-
-        # Tab change event
-        def on_tab_change(event):
-            idx = self.wizard_notebook.index(self.wizard_notebook.select())
-            if 0 <= idx < len(self.wizard_steps):
-                self.wizard_steps[idx].on_enter()
-                # discovery
-                # Only show if valid? No, usually we allow clicking back to already discovered.
-                # But requirement is "visible when you step to them".
-                self.wizard_notebook.tab(idx, state="normal")
-                self._update_nav_buttons()
-
-        self.wizard_notebook.bind("<<NotebookTabChanged>>", on_tab_change)
-        self._update_nav_buttons()
+        self._show_step(0)
 
         return frame
 
-    def _update_spells_visibility(self):
-        """Hide or show the spells tab based on caster status."""
-        if not hasattr(self, "wizard_notebook"):
+    def _on_sidebar_nav(self, key: str):
+        """Handle sidebar click — only allow navigating to reached steps."""
+        try:
+            idx = self._step_keys.index(key)
+        except ValueError:
             return
 
-        SPELLS_INDEX = 5
-        curr = self.wizard_notebook.index(self.wizard_notebook.select())
+        # Don't allow jumping ahead of reached steps
+        if idx > self._reached_step:
+            return
 
-        if self.character.is_caster:
-            # Only show if they have reached this step or are in edit mode
-            if self.current_save_path:
-                self.wizard_notebook.tab(SPELLS_INDEX, state="normal")
-        else:
-            self.wizard_notebook.tab(SPELLS_INDEX, state="hidden")
-            # If we were on the spells tab somehow, move back
-            if curr == SPELLS_INDEX:
-                self.wizard_notebook.select(4)
+        # Skip spells step if not a caster
+        if idx == SPELLS_INDEX and not self.character.is_caster:
+            return
+
+        self._show_step(idx)
+
+    def _show_step(self, idx: int):
+        """Show the step at the given index, hiding the current one."""
+        if 0 <= self._current_step_idx < len(self.wizard_steps):
+            self.wizard_steps[self._current_step_idx].frame.pack_forget()
+
+        self._current_step_idx = idx
+        step = self.wizard_steps[idx]
+        step.frame.pack(fill=tk.BOTH, expand=True)
+        step.on_enter()
+
+        key = self._step_keys[idx]
+        self._wizard_sidebar.set_active(key)
+        self._update_nav_buttons()
+
+    def _update_spells_visibility(self):
+        """Hide or show the spells nav item based on caster status."""
+        if not hasattr(self, "_wizard_sidebar"):
+            return
+        # Spells step nav button — dim it if not a caster
+        spells_key = _WIZARD_STEPS[SPELLS_INDEX][0]
+        if spells_key in self._wizard_sidebar._nav_buttons:
+            btn = self._wizard_sidebar._nav_buttons[spells_key]
+            if self.character.is_caster:
+                # Repack all nav buttons in order to preserve position
+                for key, _, _, _ in _WIZARD_STEPS:
+                    if key in self._wizard_sidebar._nav_buttons:
+                        self._wizard_sidebar._nav_buttons[key].pack_forget()
+                        self._wizard_sidebar._nav_buttons[key].pack(fill=tk.X, pady=1)
+            else:
+                btn.pack_forget()
+                # If currently on spells step, move away
+                if self._current_step_idx == SPELLS_INDEX:
+                    self._show_step(SPELLS_INDEX - 1)
 
     def _wizard_next(self):
-        curr = self.wizard_notebook.index(self.wizard_notebook.select())
+        curr = self._current_step_idx
         step = self.wizard_steps[curr]
+
         if not step.is_valid():
-            if isinstance(step, ClassStep):
-                required = getattr(step, "skill_limit", 0)
-                chosen = len(self.character.selected_skills) if self.character else 0
-                skill_word = "skill" if required == 1 else "skills"
-                AlertDialog(
-                    self.root,
-                    "Skill Selection Required",
-                    f"Choose {required} class {skill_word} before moving on. "
-                    f"({chosen}/{required} selected)",
-                )
-            elif isinstance(step, SpeciesStep):
-                species_name = (
-                    self.character.species.get("name", "This species")
-                    if self.character and self.character.species
-                    else "This species"
-                )
-                AlertDialog(
-                    self.root,
-                    "Species Choice Required",
-                    f"{species_name} requires an additional choice before moving on. "
-                    "Please pick one option in the species details panel.",
-                )
-            elif isinstance(step, SpellsStep):
-                cls = self.character.character_class or {}
-                cantrip_max = cls.get("cantrips_known", 0) or 0
-                spell_max = cls.get("spells_prepared", 0) or 0
-                cantrip_count = len(self.character.selected_cantrips)
-                spell_count = len(self.character.selected_spells)
-                parts = []
-                if cantrip_max > 0 and cantrip_count < cantrip_max:
-                    parts.append(f"{cantrip_count}/{cantrip_max} cantrips")
-                if spell_max > 0 and spell_count < spell_max:
-                    parts.append(f"{spell_count}/{spell_max} spells")
-                AlertDialog(
-                    self.root,
-                    "Spell Selection Required",
-                    f"Select all your spells before moving on. ({', '.join(parts)} selected)",
-                )
+            self._show_validation_error(step)
             return
 
-        if curr < len(self.wizard_steps) - 1:
-            next_idx = curr + 1
+        next_idx = curr + 1
 
-            # Skip Spells tab if not a caster
-            if next_idx == 5 and not self.character.is_caster:
-                next_idx += 1
+        # Skip spells if not a caster
+        if next_idx == SPELLS_INDEX and not self.character.is_caster:
+            next_idx += 1
 
-            if next_idx < len(self.wizard_steps):
-                self.wizard_notebook.tab(next_idx, state="normal")
-                self.wizard_notebook.select(next_idx)
+        if next_idx < len(self.wizard_steps):
+            # Update reached step for progressive disclosure
+            if next_idx > self._reached_step:
+                self._reached_step = next_idx
+            self._show_step(next_idx)
 
     def _wizard_back(self):
-        curr = self.wizard_notebook.index(self.wizard_notebook.select())
+        curr = self._current_step_idx
         if curr > 0:
             prev_idx = curr - 1
 
-            # Skip Spells tab if not a caster
-            if prev_idx == 5 and not self.character.is_caster:
+            # Skip spells if not a caster
+            if prev_idx == SPELLS_INDEX and not self.character.is_caster:
                 prev_idx -= 1
 
             if prev_idx >= 0:
-                self.wizard_notebook.select(prev_idx)
+                self._show_step(prev_idx)
+
+    def _show_validation_error(self, step):
+        """Show context-specific validation error for the current step."""
+        if isinstance(step, ClassStep):
+            required = getattr(step, "skill_limit", 0)
+            chosen = len(self.character.selected_skills) if self.character else 0
+            skill_word = "skill" if required == 1 else "skills"
+            AlertDialog(
+                self.root,
+                "Skill Selection Required",
+                f"Choose {required} class {skill_word} before moving on. "
+                f"({chosen}/{required} selected)",
+            )
+        elif isinstance(step, SpeciesStep):
+            species_name = (
+                self.character.species.get("name", "This species")
+                if self.character and self.character.species
+                else "This species"
+            )
+            AlertDialog(
+                self.root,
+                "Species Choice Required",
+                f"{species_name} requires an additional choice before moving on. "
+                "Please pick one option in the species details panel.",
+            )
+        elif isinstance(step, SpellsStep):
+            cls = self.character.character_class or {}
+            cantrip_max = cls.get("cantrips_known", 0) or 0
+            spell_max = cls.get("spells_prepared", 0) or 0
+            cantrip_count = len(self.character.selected_cantrips)
+            spell_count = len(self.character.selected_spells)
+            parts = []
+            if cantrip_max > 0 and cantrip_count < cantrip_max:
+                parts.append(f"{cantrip_count}/{cantrip_max} cantrips")
+            if spell_max > 0 and spell_count < spell_max:
+                parts.append(f"{spell_count}/{spell_max} spells")
+            AlertDialog(
+                self.root,
+                "Spell Selection Required",
+                f"Select all your spells before moving on. ({', '.join(parts)} selected)",
+            )
 
     def _update_nav_buttons(self):
-        curr = self.wizard_notebook.index(self.wizard_notebook.select())
-        self.back_btn.configure(state=tk.NORMAL if curr > 0 else tk.DISABLED)
+        curr = self._current_step_idx
+        self._back_btn.configure(state=tk.NORMAL if curr > 0 else tk.DISABLED)
 
-        # Class and Species keep Next clickable; validation is handled on click with dialog.
+        # Class and Species keep Next clickable; validation handled on click
         if isinstance(self.wizard_steps[curr], (ClassStep, SpeciesStep)):
             is_valid = True
         else:
             is_valid = self.wizard_steps[curr].is_valid()
 
         if curr == len(self.wizard_steps) - 1:
-            self.next_btn.configure(
+            self._next_btn.configure(
                 text="Finish \u2713",
                 command=self._save_and_finish,
                 state=tk.NORMAL if is_valid else tk.DISABLED,
             )
         else:
-            self.next_btn.configure(
+            self._next_btn.configure(
                 text="Next  \u25b6",
                 command=self._wizard_next,
                 state=tk.NORMAL if is_valid else tk.DISABLED,
@@ -330,7 +375,6 @@ class CharacterCreatorApp:
         self.current_save_path = path
 
         if self.current_save_path:
-            # Edit mode: return to the character viewer
             self.show_viewer(self.character, self.current_save_path)
         else:
             self.show_home()

@@ -526,3 +526,64 @@ def build_standard_actions(
         upgraded.append(row)
 
     return upgraded + _cantrip_actions(character, spells)
+
+
+# Standard combat actions available to every character
+STANDARD_ACTIONS = [
+    {
+        "name": "Attack",
+        "type": "Action",
+        "description": "Make one melee or ranged attack. At certain levels, "
+        "you can make more than one attack with this action.",
+    },
+    {
+        "name": "Dash",
+        "type": "Action",
+        "description": "You gain extra movement equal to your speed for "
+        "the current turn.",
+    },
+    {
+        "name": "Disengage",
+        "type": "Action",
+        "description": "Your movement doesn't provoke opportunity attacks "
+        "for the rest of the turn.",
+    },
+    {
+        "name": "Dodge",
+        "type": "Action",
+        "description": "Until the start of your next turn, attack rolls "
+        "against you have disadvantage (if you can see the "
+        "attacker), and you make Dexterity saves with advantage.",
+    },
+    {
+        "name": "Help",
+        "type": "Action",
+        "description": "Give an ally advantage on the next ability check "
+        "or attack roll they make before your next turn.",
+    },
+    {
+        "name": "Hide",
+        "type": "Action",
+        "description": "Make a Dexterity (Stealth) check to try to hide. "
+        "If you succeed, you gain certain benefits.",
+    },
+    {
+        "name": "Ready",
+        "type": "Action",
+        "description": "Prepare to act later using your reaction when a "
+        "specific trigger occurs. You can ready an action, "
+        "movement, or a spell (requiring concentration).",
+    },
+    {
+        "name": "Search",
+        "type": "Action",
+        "description": "Make a Wisdom (Perception) or Intelligence "
+        "(Investigation) check to find something hidden.",
+    },
+    {
+        "name": "Opportunity Attack",
+        "type": "Reaction",
+        "description": "When a creature you can see leaves your reach, "
+        "you can use your reaction to make one melee attack.",
+    },
+]

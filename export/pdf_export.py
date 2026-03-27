@@ -945,8 +945,8 @@ class CharacterSheetPDF(FPDF):
             desc = feat.get("description", "")
             if desc:
                 self._sans("", 5.5)
-                # Approximate line count
-                lines = len(desc) / (col_w * 0.55) + 1
+                # Approximate line count (account for explicit line breaks)
+                lines = len(desc) / (col_w * 0.55) + 1 + desc.count("\n")
                 curr_ty += lines * 2.8 + 1
 
             if not use_right:
@@ -1061,7 +1061,7 @@ class CharacterSheetPDF(FPDF):
                 desc = trait.get("description", "")
                 if desc:
                     self._sans("", 5.5)
-                    lines = self.get_string_width(self._sanitize(desc)) / ((w - 4) * 0.55) + 1
+                    lines = self.get_string_width(self._sanitize(desc)) / ((w - 4) * 0.55) + 1 + desc.count("\n")
                     ty_measure += lines * 2.8 + 1
 
         total_h = max(ty_measure - y + 2, 20)

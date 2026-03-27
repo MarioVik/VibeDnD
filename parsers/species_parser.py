@@ -7,6 +7,7 @@ from parsers.base_parser import (
     extract_field,
     extract_description,
     split_comma_list,
+    join_description_lines,
 )
 
 
@@ -140,13 +141,11 @@ def parse_traits(content: str) -> list[dict]:
 
     for i in range(trait_section_start, len(lines)):
         stripped = lines[i].strip()
-        if not stripped:
-            continue
 
-        lower = stripped.lower()
+        lower = stripped.lower() if stripped else ""
 
         # Stop at sub-choice tables
-        if any(lower.startswith(m) or lower == m for m in stop_markers):
+        if stripped and any(lower.startswith(m) or lower == m for m in stop_markers):
             # Check if this is a trait name that happens to match
             if stripped.endswith(".") and len(stripped) < 40:
                 # It's a trait, not a table header
@@ -154,13 +153,13 @@ def parse_traits(content: str) -> list[dict]:
             else:
                 break
 
-        if looks_like_trait_heading(stripped):
+        if stripped and looks_like_trait_heading(stripped):
             # Single-word trait names like "Darkvision."
             if current_name:
                 traits.append(
                     {
                         "name": current_name,
-                        "description": " ".join(current_desc_lines).strip(),
+                        "description": join_description_lines(current_desc_lines),
                     }
                 )
             current_name = stripped.rstrip(".")
@@ -172,7 +171,7 @@ def parse_traits(content: str) -> list[dict]:
         traits.append(
             {
                 "name": current_name,
-                "description": " ".join(current_desc_lines).strip(),
+                "description": join_description_lines(current_desc_lines),
             }
         )
 

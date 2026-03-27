@@ -6,18 +6,32 @@ from abc import ABC, abstractmethod
 
 
 class WizardStep(ABC):
-    """Abstract base for each page in the character creation wizard."""
+    """Abstract base for each page in the character creation wizard.
+
+    Supports both legacy notebook parents and plain frame parents.
+    When the parent is a ttk.Notebook, the step auto-adds itself as a tab.
+    When the parent is a plain frame, the step creates its frame but does
+    not pack/grid it — the caller manages visibility.
+    """
 
     tab_title: str = "Step"
 
-    def __init__(self, parent_notebook: ttk.Notebook, character, game_data):
-        self.notebook = parent_notebook
+    def __init__(self, parent, character, game_data):
         self.character = character
         self.data = game_data
-        self.frame = ttk.Frame(parent_notebook)
         self.on_change_callbacks = []
-        self.build_ui()
-        parent_notebook.add(self.frame, text=f" {self.tab_title} ")
+
+        if isinstance(parent, ttk.Notebook):
+            # Legacy notebook mode
+            self.notebook = parent
+            self.frame = ttk.Frame(parent)
+            self.build_ui()
+            parent.add(self.frame, text=f" {self.tab_title} ")
+        else:
+            # Frame-based mode (new sidebar wizard)
+            self.notebook = None
+            self.frame = ttk.Frame(parent)
+            self.build_ui()
 
     @abstractmethod
     def build_ui(self):
