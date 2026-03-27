@@ -1036,7 +1036,7 @@ class CharacterViewer(ttk.Frame):
                 val_row,
                 textvariable=var,
                 font=FONTS["stat_large"],
-                bg=COLORS["bg_container"],
+                bg=COLORS["bg_surface"],
                 fg=color,
                 insertbackground=color,
                 relief=tk.FLAT,
