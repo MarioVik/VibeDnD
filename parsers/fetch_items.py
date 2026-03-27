@@ -248,6 +248,39 @@ def parse_page(url: str, category: str) -> list[dict]:
     return items
 
 
+_FOOTER_MARKERS = re.compile(
+    r"\b(?:Help\s*\|\s*Terms of Service|Powered by Wikidot|Unless otherwise stated)",
+    re.IGNORECASE,
+)
+_RARITY_PATTERN = re.compile(
+    r"\b(Common|Uncommon|Rare|Very Rare|Legendary|Artifact)\b", re.IGNORECASE
+)
+
+
+def _extract_item_description(text: str) -> str:
+    """Extract just the description from a full Wikidot page text."""
+    # Cut off Wikidot footer
+    footer_m = _FOOTER_MARKERS.search(text)
+    if footer_m:
+        text = text[: footer_m.start()].strip()
+
+    # Find "Source:" marker — the description follows after type/rarity info
+    source_idx = text.find("Source:")
+    if source_idx != -1:
+        after_source = text[source_idx:]
+        # Find the rarity word after "Source:" and take text after it
+        rarity_m = _RARITY_PATTERN.search(after_source)
+        if rarity_m:
+            text = after_source[rarity_m.end():].strip()
+            # Strip leading punctuation/whitespace artifacts
+            text = re.sub(r'^[\s",;]+', "", text)
+
+    # Remove trailing tag-like artifacts (e.g. "commonwondrous-item", "armorcommon")
+    text = re.sub(r'\s+\w[\w-]*(?:wondrous-item|common|uncommon|rare|armor|ring|weapon)\s*$', "", text, flags=re.IGNORECASE).strip()
+
+    return text
+
+
 def enrich_magic_item_descriptions(items: list[dict]):
     cache: dict[str, str] = {}
     for item in items:
@@ -267,8 +300,18 @@ def enrich_magic_item_descriptions(items: list[dict]):
                 html,
                 flags=re.IGNORECASE | re.DOTALL,
             )
-            content_html = m.group(1) if m else html
-            cache[detail_url] = _strip_html_to_text(content_html)
+            if m:
+                content_html = m.group(1)
+            else:
+                # Fallback: try just the page-content div without the end anchor
+                m2 = re.search(
+                    r'<div id="page-content"[^>]*>(.*?)</div>',
+                    html,
+                    flags=re.IGNORECASE | re.DOTALL,
+                )
+                content_html = m2.group(1) if m2 else ""
+            raw_text = _strip_html_to_text(content_html) if content_html else ""
+            cache[detail_url] = _extract_item_description(raw_text) if raw_text else ""
         full = cache.get(detail_url, "")
         if full:
             item["full_description"] = full
