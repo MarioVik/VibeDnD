@@ -823,27 +823,35 @@ class StatCard(tk.Frame):
         )
         self._lbl.pack()
 
-        # Large number
-        self._val = tk.Label(
-            self,
-            text=value,
-            font=FONTS["stat_large"],
-            fg=COLORS["fg"],
-            bg=_bg,
-        )
-        self._val.pack()
-
-        # Suffix (e.g. "ft" for speed)
+        # Large number (+ inline suffix if present)
         if suffix:
+            val_row = tk.Frame(self, bg=_bg)
+            val_row.pack()
+            self._val = tk.Label(
+                val_row,
+                text=value,
+                font=FONTS["stat_large"],
+                fg=COLORS["fg"],
+                bg=_bg,
+            )
+            self._val.pack(side=tk.LEFT)
             self._suffix = tk.Label(
-                self,
+                val_row,
                 text=suffix,
                 font=FONTS["body_small"],
                 fg=COLORS["fg_dim"],
                 bg=_bg,
             )
-            self._suffix.pack()
+            self._suffix.pack(side=tk.LEFT, padx=(4, 0), anchor="s", pady=(0, 4))
         else:
+            self._val = tk.Label(
+                self,
+                text=value,
+                font=FONTS["stat_large"],
+                fg=COLORS["fg"],
+                bg=_bg,
+            )
+            self._val.pack()
             self._suffix = None
 
         # Modifier badge
