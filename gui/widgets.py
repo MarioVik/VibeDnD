@@ -139,12 +139,14 @@ class FormattedDescription(tk.Text):
         self.configure(state="normal")
         self.delete("1.0", "end")
         paragraphs = text.split("\n\n")
-        for i, para in enumerate(paragraphs):
-            if i > 0:
-                self.insert("end", "\n")
+        first = True
+        for para in paragraphs:
             para = para.strip()
             if not para:
                 continue
+            if not first:
+                self.insert("end", "\n\n")  # blank line between paragraphs
+            first = False
             if self._is_subheading(para):
                 self.insert("end", para, "subheading")
             else:
