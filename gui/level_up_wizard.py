@@ -859,8 +859,13 @@ class LevelUpWizard(tk.Toplevel):
         self.choice_vars.clear()
         self.choice_checkbuttons.clear()
 
-        self._build_features_section()
         self._build_hp_section()
+
+        # Show spell summary info on step 1 if there are new spells
+        if self._has_new_spell_options():
+            self._build_spell_summary()
+
+        self._build_features_section()
 
         if self.level_data:
             features = self.level_data.get("features", [])
@@ -868,10 +873,6 @@ class LevelUpWizard(tk.Toplevel):
                 self._build_asi_section()
             if any("Subclass" in f and "Feature" not in f for f in features):
                 self._build_subclass_section()
-
-        # Show spell summary info on step 1 if there are new spells
-        if self._has_new_spell_options():
-            self._build_spell_summary()
 
     # ── features ──────────────────────────────────────────────────
 

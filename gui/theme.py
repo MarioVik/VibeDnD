@@ -308,6 +308,22 @@ def apply_theme(root: tk.Tk):
         foreground=[("active", COLORS["gold_dark"])],
     )
 
+    style.configure(
+        "Compact.TButton",
+        background=COLORS["bg_highest"],
+        foreground=COLORS["fg"],
+        padding=[6, 1],
+        font=FONTS["body"],
+    )
+    style.map(
+        "Compact.TButton",
+        background=[
+            ("active", COLORS["bg_high"]),
+            ("disabled", COLORS["bg_high"]),
+        ],
+        foreground=[("disabled", COLORS["fg_dim"])],
+    )
+
     # ------------------------------------------------------------------
     # Radiobuttons and Checkbuttons
     # ------------------------------------------------------------------

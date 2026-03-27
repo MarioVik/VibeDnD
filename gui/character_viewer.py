@@ -1049,15 +1049,15 @@ class CharacterViewer(ttk.Frame):
             entry.bind("<Return>", _commit_coins)
 
             btn_frame = tk.Frame(val_row, bg=COLORS["bg_surface"])
-            btn_frame.pack(side=tk.LEFT, padx=(6, 0))
+            btn_frame.pack(side=tk.LEFT, padx=(2, 0))
             ttk.Button(
-                btn_frame, text="+", width=2,
+                btn_frame, text="+", width=2, style="Compact.TButton",
                 command=lambda d=unit_cp: _adjust_wealth(d),
-            ).pack(side=tk.LEFT, padx=(0, 2))
+            ).pack(side=tk.TOP, pady=(0, 1))
             ttk.Button(
-                btn_frame, text="\u2212", width=2,
+                btn_frame, text="\u2212", width=2, style="Compact.TButton",
                 command=lambda d=unit_cp: _adjust_wealth(-d),
-            ).pack(side=tk.LEFT)
+            ).pack(side=tk.TOP)
 
         # ── Inventory split view ──
         self._inventory_parent = wrapper
