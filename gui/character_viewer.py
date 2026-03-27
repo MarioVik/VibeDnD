@@ -2266,6 +2266,13 @@ class CharacterViewer(ttk.Frame):
             lines.append(f"Type: {item_type}")
             if record.get("category") == "Magic Items":
                 lines.append(f"Rarity: {record.get('rarity', 'Unknown')}")
+                attune_raw = record.get("description", "")
+                if attune_raw.startswith("Attuned:"):
+                    attune_val = attune_raw.split(":", 1)[1].strip()
+                    if attune_val and attune_val != "-":
+                        lines.append("Attunement: Required")
+                    else:
+                        lines.append("Attunement: Not required")
             cost_cp = int(record.get("cost_cp", 0))
             if cost_cp > 0:
                 lines.append(f"Cost: {format_coins(cost_cp, compact=True)}")

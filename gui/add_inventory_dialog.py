@@ -452,14 +452,26 @@ class AddInventoryDialog(tk.Toplevel):
             if cost_cp > 0
             else "Cost: Varies/Unavailable"
         )
+        is_magic = item.get("category") == "Magic Items"
+        attune_raw = item.get("description", "")
+        if is_magic and attune_raw.startswith("Attuned:"):
+            attune_val = attune_raw.split(":", 1)[1].strip()
+            if attune_val and attune_val != "-":
+                attunement_line = "Attunement: Required"
+            else:
+                attunement_line = "Attunement: Not required"
+        else:
+            attunement_line = ""
+
         body = [
             f"Category: {item.get('category', 'Unknown')}",
             f"Type: {self._item_type(item)}",
             (
                 f"Rarity: {item.get('rarity', 'Unknown')}"
-                if item.get("category") == "Magic Items"
+                if is_magic
                 else ""
             ),
+            attunement_line,
             cost_line,
             "",
         ]

@@ -1763,9 +1763,20 @@ class LevelUpWizard(tk.Toplevel):
         min_lvl = opt.get("min_level")
         if min_lvl:
             lines.append(f"Available at Artificer level {min_lvl}+")
-        if prereq or prereq_feat or min_lvl:
+        desc = opt.get("description", "")
+        # Extract attunement prefix from description (e.g. "No attunement required." or "Requires attunement.")
+        attune_match = re.match(
+            r'^((?:No )?(?:attunement|Attunement) required|Requires (?:attunement|Attunement)(?:\s+by\s+[^.]+)?|Varies)[.\s]*',
+            desc,
+        )
+        if attune_match:
+            attune_text = attune_match.group(1).strip()
+            lines.append(f"Attunement: {attune_text}")
+            desc = desc[attune_match.end():].strip()
+
+        if prereq or prereq_feat or min_lvl or attune_match:
             lines.append("")
-        lines.append(opt.get("description", ""))
+        lines.append(desc)
         self.choice_detail_text.insert("1.0", "\n".join(lines))
         self.choice_detail_text.configure(state=tk.DISABLED)
 

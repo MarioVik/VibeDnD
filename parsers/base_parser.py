@@ -15,29 +15,112 @@ def _is_subheading(line: str) -> bool:
     )
 
 
+_TABLE_VALUE_PATTERN = re.compile(r'^(Yes|No|Varies)$', re.IGNORECASE)
+
+
+def _format_inline_tables(lines: list[str]) -> list[str]:
+    """Detect 2-column tables in raw lines and format them as readable text.
+
+    Detects patterns like:
+        Magic Item Plans (Artificer Level 2+)   <- table title
+        Magic Item Plan                          <- col 1 header
+        Attunement                               <- col 2 header
+        Alchemy Jug                              <- row 1 col 1
+        No                                       <- row 1 col 2
+        ...
+
+    Formats them as:
+        Magic Item Plans (Artificer Level 2+)
+        • Alchemy Jug — No
+        • Bag of Holding — No
+    """
+    result: list[str] = []
+    i = 0
+    while i < len(lines):
+        stripped = lines[i].strip()
+
+        # Look for a 2-column table: title line, then two header lines,
+        # then alternating name/value pairs where values match Yes/No/Varies.
+        if (
+            i + 4 < len(lines)
+            and stripped  # title line is non-empty
+            and lines[i + 1].strip()  # col 1 header
+            and lines[i + 2].strip()  # col 2 header
+            and lines[i + 3].strip()  # first data value
+            and _TABLE_VALUE_PATTERN.match(lines[i + 4].strip())  # second line is Yes/No/Varies
+        ):
+            col2_header = lines[i + 2].strip()
+            # Verify col2 header is a short label (not a sentence)
+            if len(col2_header.split()) <= 3:
+                # Blank line before the table title to separate from prose
+                result.append("")
+                # Emit the table title
+                result.append(stripped)
+                result.append("")  # blank line after title
+                j = i + 3  # skip title + 2 header lines
+                while j + 1 < len(lines):
+                    name = lines[j].strip()
+                    value = lines[j + 1].strip()
+                    if not name:
+                        break
+                    if _TABLE_VALUE_PATTERN.match(value):
+                        result.append(f"• {name} — {col2_header}: {value}")
+                        j += 2
+                    else:
+                        # No longer in the table
+                        break
+                result.append("")  # blank line after table
+                i = j
+                continue
+
+        result.append(lines[i])
+        i += 1
+
+    return result
+
+
 def join_description_lines(lines: list[str]) -> str:
     """Join description lines preserving paragraph breaks and sub-headings.
 
     Blank lines become paragraph breaks (\\n\\n).
     Short title-cased lines ending with '.' are treated as sub-headings
     and get their own paragraph.
+    Inline 2-column tables are formatted as bullet lists.
     """
+    # Pre-process: detect and format inline tables
+    lines = _format_inline_tables(lines)
+
     paragraphs: list[str] = []
     current: list[str] = []
 
+    in_bullet_list = False
     for line in lines:
         stripped = line.strip()
         if not stripped:
             if current:
                 paragraphs.append(" ".join(current))
                 current = []
+            in_bullet_list = False
+        elif stripped.startswith("•"):
+            # Bullet items: flush current paragraph, then group bullets
+            if current:
+                paragraphs.append(" ".join(current))
+                current = []
+            if not in_bullet_list:
+                in_bullet_list = True
+                paragraphs.append(stripped)
+            else:
+                # Append to previous bullet block with newline
+                paragraphs[-1] += "\n" + stripped
         elif _is_subheading(stripped):
             if current:
                 paragraphs.append(" ".join(current))
                 current = []
             paragraphs.append(stripped)
+            in_bullet_list = False
         else:
             current.append(stripped)
+            in_bullet_list = False
 
     if current:
         paragraphs.append(" ".join(current))
