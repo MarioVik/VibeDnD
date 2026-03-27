@@ -263,16 +263,23 @@ class CharacterViewer(ttk.Frame):
                 self._dash_portrait_pil = pil_img.crop(
                     (left, top, left + side, top + side)
                 )
-                # Start with a 1x1 canvas; it will resize to match right_col height
+                # Frame wrapper with accent stripe for portrait
+                portrait_card = tk.Frame(
+                    top_wrapper, bg="#222222",
+                )
+                portrait_card.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
+                # Canvas inside the card; starts 1x1, resizes to match right_col
                 portrait_canvas = tk.Canvas(
-                    top_wrapper,
+                    portrait_card,
                     width=1,
                     height=1,
-                    bg=COLORS["bg_surface"],
+                    bg="#222222",
                     highlightthickness=0,
                     bd=0,
                 )
-                portrait_canvas.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
+                portrait_canvas.pack(
+                    side=tk.LEFT, fill=tk.BOTH, expand=True, padx=9, pady=9
+                )
                 self._dash_portrait_canvas = portrait_canvas
             except Exception:
                 has_portrait = False
@@ -290,13 +297,16 @@ class CharacterViewer(ttk.Frame):
                 if h < 10:
                     return
                 _done[0] = True
-                sz = h
-                resized = self._dash_portrait_pil.resize((sz, sz), Image.LANCZOS)
+                # Subtract card padding (9px top + 9px bottom)
+                img_sz = max(h - 18, 32)
+                resized = self._dash_portrait_pil.resize(
+                    (img_sz, img_sz), Image.LANCZOS
+                )
                 self._dash_portrait_photo = ImageTk.PhotoImage(resized)
-                self._dash_portrait_canvas.configure(width=sz, height=sz)
+                self._dash_portrait_canvas.configure(width=img_sz, height=img_sz)
                 self._dash_portrait_canvas.delete("all")
                 self._dash_portrait_canvas.create_image(
-                    sz // 2, sz // 2, image=self._dash_portrait_photo
+                    img_sz // 2, img_sz // 2, image=self._dash_portrait_photo
                 )
 
             right_col.bind("<Configure>", _fit_portrait)
@@ -364,8 +374,8 @@ class CharacterViewer(ttk.Frame):
         hp_ac = tk.Frame(right_col, bg=COLORS["bg"])
         hp_ac.pack(fill=tk.X, pady=(0, 0 if has_portrait else SPACING["section_gap"]))
 
-        # AC card (CardFrame)
-        ac_cf = CardFrame(hp_ac, pad=SPACING["card_pad"])
+        # AC card (CardFrame with accent left border)
+        ac_cf = CardFrame(hp_ac, accent_left=True, pad=SPACING["card_pad"])
         ac_cf.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
         tk.Label(
             ac_cf.inner,
