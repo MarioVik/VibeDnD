@@ -150,12 +150,24 @@ class CharacterViewer(ttk.Frame):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
 
         # Set character info in sidebar
-        summary = self.character.summary_text()
+        c = self.character
+        if c.is_multiclass:
+            from collections import Counter
+            _counts = Counter(cl.class_slug for cl in c.class_levels)
+            _sidebar_summary = f"{c.species_name} " + "/".join(f"{s.title()} {n}" for s, n in _counts.items())
+        else:
+            _parts = []
+            if c.species:
+                _parts.append(c.species_name)
+            if c.character_class:
+                _parts.append(c.class_name)
+            _sidebar_summary = " ".join(_parts) if _parts else "No selections"
         self.sidebar.set_character_info(
-            name=self.character.name or "Unnamed",
-            summary=summary,
-            image_data=getattr(self.character, "biography_image_data", "") or None,
-            image_format=getattr(self.character, "biography_image_format", "png"),
+            name=c.name or "Unnamed",
+            summary=_sidebar_summary,
+            level=f"Level {c.level}",
+            image_data=getattr(c, "biography_image_data", "") or None,
+            image_format=getattr(c, "biography_image_format", "png"),
         )
 
         # ── Content area ──
@@ -260,22 +272,32 @@ class CharacterViewer(ttk.Frame):
         summary_frame = tk.Frame(hero_inner, bg=_hero_bg)
         summary_frame.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(4, SPACING["xl"]))
 
+        if c.is_multiclass:
+            from collections import Counter
+            counts = Counter(cl.class_slug for cl in c.class_levels)
+            _class_line = f"{c.species_name} " + "/".join(f"{slug.title()} {n}" for slug, n in counts.items())
+        else:
+            _identity_parts = []
+            if c.species:
+                _identity_parts.append(c.species_name)
+            if c.character_class:
+                _identity_parts.append(c.class_name)
+            _subclass_slug = c.current_subclass
+            if _subclass_slug and self.data:
+                _sc = self.data.get_subclass(c.character_class.get("slug", ""), _subclass_slug)
+                if _sc:
+                    _identity_parts.append(_sc["name"])
+            _class_line = " ".join(_identity_parts) if _identity_parts else "No selections"
+        if c.background_name:
+            _class_line += f" - {c.background_name}"
+
         tk.Label(
             summary_frame,
-            text=c.summary_text(),
+            text=_class_line,
             font=FONTS["label_upper_bold"],
             fg=COLORS["fg_dim"],
             bg=_hero_bg,
         ).pack(anchor="w")
-
-        if c.background_name:
-            tk.Label(
-                summary_frame,
-                text=f"Background: {c.background_name}",
-                font=FONTS["label_upper"],
-                fg=COLORS["fg_dim"],
-                bg=_hero_bg,
-            ).pack(anchor="w")
 
         # HP and AC row
         hp_ac = tk.Frame(inner, bg=COLORS["bg"])
@@ -411,11 +433,12 @@ class CharacterViewer(ttk.Frame):
         all_profs = c.all_skill_proficiencies
         all_expertise = getattr(c, "all_skill_expertise", set())
 
+        half = (len(ALL_SKILLS) + 1) // 2
         for idx, skill_enum in enumerate(ALL_SKILLS):
             skill_display = skill_enum.display_name
             ability = skill_enum.ability
-            col = idx % 2
-            row_idx = idx // 2
+            col = 0 if idx < half else 1
+            row_idx = idx if col == 0 else idx - half
 
             skill_row = tk.Frame(skills_frame, bg=COLORS["bg_surface"])
             skill_row.grid(row=row_idx, column=col, sticky="ew", padx=4, pady=3)

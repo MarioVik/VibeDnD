@@ -49,6 +49,7 @@ class Sidebar(tk.Frame):
         self._portrait_image = None  # prevent GC
         self._name_label: tk.Label | None = None
         self._summary_label: tk.Label | None = None
+        self._level_label: tk.Label | None = None
 
         # ---- Character info section (optional) ----
         if show_character_info:
@@ -146,18 +147,31 @@ class Sidebar(tk.Frame):
         )
         self._summary_label.pack(fill=tk.X)
 
+        self._level_label = tk.Label(
+            text_col,
+            text="",
+            font=FONTS["label_upper"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+        )
+        self._level_label.pack(fill=tk.X)
+
     def set_character_info(
         self,
         name: str,
         summary: str,
         image_data: str | None = None,
         image_format: str = "png",
+        level: str = "",
     ):
         """Update the character portrait and name in the sidebar."""
         if self._name_label:
             self._name_label.configure(text=name)
         if self._summary_label:
             self._summary_label.configure(text=summary.upper())
+        if self._level_label:
+            self._level_label.configure(text=level.upper())
         if self._portrait_label and image_data:
             self._set_portrait(image_data, image_format)
 
