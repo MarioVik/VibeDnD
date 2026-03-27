@@ -242,9 +242,70 @@ class CharacterViewer(ttk.Frame):
 
         c = self.character
 
+        # ── Top wrapper: portrait (left) + hero & HP/AC (right) ──
+        self._dash_portrait_photo = None  # prevent GC
+        self._dash_portrait_pil = None
+        portrait_data = getattr(c, "biography_image_data", "") or ""
+        has_portrait = bool(portrait_data) and Image is not None and ImageTk is not None
+
+        if has_portrait:
+            top_wrapper = tk.Frame(inner, bg=COLORS["bg"])
+            top_wrapper.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+
+            # Load and pre-crop image to square
+            try:
+                raw = base64.b64decode(portrait_data)
+                pil_img = Image.open(io.BytesIO(raw))
+                w, h = pil_img.size
+                side = min(w, h)
+                left = (w - side) // 2
+                top = (h - side) // 2
+                self._dash_portrait_pil = pil_img.crop(
+                    (left, top, left + side, top + side)
+                )
+                # Start with a 1x1 canvas; it will resize to match right_col height
+                portrait_canvas = tk.Canvas(
+                    top_wrapper,
+                    width=1,
+                    height=1,
+                    bg=COLORS["bg_surface"],
+                    highlightthickness=0,
+                    bd=0,
+                )
+                portrait_canvas.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
+                self._dash_portrait_canvas = portrait_canvas
+            except Exception:
+                has_portrait = False
+                self._dash_portrait_pil = None
+
+        if has_portrait:
+            right_col = tk.Frame(top_wrapper, bg=COLORS["bg"])
+            right_col.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+            def _fit_portrait(event, _done=[False]):
+                """Resize portrait to match the right column's rendered height."""
+                if _done[0]:
+                    return
+                h = right_col.winfo_reqheight()
+                if h < 10:
+                    return
+                _done[0] = True
+                sz = h
+                resized = self._dash_portrait_pil.resize((sz, sz), Image.LANCZOS)
+                self._dash_portrait_photo = ImageTk.PhotoImage(resized)
+                self._dash_portrait_canvas.configure(width=sz, height=sz)
+                self._dash_portrait_canvas.delete("all")
+                self._dash_portrait_canvas.create_image(
+                    sz // 2, sz // 2, image=self._dash_portrait_photo
+                )
+
+            right_col.bind("<Configure>", _fit_portrait)
+        else:
+            right_col = inner
+
         # ── Hero section (gradient) ──
-        hero = GradientHeader(inner, min_height=100)
-        hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        hero = GradientHeader(right_col, min_height=100)
+        hero.pack(fill=tk.X, pady=(0, SPACING["card_gap"] if has_portrait else SPACING["section_gap"]))
         hero_inner = hero.inner
 
         _hero_bg = COLORS["bg_hero"]
@@ -300,8 +361,8 @@ class CharacterViewer(ttk.Frame):
         ).pack(anchor="w")
 
         # HP and AC row
-        hp_ac = tk.Frame(inner, bg=COLORS["bg"])
-        hp_ac.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        hp_ac = tk.Frame(right_col, bg=COLORS["bg"])
+        hp_ac.pack(fill=tk.X, pady=(0, 0 if has_portrait else SPACING["section_gap"]))
 
         # AC card (CardFrame)
         ac_cf = CardFrame(hp_ac, pad=SPACING["card_pad"])
