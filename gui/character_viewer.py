@@ -28,6 +28,7 @@ from gui.widgets import (
     GradientHeader,
     PillBadge,
     StepperPair,
+    configure_modal_dialog,
 )
 from gui.sidebar import Sidebar
 from gui.sheet_builder import build_character_sheet, _container_contents
@@ -723,13 +724,53 @@ class CharacterViewer(ttk.Frame):
         attacks_card.pack(fill=tk.BOTH, expand=True)
         attacks_frame = attacks_card.inner
 
-        actions = build_standard_actions(
-            c,
-            spells_by_name=self._spell_index,
-            equipped_weapon_keys=set(c.equipped_weapons or []),
+        # Cogwheel button — placed on the CardFrame so it survives grid rebuilds
+        gear_btn = tk.Label(
+            attacks_card,
+            text="\u2699",
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+            cursor="hand2",
         )
+        # Initially hidden; shown after first render if there are configurable weapons
+        gear_visible = False
 
-        if actions:
+        def _render_attacks():
+            nonlocal gear_visible
+            for w in attacks_frame.winfo_children():
+                w.destroy()
+
+            actions = build_standard_actions(
+                c,
+                spells_by_name=self._spell_index,
+                weapon_options=dict(c.standard_action_options or {}),
+                equipped_weapon_keys=set(c.equipped_weapons or []),
+            )
+
+            # Show/hide cogwheel based on whether any weapon has options
+            has_configurable = any(
+                a.get("kind") == "weapon"
+                and (a.get("can_true_strike") or a.get("versatile"))
+                for a in actions
+            )
+            if has_configurable and not gear_visible:
+                gear_btn.place(relx=1.0, rely=0, anchor="ne", x=-4, y=4)
+                gear_visible = True
+            elif not has_configurable and gear_visible:
+                gear_btn.place_forget()
+                gear_visible = False
+
+            if not actions:
+                tk.Label(
+                    attacks_frame,
+                    text="No attacks available.",
+                    font=FONTS["body"],
+                    fg=COLORS["fg_dim"],
+                    bg=COLORS["bg_surface"],
+                ).pack(pady=8)
+                return
+
             # Use grid layout so columns align vertically
             attacks_frame.columnconfigure(0, weight=1)
             attacks_frame.columnconfigure(1, weight=0)
@@ -766,20 +807,22 @@ class CharacterViewer(ttk.Frame):
                 bg=COLORS["bg_surface"],
             ).grid(row=0, column=3, padx=(16, 0), pady=(4, 0))
 
-            # Give each data row equal weight so they space out evenly
             for i in range(len(actions)):
                 attacks_frame.rowconfigure(i + 1, weight=1)
 
             for i, action in enumerate(actions):
                 grid_row = i + 1
 
-                # Name and properties
                 name_col = tk.Frame(attacks_frame, bg=COLORS["bg_surface"])
                 name_col.grid(row=grid_row, column=0, sticky="w", padx=12, pady=6)
 
+                display_name = action.get("name", "Unknown")
+                if action.get("true_strike_active"):
+                    display_name = f"{display_name} (True Strike)"
+
                 tk.Label(
                     name_col,
-                    text=action.get("name", "Unknown"),
+                    text=display_name,
                     font=FONTS["heading_serif_sm"],
                     fg=COLORS["fg"],
                     bg=COLORS["bg_surface"],
@@ -795,7 +838,6 @@ class CharacterViewer(ttk.Frame):
                         bg=COLORS["bg_surface"],
                     ).pack(anchor="w")
 
-                # Range
                 range_str = action.get("range", "")
                 if not range_str and action.get("kind") == "cantrip":
                     range_str = action.get("notes", "")
@@ -808,9 +850,7 @@ class CharacterViewer(ttk.Frame):
                     bg=COLORS["bg_surface"],
                 ).grid(row=grid_row, column=1, padx=(16, 0), pady=6)
 
-                # Attack Bonus
                 hit_str = action.get("attack", "+0")
-
                 tk.Label(
                     attacks_frame,
                     text=hit_str,
@@ -819,9 +859,7 @@ class CharacterViewer(ttk.Frame):
                     bg=COLORS["bg_surface"],
                 ).grid(row=grid_row, column=2, padx=(16, 0), pady=6)
 
-                # Damage
                 damage = action.get("damage", "")
-
                 tk.Label(
                     attacks_frame,
                     text=damage,
@@ -829,14 +867,132 @@ class CharacterViewer(ttk.Frame):
                     fg=COLORS["fg"],
                     bg=COLORS["bg_surface"],
                 ).grid(row=grid_row, column=3, padx=(16, 0), pady=6)
-        else:
-            tk.Label(
-                attacks_frame,
-                text="No attacks available.",
-                font=FONTS["body"],
-                fg=COLORS["fg_dim"],
-                bg=COLORS["bg_surface"],
-            ).pack(pady=8)
+
+        def _open_weapon_options(event=None):
+            """Open a dialog to configure True Strike / Two-Handed per weapon."""
+            actions = build_standard_actions(
+                c,
+                spells_by_name=self._spell_index,
+                weapon_options=dict(c.standard_action_options or {}),
+                equipped_weapon_keys=set(c.equipped_weapons or []),
+            )
+            configurable = [
+                a for a in actions
+                if a.get("kind") == "weapon"
+                and (a.get("can_true_strike") or a.get("versatile"))
+            ]
+            if not configurable:
+                return
+
+            dialog = tk.Toplevel(attacks_card)
+            dialog.title("Weapon Options")
+            dialog.configure(bg=COLORS["bg"])
+            dialog.resizable(False, False)
+
+            saved_opts = dict(c.standard_action_options or {})
+            check_vars: list[tuple[str, str, tk.BooleanVar]] = []
+
+            # Header
+            header = ttk.Frame(dialog)
+            header.pack(fill=tk.X, padx=16, pady=(12, 4))
+
+            ttk.Label(
+                header,
+                text="Weapon Options",
+                font=FONTS["heading"],
+                foreground=COLORS["accent"],
+            ).pack(anchor="w")
+
+            ttk.Label(
+                header,
+                text="Configure attack modifiers for your weapons.",
+                foreground=COLORS["fg_dim"],
+            ).pack(anchor="w")
+
+            # Content
+            content = ttk.Frame(dialog)
+            content.pack(fill=tk.BOTH, expand=True, padx=16, pady=(8, 4))
+
+            for a in configurable:
+                key = a.get("weapon_key", "")
+                weapon_saved = saved_opts.get(key, {})
+
+                weapon_frame = ttk.Frame(content)
+                weapon_frame.pack(fill=tk.X, pady=(0, 8))
+
+                ttk.Label(
+                    weapon_frame,
+                    text=a["name"],
+                    font=FONTS["body_bold"],
+                    foreground=COLORS["fg"],
+                ).pack(anchor="w")
+
+                opts_row = ttk.Frame(weapon_frame)
+                opts_row.pack(anchor="w", padx=(12, 0), pady=(2, 0))
+
+                if a.get("can_true_strike"):
+                    var = tk.BooleanVar(value=bool(weapon_saved.get("true_strike", False)))
+                    check_vars.append((key, "true_strike", var))
+                    ttk.Checkbutton(
+                        opts_row,
+                        text="Use True Strike",
+                        variable=var,
+                    ).pack(side=tk.LEFT, padx=(0, 12))
+
+                if a.get("versatile"):
+                    var = tk.BooleanVar(value=bool(weapon_saved.get("two_handed", False)))
+                    check_vars.append((key, "two_handed", var))
+                    ttk.Checkbutton(
+                        opts_row,
+                        text="Use Two Hands",
+                        variable=var,
+                    ).pack(side=tk.LEFT)
+
+            # Footer
+            def _apply_and_close():
+                new_opts: dict[str, dict[str, bool]] = {}
+                for wkey, opt_name, var in check_vars:
+                    new_opts.setdefault(wkey, {})[opt_name] = var.get()
+                if c.standard_action_options != new_opts:
+                    c.standard_action_options = new_opts
+                    save_character(c, characters_dir(), existing_filename=self.save_path)
+                dialog.destroy()
+                _render_attacks()
+
+            footer = ttk.Frame(dialog)
+            footer.pack(fill=tk.X, padx=16, pady=(8, 12))
+
+            ttk.Button(
+                footer,
+                text="Done",
+                style="Accent.TButton",
+                command=_apply_and_close,
+            ).pack(side=tk.RIGHT)
+
+            ttk.Button(
+                footer,
+                text="Cancel",
+                command=dialog.destroy,
+            ).pack(side=tk.LEFT)
+
+            dialog.protocol("WM_DELETE_WINDOW", _apply_and_close)
+            dialog.bind("<Escape>", lambda e: dialog.destroy())
+
+            # Center over parent and make modal
+            configure_modal_dialog(dialog, attacks_card)
+            dialog.update_idletasks()
+            w = dialog.winfo_reqwidth()
+            h = dialog.winfo_reqheight()
+            parent_top = attacks_card.winfo_toplevel()
+            px = parent_top.winfo_rootx()
+            py = parent_top.winfo_rooty()
+            pw = parent_top.winfo_width()
+            ph = parent_top.winfo_height()
+            dialog.geometry(f"{w}x{h}+{px + (pw - w) // 2}+{py + (ph - h) // 2}")
+
+        gear_btn.bind("<Button-1>", _open_weapon_options)
+
+        _render_attacks()
 
         # ── Right: Vital Stats ──
         SectionHeader(right_col, text="Vital Stats").pack(
