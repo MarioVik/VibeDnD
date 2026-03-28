@@ -689,13 +689,26 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_hero"],
         ).pack(anchor="w", padx=SPACING["card_pad"], pady=(0, SPACING["xl"]))
 
-        # ── Weapon Attacks ──
-        SectionHeader(inner, text="Weapon Attacks").pack(
+        # ── Two-column layout: Attacks (left) | Vital Stats (right) ──
+        combat_columns = tk.Frame(inner, bg=COLORS["bg"])
+        combat_columns.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        combat_columns.columnconfigure(0, weight=1)
+        combat_columns.columnconfigure(1, weight=1)
+        combat_columns.rowconfigure(0, weight=1)
+
+        left_col = tk.Frame(combat_columns, bg=COLORS["bg"])
+        left_col.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["card_gap"]))
+
+        right_col = tk.Frame(combat_columns, bg=COLORS["bg"])
+        right_col.grid(row=0, column=1, sticky="nsew", padx=(SPACING["card_gap"], 0))
+
+        # ── Left: Attacks ──
+        SectionHeader(left_col, text="Attacks").pack(
             fill=tk.X, pady=(0, SPACING["sm"])
         )
 
-        attacks_card = CardFrame(inner, pad=SPACING["md"])
-        attacks_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        attacks_card = CardFrame(left_col, pad=SPACING["md"])
+        attacks_card.pack(fill=tk.BOTH, expand=True)
         attacks_frame = attacks_card.inner
 
         actions = build_standard_actions(
@@ -705,13 +718,44 @@ class CharacterViewer(ttk.Frame):
         )
 
         if actions:
-            for action in actions:
-                row = tk.Frame(attacks_frame, bg=COLORS["bg_container"], padx=12, pady=10)
-                row.pack(fill=tk.X, pady=3)
+            # Use grid layout so ATK BONUS and DAMAGE columns align vertically
+            attacks_frame.columnconfigure(0, weight=1)
+            attacks_frame.columnconfigure(1, weight=0)
+            attacks_frame.columnconfigure(2, weight=0)
+
+            # Column headers
+            tk.Label(
+                attacks_frame,
+                text="NAME",
+                font=FONTS["label_tiny"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_container"],
+            ).grid(row=0, column=0, sticky="w", padx=12, pady=(4, 0))
+            tk.Label(
+                attacks_frame,
+                text="ATK BONUS",
+                font=FONTS["label_tiny"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_container"],
+            ).grid(row=0, column=1, padx=(16, 0), pady=(4, 0))
+            tk.Label(
+                attacks_frame,
+                text="DAMAGE",
+                font=FONTS["label_tiny"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_container"],
+            ).grid(row=0, column=2, padx=(16, 0), pady=(4, 0))
+
+            # Give each data row equal weight so they space out evenly
+            for i in range(len(actions)):
+                attacks_frame.rowconfigure(i + 1, weight=1)
+
+            for i, action in enumerate(actions):
+                grid_row = i + 1
 
                 # Name and properties
-                name_col = tk.Frame(row, bg=COLORS["bg_container"])
-                name_col.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                name_col = tk.Frame(attacks_frame, bg=COLORS["bg_container"])
+                name_col.grid(row=grid_row, column=0, sticky="w", padx=12, pady=6)
 
                 tk.Label(
                     name_col,
@@ -731,57 +775,104 @@ class CharacterViewer(ttk.Frame):
                         bg=COLORS["bg_container"],
                     ).pack(anchor="w")
 
-                # To Hit
+                # Attack Bonus
                 attack_bonus = action.get("attack_bonus", 0)
                 hit_str = f"+{attack_bonus}" if attack_bonus >= 0 else str(attack_bonus)
 
-                hit_col = tk.Frame(row, bg=COLORS["bg_container"])
-                hit_col.pack(side=tk.RIGHT, padx=(16, 0))
-
                 tk.Label(
-                    hit_col,
-                    text="TO HIT",
-                    font=FONTS["label_tiny"],
-                    fg=COLORS["fg_dim"],
-                    bg=COLORS["bg_container"],
-                ).pack()
-                tk.Label(
-                    hit_col,
+                    attacks_frame,
                     text=hit_str,
                     font=FONTS["heading_serif_sm"],
                     fg=COLORS["accent_text"],
                     bg=COLORS["bg_container"],
-                ).pack()
+                ).grid(row=grid_row, column=1, padx=(16, 0), pady=6)
 
                 # Damage
                 damage = action.get("damage", "")
                 dmg_type = action.get("damage_type", "")
 
-                dmg_col = tk.Frame(row, bg=COLORS["bg_container"])
-                dmg_col.pack(side=tk.RIGHT, padx=(16, 0))
-
                 tk.Label(
-                    dmg_col,
-                    text="DAMAGE",
-                    font=FONTS["label_tiny"],
-                    fg=COLORS["fg_dim"],
-                    bg=COLORS["bg_container"],
-                ).pack()
-                tk.Label(
-                    dmg_col,
+                    attacks_frame,
                     text=f"{damage} {dmg_type}",
                     font=FONTS["heading_serif_sm"],
                     fg=COLORS["fg"],
                     bg=COLORS["bg_container"],
-                ).pack()
+                ).grid(row=grid_row, column=2, padx=(16, 0), pady=6)
         else:
             tk.Label(
                 attacks_frame,
-                text="No weapon attacks available.",
+                text="No attacks available.",
                 font=FONTS["body"],
                 fg=COLORS["fg_dim"],
                 bg=COLORS["bg_surface"],
             ).pack(pady=8)
+
+        # ── Right: Vital Stats ──
+        SectionHeader(right_col, text="Vital Stats").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
+
+        # Hit Points (full width, top)
+        hp_cf = CardFrame(right_col, accent_left=True, pad=SPACING["md"])
+        hp_cf.pack(fill=tk.X, pady=(0, SPACING["card_gap"]))
+
+        tk.Label(
+            hp_cf.inner,
+            text="HIT POINTS",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w")
+
+        hp_val = tk.Frame(hp_cf.inner, bg=COLORS["bg_surface"])
+        hp_val.pack(fill=tk.X, pady=(4, 0))
+        tk.Label(
+            hp_val,
+            text=str(c.hit_points),
+            font=FONTS["stat_large"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack(side=tk.LEFT)
+        tk.Label(
+            hp_val,
+            text=f"/ {c.hit_points}",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(side=tk.LEFT, padx=(4, 0))
+
+        hp_bar = HPBar(hp_cf.inner, width=300, height=6)
+        hp_bar.pack(fill=tk.X, pady=(4, 0))
+        hp_bar.set_hp(c.hit_points, c.hit_points)
+
+        # Initiative, Armor Class, Speed (three boxes in a row)
+        stats_row = tk.Frame(right_col, bg=COLORS["bg"])
+        stats_row.pack(fill=tk.X)
+        stats_row.columnconfigure(list(range(3)), weight=1)
+
+        init_str = f"+{c.initiative}" if c.initiative >= 0 else str(c.initiative)
+        for col_i, (stat_label, stat_value) in enumerate([
+            ("INITIATIVE", init_str),
+            ("ARMOR CLASS", str(c.armor_class)),
+            ("SPEED", f"{c.speed} ft"),
+        ]):
+            cf = CardFrame(stats_row, accent_left=True, pad=SPACING["md"])
+            cf.grid(row=0, column=col_i, sticky="nsew",
+                    padx=(0 if col_i == 0 else SPACING["card_gap"], 0))
+            tk.Label(
+                cf.inner,
+                text=stat_label,
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(anchor="w")
+            tk.Label(
+                cf.inner,
+                text=stat_value,
+                font=FONTS["stat_large"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_surface"],
+            ).pack(anchor="w")
 
         # ── Standard Actions ──
         SectionHeader(inner, text="Actions").pack(
