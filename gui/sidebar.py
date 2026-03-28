@@ -1,18 +1,10 @@
 """Reusable sidebar navigation component for the Mythic Modern layout."""
 
-import base64
-import io
 import tkinter as tk
 from typing import Callable
 
 from gui.theme import COLORS, FONTS
 from gui.widgets import NavButton
-
-try:
-    from PIL import Image, ImageTk
-    _HAS_PIL = True
-except ImportError:
-    _HAS_PIL = False
 
 
 class Sidebar(tk.Frame):
@@ -36,6 +28,7 @@ class Sidebar(tk.Frame):
         on_navigate: Callable[[str], None],
         bottom_buttons: list[dict] | None = None,
         show_character_info: bool = False,
+        on_back: Callable[[], None] | None = None,
         width: int = SIDEBAR_WIDTH,
     ):
         super().__init__(parent, bg=COLORS["bg_surface"], width=width,
@@ -43,15 +36,14 @@ class Sidebar(tk.Frame):
                          highlightthickness=1)
         self.pack_propagate(False)
         self._on_navigate = on_navigate
+        self._on_back: Callable[[], None] | None = on_back
         self._nav_buttons: dict[str, NavButton] = {}
         self._active_key: str | None = None
-        self._portrait_label: tk.Label | None = None
-        self._portrait_image = None  # prevent GC
         self._name_label: tk.Label | None = None
         self._summary_label: tk.Label | None = None
         self._level_label: tk.Label | None = None
 
-        # ---- Character info section (optional) ----
+        # ---- Back button + character info (optional) ----
         if show_character_info:
             self._build_character_info()
 
@@ -127,21 +119,25 @@ class Sidebar(tk.Frame):
         return self._action_buttons.get(key)
 
     def _build_character_info(self):
-        """Build the character portrait + name area at the top."""
+        """Build the back button + character name area at the top."""
         info_frame = tk.Frame(self, bg=COLORS["bg_surface"])
         info_frame.pack(fill=tk.X, padx=16, pady=(16, 12))
 
         row = tk.Frame(info_frame, bg=COLORS["bg_surface"])
         row.pack(fill=tk.X)
 
-        # Portrait (48x48 circular-ish)
-        self._portrait_label = tk.Label(
-            row,
-            bg=COLORS["bg_highest"],
-            width=6,
-            height=3,
-        )
-        self._portrait_label.pack(side=tk.LEFT, padx=(0, 10))
+        # Back arrow button
+        if self._on_back:
+            back_btn = tk.Label(
+                row,
+                text="\u25c0",
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+                cursor="hand2",
+            )
+            back_btn.pack(side=tk.LEFT, padx=(0, 10))
+            back_btn.bind("<Button-1>", lambda e: self._on_back())
 
         # Text column
         text_col = tk.Frame(row, bg=COLORS["bg_surface"])
@@ -185,32 +181,13 @@ class Sidebar(tk.Frame):
         image_format: str = "png",
         level: str = "",
     ):
-        """Update the character portrait and name in the sidebar."""
+        """Update the character name and summary in the sidebar."""
         if self._name_label:
             self._name_label.configure(text=name)
         if self._summary_label:
             self._summary_label.configure(text=summary.upper())
         if self._level_label:
             self._level_label.configure(text=level.upper())
-        if self._portrait_label and image_data:
-            self._set_portrait(image_data, image_format)
-
-    def _set_portrait(self, image_data: str, image_format: str):
-        """Decode base64 portrait and display as thumbnail."""
-        if not _HAS_PIL or not self._portrait_label:
-            return
-        try:
-            raw = base64.b64decode(image_data)
-            img = Image.open(io.BytesIO(raw))
-            img.thumbnail((48, 48), Image.LANCZOS)
-            self._portrait_image = ImageTk.PhotoImage(img)
-            self._portrait_label.configure(
-                image=self._portrait_image,
-                width=48,
-                height=48,
-            )
-        except Exception:
-            pass
 
     def _handle_nav(self, key: str):
         self.set_active(key)

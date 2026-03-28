@@ -137,13 +137,12 @@ class CharacterViewer(ttk.Frame):
             bottom_buttons.append(
                 {"text": "Level Up", "command": self._on_level_up, "key": "level_up"},
             )
-        bottom_buttons.extend([
+        bottom_buttons.append(
             {"text": "Export  \u25BE", "key": "export_dropdown", "submenu": [
                 {"text": "Export PDF", "command": self._export_pdf},
                 {"text": "Export Character", "command": self._export_json},
             ]},
-            {"text": "\u25c0  Back to Menu", "command": self._on_back},
-        ])
+        )
         # TODO: Add back "Respec Character" button (command: self._on_edit) when the respec feature is fully working
 
         self.sidebar = Sidebar(
@@ -152,6 +151,7 @@ class CharacterViewer(ttk.Frame):
             on_navigate=self._on_navigate,
             bottom_buttons=bottom_buttons,
             show_character_info=True,
+            on_back=self._on_back,
         )
         self.sidebar.grid(row=0, column=0, sticky="nsew")
 
@@ -172,8 +172,6 @@ class CharacterViewer(ttk.Frame):
             name=c.name or "Unnamed",
             summary=_sidebar_summary,
             level=f"Level {c.level}",
-            image_data=getattr(c, "biography_image_data", "") or None,
-            image_format=getattr(c, "biography_image_format", "png"),
         )
 
         # ── Content area ──
