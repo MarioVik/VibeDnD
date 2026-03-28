@@ -693,18 +693,26 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_hero"],
         ).pack(anchor="w", padx=SPACING["card_pad"], pady=(0, SPACING["xl"]))
 
-        # ── Two-column layout: Attacks (left) | Vital Stats (right) ──
-        combat_columns = tk.Frame(inner, bg=COLORS["bg"])
+        # ── Two-column layout: Vital Stats (left 20%) | Attacks (right 80%) ──
+        combat_columns = tk.Frame(inner, bg=COLORS["bg"], height=200)
         combat_columns.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
-        combat_columns.columnconfigure(0, weight=1)
-        combat_columns.columnconfigure(1, weight=4)
-        combat_columns.rowconfigure(0, weight=1)
+
+        gap = SPACING["card_gap"]
+        right_col = tk.Frame(combat_columns, bg=COLORS["bg"])
+        right_col.place(relx=0, relwidth=0.35, rely=0, relheight=1.0, width=-gap // 2)
 
         left_col = tk.Frame(combat_columns, bg=COLORS["bg"])
-        left_col.grid(row=0, column=1, sticky="nsew", padx=(SPACING["card_gap"], 0))
+        left_col.place(relx=0.35, relwidth=0.65, rely=0, relheight=1.0, x=gap // 2, width=-gap // 2)
 
-        right_col = tk.Frame(combat_columns, bg=COLORS["bg"])
-        right_col.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["card_gap"]))
+        # Propagate height from children
+        def _update_combat_height(event=None):
+            combat_columns.update_idletasks()
+            h = max(left_col.winfo_reqheight(), right_col.winfo_reqheight())
+            if h > 1:
+                combat_columns.configure(height=h)
+
+        left_col.bind("<Configure>", _update_combat_height)
+        right_col.bind("<Configure>", _update_combat_height)
 
         # ── Left: Attacks ──
         SectionHeader(left_col, text="Attacks").pack(
