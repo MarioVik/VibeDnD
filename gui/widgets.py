@@ -1199,3 +1199,136 @@ class PillBadge(tk.Canvas):
     def set_text(self, text: str):
         self._text = text
         self._measure_and_draw()
+
+
+class StepperButton(tk.Canvas):
+    """Ghost-style +/− button that blends into card surfaces.
+
+    At rest only a dim symbol is visible. On hover a soft rounded rectangle
+    appears; on press the fill darkens for click feedback.
+    """
+
+    def __init__(
+        self,
+        parent,
+        text: str = "+",
+        command=None,
+        size: int = 22,
+        **kwargs,
+    ):
+        self._sym = text
+        self._command = command
+        self._size = size
+
+        # Match parent background so canvas is invisible
+        try:
+            parent_bg = parent.cget("bg") or parent.cget("background")
+        except Exception:
+            parent_bg = COLORS["bg_surface"]
+        self._parent_bg = parent_bg
+
+        super().__init__(
+            parent,
+            width=size,
+            height=size,
+            highlightthickness=0,
+            bg=parent_bg,
+            cursor="hand2",
+            **kwargs,
+        )
+
+        self._hovered = False
+        self._pressed = False
+
+        self.bind("<Enter>", self._on_enter)
+        self.bind("<Leave>", self._on_leave)
+        self.bind("<ButtonPress-1>", self._on_press)
+        self.bind("<ButtonRelease-1>", self._on_release)
+        self.after_idle(self._draw)
+
+    # ── drawing ──────────────────────────────────────────────
+
+    def _rounded_rect(self, x1, y1, x2, y2, r, **kw):
+        """Draw a rounded rectangle on the canvas."""
+        points = [
+            x1 + r, y1,
+            x2 - r, y1,
+            x2, y1,
+            x2, y1 + r,
+            x2, y2 - r,
+            x2, y2,
+            x2 - r, y2,
+            x1 + r, y2,
+            x1, y2,
+            x1, y2 - r,
+            x1, y1 + r,
+            x1, y1,
+        ]
+        return self.create_polygon(points, smooth=True, **kw)
+
+    def _draw(self):
+        self.delete("all")
+        s = self._size
+
+        if self._pressed:
+            self._rounded_rect(
+                0, 0, s, s, 4,
+                fill=COLORS["bg_high"],
+                outline=COLORS["border_subtle"],
+            )
+            text_color = COLORS["fg"]
+        elif self._hovered:
+            self._rounded_rect(
+                0, 0, s, s, 4,
+                fill=COLORS["bg_container"],
+                outline=COLORS["border_subtle"],
+            )
+            text_color = COLORS["fg"]
+        else:
+            text_color = COLORS["fg_dim"]
+
+        self.create_text(
+            s // 2, s // 2,
+            text=self._sym,
+            font=FONTS["body_bold"],
+            fill=text_color,
+            anchor="center",
+        )
+
+    # ── event handlers ───────────────────────────────────────
+
+    def _on_enter(self, _event=None):
+        self._hovered = True
+        self._draw()
+
+    def _on_leave(self, _event=None):
+        self._hovered = False
+        self._pressed = False
+        self._draw()
+
+    def _on_press(self, _event=None):
+        self._pressed = True
+        self._draw()
+
+    def _on_release(self, _event=None):
+        self._pressed = False
+        self._draw()
+        if self._hovered and self._command:
+            self._command()
+
+
+class StepperPair(tk.Frame):
+    """Vertically stacked + / − ghost buttons."""
+
+    def __init__(self, parent, on_increment, on_decrement, size: int = 22, **kwargs):
+        try:
+            parent_bg = parent.cget("bg") or parent.cget("background")
+        except Exception:
+            parent_bg = COLORS["bg_surface"]
+        super().__init__(parent, bg=parent_bg, **kwargs)
+        StepperButton(self, text="+", command=on_increment, size=size).pack(
+            side=tk.TOP, pady=(0, 1),
+        )
+        StepperButton(self, text="\u2212", command=on_decrement, size=size).pack(
+            side=tk.TOP,
+        )
