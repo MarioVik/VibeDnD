@@ -383,31 +383,67 @@ class CharacterViewer(ttk.Frame):
         sub_hero_row.columnconfigure(1, weight=0)
         sub_hero_row.columnconfigure(2, weight=1)
 
-        # Stat boxes for Proficiency and Hit Dice — height matches Saving Throws,
-        # width is kept equal to height via <Configure> binding.
-        for col_i, (sq_label, sq_value) in enumerate([
-            ("PROFICIENCY", f"+{c.proficiency_bonus}"),
-            ("HIT DICE", f"{c.level}d{(c.character_class or {}).get('hit_die', 8)}"),
-        ]):
-            sq_frame = tk.Frame(sub_hero_row, bg=COLORS["bg_surface"])
-            sq_frame.grid(row=0, column=col_i, padx=(0 if col_i == 0 else 3, 3), sticky="ns")
-            sq_frame.pack_propagate(False)
-            sq_frame.grid_propagate(False)
+        # Build hit dice display string showing remaining/total per die type
+        _hd_pool = c.hit_dice_pool
+        if _hd_pool:
+            # Sort by die size descending for consistent display
+            _hd_parts = []
+            for _slug in sorted(_hd_pool, key=lambda s: _hd_pool[s][2], reverse=True):
+                _rem, _tot, _die = _hd_pool[_slug]
+                _hd_parts.append(f"{_rem}/{_tot} d{_die}")
+            _hd_value = "\n".join(_hd_parts)
+        else:
+            _hd_value = f"{c.level}d{(c.character_class or {}).get('hit_die', 8)}"
 
-            def _keep_square(event, f=sq_frame):
+        # Proficiency box — square (width = height)
+        prof_frame = tk.Frame(sub_hero_row, bg=COLORS["bg_surface"])
+        prof_frame.grid(row=0, column=0, padx=(0, 3), sticky="ns")
+        prof_frame.pack_propagate(False)
+        prof_frame.grid_propagate(False)
+
+        def _keep_prof_square(event, f=prof_frame):
+            if event.height > 1:
+                f.configure(width=event.height)
+
+        prof_frame.bind("<Configure>", _keep_prof_square)
+
+        tk.Label(
+            prof_frame, text="PROFICIENCY",
+            font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+        ).pack(side=tk.TOP, pady=(6, 0))
+        tk.Label(
+            prof_frame, text=f"+{c.proficiency_bonus}",
+            font=FONTS["stat_large"], fg=COLORS["fg"], bg=COLORS["bg_surface"],
+        ).pack(expand=True)
+
+        # Hit Dice box — adapts to multiclass (wider with smaller font)
+        _hd_is_multi = len(_hd_pool) > 1
+        hd_frame = tk.Frame(sub_hero_row, bg=COLORS["bg_surface"])
+        hd_frame.grid(row=0, column=1, padx=(3, 3), sticky="ns")
+        hd_frame.pack_propagate(False)
+        hd_frame.grid_propagate(False)
+
+        if _hd_is_multi:
+            def _keep_hd_wide(event, f=hd_frame):
+                if event.height > 1:
+                    f.configure(width=int(event.height * 1.4))
+            hd_frame.bind("<Configure>", _keep_hd_wide)
+        else:
+            def _keep_hd_square(event, f=hd_frame):
                 if event.height > 1:
                     f.configure(width=event.height)
+            hd_frame.bind("<Configure>", _keep_hd_square)
 
-            sq_frame.bind("<Configure>", _keep_square)
-
-            tk.Label(
-                sq_frame, text=sq_label,
-                font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
-            ).pack(side=tk.TOP, pady=(6, 0))
-            tk.Label(
-                sq_frame, text=sq_value,
-                font=FONTS["stat_large"], fg=COLORS["fg"], bg=COLORS["bg_surface"],
-            ).pack(expand=True)
+        tk.Label(
+            hd_frame, text="HIT DICE",
+            font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+        ).pack(side=tk.TOP, pady=(6, 0))
+        tk.Label(
+            hd_frame, text=_hd_value,
+            font=FONTS["body"] if _hd_is_multi else FONTS["stat_large"],
+            fg=COLORS["fg"], bg=COLORS["bg_surface"],
+            justify=tk.CENTER,
+        ).pack(expand=True)
 
         # Saving Throws box
         saves_cf = CardFrame(sub_hero_row, pad=SPACING["sm"])

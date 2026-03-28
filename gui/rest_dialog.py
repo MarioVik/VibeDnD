@@ -1,9 +1,10 @@
-"""Dialog for taking a Short or Long Rest, allowing feature and spell swaps."""
+"""Dialog for taking a Short or Long Rest, allowing feature/spell swaps and hit dice spending."""
 
 from __future__ import annotations
 
 import json
 import os
+import random
 import tkinter as tk
 from tkinter import ttk
 
@@ -76,8 +77,8 @@ def _is_prepared_caster(character) -> bool:
 
 
 def can_short_rest(character) -> bool:
-    """Return True if this character has anything to do on a Short Rest."""
-    return _has_swappable_features(character, "short")
+    """Return True — every character can spend hit dice on a Short Rest."""
+    return True
 
 
 def _can_swap_cantrips_on_rest(character) -> bool:
@@ -105,6 +106,32 @@ def can_long_rest(character) -> bool:
     """Return True — every character benefits from a Long Rest (HP restoration)."""
     return True
 
+
+def _get_feature_keys(character, rest_type: str) -> list[tuple[str, dict, list[str]]]:
+    """Return swappable feature keys for a given rest type."""
+    all_keys: set[str] = set()
+    for cl in character.class_levels:
+        all_keys.add(cl.class_slug)
+        if cl.subclass_slug:
+            all_keys.add(cl.subclass_slug)
+
+    feature_keys = []
+    for key in sorted(all_keys):
+        config = _CLASS_CHOICES.get(key)
+        if not config or not config.get("can_swap_on_rest"):
+            continue
+        swap_type = config.get("swap_rest_type", "long")
+        if rest_type == "short" and swap_type not in ("short", "short_or_long"):
+            continue
+        known = _get_all_known_choices(character, key)
+        if known:
+            feature_keys.append((key, config, known))
+    return feature_keys
+
+
+# ══════════════════════════════════════════════════════════════════════
+# RestDialog
+# ══════════════════════════════════════════════════════════════════════
 
 class RestDialog(tk.Toplevel):
     """Modal dialog for taking a rest and optionally swapping features/spells."""
@@ -138,20 +165,27 @@ class RestDialog(tk.Toplevel):
         # Multi-step navigation state
         self._current_step = 1
         self._total_steps = 1
-        self._info_step_frame: ttk.Frame | None = None
-        self._cantrip_step_frame: ttk.Frame | None = None
-        self._spell_step_frame: ttk.Frame | None = None
-        self._single_swap_frame: ttk.Frame | None = None
+        self._step_frames: list[ttk.Frame] = []  # ordered list of step frames
         self._next_btn: ttk.Button | None = None
         self._back_btn: ttk.Button | None = None
         self._finish_btn: ttk.Button | None = None
 
-        self._build_ui(title)
+        # Hit dice spending state (short rest)
+        self._hd_spend_vars: dict[str, tk.IntVar] = {}  # class_slug -> IntVar count
+        self._hd_roll_mode: tk.StringVar = tk.StringVar(value="auto")  # "auto" or "manual"
+        self._hd_manual_var: tk.StringVar = tk.StringVar(value="")
+        self._hd_manual_hint: ttk.Label | None = None
+        self._hd_summary_label: ttk.Label | None = None
+        self._has_hit_dice: bool = False
+
+        if rest_type == "short":
+            self._build_short_rest_ui(title)
+        else:
+            self._build_long_rest_ui(title)
 
         # Center over parent — done after build so we can size based on step count
         self.update_idletasks()
-        if self.rest_type == "long" and self._total_steps == 1:
-            # Info-only long rest (no swaps) — smaller dialog
+        if self._total_steps == 1:
             width, height = 600, 400
             min_w, min_h = 500, 350
         else:
@@ -167,173 +201,99 @@ class RestDialog(tk.Toplevel):
         self.geometry(f"{width}x{height}+{x}+{y}")
         self.minsize(min_w, min_h)
 
-    def _build_ui(self, title: str):
+    # ══════════════════════════════════════════════════════════════════
+    # Long Rest UI (unchanged logic, refactored slightly)
+    # ══════════════════════════════════════════════════════════════════
+
+    def _build_long_rest_ui(self, title: str):
         self.columnconfigure(0, weight=1)
 
-        # ── Header ─────────────────────────────────────────────────
+        # Header
         header = ttk.Frame(self)
         header.grid(row=0, column=0, sticky="ew", padx=12, pady=(8, 2))
-
         ttk.Label(
-            header,
-            text=title,
-            font=FONTS["heading"],
-            foreground=COLORS["accent"],
+            header, text=title, font=FONTS["heading"], foreground=COLORS["accent"],
         ).pack(anchor="w")
-        if self.rest_type == "short":
-            ttk.Label(
-                header,
-                text="Optionally swap features before completing this rest.",
-                foreground=COLORS["fg_dim"],
-            ).pack(anchor="w")
 
-        # ── Check for feature swap sections ────────────────────────
-        all_keys: set[str] = set()
-        for cl in self.character.class_levels:
-            all_keys.add(cl.class_slug)
-            if cl.subclass_slug:
-                all_keys.add(cl.subclass_slug)
+        feature_keys = _get_feature_keys(self.character, "long")
 
-        feature_keys = []
-        for key in sorted(all_keys):
-            config = _CLASS_CHOICES.get(key)
-            if not config or not config.get("can_swap_on_rest"):
-                continue
-            swap_type = config.get("swap_rest_type", "long")
-            if self.rest_type == "short" and swap_type not in ("short", "short_or_long"):
-                continue
-            known = _get_all_known_choices(self.character, key)
-            if known:
-                feature_keys.append((key, config, known))
-
-        # ── Determine sections ─────────────────────────────────────
-        has_cantrip_swap = (
-            self.rest_type == "long"
-            and _can_swap_cantrips_on_rest(self.character)
-        )
-        self._spell_swap_mode = _spell_swap_mode(self.character) if self.rest_type == "long" else None
-        has_spells = (
-            self._spell_swap_mode is not None
-            and self.character.selected_spells
-        )
+        # Determine sections
+        has_cantrip_swap = _can_swap_cantrips_on_rest(self.character)
+        self._spell_swap_mode = _spell_swap_mode(self.character)
+        has_spells = self._spell_swap_mode is not None and self.character.selected_spells
         has_features = bool(feature_keys)
         has_any_swap = has_features or has_cantrip_swap or has_spells
-        use_three_steps = has_cantrip_swap and has_spells  # cantrip + spell on separate pages
+        use_three_steps = has_cantrip_swap and has_spells
 
-        # Content area row (row=1) gets all the weight
         self.rowconfigure(1, weight=1)
 
-        # ── Step 1 (long rest): Info summary ─────────────────────────
-        if self.rest_type == "long":
-            self._info_step_frame = ttk.Frame(self)
-            self._build_info_step(
-                self._info_step_frame,
-                feature_keys=feature_keys,
-                has_cantrip_swap=has_cantrip_swap,
-                has_spells=has_spells,
-            )
+        # Step 1: Info summary (always)
+        info_frame = ttk.Frame(self)
+        self._build_long_rest_info_step(
+            info_frame,
+            feature_keys=feature_keys,
+            has_cantrip_swap=has_cantrip_swap,
+            has_spells=has_spells,
+        )
+        self._step_frames.append(info_frame)
 
-        # ── Build swap step frames (only for long rest with swaps) ─
-        if has_any_swap and self.rest_type == "long":
+        # Build swap steps
+        if has_any_swap:
             if use_three_steps:
-                # Step 2: features (if any) + cantrip swap
-                self._cantrip_step_frame = ttk.Frame(self)
-                step_c = self._cantrip_step_frame
-                step_c.columnconfigure(0, weight=1)
+                # Step 2: features + cantrip swap
+                cantrip_step = ttk.Frame(self)
+                cantrip_step.columnconfigure(0, weight=1)
                 s_row = 0
                 if has_features:
-                    scroll = ScrollableFrame(step_c)
+                    scroll = ScrollableFrame(cantrip_step)
                     scroll.grid(row=s_row, column=0, sticky="nsew", padx=8, pady=2)
                     for key, config, known in feature_keys:
                         self._build_feature_section(scroll.inner, key, config, known)
                     s_row += 1
-                step_c.rowconfigure(s_row, weight=1)
-                cantrip_frame = ttk.Frame(step_c)
-                cantrip_frame.grid(row=s_row, column=0, sticky="nsew", padx=8, pady=2)
-                self._build_cantrip_section(cantrip_frame)
+                cantrip_step.rowconfigure(s_row, weight=1)
+                cf = ttk.Frame(cantrip_step)
+                cf.grid(row=s_row, column=0, sticky="nsew", padx=8, pady=2)
+                self._build_cantrip_section(cf)
+                self._step_frames.append(cantrip_step)
 
-                # Step 3: leveled spell swap
-                self._spell_step_frame = ttk.Frame(self)
-                step_s = self._spell_step_frame
-                step_s.columnconfigure(0, weight=1)
-                step_s.rowconfigure(0, weight=1)
-                spell_frame = ttk.Frame(step_s)
-                spell_frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=2)
-                self._build_spell_section(spell_frame)
-
-                self._total_steps = 3
+                # Step 3: spell swap
+                spell_step = ttk.Frame(self)
+                spell_step.columnconfigure(0, weight=1)
+                spell_step.rowconfigure(0, weight=1)
+                sf = ttk.Frame(spell_step)
+                sf.grid(row=0, column=0, sticky="nsew", padx=8, pady=2)
+                self._build_spell_section(sf)
+                self._step_frames.append(spell_step)
             else:
-                # Step 2: all swap sections stacked on one page
-                self._single_swap_frame = ttk.Frame(self)
-                sf = self._single_swap_frame
-                sf.columnconfigure(0, weight=1)
+                # Step 2: all swap sections on one page
+                swap_frame = ttk.Frame(self)
+                swap_frame.columnconfigure(0, weight=1)
                 sf_row = 0
                 if has_features:
-                    scroll = ScrollableFrame(sf)
+                    scroll = ScrollableFrame(swap_frame)
                     scroll.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
                     for key, config, known in feature_keys:
                         self._build_feature_section(scroll.inner, key, config, known)
                     sf_row += 1
                 if has_cantrip_swap:
-                    cantrip_frame = ttk.Frame(sf)
-                    cantrip_frame.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
-                    self._build_cantrip_section(cantrip_frame)
+                    cf = ttk.Frame(swap_frame)
+                    cf.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
+                    self._build_cantrip_section(cf)
                     sf_row += 1
                 if has_spells:
-                    sf.rowconfigure(sf_row, weight=1)
-                    spell_frame = ttk.Frame(sf)
-                    spell_frame.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
-                    self._build_spell_section(spell_frame)
+                    swap_frame.rowconfigure(sf_row, weight=1)
+                    sf = ttk.Frame(swap_frame)
+                    sf.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
+                    self._build_spell_section(sf)
                     sf_row += 1
+                self._step_frames.append(swap_frame)
 
-                self._total_steps = 2
-        elif has_any_swap and self.rest_type == "short":
-            # Short rest: single swap page (no info step for short rests)
-            self._single_swap_frame = ttk.Frame(self)
-            sf = self._single_swap_frame
-            sf.columnconfigure(0, weight=1)
-            sf_row = 0
-            if has_features:
-                scroll = ScrollableFrame(sf)
-                scroll.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
-                for key, config, known in feature_keys:
-                    self._build_feature_section(scroll.inner, key, config, known)
-                sf_row += 1
-            # Short rest has no cantrip or spell swaps — only features
-            self._single_swap_frame.grid(row=1, column=0, sticky="nsew")
-            self._total_steps = 1
+        self._total_steps = len(self._step_frames)
+        self._build_footer()
+        self._show_rest_step(1)
 
-        # ── Footer ──────────────────────────────────────────────────
-        footer = ttk.Frame(self)
-        footer.grid(row=99, column=0, sticky="ew", padx=12, pady=(4, 8))
-
-        self._back_btn = ttk.Button(footer, text="\u25C0 Back", command=self._go_back)
-        self._next_btn = ttk.Button(
-            footer, text="Next \u25B6", command=self._go_next
-        )
-        self._finish_btn = ttk.Button(
-            footer,
-            text="Finish Rest",
-            style="Accent.TButton",
-            command=self._on_confirm,
-        )
-        ttk.Button(
-            footer,
-            text="Cancel",
-            command=self.destroy,
-        ).pack(side=tk.LEFT)
-
-        if self.rest_type == "short":
-            # Short rest — no info step, just finish button
-            self._finish_btn.pack(side=tk.RIGHT, padx=(4, 0))
-        else:
-            # Long rest — always starts with info step
-            self._show_rest_step(1)
-
-    # ── Info summary step ────────────────────────────────────────
-
-    def _build_info_step(self, parent, *, feature_keys, has_cantrip_swap, has_spells):
-        """Build the long rest info summary as step 1."""
+    def _build_long_rest_info_step(self, parent, *, feature_keys, has_cantrip_swap, has_spells):
+        """Build the long rest info summary."""
         parent.columnconfigure(0, weight=1)
         parent.rowconfigure(0, weight=1)
 
@@ -342,10 +302,8 @@ class RestDialog(tk.Toplevel):
         inner.columnconfigure(0, weight=1)
 
         ttk.Label(
-            inner,
-            text="When you complete this rest:",
-            font=FONTS["heading"],
-            foreground=COLORS["fg"],
+            inner, text="When you complete this rest:",
+            font=FONTS["heading"], foreground=COLORS["fg"],
         ).grid(row=0, column=0, sticky="w", pady=(0, 12))
 
         effects: list[str] = []
@@ -363,6 +321,18 @@ class RestDialog(tk.Toplevel):
             effects.append(
                 f"Temporary hit points ({self.character.temp_hit_points}) will be lost"
             )
+
+        # Hit dice restoration
+        if self.character.spent_hit_dice:
+            pool = self.character.hit_dice_pool
+            parts = []
+            for slug in sorted(pool, key=lambda s: pool[s][2], reverse=True):
+                rem, total, die = pool[slug]
+                spent = total - rem
+                if spent > 0:
+                    parts.append(f"{spent}d{die}")
+            if parts:
+                effects.append(f"All spent hit dice restored ({', '.join(parts)})")
 
         # Feature swaps
         for _key, config, _known in feature_keys:
@@ -383,58 +353,303 @@ class RestDialog(tk.Toplevel):
 
         for i, text in enumerate(effects):
             ttk.Label(
-                inner,
-                text=f"\u2022  {text}",
-                foreground=COLORS["fg"],
-                wraplength=500,
+                inner, text=f"\u2022  {text}",
+                foreground=COLORS["fg"], wraplength=500,
             ).grid(row=i + 1, column=0, sticky="w", padx=(12, 0), pady=2)
 
-    # ── Step navigation ──────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════
+    # Short Rest UI
+    # ══════════════════════════════════════════════════════════════════
+
+    def _build_short_rest_ui(self, title: str):
+        self.columnconfigure(0, weight=1)
+
+        # Header
+        header = ttk.Frame(self)
+        header.grid(row=0, column=0, sticky="ew", padx=12, pady=(8, 2))
+        ttk.Label(
+            header, text=title, font=FONTS["heading"], foreground=COLORS["accent"],
+        ).pack(anchor="w")
+
+        feature_keys = _get_feature_keys(self.character, "short")
+        has_features = bool(feature_keys)
+        pool = self.character.hit_dice_pool
+        self._has_hit_dice = self.character.total_hit_dice_remaining > 0
+
+        self.rowconfigure(1, weight=1)
+
+        # Step 1: Info summary
+        info_frame = ttk.Frame(self)
+        self._build_short_rest_info_step(info_frame, feature_keys=feature_keys)
+        self._step_frames.append(info_frame)
+
+        # Step 2: Hit dice spending (if any remaining)
+        if self._has_hit_dice:
+            hd_frame = ttk.Frame(self)
+            self._build_hit_dice_step(hd_frame)
+            self._step_frames.append(hd_frame)
+
+        # Step 3 (or 2): Feature swaps (if any)
+        if has_features:
+            swap_frame = ttk.Frame(self)
+            swap_frame.columnconfigure(0, weight=1)
+            scroll = ScrollableFrame(swap_frame)
+            scroll.grid(row=0, column=0, sticky="nsew", padx=8, pady=2)
+            swap_frame.rowconfigure(0, weight=1)
+            for key, config, known in feature_keys:
+                self._build_feature_section(scroll.inner, key, config, known)
+            self._step_frames.append(swap_frame)
+
+        self._total_steps = len(self._step_frames)
+        self._build_footer()
+        self._show_rest_step(1)
+
+    def _build_short_rest_info_step(self, parent, *, feature_keys):
+        """Build the short rest info summary."""
+        parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(0, weight=1)
+
+        inner = ttk.Frame(parent)
+        inner.grid(row=0, column=0, sticky="nsew", padx=24, pady=12)
+        inner.columnconfigure(0, weight=1)
+
+        ttk.Label(
+            inner, text="When you complete this rest:",
+            font=FONTS["heading"], foreground=COLORS["fg"],
+        ).grid(row=0, column=0, sticky="w", pady=(0, 12))
+
+        effects: list[str] = []
+
+        # Hit dice available
+        pool = self.character.hit_dice_pool
+        for slug in sorted(pool, key=lambda s: pool[s][2], reverse=True):
+            rem, total, die = pool[slug]
+            class_name = slug.replace("-", " ").title()
+            effects.append(f"You have {rem}/{total} d{die} hit dice remaining ({class_name})")
+
+        if self.character.total_hit_dice_remaining > 0:
+            con_mod = self.character.ability_scores.modifier("Constitution")
+            sign = "+" if con_mod >= 0 else ""
+            effects.append(f"You may spend hit dice to recover HP (each die {sign}{con_mod} CON)")
+        else:
+            effects.append("You have no hit dice left to spend")
+
+        # Feature swaps
+        for _key, config, _known in feature_keys:
+            label = config.get("choice_label", "feature")
+            effects.append(f"You may swap one {label}")
+
+        if not feature_keys and self.character.total_hit_dice_remaining == 0:
+            effects.append("There is nothing else to do on this rest")
+
+        for i, text in enumerate(effects):
+            ttk.Label(
+                inner, text=f"\u2022  {text}",
+                foreground=COLORS["fg"], wraplength=500,
+            ).grid(row=i + 1, column=0, sticky="w", padx=(12, 0), pady=2)
+
+    def _build_hit_dice_step(self, parent):
+        """Build the hit dice spending step for short rest."""
+        parent.columnconfigure(0, weight=1)
+
+        ttk.Label(
+            parent, text="Spend Hit Dice",
+            font=FONTS["heading"], foreground=COLORS["accent"],
+        ).grid(row=0, column=0, sticky="w", padx=12, pady=(8, 2))
+
+        con_mod = self.character.ability_scores.modifier("Constitution")
+        sign = "+" if con_mod >= 0 else ""
+        ttk.Label(
+            parent,
+            text=f"Choose how many hit dice to spend. Each die heals: roll {sign}{con_mod} CON (minimum 0 HP per die).",
+            foreground=COLORS["fg_dim"],
+        ).grid(row=1, column=0, sticky="w", padx=12, pady=(0, 8))
+
+        # Per-class die selectors
+        pool = self.character.hit_dice_pool
+        selector_frame = ttk.Frame(parent)
+        selector_frame.grid(row=2, column=0, sticky="ew", padx=12)
+
+        row_i = 0
+        for slug in sorted(pool, key=lambda s: pool[s][2], reverse=True):
+            rem, total, die = pool[slug]
+            if rem == 0:
+                continue
+
+            class_name = slug.replace("-", " ").title()
+            var = tk.IntVar(value=0)
+            self._hd_spend_vars[slug] = var
+
+            die_row = ttk.Frame(selector_frame)
+            die_row.grid(row=row_i, column=0, sticky="ew", pady=4)
+
+            ttk.Label(
+                die_row, text=f"d{die} ({class_name}):",
+                font=FONTS["body"], foreground=COLORS["fg"],
+            ).pack(side=tk.LEFT, padx=(0, 8))
+
+            # Spinbox for count selection
+            spin = ttk.Spinbox(
+                die_row, from_=0, to=rem, textvariable=var,
+                width=4, command=self._update_hd_summary,
+            )
+            spin.pack(side=tk.LEFT, padx=(0, 8))
+            # Also update on keyboard input
+            var.trace_add("write", lambda *_: self._update_hd_summary())
+
+            ttk.Label(
+                die_row, text=f"(max {rem})",
+                foreground=COLORS["fg_dim"],
+            ).pack(side=tk.LEFT)
+
+            row_i += 1
+
+        # Summary label
+        self._hd_summary_label = ttk.Label(
+            parent, text="No dice selected", foreground=COLORS["fg_dim"],
+        )
+        self._hd_summary_label.grid(row=3, column=0, sticky="w", padx=12, pady=(8, 4))
+
+        # Roll mode selection
+        mode_frame = ttk.LabelFrame(parent, text="How to roll")
+        mode_frame.grid(row=4, column=0, sticky="ew", padx=12, pady=(4, 4))
+
+        ttk.Radiobutton(
+            mode_frame, text="Roll for me (app rolls the dice)",
+            variable=self._hd_roll_mode, value="auto",
+            command=self._update_manual_entry_state,
+        ).pack(anchor="w", padx=8, pady=2)
+
+        manual_row = ttk.Frame(mode_frame)
+        manual_row.pack(anchor="w", padx=8, pady=2)
+
+        ttk.Radiobutton(
+            manual_row, text="I rolled myself, total rolled:",
+            variable=self._hd_roll_mode, value="manual",
+            command=self._update_manual_entry_state,
+        ).pack(side=tk.LEFT)
+
+        self._hd_manual_entry = ttk.Entry(
+            manual_row, textvariable=self._hd_manual_var, width=6, state="disabled",
+        )
+        self._hd_manual_entry.pack(side=tk.LEFT, padx=(4, 4))
+
+        self._hd_manual_hint = ttk.Label(
+            manual_row, text="", foreground=COLORS["fg_dim"],
+        )
+        self._hd_manual_hint.pack(side=tk.LEFT)
+        self._hd_manual_var.trace_add("write", lambda *_: self._update_manual_hint())
+
+    def _update_hd_summary(self):
+        """Update the hit dice summary text."""
+        parts = []
+        pool = self.character.hit_dice_pool
+        total_count = 0
+        for slug, var in self._hd_spend_vars.items():
+            try:
+                count = var.get()
+            except tk.TclError:
+                count = 0
+            if count > 0:
+                _, _, die = pool[slug]
+                parts.append(f"{count}d{die}")
+                total_count += count
+
+        if self._hd_summary_label:
+            if parts:
+                self._hd_summary_label.config(
+                    text=f"Spending: {' + '.join(parts)} ({total_count} dice total)",
+                    foreground=COLORS["fg"],
+                )
+            else:
+                self._hd_summary_label.config(
+                    text="No dice selected",
+                    foreground=COLORS["fg_dim"],
+                )
+
+        self._update_manual_hint()
+
+    def _update_manual_entry_state(self):
+        """Enable/disable manual entry based on roll mode."""
+        if self._hd_roll_mode.get() == "manual":
+            self._hd_manual_entry.config(state="normal")
+        else:
+            self._hd_manual_entry.config(state="disabled")
+        self._update_manual_hint()
+
+    def _update_manual_hint(self):
+        """Update the manual entry hint with CON bonus calculation."""
+        if not self._hd_manual_hint:
+            return
+        if self._hd_roll_mode.get() != "manual":
+            self._hd_manual_hint.config(text="")
+            return
+
+        con_mod = self.character.ability_scores.modifier("Constitution")
+        total_dice = sum(
+            v.get() for v in self._hd_spend_vars.values()
+            if isinstance(v.get(), int)
+        )
+        con_total = total_dice * con_mod
+
+        val = self._hd_manual_var.get().strip()
+        try:
+            rolled = int(val)
+            healed = max(0, rolled + con_total)
+            sign = "+" if con_total >= 0 else ""
+            self._hd_manual_hint.config(
+                text=f" {sign}{con_total} CON = {healed} HP"
+            )
+        except ValueError:
+            if con_total != 0:
+                sign = "+" if con_total >= 0 else ""
+                self._hd_manual_hint.config(text=f" {sign}{con_total} CON = ? HP")
+            else:
+                self._hd_manual_hint.config(text="")
+
+    # ══════════════════════════════════════════════════════════════════
+    # Footer & Step Navigation (shared)
+    # ══════════════════════════════════════════════════════════════════
+
+    def _build_footer(self):
+        footer = ttk.Frame(self)
+        footer.grid(row=99, column=0, sticky="ew", padx=12, pady=(4, 8))
+
+        self._back_btn = ttk.Button(footer, text="\u25C0 Back", command=self._go_back)
+        self._next_btn = ttk.Button(
+            footer, text="Next \u25B6", command=self._go_next,
+        )
+        self._finish_btn = ttk.Button(
+            footer, text="Finish Rest", style="Accent.TButton",
+            command=self._on_confirm,
+        )
+        ttk.Button(
+            footer, text="Cancel", command=self.destroy,
+        ).pack(side=tk.LEFT)
 
     def _show_rest_step(self, step: int):
         """Show the given step and update navigation buttons."""
         self._current_step = step
 
         # Hide all step frames
-        for frame in (
-            self._info_step_frame,
-            self._cantrip_step_frame,
-            self._spell_step_frame,
-            self._single_swap_frame,
-        ):
-            if frame:
-                frame.grid_forget()
+        for frame in self._step_frames:
+            frame.grid_forget()
 
         # Hide nav buttons
         self._back_btn.pack_forget()
         self._next_btn.pack_forget()
         self._finish_btn.pack_forget()
 
-        if step == 1:
-            # Info step (always first for long rests)
-            if self._info_step_frame:
-                self._info_step_frame.grid(row=1, column=0, sticky="nsew")
-            if self._total_steps == 1:
-                self._finish_btn.pack(side=tk.RIGHT, padx=(4, 0))
-            else:
-                self._next_btn.pack(side=tk.RIGHT, padx=(4, 0))
-        elif step == 2:
+        # Show current step
+        idx = step - 1
+        if 0 <= idx < len(self._step_frames):
+            self._step_frames[idx].grid(row=1, column=0, sticky="nsew")
+
+        if step > 1:
             self._back_btn.pack(side=tk.LEFT)
-            if self._total_steps == 2:
-                # Single swap page
-                if self._single_swap_frame:
-                    self._single_swap_frame.grid(row=1, column=0, sticky="nsew")
-                self._finish_btn.pack(side=tk.RIGHT, padx=(4, 0))
-            elif self._total_steps == 3:
-                # Cantrip step (3-step flow)
-                if self._cantrip_step_frame:
-                    self._cantrip_step_frame.grid(row=1, column=0, sticky="nsew")
-                self._next_btn.pack(side=tk.RIGHT, padx=(4, 0))
-        elif step == 3:
-            # Spell step (3-step flow)
-            if self._spell_step_frame:
-                self._spell_step_frame.grid(row=1, column=0, sticky="nsew")
-            self._back_btn.pack(side=tk.LEFT)
+        if step < self._total_steps:
+            self._next_btn.pack(side=tk.RIGHT, padx=(4, 0))
+        else:
             self._finish_btn.pack(side=tk.RIGHT, padx=(4, 0))
 
     def _go_next(self):
@@ -444,6 +659,10 @@ class RestDialog(tk.Toplevel):
     def _go_back(self):
         if self._current_step > 1:
             self._show_rest_step(self._current_step - 1)
+
+    # ══════════════════════════════════════════════════════════════════
+    # Feature / Cantrip / Spell sections (unchanged)
+    # ══════════════════════════════════════════════════════════════════
 
     def _build_feature_section(self, parent, key: str, config: dict, known: list[str]):
         choice_plural = config.get("choice_plural", "Choices")
@@ -473,18 +692,12 @@ class RestDialog(tk.Toplevel):
         remove_lf.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
 
         ttk.Radiobutton(
-            remove_lf,
-            text="Don\u2019t replace",
-            variable=remove_var,
-            value="",
+            remove_lf, text="Don\u2019t replace", variable=remove_var, value="",
         ).pack(anchor="w", padx=8, pady=2)
 
         for name in sorted(known):
             ttk.Radiobutton(
-                remove_lf,
-                text=name,
-                variable=remove_var,
-                value=name,
+                remove_lf, text=name, variable=remove_var, value=name,
             ).pack(anchor="w", padx=(16, 8), pady=1)
 
         # Right: Replace with
@@ -492,20 +705,13 @@ class RestDialog(tk.Toplevel):
         add_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
 
         ttk.Radiobutton(
-            add_lf,
-            text="\u2014",
-            variable=replace_var,
-            value="",
+            add_lf, text="\u2014", variable=replace_var, value="",
         ).pack(anchor="w", padx=8, pady=2)
 
-        # All options minus currently known
         available = [o for o in options if o["name"] not in known]
 
-        # Pool-aware filtering: if pools exist, show all valid options (reshuffling freely)
-        # No pool restriction on rest swaps — they can pick from any pool they've unlocked
         pools_cfg = config.get("pools", {})
         if pools_cfg:
-            # Determine which pools the character has unlocked
             unlocked_pools: set[str] = set()
             for cl in self.character.class_levels:
                 if cl.class_slug == key or cl.subclass_slug == key:
@@ -517,17 +723,12 @@ class RestDialog(tk.Toplevel):
 
         for opt in sorted(available, key=lambda o: o["name"]):
             ttk.Radiobutton(
-                add_lf,
-                text=opt["name"],
-                variable=replace_var,
-                value=opt["name"],
+                add_lf, text=opt["name"], variable=replace_var, value=opt["name"],
             ).pack(anchor="w", padx=(16, 8), pady=1)
 
         if not available:
             ttk.Label(
-                add_lf,
-                text="No other options available.",
-                foreground=COLORS["fg_dim"],
+                add_lf, text="No other options available.", foreground=COLORS["fg_dim"],
             ).pack(anchor="w", padx=8, pady=4)
 
     def _max_spell_level(self) -> int:
@@ -555,17 +756,13 @@ class RestDialog(tk.Toplevel):
             if _REST_SPELL_SWAP.get(cl.class_slug, {}).get("cantrip_swaps", 0) > 0
         }
 
-    # ── Cantrip swap section ──────────────────────────────────────
-
     def _build_cantrip_section(self, parent):
         parent.columnconfigure(0, weight=1)
         parent.rowconfigure(2, weight=1)
 
         ttk.Label(
-            parent,
-            text="Swap Cantrip",
-            font=FONTS["heading"],
-            foreground=COLORS["accent"],
+            parent, text="Swap Cantrip",
+            font=FONTS["heading"], foreground=COLORS["accent"],
         ).grid(row=0, column=0, sticky="w", padx=4, pady=(2, 0))
         ttk.Label(
             parent,
@@ -573,7 +770,6 @@ class RestDialog(tk.Toplevel):
             foreground=COLORS["fg_dim"],
         ).grid(row=1, column=0, sticky="w", padx=4, pady=(0, 4))
 
-        # Gather cantrip dicts
         swap_classes = self._cantrip_swap_classes()
         forget_cantrips = self._collect_cantrip_dicts(
             set(self.character.selected_cantrips), swap_classes
@@ -596,7 +792,6 @@ class RestDialog(tk.Toplevel):
         )
 
     def _collect_cantrip_dicts(self, names: set[str], class_slugs: set[str]) -> list[dict]:
-        """Look up full spell dicts for known cantrips from given classes."""
         result = []
         for spell in self.data.spells:
             if spell.get("level", -1) != 0:
@@ -609,7 +804,6 @@ class RestDialog(tk.Toplevel):
         return result
 
     def _collect_available_cantrip_dicts(self, known_set: set[str], class_slugs: set[str]) -> list[dict]:
-        """Return available cantrip dicts not already known."""
         result = []
         for spell in self.data.spells:
             if spell.get("level", -1) != 0:
@@ -621,8 +815,6 @@ class RestDialog(tk.Toplevel):
             if spell_classes & class_slugs:
                 result.append(spell)
         return result
-
-    # ── Leveled spell swap section ────────────────────────────────
 
     def _build_spell_section(self, parent):
         parent.columnconfigure(0, weight=1)
@@ -638,18 +830,13 @@ class RestDialog(tk.Toplevel):
             desc = "You may replace one prepared spell with another from your class spell list."
 
         ttk.Label(
-            parent,
-            text=heading,
-            font=FONTS["heading"],
-            foreground=COLORS["accent"],
+            parent, text=heading,
+            font=FONTS["heading"], foreground=COLORS["accent"],
         ).grid(row=0, column=0, sticky="w", padx=4, pady=(2, 0))
         ttk.Label(
-            parent,
-            text=desc,
-            foreground=COLORS["fg_dim"],
+            parent, text=desc, foreground=COLORS["fg_dim"],
         ).grid(row=1, column=0, sticky="w", padx=4, pady=(0, 4))
 
-        # Gather spell dicts
         known_set = set(self.character.selected_spells)
         forget_spells = self._collect_spell_dicts(known_set)
         max_lvl = self._max_spell_level()
@@ -678,7 +865,6 @@ class RestDialog(tk.Toplevel):
             )
 
     def _collect_spell_dicts(self, names: set[str]) -> list[dict]:
-        """Look up full spell dicts for a set of spell names."""
         result = []
         primary_slugs = {cl.class_slug for cl in self.character.class_levels
                          if cl.class_slug in _PREPARED_CASTER_CLASSES}
@@ -690,7 +876,6 @@ class RestDialog(tk.Toplevel):
         return result
 
     def _collect_available_spell_dicts(self, known_set: set[str], max_spell_level: int) -> list[dict]:
-        """Return full spell dicts from class spell lists not already prepared."""
         result = []
         primary_slugs = {cl.class_slug for cl in self.character.class_levels
                          if cl.class_slug in _PREPARED_CASTER_CLASSES}
@@ -706,16 +891,112 @@ class RestDialog(tk.Toplevel):
                 result.append(spell)
         return result
 
+    # ══════════════════════════════════════════════════════════════════
+    # Confirm
+    # ══════════════════════════════════════════════════════════════════
+
     def _on_confirm(self):
         changed = False
 
-        # Apply HP restoration (Long Rest)
+        # ── Long Rest: HP restoration + hit dice restoration ──────
         if self.rest_type == "long":
             self.character.current_hit_points = None  # reset to full
             self.character.temp_hit_points = 0
+            self.character.spent_hit_dice.clear()
             changed = True
 
-        # Apply feature swaps
+        # ── Short Rest: hit dice spending ─────────────────────────
+        if self.rest_type == "short" and self._hd_spend_vars:
+            pool = self.character.hit_dice_pool
+            con_mod = self.character.ability_scores.modifier("Constitution")
+
+            # Gather dice to spend per class
+            dice_to_spend: dict[str, int] = {}
+            for slug, var in self._hd_spend_vars.items():
+                try:
+                    count = var.get()
+                except tk.TclError:
+                    count = 0
+                if count > 0:
+                    # Clamp to remaining
+                    rem = pool.get(slug, (0, 0, 0))[0]
+                    dice_to_spend[slug] = min(count, rem)
+
+            total_dice = sum(dice_to_spend.values())
+
+            if total_dice > 0:
+                if self._hd_roll_mode.get() == "manual":
+                    # Manual entry
+                    val = self._hd_manual_var.get().strip()
+                    try:
+                        rolled_total = int(val)
+                    except ValueError:
+                        AlertDialog(
+                            self, "Invalid Roll",
+                            "Please enter a valid number for your dice roll total.",
+                        )
+                        return
+                    if rolled_total < 0:
+                        AlertDialog(
+                            self, "Invalid Roll",
+                            "Roll total must be 0 or greater.",
+                        )
+                        return
+
+                    con_total = total_dice * con_mod
+                    healed = max(0, rolled_total + con_total)
+
+                    # Apply spending
+                    for slug, count in dice_to_spend.items():
+                        self.character.spent_hit_dice[slug] = (
+                            self.character.spent_hit_dice.get(slug, 0) + count
+                        )
+
+                    # Apply healing
+                    cur = self.character.effective_current_hp
+                    max_hp = self.character.hit_points
+                    new_hp = min(max_hp, cur + healed)
+                    self.character.current_hit_points = new_hp
+                    changed = True
+
+                    # Show result
+                    _show_short_rest_result_manual(
+                        self, healed=healed, old_hp=cur, new_hp=new_hp, max_hp=max_hp,
+                    )
+                else:
+                    # Auto roll
+                    rolls_by_class: dict[str, list[int]] = {}
+                    for slug, count in dice_to_spend.items():
+                        _, _, die = pool[slug]
+                        rolls_by_class[slug] = [
+                            random.randint(1, die) for _ in range(count)
+                        ]
+
+                    raw_total = sum(r for rolls in rolls_by_class.values() for r in rolls)
+                    con_total = total_dice * con_mod
+                    healed = max(0, raw_total + con_total)
+
+                    # Apply spending
+                    for slug, count in dice_to_spend.items():
+                        self.character.spent_hit_dice[slug] = (
+                            self.character.spent_hit_dice.get(slug, 0) + count
+                        )
+
+                    # Apply healing
+                    cur = self.character.effective_current_hp
+                    max_hp = self.character.hit_points
+                    new_hp = min(max_hp, cur + healed)
+                    self.character.current_hit_points = new_hp
+                    changed = True
+
+                    # Show result
+                    _show_short_rest_result_auto(
+                        self, rolls_by_class=rolls_by_class, pool=pool,
+                        con_mod=con_mod, total_dice=total_dice,
+                        healed=healed, old_hp=cur, new_hp=new_hp, max_hp=max_hp,
+                    )
+
+        # ── Feature swaps ─────────────────────────────────────────
         for key, swap_data in self._swaps.items():
             remove_var: tk.StringVar = swap_data["remove_var"]
             replace_var: tk.StringVar = swap_data["replace_var"]
@@ -737,7 +1018,7 @@ class RestDialog(tk.Toplevel):
             _apply_choice_swap(self.character, key, remove_name, replace_name)
             changed = True
 
-        # Apply cantrip swap (single, radio-based)
+        # ── Cantrip swap ──────────────────────────────────────────
         if self._cantrip_panel:
             forget_c = self._cantrip_panel.forget_var.get()
             learn_c = self._cantrip_panel.learn_var.get()
@@ -755,7 +1036,7 @@ class RestDialog(tk.Toplevel):
                 self.character.selected_cantrips.append(learn_c)
                 changed = True
 
-        # Apply leveled spell swap — multi mode
+        # ── Leveled spell swap — multi mode ───────────────────────
         if self._multi_spell_panel:
             forget_names = self._multi_spell_panel.forget_names
             learn_names = self._multi_spell_panel.learn_names
@@ -774,7 +1055,7 @@ class RestDialog(tk.Toplevel):
                 self.character.selected_spells.extend(learn_names)
                 changed = True
 
-        # Apply leveled spell swap — single mode
+        # ── Leveled spell swap — single mode ──────────────────────
         elif self._spell_panel:
             remove_spell = self._spell_panel.forget_var.get()
             add_spell = self._spell_panel.learn_var.get()
@@ -798,14 +1079,122 @@ class RestDialog(tk.Toplevel):
         self.destroy()
 
 
+# ══════════════════════════════════════════════════════════════════════
+# Result dialogs
+# ══════════════════════════════════════════════════════════════════════
+
+
+def _show_short_rest_result_auto(
+    parent, *, rolls_by_class, pool, con_mod, total_dice,
+    healed, old_hp, new_hp, max_hp,
+):
+    """Show auto-roll results for short rest hit dice spending."""
+    dlg = tk.Toplevel(parent)
+    dlg.title("Short Rest — Hit Dice Results")
+    dlg.configure(bg=COLORS["bg"])
+    dlg.resizable(False, False)
+
+    configure_modal_dialog(dlg, parent)
+
+    frame = ttk.Frame(dlg)
+    frame.pack(padx=20, pady=16)
+
+    ttk.Label(
+        frame, text="Hit Dice Roll Results",
+        font=FONTS["heading"], foreground=COLORS["accent"],
+    ).pack(anchor="w", pady=(0, 8))
+
+    # Per-class rolls
+    for slug in sorted(rolls_by_class, key=lambda s: pool[s][2], reverse=True):
+        rolls = rolls_by_class[slug]
+        _, _, die = pool[slug]
+        class_name = slug.replace("-", " ").title()
+        roll_str = ", ".join(str(r) for r in rolls)
+        ttk.Label(
+            frame,
+            text=f"{class_name} (d{die}): {roll_str}",
+            foreground=COLORS["fg"],
+        ).pack(anchor="w", padx=(8, 0), pady=1)
+
+    raw_total = sum(r for rolls in rolls_by_class.values() for r in rolls)
+
+    # CON bonus line
+    con_total = total_dice * con_mod
+    if con_mod >= 0:
+        con_text = f"+ {con_total} CON ({total_dice} \u00d7 +{con_mod})"
+    else:
+        con_text = f"\u2212 {abs(con_total)} CON ({total_dice} \u00d7 {con_mod})"
+    ttk.Label(
+        frame, text=con_text, foreground=COLORS["fg_dim"],
+    ).pack(anchor="w", padx=(8, 0), pady=(4, 4))
+
+    # Total
+    ttk.Label(
+        frame,
+        text=f"{healed} HP restored ({old_hp}/{max_hp} \u2192 {new_hp}/{max_hp})",
+        font=FONTS["heading"], foreground=COLORS["fg"],
+    ).pack(anchor="w", pady=(4, 8))
+
+    ttk.Button(
+        frame, text="OK", style="Accent.TButton",
+        command=dlg.destroy,
+    ).pack(pady=(4, 0))
+
+    # Center over parent
+    dlg.update_idletasks()
+    w, h = dlg.winfo_reqwidth() + 40, dlg.winfo_reqheight() + 20
+    top = parent.winfo_toplevel()
+    px, py = top.winfo_rootx(), top.winfo_rooty()
+    pw, ph = top.winfo_width(), top.winfo_height()
+    dlg.geometry(f"+{max(0, px + (pw - w) // 2)}+{max(0, py + (ph - h) // 2)}")
+
+
+def _show_short_rest_result_manual(parent, *, healed, old_hp, new_hp, max_hp):
+    """Show manual-roll results for short rest hit dice spending."""
+    dlg = tk.Toplevel(parent)
+    dlg.title("Short Rest — Results")
+    dlg.configure(bg=COLORS["bg"])
+    dlg.resizable(False, False)
+
+    configure_modal_dialog(dlg, parent)
+
+    frame = ttk.Frame(dlg)
+    frame.pack(padx=20, pady=16)
+
+    ttk.Label(
+        frame, text="Short Rest Results",
+        font=FONTS["heading"], foreground=COLORS["accent"],
+    ).pack(anchor="w", pady=(0, 8))
+
+    ttk.Label(
+        frame,
+        text=f"{healed} HP restored ({old_hp}/{max_hp} \u2192 {new_hp}/{max_hp})",
+        font=FONTS["heading"], foreground=COLORS["fg"],
+    ).pack(anchor="w", pady=(4, 8))
+
+    ttk.Button(
+        frame, text="OK", style="Accent.TButton",
+        command=dlg.destroy,
+    ).pack(pady=(4, 0))
+
+    dlg.update_idletasks()
+    w, h = dlg.winfo_reqwidth() + 40, dlg.winfo_reqheight() + 20
+    top = parent.winfo_toplevel()
+    px, py = top.winfo_rootx(), top.winfo_rooty()
+    pw, ph = top.winfo_width(), top.winfo_height()
+    dlg.geometry(f"+{max(0, px + (pw - w) // 2)}+{max(0, py + (ph - h) // 2)}")
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Helpers
+# ══════════════════════════════════════════════════════════════════════
+
+
 def _apply_choice_swap(character, key: str, remove_name: str, replace_name: str):
     """Update the character's class_levels to swap one choice for another."""
-    # Find the ClassLevel that owns remove_name for this key
     for cl in character.class_levels:
         if (cl.class_slug == key or cl.subclass_slug == key) and remove_name in cl.new_choices:
             cl.new_choices.remove(remove_name)
             cl.new_choices.append(replace_name)
-            # Track the replacement (use replaced_choice field for most recent swap)
             cl.replaced_choice = remove_name
             return
-    # Fallback: not found in any specific ClassLevel — do nothing (shouldn't happen)

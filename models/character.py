@@ -97,6 +97,8 @@ class Character:
     # Mutable HP tracking (persisted)
     current_hit_points: int | None = None  # None means "full" (backward compat)
     temp_hit_points: int = 0
+    spent_hit_dice: dict[str, int] = field(default_factory=dict)
+    # Maps class_slug -> count spent. e.g. {"fighter": 2, "rogue": 1}
 
     @property
     def effective_current_hp(self) -> int:
@@ -104,6 +106,24 @@ class Character:
         if self.current_hit_points is not None:
             return self.current_hit_points
         return self.hit_points
+
+    @property
+    def hit_dice_pool(self) -> dict[str, tuple[int, int, int]]:
+        """Return {class_slug: (remaining, total, die_size)} for each class."""
+        totals: dict[str, int] = {}
+        for cl in self.class_levels:
+            totals[cl.class_slug] = totals.get(cl.class_slug, 0) + 1
+        result: dict[str, tuple[int, int, int]] = {}
+        for slug, total in totals.items():
+            spent = self.spent_hit_dice.get(slug, 0)
+            die_size = self._hit_die_for_class(slug)
+            result[slug] = (max(0, total - spent), total, die_size)
+        return result
+
+    @property
+    def total_hit_dice_remaining(self) -> int:
+        """Total unspent hit dice across all classes."""
+        return sum(rem for rem, _total, _die in self.hit_dice_pool.values())
 
     # Computed properties
     @property

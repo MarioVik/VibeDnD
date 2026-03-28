@@ -70,6 +70,7 @@ def character_to_save_dict(character: Character) -> dict:
         "inventory_transactions": list(c.inventory_transactions),
         "current_hit_points": c.current_hit_points,
         "temp_hit_points": c.temp_hit_points,
+        "spent_hit_dice": dict(c.spent_hit_dice),
         "chosen_languages": list(c.chosen_languages),
     }
 
@@ -162,6 +163,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.inventory_transactions = data.get("inventory_transactions", [])
     c.current_hit_points = data.get("current_hit_points", None)
     c.temp_hit_points = int(data.get("temp_hit_points", 0))
+    c.spent_hit_dice = data.get("spent_hit_dice", {})
     c.chosen_languages = data.get("chosen_languages", [])
 
     # Load class_levels (v2) or construct from v1 data
