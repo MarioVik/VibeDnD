@@ -289,14 +289,12 @@ class CharacterViewer(ttk.Frame):
             right_col = tk.Frame(top_wrapper, bg=COLORS["bg"])
             right_col.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-            def _fit_portrait(event, _done=[False]):
+            def _fit_portrait():
                 """Resize portrait to match the right column's rendered height."""
-                if _done[0]:
-                    return
+                right_col.update_idletasks()
                 h = right_col.winfo_reqheight()
-                if h < 10:
+                if h < 30:
                     return
-                _done[0] = True
                 # Subtract card padding (9px top + 9px bottom)
                 img_sz = max(h - 18, 32)
                 resized = self._dash_portrait_pil.resize(
@@ -309,7 +307,8 @@ class CharacterViewer(ttk.Frame):
                     img_sz // 2, img_sz // 2, image=self._dash_portrait_photo
                 )
 
-            right_col.bind("<Configure>", _fit_portrait)
+            # Delay until layout is fully settled
+            right_col.after(100, _fit_portrait)
         else:
             right_col = inner
 
@@ -370,62 +369,89 @@ class CharacterViewer(ttk.Frame):
             bg=_hero_bg,
         ).pack(anchor="w")
 
-        # HP and AC row
-        hp_ac = tk.Frame(right_col, bg=COLORS["bg"])
-        hp_ac.pack(fill=tk.X, pady=(0, 0 if has_portrait else SPACING["section_gap"]))
+        # ── Proficiency, Hit Dice, Saving Throws (in right_col, next to portrait) ──
+        saving_throws_early = (c.character_class or {}).get("saving_throws", [])
+        saving_throws_lower_early = [s.lower() for s in saving_throws_early]
 
-        # AC card (CardFrame with accent left border)
-        ac_cf = CardFrame(hp_ac, accent_left=True, pad=SPACING["card_pad"])
-        ac_cf.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
+        sub_hero_row = tk.Frame(right_col, bg=COLORS["bg"])
+        sub_hero_row.pack(fill=tk.X)
+        sub_hero_row.columnconfigure(0, weight=0)
+        sub_hero_row.columnconfigure(1, weight=0)
+        sub_hero_row.columnconfigure(2, weight=1)
+
+        # Square stat boxes for Proficiency and Hit Dice
+        _sq_size = 90
+        for col_i, (sq_label, sq_value) in enumerate([
+            ("PROFICIENCY", f"+{c.proficiency_bonus}"),
+            ("HIT DICE", f"{c.level}d{(c.character_class or {}).get('hit_die', 8)}"),
+        ]):
+            sq_frame = tk.Frame(
+                sub_hero_row, bg=COLORS["bg_surface"],
+                width=_sq_size, height=_sq_size,
+            )
+            sq_frame.grid(row=0, column=col_i, padx=(0 if col_i == 0 else 3, 3), sticky="")
+            sq_frame.pack_propagate(False)
+            sq_frame.grid_propagate(False)
+
+            tk.Label(
+                sq_frame, text=sq_label,
+                font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+            ).pack(side=tk.TOP, pady=(10, 0))
+            tk.Label(
+                sq_frame, text=sq_value,
+                font=FONTS["stat_large"], fg=COLORS["fg"], bg=COLORS["bg_surface"],
+            ).pack(expand=True)
+
+        # Saving Throws box
+        saves_cf = CardFrame(sub_hero_row, pad=SPACING["card_pad"])
+        saves_cf.grid(row=0, column=2, padx=(3, 0), sticky="nsew")
+
         tk.Label(
-            ac_cf.inner,
-            text="ARMOR CLASS",
+            saves_cf.inner,
+            text="SAVING THROWS",
             font=FONTS["label_upper_bold"],
             fg=COLORS["fg_dim"],
             bg=COLORS["bg_surface"],
-        ).pack()
-        tk.Label(
-            ac_cf.inner,
-            text=str(c.armor_class),
-            font=FONTS["stat_large"],
-            fg=COLORS["fg"],
-            bg=COLORS["bg_surface"],
-        ).pack()
+        ).pack(anchor="w")
 
-        # HP card (CardFrame with accent left border)
-        hp_cf = CardFrame(hp_ac, accent_left=True, pad=SPACING["card_pad"])
-        hp_cf.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        saves_grid = tk.Frame(saves_cf.inner, bg=COLORS["bg_surface"])
+        saves_grid.pack(fill=tk.X, pady=(4, 0))
+        saves_grid.columnconfigure(0, weight=1)
+        saves_grid.columnconfigure(1, weight=1)
 
-        hp_top = tk.Frame(hp_cf.inner, bg=COLORS["bg_surface"])
-        hp_top.pack(fill=tk.X)
-        tk.Label(
-            hp_top,
-            text="HIT POINTS",
-            font=FONTS["label_upper_bold"],
-            fg=COLORS["fg_dim"],
-            bg=COLORS["bg_surface"],
-        ).pack(side=tk.LEFT)
+        _save_order = [
+            "Strength", "Intelligence",
+            "Dexterity", "Wisdom",
+            "Constitution", "Charisma",
+        ]
+        for i, ability_name in enumerate(_save_order):
+            col = i % 2
+            row = i // 2
+            is_prof = ability_name.lower() in saving_throws_lower_early
+            save_mod = c.ability_scores.modifier(ability_name)
+            if is_prof:
+                save_mod += c.proficiency_bonus
+            save_str = f"+{save_mod}" if save_mod >= 0 else str(save_mod)
+            indicator = "●" if is_prof else "○"
+            color = COLORS["accent_text"] if is_prof else COLORS["fg_dim"]
 
-        hp_val = tk.Frame(hp_cf.inner, bg=COLORS["bg_surface"])
-        hp_val.pack(fill=tk.X, pady=(4, 0))
-        tk.Label(
-            hp_val,
-            text=str(c.hit_points),
-            font=FONTS["stat_large"],
-            fg=COLORS["fg"],
-            bg=COLORS["bg_surface"],
-        ).pack(side=tk.LEFT)
-        tk.Label(
-            hp_val,
-            text=f"/ {c.hit_points}",
-            font=FONTS["heading_serif_sm"],
-            fg=COLORS["fg_dim"],
-            bg=COLORS["bg_surface"],
-        ).pack(side=tk.LEFT, padx=(4, 0))
+            save_row_f = tk.Frame(saves_grid, bg=COLORS["bg_surface"])
+            save_row_f.grid(row=row, column=col, sticky="ew", padx=(0, 12), pady=2)
 
-        hp_bar = HPBar(hp_cf.inner, width=300, height=6)
-        hp_bar.pack(fill=tk.X, pady=(8, 0))
-        hp_bar.set_hp(c.hit_points, c.hit_points)
+            tk.Label(
+                save_row_f, text=indicator,
+                font=FONTS["body"], fg=color, bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT, padx=(0, 4))
+            tk.Label(
+                save_row_f, text=ability_name[:3].upper(),
+                font=FONTS["body"],
+                fg=COLORS["fg"] if is_prof else COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT)
+            tk.Label(
+                save_row_f, text=save_str,
+                font=FONTS["heading_serif_sm"], fg=color, bg=COLORS["bg_surface"],
+            ).pack(side=tk.RIGHT)
 
         # ── Ability Scores ──
         SectionHeader(inner, text="Ability Scores").pack(
@@ -436,59 +462,19 @@ class CharacterViewer(ttk.Frame):
         ab_row.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
         ab_row.columnconfigure(list(range(6)), weight=1)
 
-        saving_throws = (c.character_class or {}).get("saving_throws", [])
-        saving_throws_lower = [s.lower() for s in saving_throws]
-
         for i, ability_name in enumerate(
             ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
         ):
             total = c.ability_scores.total(ability_name)
             mod_str = c.ability_scores.modifier_str(ability_name)
-            is_save_prof = ability_name.lower() in saving_throws_lower
 
             card = StatCard(
                 ab_row,
-                label=ability_name[:3],
-                value=str(total),
-                modifier=mod_str,
-                highlight=is_save_prof,
+                label=ability_name,
+                value=mod_str,
+                modifier=str(total),
             )
             card.grid(row=0, column=i, padx=3, sticky="nsew")
-
-            # Add save info below modifier
-            save_mod = c.ability_scores.modifier(ability_name)
-            if is_save_prof:
-                save_mod += c.proficiency_bonus
-            save_str = f"+{save_mod}" if save_mod >= 0 else str(save_mod)
-            save_prefix = "\u2713 " if is_save_prof else ""
-
-            save_lbl = tk.Label(
-                card,
-                text=f"{save_prefix}{save_str} SAVE",
-                font=FONTS["label_tiny"],
-                fg=COLORS["accent_text"] if is_save_prof else COLORS["fg_dim"],
-                bg=COLORS["bg_surface"],
-            )
-            save_lbl.pack(pady=(4, 0))
-
-        # ── Secondary vitals ──
-        vitals_row = tk.Frame(inner, bg=COLORS["bg"])
-        vitals_row.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
-        vitals_row.columnconfigure(list(range(4)), weight=1)
-
-        vitals = [
-            ("Proficiency", f"+{c.proficiency_bonus}"),
-            ("Initiative", f"+{c.initiative}" if c.initiative >= 0 else str(c.initiative)),
-            ("Speed", str(c.speed), "ft"),
-            ("Hit Dice", str(c.level), f"d{(c.character_class or {}).get('hit_die', 8)}"),
-        ]
-
-        for i, v in enumerate(vitals):
-            label = v[0]
-            value = v[1]
-            suffix = v[2] if len(v) > 2 else ""
-            sc = StatCard(vitals_row, label=label, value=value, suffix=suffix)
-            sc.grid(row=0, column=i, padx=3, sticky="nsew")
 
         # ── Skills ──
         SectionHeader(inner, text="Skills").pack(
