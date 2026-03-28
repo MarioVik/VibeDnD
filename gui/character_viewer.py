@@ -321,7 +321,7 @@ class CharacterViewer(ttk.Frame):
 
         # Name and level badge row
         name_frame = tk.Frame(hero_inner, bg=_hero_bg)
-        name_frame.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(SPACING["xl"], 0))
+        name_frame.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(SPACING["2xl"], 0))
 
         tk.Label(
             name_frame,
@@ -340,7 +340,7 @@ class CharacterViewer(ttk.Frame):
         level_pill.pack(side=tk.RIGHT, padx=8)
 
         summary_frame = tk.Frame(hero_inner, bg=_hero_bg)
-        summary_frame.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(4, SPACING["xl"]))
+        summary_frame.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(4, SPACING["2xl"]))
 
         if c.is_multiclass:
             from collections import Counter
@@ -399,14 +399,14 @@ class CharacterViewer(ttk.Frame):
             tk.Label(
                 sq_frame, text=sq_label,
                 font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
-            ).pack(side=tk.TOP, pady=(10, 0))
+            ).pack(side=tk.TOP, pady=(6, 0))
             tk.Label(
                 sq_frame, text=sq_value,
                 font=FONTS["stat_large"], fg=COLORS["fg"], bg=COLORS["bg_surface"],
             ).pack(expand=True)
 
         # Saving Throws box
-        saves_cf = CardFrame(sub_hero_row, pad=SPACING["card_pad"])
+        saves_cf = CardFrame(sub_hero_row, pad=SPACING["sm"])
         saves_cf.grid(row=0, column=2, padx=(3, 0), sticky="nsew")
 
         tk.Label(
