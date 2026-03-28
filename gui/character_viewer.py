@@ -27,6 +27,7 @@ from gui.widgets import (
     CardFrame,
     GradientHeader,
     PillBadge,
+    StepperPair,
 )
 from gui.sidebar import Sidebar
 from gui.sheet_builder import build_character_sheet, _container_contents
@@ -64,9 +65,9 @@ _BACKSTORY = "backstory"
 _NAV_ITEMS = [
     {"key": _DASHBOARD, "text": "Dashboard", "icon": "\u25a3"},
     {"key": _COMBAT, "text": "Combat", "icon": "\u2694\ufe0e"},
+    {"key": _FEATURES, "text": "Features", "icon": "\u2605"},
     {"key": _SPELLBOOK, "text": "Spellbook", "icon": "\u2726"},
     {"key": _INVENTORY, "text": "Inventory", "icon": "\u229e"},
-    {"key": _FEATURES, "text": "Features", "icon": "\u2605"},
     {"key": _BACKSTORY, "text": "Biography", "icon": "\u270E"},
 ]
 
@@ -828,14 +829,9 @@ class CharacterViewer(ttk.Frame):
             font=FONTS["stat_large"],
             fg=COLORS["fg"],
             bg=COLORS["bg_surface"],
-            width=4,
             anchor="w",
         )
         temp_label.pack(side=tk.LEFT)
-
-        # +/- buttons for Temp HP
-        temp_btn_frame = tk.Frame(temp_val, bg=COLORS["bg_surface"])
-        temp_btn_frame.pack(side=tk.RIGHT)
 
         def _adjust_temp_hp(delta: int):
             new_val = max(0, c.temp_hit_points + delta)
@@ -843,35 +839,11 @@ class CharacterViewer(ttk.Frame):
             temp_label.config(text=str(new_val))
             save_character(c, characters_dir(), existing_filename=self.save_path)
 
-        tk.Button(
-            temp_btn_frame,
-            text="−",
-            font=FONTS["heading_serif_sm"],
-            fg=COLORS["fg"],
-            bg=COLORS["bg_container"],
-            activebackground=COLORS["bg_highest"],
-            activeforeground=COLORS["fg"],
-            bd=0,
-            padx=8,
-            pady=0,
-            cursor="hand2",
-            command=lambda: _adjust_temp_hp(-1),
-        ).pack(side=tk.LEFT, padx=(0, 4))
-
-        tk.Button(
-            temp_btn_frame,
-            text="+",
-            font=FONTS["heading_serif_sm"],
-            fg=COLORS["fg"],
-            bg=COLORS["bg_container"],
-            activebackground=COLORS["bg_highest"],
-            activeforeground=COLORS["fg"],
-            bd=0,
-            padx=8,
-            pady=0,
-            cursor="hand2",
-            command=lambda: _adjust_temp_hp(1),
-        ).pack(side=tk.LEFT)
+        StepperPair(
+            temp_val,
+            on_increment=lambda: _adjust_temp_hp(1),
+            on_decrement=lambda: _adjust_temp_hp(-1),
+        ).pack(side=tk.LEFT, padx=(4, 0))
 
         # Regular HP fills the remaining space to the left
         hp_cf = CardFrame(hp_row, accent_left=True, pad=SPACING["md"])
@@ -908,10 +880,6 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_surface"],
         ).pack(side=tk.LEFT, padx=(4, 0))
 
-        # +/- buttons for HP
-        hp_btn_frame = tk.Frame(hp_val, bg=COLORS["bg_surface"])
-        hp_btn_frame.pack(side=tk.RIGHT)
-
         hp_bar = HPBar(hp_cf.inner, width=300, height=6)
         hp_bar.pack(fill=tk.X, pady=(8, 0))
         hp_bar.set_hp(current_hp, max_hp)
@@ -924,35 +892,11 @@ class CharacterViewer(ttk.Frame):
             hp_bar.set_hp(new_val, c.hit_points)
             save_character(c, characters_dir(), existing_filename=self.save_path)
 
-        tk.Button(
-            hp_btn_frame,
-            text="−",
-            font=FONTS["heading_serif_sm"],
-            fg=COLORS["fg"],
-            bg=COLORS["bg_container"],
-            activebackground=COLORS["bg_highest"],
-            activeforeground=COLORS["fg"],
-            bd=0,
-            padx=8,
-            pady=0,
-            cursor="hand2",
-            command=lambda: _adjust_hp(-1),
-        ).pack(side=tk.LEFT, padx=(0, 4))
-
-        tk.Button(
-            hp_btn_frame,
-            text="+",
-            font=FONTS["heading_serif_sm"],
-            fg=COLORS["fg"],
-            bg=COLORS["bg_container"],
-            activebackground=COLORS["bg_highest"],
-            activeforeground=COLORS["fg"],
-            bd=0,
-            padx=8,
-            pady=0,
-            cursor="hand2",
-            command=lambda: _adjust_hp(1),
-        ).pack(side=tk.LEFT)
+        StepperPair(
+            hp_val,
+            on_increment=lambda: _adjust_hp(1),
+            on_decrement=lambda: _adjust_hp(-1),
+        ).pack(side=tk.LEFT, padx=(4, 0))
 
         # ── Stats row: Initiative, Armor Class, Speed ──
         stats_row = tk.Frame(right_col, bg=COLORS["bg"])
@@ -1357,16 +1301,11 @@ class CharacterViewer(ttk.Frame):
             entry.bind("<FocusOut>", _commit_coins)
             entry.bind("<Return>", _commit_coins)
 
-            btn_frame = tk.Frame(val_row, bg=COLORS["bg_surface"])
-            btn_frame.pack(side=tk.LEFT, padx=(2, 0))
-            ttk.Button(
-                btn_frame, text="+", width=2, style="Compact.TButton",
-                command=lambda d=unit_cp: _adjust_wealth(d),
-            ).pack(side=tk.TOP, pady=(0, 1))
-            ttk.Button(
-                btn_frame, text="\u2212", width=2, style="Compact.TButton",
-                command=lambda d=unit_cp: _adjust_wealth(-d),
-            ).pack(side=tk.TOP)
+            StepperPair(
+                val_row,
+                on_increment=lambda d=unit_cp: _adjust_wealth(d),
+                on_decrement=lambda d=unit_cp: _adjust_wealth(-d),
+            ).pack(side=tk.LEFT, padx=(2, 0))
 
         # ── Inventory split view ──
         self._inventory_parent = wrapper
