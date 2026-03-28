@@ -379,19 +379,22 @@ class CharacterViewer(ttk.Frame):
         sub_hero_row.columnconfigure(1, weight=0)
         sub_hero_row.columnconfigure(2, weight=1)
 
-        # Square stat boxes for Proficiency and Hit Dice
-        _sq_size = 90
+        # Stat boxes for Proficiency and Hit Dice — height matches Saving Throws,
+        # width is kept equal to height via <Configure> binding.
         for col_i, (sq_label, sq_value) in enumerate([
             ("PROFICIENCY", f"+{c.proficiency_bonus}"),
             ("HIT DICE", f"{c.level}d{(c.character_class or {}).get('hit_die', 8)}"),
         ]):
-            sq_frame = tk.Frame(
-                sub_hero_row, bg=COLORS["bg_surface"],
-                width=_sq_size, height=_sq_size,
-            )
-            sq_frame.grid(row=0, column=col_i, padx=(0 if col_i == 0 else 3, 3), sticky="")
+            sq_frame = tk.Frame(sub_hero_row, bg=COLORS["bg_surface"])
+            sq_frame.grid(row=0, column=col_i, padx=(0 if col_i == 0 else 3, 3), sticky="ns")
             sq_frame.pack_propagate(False)
             sq_frame.grid_propagate(False)
+
+            def _keep_square(event, f=sq_frame):
+                if event.height > 1:
+                    f.configure(width=event.height)
+
+            sq_frame.bind("<Configure>", _keep_square)
 
             tk.Label(
                 sq_frame, text=sq_label,
