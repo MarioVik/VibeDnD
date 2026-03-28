@@ -1,22 +1,349 @@
 """Reusable custom widgets for the character creator."""
 
+import os
 import sys
 import tkinter as tk
 from tkinter import ttk
 from gui.theme import COLORS, FONTS
 
 
-def _wheel_units(event) -> int:
-    """Normalise a MouseWheel event delta to scroll units.
+def _wheel_units(event, source_name: str = "MouseWheel") -> float:
+    """Normalise wheel/touchpad delta to scroll units.
 
-    Windows and Linux/X11 fire delta in multiples of 120.  macOS fires
-    delta as ±1 (or small integers for trackpad momentum).  On macOS,
-    dividing by 120 truncates to zero (no scroll); on Linux, skipping
-    the division scrolls 120 units at once (list flies off the screen).
+    - MouseWheel events are normalized from 120-based deltas (Windows/Linux)
+      and small deltas (macOS).
+    - TouchpadScroll events on some Tk/macOS builds report wrapped 16-bit
+      deltas (e.g. 65520 for -16), so we unwrap and scale them.
     """
-    if sys.platform == "darwin":
-        return int(-event.delta)
-    return int(-1 * event.delta / 120)
+    delta = float(getattr(event, "delta", 0) or 0)
+    if delta == 0:
+        return 0
+
+    if source_name.endswith("TouchpadScroll"):
+        # Unwrap 16-bit signed values (Tk 9 on macOS may expose wrapped deltas).
+        signed_delta = ((int(round(delta)) + 32768) % 65536) - 32768
+        units = -signed_delta / 240.0
+    elif sys.platform == "darwin":
+        # Tk on macOS can report either small smooth deltas (trackpad)
+        # or 120-based wheel deltas (some mice/drivers).
+        if abs(delta) >= 100:
+            units = -delta / 120.0
+        else:
+            units = -delta
+    else:
+        units = -delta / 120.0
+
+    return units
+
+
+_WHEEL_CANVAS_ATTR = "_vibednd_wheel_canvas"
+_GLOBAL_WHEEL_BINDING_INSTALLED = False
+_WHEEL_BOUND_TOPLEVELS: set[str] = set()
+_CLASS_WHEEL_BINDING_INSTALLED = False
+_TOUCHPAD_PIXELS_PER_UNIT = 10.0
+
+
+def _quantize_wheel_units(raw_units: float) -> int:
+    if raw_units == 0:
+        return 0
+
+    if raw_units > 0:
+        units_int = max(1, int(round(raw_units)))
+    else:
+        units_int = min(-1, int(round(raw_units)))
+
+    max_units = 6
+    if units_int > max_units:
+        return max_units
+    if units_int < -max_units:
+        return -max_units
+    return units_int
+
+
+def _canvas_scrollable_pixels(canvas: tk.Canvas) -> float:
+    try:
+        region = canvas.cget("scrollregion") or ""
+        if region:
+            parts = [float(p) for p in str(region).split()]
+            if len(parts) == 4:
+                total_height = max(parts[3] - parts[1], 0.0)
+            else:
+                total_height = 0.0
+        else:
+            total_height = 0.0
+    except (tk.TclError, ValueError):
+        total_height = 0.0
+
+    if total_height <= 0:
+        try:
+            bbox = canvas.bbox("all")
+            total_height = float(max((bbox[3] - bbox[1]) if bbox else 0, 0))
+        except tk.TclError:
+            total_height = 0.0
+
+    try:
+        viewport_height = float(max(canvas.winfo_height(), 1))
+    except tk.TclError:
+        return 0.0
+
+    return max(total_height - viewport_height, 0.0)
+
+
+def _scroll_touchpad(canvas: tk.Canvas, raw_units: float) -> bool:
+    if raw_units == 0:
+        return False
+
+    scrollable_px = _canvas_scrollable_pixels(canvas)
+    if scrollable_px <= 0:
+        return False
+
+    try:
+        first, last = canvas.yview()
+    except tk.TclError:
+        return False
+
+    visible = max(last - first, 0.0)
+    max_first = max(1.0 - visible, 0.0)
+    if max_first <= 0:
+        return False
+
+    delta_fraction = (raw_units * _TOUCHPAD_PIXELS_PER_UNIT) / scrollable_px
+    target = first + delta_fraction
+    if target < 0.0:
+        target = 0.0
+    elif target > max_first:
+        target = max_first
+
+    if abs(target - first) < 1e-9:
+        return False
+
+    try:
+        canvas.yview_moveto(target)
+    except tk.TclError:
+        return False
+    return True
+
+
+def _wheel_debug(msg: str):
+    if os.environ.get("VIBEDND_DEBUG_WHEEL"):
+        print(f"[wheel] {msg}")
+
+
+def _nearest_wheel_canvas(widget) -> tk.Canvas | None:
+    current = widget
+    while current is not None:
+        canvas = getattr(current, _WHEEL_CANVAS_ATTR, None)
+        if isinstance(canvas, tk.Canvas):
+            try:
+                if int(canvas.winfo_exists()) and canvas.winfo_ismapped():
+                    return canvas
+            except tk.TclError:
+                return None
+        current = getattr(current, "master", None)
+    return None
+
+
+def _canvas_for_wheel_event(event) -> tk.Canvas | None:
+    widget = getattr(event, "widget", None)
+    if widget is None:
+        return None
+
+    try:
+        top = widget.winfo_toplevel()
+    except tk.TclError:
+        top = widget
+
+    try:
+        pointer_x, pointer_y = widget.winfo_pointerxy()
+        hovered = top.winfo_containing(pointer_x, pointer_y)
+    except tk.TclError:
+        hovered = None
+    if hovered is not None:
+        canvas = _nearest_wheel_canvas(hovered)
+        if canvas is not None:
+            return canvas
+
+    x_root = getattr(event, "x_root", None)
+    y_root = getattr(event, "y_root", None)
+    if x_root is not None and y_root is not None:
+        try:
+            hovered = top.winfo_containing(x_root, y_root)
+        except tk.TclError:
+            hovered = None
+        if hovered is not None:
+            canvas = _nearest_wheel_canvas(hovered)
+            if canvas is not None:
+                return canvas
+
+    return _nearest_wheel_canvas(widget)
+
+
+def _dispatch_delta_scroll(event, source_name: str):
+    canvas = _canvas_for_wheel_event(event)
+    if canvas is None:
+        _wheel_debug(f"{source_name} ignored: no target canvas")
+        return None
+
+    raw_units = _wheel_units(event, source_name=source_name)
+    if source_name.endswith("TouchpadScroll"):
+        moved = _scroll_touchpad(canvas, raw_units)
+        if not moved:
+            _wheel_debug(f"{source_name} ignored: no movement (raw={raw_units:.4f})")
+            return None
+        _wheel_debug(f"{source_name} -> {canvas} mode=moveto raw={raw_units:.4f}")
+        return "break"
+
+    units = _quantize_wheel_units(raw_units)
+    if units == 0:
+        _wheel_debug(f"{source_name} ignored: computed 0 units (raw={raw_units:.4f})")
+        return None
+
+    try:
+        canvas.yview_scroll(units, "units")
+    except tk.TclError:
+        _wheel_debug(f"{source_name} ignored: target canvas no longer valid")
+        return None
+    _wheel_debug(f"{source_name} -> {canvas} units={units} raw={raw_units:.4f}")
+    return "break"
+
+
+def _dispatch_mousewheel(event):
+    return _dispatch_delta_scroll(event, "MouseWheel")
+
+
+def _dispatch_touchpad_scroll(event):
+    return _dispatch_delta_scroll(event, "TouchpadScroll")
+
+
+def _dispatch_shift_mousewheel(event):
+    return _dispatch_delta_scroll(event, "Shift-MouseWheel")
+
+
+def _dispatch_shift_touchpad_scroll(event):
+    return _dispatch_delta_scroll(event, "Shift-TouchpadScroll")
+
+
+def _dispatch_option_mousewheel(event):
+    return _dispatch_delta_scroll(event, "Option-MouseWheel")
+
+
+def _dispatch_command_mousewheel(event):
+    return _dispatch_delta_scroll(event, "Command-MouseWheel")
+
+
+def _dispatch_option_touchpad_scroll(event):
+    return _dispatch_delta_scroll(event, "Option-TouchpadScroll")
+
+
+def _dispatch_command_touchpad_scroll(event):
+    return _dispatch_delta_scroll(event, "Command-TouchpadScroll")
+
+
+def _bind_wheel_sequences(bind_fn):
+    bind_fn("<MouseWheel>", _dispatch_mousewheel)
+    bind_fn("<TouchpadScroll>", _dispatch_touchpad_scroll)
+    bind_fn("<Shift-MouseWheel>", _dispatch_shift_mousewheel)
+    bind_fn("<Shift-TouchpadScroll>", _dispatch_shift_touchpad_scroll)
+    bind_fn("<Option-MouseWheel>", _dispatch_option_mousewheel)
+    bind_fn("<Option-TouchpadScroll>", _dispatch_option_touchpad_scroll)
+    bind_fn("<Command-MouseWheel>", _dispatch_command_mousewheel)
+    bind_fn("<Command-TouchpadScroll>", _dispatch_command_touchpad_scroll)
+
+
+def _dispatch_button4(event):
+    canvas = _canvas_for_wheel_event(event)
+    if canvas is None:
+        _wheel_debug("Button-4 ignored: no target canvas")
+        return None
+    try:
+        canvas.yview_scroll(-1, "units")
+    except tk.TclError:
+        _wheel_debug("Button-4 ignored: target canvas no longer valid")
+        return None
+    _wheel_debug(f"Button-4 -> {canvas} units=-1")
+    return "break"
+
+
+def _dispatch_button5(event):
+    canvas = _canvas_for_wheel_event(event)
+    if canvas is None:
+        _wheel_debug("Button-5 ignored: no target canvas")
+        return None
+    try:
+        canvas.yview_scroll(1, "units")
+    except tk.TclError:
+        _wheel_debug("Button-5 ignored: target canvas no longer valid")
+        return None
+    _wheel_debug(f"Button-5 -> {canvas} units=1")
+    return "break"
+
+
+def _ensure_global_wheel_binding(widget):
+    global _GLOBAL_WHEEL_BINDING_INSTALLED
+    if _GLOBAL_WHEEL_BINDING_INSTALLED:
+        _ensure_toplevel_wheel_binding(widget)
+        _ensure_class_wheel_bindings(widget)
+        return
+
+    _bind_wheel_sequences(lambda seq, cb: widget.bind_all(seq, cb, add="+"))
+    widget.bind_all("<Button-4>", _dispatch_button4, add="+")
+    widget.bind_all("<Button-5>", _dispatch_button5, add="+")
+    _GLOBAL_WHEEL_BINDING_INSTALLED = True
+    _wheel_debug("Installed global wheel dispatcher")
+    _ensure_toplevel_wheel_binding(widget)
+    _ensure_class_wheel_bindings(widget)
+
+
+def _ensure_toplevel_wheel_binding(widget):
+    try:
+        top = widget.winfo_toplevel()
+    except tk.TclError:
+        return
+
+    top_key = str(top)
+    if top_key in _WHEEL_BOUND_TOPLEVELS:
+        return
+
+    _bind_wheel_sequences(lambda seq, cb: top.bind(seq, cb, add="+"))
+    top.bind("<Button-4>", _dispatch_button4, add="+")
+    top.bind("<Button-5>", _dispatch_button5, add="+")
+    _WHEEL_BOUND_TOPLEVELS.add(top_key)
+    _wheel_debug(f"Installed toplevel wheel dispatcher for {top_key}")
+
+
+def _ensure_class_wheel_bindings(widget):
+    global _CLASS_WHEEL_BINDING_INSTALLED
+    if _CLASS_WHEEL_BINDING_INSTALLED:
+        return
+
+    classes = (
+        "Frame",
+        "Label",
+        "Button",
+        "Checkbutton",
+        "Radiobutton",
+        "Canvas",
+        "TFrame",
+        "TLabel",
+        "TButton",
+        "TCheckbutton",
+        "TRadiobutton",
+        "TLabelframe",
+    )
+    for class_name in classes:
+        _bind_wheel_sequences(
+            lambda seq, cb, name=class_name: widget.bind_class(name, seq, cb, add="+")
+        )
+        widget.bind_class(class_name, "<Button-4>", _dispatch_button4, add="+")
+        widget.bind_class(class_name, "<Button-5>", _dispatch_button5, add="+")
+
+    _CLASS_WHEEL_BINDING_INSTALLED = True
+    _wheel_debug("Installed class-level wheel dispatcher fallbacks")
+
+
+def register_mousewheel_target(widget, canvas: tk.Canvas):
+    setattr(widget, _WHEEL_CANVAS_ATTR, canvas)
+    _ensure_global_wheel_binding(widget)
 
 
 def configure_modal_dialog(dialog: tk.Toplevel, parent):
@@ -93,7 +420,15 @@ class FormattedDescription(tk.Text):
     Accepts the same font/foreground/background kwargs as WrappingLabel.
     """
 
-    def __init__(self, master=None, text="", font=None, foreground=None, background=None, **kwargs):
+    def __init__(
+        self,
+        master=None,
+        text="",
+        font=None,
+        foreground=None,
+        background=None,
+        **kwargs,
+    ):
         bg = background or kwargs.pop("bg", COLORS["bg"])
         fg = foreground or kwargs.pop("fg", COLORS["fg_dim"])
         base_font = font or FONTS["body_small"]
@@ -114,7 +449,11 @@ class FormattedDescription(tk.Text):
         )
 
         # Bold tag for sub-headings
-        bold_font = (base_font[0], base_font[1], "bold") if isinstance(base_font, tuple) else base_font
+        bold_font = (
+            (base_font[0], base_font[1], "bold")
+            if isinstance(base_font, tuple)
+            else base_font
+        )
         self.tag_configure("subheading", font=bold_font, foreground=fg)
 
         if text:
@@ -469,20 +808,12 @@ class ScrollableFrame(ttk.Frame):
         self.canvas.bind("<Configure>", self._on_canvas_configure)
 
         # Mousewheel scrolling
-        self.inner.bind("<Enter>", self._bind_mousewheel)
-        self.inner.bind("<Leave>", self._unbind_mousewheel)
+        register_mousewheel_target(self, self.canvas)
+        register_mousewheel_target(self.canvas, self.canvas)
+        register_mousewheel_target(self.inner, self.canvas)
 
     def _on_canvas_configure(self, event):
         self.canvas.itemconfig(self.canvas_window, width=event.width)
-
-    def _bind_mousewheel(self, event):
-        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
-
-    def _unbind_mousewheel(self, event):
-        self.canvas.unbind_all("<MouseWheel>")
-
-    def _on_mousewheel(self, event):
-        self.canvas.yview_scroll(_wheel_units(event), "units")
 
 
 class StatDisplay(ttk.Frame):
@@ -738,7 +1069,9 @@ class NavButton(tk.Frame):
         self._label.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
         # Bind click and hover to all child widgets
-        for widget in (self, inner, self._label) + ((self._icon,) if self._icon else ()):
+        for widget in (self, inner, self._label) + (
+            (self._icon,) if self._icon else ()
+        ):
             widget.bind("<Button-1>", self._handle_click)
             widget.bind("<Enter>", self._on_enter)
             widget.bind("<Leave>", self._on_leave)
@@ -1014,10 +1347,8 @@ class HPBar(tk.Canvas):
 
         # Draw rounded trough (grey background)
         self.create_oval(0, 0, h, h, fill=COLORS["bg_highest"], outline="")
-        self.create_oval(bar_w - h, 0, bar_w, h,
-                         fill=COLORS["bg_highest"], outline="")
-        self.create_rectangle(r, 0, bar_w - r, h,
-                              fill=COLORS["bg_highest"], outline="")
+        self.create_oval(bar_w - h, 0, bar_w, h, fill=COLORS["bg_highest"], outline="")
+        self.create_rectangle(r, 0, bar_w - r, h, fill=COLORS["bg_highest"], outline="")
 
         # Draw filled portion (red)
         if fill_w > h:
@@ -1074,9 +1405,7 @@ class CardFrame(tk.Frame):
         )
 
         if accent_left:
-            tk.Frame(self, bg="#4a2028", width=3).pack(
-                side=tk.LEFT, fill=tk.Y
-            )
+            tk.Frame(self, bg="#4a2028", width=3).pack(side=tk.LEFT, fill=tk.Y)
 
         self.inner = tk.Frame(self, bg=bg)
         self.inner.pack(fill=tk.BOTH, expand=True, padx=pad, pady=pad)
@@ -1085,7 +1414,9 @@ class CardFrame(tk.Frame):
         """Enable hover effect — border becomes more visible on mouse enter."""
         normal_border = self.cget("highlightbackground")
         self.bind("<Enter>", lambda _: self.configure(highlightbackground=hover_border))
-        self.bind("<Leave>", lambda _: self.configure(highlightbackground=normal_border))
+        self.bind(
+            "<Leave>", lambda _: self.configure(highlightbackground=normal_border)
+        )
 
 
 class GradientHeader(tk.Frame):
@@ -1185,16 +1516,38 @@ class PillBadge(tk.Canvas):
             self.create_rectangle(r, 0, w - r, h, fill=self._bg_color, outline="")
 
         # Draw subtle border
-        self.create_arc(0, 0, h, h, start=90, extent=180,
-                        outline=COLORS["border_medium"], style="arc")
-        self.create_arc(w - h, 0, w, h, start=270, extent=180,
-                        outline=COLORS["border_medium"], style="arc")
+        self.create_arc(
+            0,
+            0,
+            h,
+            h,
+            start=90,
+            extent=180,
+            outline=COLORS["border_medium"],
+            style="arc",
+        )
+        self.create_arc(
+            w - h,
+            0,
+            w,
+            h,
+            start=270,
+            extent=180,
+            outline=COLORS["border_medium"],
+            style="arc",
+        )
         self.create_line(r, 0, w - r, 0, fill=COLORS["border_medium"])
         self.create_line(r, h, w - r, h, fill=COLORS["border_medium"])
 
         # Centered text
-        self.create_text(w // 2, h // 2, text=self._text, font=self._font,
-                         fill=self._fg_color, anchor="center")
+        self.create_text(
+            w // 2,
+            h // 2,
+            text=self._text,
+            font=self._font,
+            fill=self._fg_color,
+            anchor="center",
+        )
 
     def set_text(self, text: str):
         self._text = text
@@ -1251,18 +1604,30 @@ class StepperButton(tk.Canvas):
     def _rounded_rect(self, x1, y1, x2, y2, r, **kw):
         """Draw a rounded rectangle on the canvas."""
         points = [
-            x1 + r, y1,
-            x2 - r, y1,
-            x2, y1,
-            x2, y1 + r,
-            x2, y2 - r,
-            x2, y2,
-            x2 - r, y2,
-            x1 + r, y2,
-            x1, y2,
-            x1, y2 - r,
-            x1, y1 + r,
-            x1, y1,
+            x1 + r,
+            y1,
+            x2 - r,
+            y1,
+            x2,
+            y1,
+            x2,
+            y1 + r,
+            x2,
+            y2 - r,
+            x2,
+            y2,
+            x2 - r,
+            y2,
+            x1 + r,
+            y2,
+            x1,
+            y2,
+            x1,
+            y2 - r,
+            x1,
+            y1 + r,
+            x1,
+            y1,
         ]
         return self.create_polygon(points, smooth=True, **kw)
 
@@ -1272,14 +1637,22 @@ class StepperButton(tk.Canvas):
 
         if self._pressed:
             self._rounded_rect(
-                0, 0, s, s, 4,
+                0,
+                0,
+                s,
+                s,
+                4,
                 fill=COLORS["bg_high"],
                 outline=COLORS["border_subtle"],
             )
             text_color = COLORS["fg"]
         elif self._hovered:
             self._rounded_rect(
-                0, 0, s, s, 4,
+                0,
+                0,
+                s,
+                s,
+                4,
                 fill=COLORS["bg_container"],
                 outline=COLORS["border_subtle"],
             )
@@ -1288,7 +1661,8 @@ class StepperButton(tk.Canvas):
             text_color = COLORS["fg_dim"]
 
         self.create_text(
-            s // 2, s // 2,
+            s // 2,
+            s // 2,
             text=self._sym,
             font=FONTS["body_bold"],
             fill=text_color,
@@ -1327,7 +1701,8 @@ class StepperPair(tk.Frame):
             parent_bg = COLORS["bg_surface"]
         super().__init__(parent, bg=parent_bg, **kwargs)
         StepperButton(self, text="+", command=on_increment, size=size).pack(
-            side=tk.TOP, pady=(0, 1),
+            side=tk.TOP,
+            pady=(0, 1),
         )
         StepperButton(self, text="\u2212", command=on_decrement, size=size).pack(
             side=tk.TOP,

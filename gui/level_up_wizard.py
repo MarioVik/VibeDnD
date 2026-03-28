@@ -20,7 +20,7 @@ from gui.widgets import (
     ConfirmDialog,
     AlertDialog,
     configure_modal_dialog,
-    _wheel_units,
+    register_mousewheel_target,
     CardFrame,
     PillBadge,
     SectionHeader,
@@ -30,7 +30,9 @@ from models.class_level import ClassLevel
 from models.language_utils import STANDARD_LANGUAGES
 
 # Load class choices data (maneuvers, invocations, plans, arcane shots)
-_CHOICES_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "class_choices.json")
+_CHOICES_PATH = os.path.join(
+    os.path.dirname(__file__), "..", "data", "class_choices.json"
+)
 try:
     with open(_CHOICES_PATH, encoding="utf-8") as _f:
         _CLASS_CHOICES: dict = json.load(_f)
@@ -102,7 +104,7 @@ class LevelUpWizard(tk.Toplevel):
 
         # Choices to collect
         self.hp_choice = tk.IntVar(value=0)
-        self.hp_mode = tk.StringVar(value="average")   # "average" | "max" | "manual"
+        self.hp_mode = tk.StringVar(value="average")  # "average" | "max" | "manual"
         self.hp_manual_var = tk.StringVar(value="")
         self.subclass_var = tk.StringVar()
         self.feat_var = tk.StringVar()
@@ -133,8 +135,12 @@ class LevelUpWizard(tk.Toplevel):
         self.choice_checkbuttons: dict[str, ttk.Checkbutton] = {}
 
         # Subclass proficiency/expertise step state
-        self.prof_grant_vars: list[tk.StringVar] = []  # dropdown vars for proficiency picks
-        self.expertise_grant_vars: list[tk.StringVar] = []  # dropdown vars for expertise picks
+        self.prof_grant_vars: list[
+            tk.StringVar
+        ] = []  # dropdown vars for proficiency picks
+        self.expertise_grant_vars: list[
+            tk.StringVar
+        ] = []  # dropdown vars for expertise picks
 
         self._build_ui()
 
@@ -308,11 +314,13 @@ class LevelUpWizard(tk.Toplevel):
             gp = feat.get("grants_proficiency")
             ge = feat.get("grants_expertise")
             if gp or ge:
-                grants.append({
-                    "feature_name": feat["name"],
-                    "grants_proficiency": gp,
-                    "grants_expertise": ge,
-                })
+                grants.append(
+                    {
+                        "feature_name": feat["name"],
+                        "grants_proficiency": gp,
+                        "grants_expertise": ge,
+                    }
+                )
         return grants
 
     def _has_proficiency_step(self) -> bool:
@@ -560,7 +568,11 @@ class LevelUpWizard(tk.Toplevel):
         if self._has_swap_step():
             step_order.append(4)
 
-        target_idx = step_order.index(target_step) if target_step in step_order else len(step_order)
+        target_idx = (
+            step_order.index(target_step)
+            if target_step in step_order
+            else len(step_order)
+        )
 
         # Validate all steps before the target
         validators = {
@@ -780,7 +792,9 @@ class LevelUpWizard(tk.Toplevel):
         elif step == 15:
             # Subclass proficiency/expertise step
             self._build_proficiency_step()
-            self.step_prof_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
+            self.step_prof_frame.pack(
+                in_=self.content_container, fill=tk.BOTH, expand=True
+            )
             self.back_btn.configure(command=lambda: self._show_step(1))
             self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
             _setup_next_or_confirm(15)
@@ -788,8 +802,12 @@ class LevelUpWizard(tk.Toplevel):
         elif step == 2:
             # Class choices step
             self._build_choices_step()
-            self.step2b_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
-            self.back_btn.configure(command=lambda p=self._prev_step_before(2): self._show_step(p))
+            self.step2b_frame.pack(
+                in_=self.content_container, fill=tk.BOTH, expand=True
+            )
+            self.back_btn.configure(
+                command=lambda p=self._prev_step_before(2): self._show_step(p)
+            )
             self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
             _setup_next_or_confirm(2)
 
@@ -797,7 +815,9 @@ class LevelUpWizard(tk.Toplevel):
             # Spell selection step
             self._build_spell_step()
             self.step2_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
-            self.back_btn.configure(command=lambda p=self._prev_step_before(3): self._show_step(p))
+            self.back_btn.configure(
+                command=lambda p=self._prev_step_before(3): self._show_step(p)
+            )
             self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
             _setup_next_or_confirm(3)
 
@@ -805,7 +825,9 @@ class LevelUpWizard(tk.Toplevel):
             # Spell swap step
             self._build_swap_step()
             self.step3_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
-            self.back_btn.configure(command=lambda p=self._prev_step_before(4): self._show_step(p))
+            self.back_btn.configure(
+                command=lambda p=self._prev_step_before(4): self._show_step(p)
+            )
             self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
             self.confirm_btn.pack(side=tk.RIGHT)
 
@@ -932,9 +954,15 @@ class LevelUpWizard(tk.Toplevel):
                         if desc:
                             break
 
-            card = CardFrame(grid, bg=COLORS["bg_container"],
-                             border_color=COLORS["border_subtle"], pad=SPACING["lg"])
-            card.grid(row=card_idx // 2, column=card_idx % 2, padx=4, pady=4, sticky="nsew")
+            card = CardFrame(
+                grid,
+                bg=COLORS["bg_container"],
+                border_color=COLORS["border_subtle"],
+                pad=SPACING["lg"],
+            )
+            card.grid(
+                row=card_idx // 2, column=card_idx % 2, padx=4, pady=4, sticky="nsew"
+            )
             header = tk.Frame(card.inner, bg=COLORS["bg_container"])
             header.pack(fill=tk.X)
             tk.Label(
@@ -992,9 +1020,15 @@ class LevelUpWizard(tk.Toplevel):
             return card_idx
 
         for feat in sub_features:
-            card = CardFrame(grid, bg=COLORS["bg_container"],
-                             border_color=COLORS["border_subtle"], pad=SPACING["lg"])
-            card.grid(row=card_idx // 2, column=card_idx % 2, padx=4, pady=4, sticky="nsew")
+            card = CardFrame(
+                grid,
+                bg=COLORS["bg_container"],
+                border_color=COLORS["border_subtle"],
+                pad=SPACING["lg"],
+            )
+            card.grid(
+                row=card_idx // 2, column=card_idx % 2, padx=4, pady=4, sticky="nsew"
+            )
             header = tk.Frame(card.inner, bg=COLORS["bg_container"])
             header.pack(fill=tk.X)
             tk.Label(
@@ -1096,7 +1130,9 @@ class LevelUpWizard(tk.Toplevel):
             try:
                 roll = int(val)
                 if roll >= 1:
-                    self._hp_manual_hint.config(text=f"+ {con_mod} CON = {roll + con_mod} HP")
+                    self._hp_manual_hint.config(
+                        text=f"+ {con_mod} CON = {roll + con_mod} HP"
+                    )
                 else:
                     self._hp_manual_hint.config(text="(must be ≥ 1)")
             except ValueError:
@@ -1216,7 +1252,14 @@ class LevelUpWizard(tk.Toplevel):
 
         # Build ability score increase UI
         asi_field = feat.get("ability_score_increase")
-        all_abilities = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
+        all_abilities = [
+            "Strength",
+            "Dexterity",
+            "Constitution",
+            "Intelligence",
+            "Wisdom",
+            "Charisma",
+        ]
 
         if name == "Ability Score Improvement":
             # Full ASI: choose +2 to one or +1 to two
@@ -1251,7 +1294,9 @@ class LevelUpWizard(tk.Toplevel):
             width=22,
         )
         mode_combo.pack(side=tk.LEFT, padx=(8, 0))
-        mode_combo.bind("<<ComboboxSelected>>", lambda *_: self._rebuild_asi_dropdowns(abilities))
+        mode_combo.bind(
+            "<<ComboboxSelected>>", lambda *_: self._rebuild_asi_dropdowns(abilities)
+        )
 
         self._asi_dropdowns_frame = ttk.Frame(self.asi_choice_frame)
         self._asi_dropdowns_frame.pack(fill=tk.X, pady=2)
@@ -1271,8 +1316,11 @@ class LevelUpWizard(tk.Toplevel):
             return f"{ab} ({score})"
 
         def ability_options():
-            return [ability_label(ab) for ab in abilities
-                    if self.character.ability_scores.total(ab) < 20]
+            return [
+                ability_label(ab)
+                for ab in abilities
+                if self.character.ability_scores.total(ab) < 20
+            ]
 
         mode = self._asi_mode_var.get()
 
@@ -1280,26 +1328,48 @@ class LevelUpWizard(tk.Toplevel):
             row = ttk.Frame(self._asi_dropdowns_frame)
             row.pack(fill=tk.X, pady=2)
             ttk.Label(row, text="+2 to:", foreground=COLORS["fg"]).pack(side=tk.LEFT)
-            opts = [ability_label(ab) for ab in abilities
-                    if self.character.ability_scores.total(ab) <= 18]
-            c1 = ttk.Combobox(row, textvariable=self._asi_ability1_var,
-                              values=opts, state="readonly", width=24)
+            opts = [
+                ability_label(ab)
+                for ab in abilities
+                if self.character.ability_scores.total(ab) <= 18
+            ]
+            c1 = ttk.Combobox(
+                row,
+                textvariable=self._asi_ability1_var,
+                values=opts,
+                state="readonly",
+                width=24,
+            )
             c1.pack(side=tk.LEFT, padx=(8, 0))
             c1.bind("<<ComboboxSelected>>", lambda *_: self._update_asi_selections())
         else:
             row1 = ttk.Frame(self._asi_dropdowns_frame)
             row1.pack(fill=tk.X, pady=2)
-            ttk.Label(row1, text="First +1:", foreground=COLORS["fg"]).pack(side=tk.LEFT)
-            c1 = ttk.Combobox(row1, textvariable=self._asi_ability1_var,
-                              values=ability_options(), state="readonly", width=24)
+            ttk.Label(row1, text="First +1:", foreground=COLORS["fg"]).pack(
+                side=tk.LEFT
+            )
+            c1 = ttk.Combobox(
+                row1,
+                textvariable=self._asi_ability1_var,
+                values=ability_options(),
+                state="readonly",
+                width=24,
+            )
             c1.pack(side=tk.LEFT, padx=(8, 0))
             c1.bind("<<ComboboxSelected>>", lambda *_: self._update_asi_selections())
 
             row2 = ttk.Frame(self._asi_dropdowns_frame)
             row2.pack(fill=tk.X, pady=2)
-            ttk.Label(row2, text="Second +1:", foreground=COLORS["fg"]).pack(side=tk.LEFT)
-            c2 = ttk.Combobox(row2, textvariable=self._asi_ability2_var,
-                              values=ability_options(), state="readonly", width=24)
+            ttk.Label(row2, text="Second +1:", foreground=COLORS["fg"]).pack(
+                side=tk.LEFT
+            )
+            c2 = ttk.Combobox(
+                row2,
+                textvariable=self._asi_ability2_var,
+                values=ability_options(),
+                state="readonly",
+                width=24,
+            )
             c2.pack(side=tk.LEFT, padx=(8, 0))
             c2.bind("<<ComboboxSelected>>", lambda *_: self._update_asi_selections())
 
@@ -1309,10 +1379,18 @@ class LevelUpWizard(tk.Toplevel):
         row.pack(fill=tk.X, pady=(4, 2))
         ttk.Label(row, text="Ability +1:", foreground=COLORS["fg"]).pack(side=tk.LEFT)
         self._asi_choice_var.set("")
-        opts = [f"{ab} ({self.character.ability_scores.total(ab)})" for ab in abilities
-                if self.character.ability_scores.total(ab) < 20]
-        c = ttk.Combobox(row, textvariable=self._asi_choice_var,
-                         values=opts, state="readonly", width=24)
+        opts = [
+            f"{ab} ({self.character.ability_scores.total(ab)})"
+            for ab in abilities
+            if self.character.ability_scores.total(ab) < 20
+        ]
+        c = ttk.Combobox(
+            row,
+            textvariable=self._asi_choice_var,
+            values=opts,
+            state="readonly",
+            width=24,
+        )
         c.pack(side=tk.LEFT, padx=(8, 0))
         c.bind("<<ComboboxSelected>>", lambda *_: self._update_asi_selections())
 
@@ -1457,6 +1535,7 @@ class LevelUpWizard(tk.Toplevel):
             # Structured features by level
             features_by_level = sc.get("features", {})
             if features_by_level:
+
                 def _lvl_key(level_str: str):
                     try:
                         return int(level_str)
@@ -1582,7 +1661,9 @@ class LevelUpWizard(tk.Toplevel):
 
         # Pool-aware labels (e.g. "Beast Tattoos", "Hunter's Prey")
         active_pool = self._get_active_pool(config)
-        pool_heading = f"{active_pool} {choice_plural}" if active_pool else choice_plural
+        pool_heading = (
+            f"{active_pool} {choice_plural}" if active_pool else choice_plural
+        )
         pool_subtext = f"{active_pool} {choice_label}" if active_pool else choice_label
 
         # ── Heading ───────────────────────────────────────────────
@@ -1673,7 +1754,10 @@ class LevelUpWizard(tk.Toplevel):
                 value="",
             ).pack(anchor="w", pady=1, padx=4)
             for name in sorted(known):
-                opt_data = next((o for o in config.get("options", []) if o["name"] == name), {"name": name, "description": ""})
+                opt_data = next(
+                    (o for o in config.get("options", []) if o["name"] == name),
+                    {"name": name, "description": ""},
+                )
                 rb = ttk.Radiobutton(
                     remove_lf,
                     text=name,
@@ -1693,7 +1777,9 @@ class LevelUpWizard(tk.Toplevel):
                 value="",
             ).pack(anchor="w", pady=1, padx=4)
             # All options not already known (including ones selected as new picks)
-            all_not_known = [o for o in config.get("options", []) if o["name"] not in known]
+            all_not_known = [
+                o for o in config.get("options", []) if o["name"] not in known
+            ]
             # Apply level/prereq filter
             all_not_known = self._get_available_options(config)
             for opt in sorted(all_not_known, key=lambda o: o["name"]):
@@ -1768,13 +1854,13 @@ class LevelUpWizard(tk.Toplevel):
         desc = opt.get("description", "")
         # Extract attunement prefix from description (e.g. "No attunement required." or "Requires attunement.")
         attune_match = re.match(
-            r'^((?:No )?(?:attunement|Attunement) required|Requires (?:attunement|Attunement)(?:\s+by\s+[^.]+)?|Varies)[.\s]*',
+            r"^((?:No )?(?:attunement|Attunement) required|Requires (?:attunement|Attunement)(?:\s+by\s+[^.]+)?|Varies)[.\s]*",
             desc,
         )
         if attune_match:
             attune_text = attune_match.group(1).strip()
             lines.append(f"Attunement: {attune_text}")
-            desc = desc[attune_match.end():].strip()
+            desc = desc[attune_match.end() :].strip()
 
         if prereq or prereq_feat or min_lvl or attune_match:
             lines.append("")
@@ -1973,11 +2059,9 @@ class LevelUpWizard(tk.Toplevel):
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        def _on_wheel(event):
-            canvas.yview_scroll(_wheel_units(event), "units")
-
-        inner.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_wheel))
-        inner.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
+        register_mousewheel_target(parent_frame, canvas)
+        register_mousewheel_target(canvas, canvas)
+        register_mousewheel_target(inner, canvas)
 
         return canvas, inner
 
@@ -2112,16 +2196,30 @@ class LevelUpWizard(tk.Toplevel):
                     return s
             return None
 
-        forget_cantrips = [d for n in self.character.selected_cantrips if (d := _find_spell(n))]
-        forget_spells = [d for n in self.character.selected_spells if (d := _find_spell(n))]
+        forget_cantrips = [
+            d for n in self.character.selected_cantrips if (d := _find_spell(n))
+        ]
+        forget_spells = [
+            d for n in self.character.selected_spells if (d := _find_spell(n))
+        ]
 
-        known_c_set = set(self.character.selected_cantrips) | set(self.selected_new_cantrips)
-        learn_cantrips = [s for s in self.data.cantrips_for_class(class_name)
-                          if s["name"] not in known_c_set]
+        known_c_set = set(self.character.selected_cantrips) | set(
+            self.selected_new_cantrips
+        )
+        learn_cantrips = [
+            s
+            for s in self.data.cantrips_for_class(class_name)
+            if s["name"] not in known_c_set
+        ]
 
-        known_s_set = set(self.character.selected_spells) | set(self.selected_new_spells)
-        learn_spells = [s for s in self.data.spells_for_class(class_name, max_level=max_spell_level)
-                        if s["name"] not in known_s_set and s.get("level", 0) >= 1]
+        known_s_set = set(self.character.selected_spells) | set(
+            self.selected_new_spells
+        )
+        learn_spells = [
+            s
+            for s in self.data.spells_for_class(class_name, max_level=max_spell_level)
+            if s["name"] not in known_s_set and s.get("level", 0) >= 1
+        ]
 
         # ── Build shared panel ──
         self._swap_panel = SpellSwapPanel(
@@ -2162,10 +2260,7 @@ class LevelUpWizard(tk.Toplevel):
 
     def _pick_deft_explorer_languages(self):
         """Prompt the player to pick 2 languages from Deft Explorer (Ranger level 2)."""
-        already_known = set(
-            lang
-            for lang in self.character.chosen_languages
-        )
+        already_known = set(lang for lang in self.character.chosen_languages)
         # Also include auto languages (Common, Thieves' Cant, Druidic) so they can't
         # be double-selected — build the available pool from Standard Languages only.
         choices_needed = 2
@@ -2177,6 +2272,7 @@ class LevelUpWizard(tk.Toplevel):
         dlg.resizable(False, False)
 
         from gui.widgets import configure_modal_dialog
+
         configure_modal_dialog(dlg, self)
 
         ttk.Label(
@@ -2216,18 +2312,20 @@ class LevelUpWizard(tk.Toplevel):
                     if not lv.get():
                         cb.configure(state="disabled" if at_cap else "normal")
 
-            cb = ttk.Checkbutton(scroll_frame, text=lang, variable=var, command=on_toggle)
+            cb = ttk.Checkbutton(
+                scroll_frame, text=lang, variable=var, command=on_toggle
+            )
             cb.pack(anchor="w", pady=1)
             self._deft_lang_vars[lang] = var
         self._deft_lang_cbs = {
-            lang: scroll_frame.winfo_children()[i]
-            for i, lang in enumerate(available)
+            lang: scroll_frame.winfo_children()[i] for i, lang in enumerate(available)
         }
 
         def _confirm_deft():
             chosen = [l for l, v in self._deft_lang_vars.items() if v.get()]
             if len(chosen) != choices_needed:
                 from gui.widgets import AlertDialog
+
                 AlertDialog(
                     dlg,
                     "Choose Languages",
@@ -2239,9 +2337,9 @@ class LevelUpWizard(tk.Toplevel):
                     self.character.chosen_languages.append(lang)
             dlg.destroy()
 
-        ttk.Button(dlg, text="Confirm", style="Accent.TButton", command=_confirm_deft).pack(
-            pady=12
-        )
+        ttk.Button(
+            dlg, text="Confirm", style="Accent.TButton", command=_confirm_deft
+        ).pack(pady=12)
         dlg.wait_window()
 
     def _confirm(self):
@@ -2289,7 +2387,11 @@ class LevelUpWizard(tk.Toplevel):
                 if hp_roll < 1:
                     raise ValueError
             except ValueError:
-                AlertDialog(self, "Invalid HP", "Please enter a valid number (≥ 1) for your hit points.")
+                AlertDialog(
+                    self,
+                    "Invalid HP",
+                    "Please enter a valid number (≥ 1) for your hit points.",
+                )
                 return
         elif mode == "max":
             hp_roll = hit_die
@@ -2330,9 +2432,18 @@ class LevelUpWizard(tk.Toplevel):
                 # Auto-apply fixed ASI from feat data
                 feat = self.data.find_feat(self.feat_var.get())
                 asi_field = feat.get("ability_score_increase") if feat else None
-                if asi_field and asi_field != "Choice" and asi_field in (
-                    "Strength", "Dexterity", "Constitution",
-                    "Intelligence", "Wisdom", "Charisma",
+                if (
+                    asi_field
+                    and asi_field != "Choice"
+                    and asi_field
+                    in (
+                        "Strength",
+                        "Dexterity",
+                        "Constitution",
+                        "Intelligence",
+                        "Wisdom",
+                        "Charisma",
+                    )
                 ):
                     cl.asi_increases = {asi_field: 1}
             for ability, amount in cl.asi_increases.items():

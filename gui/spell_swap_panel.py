@@ -7,7 +7,7 @@ from itertools import groupby
 from tkinter import ttk
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import _wheel_units
+from gui.widgets import register_mousewheel_target
 
 LEVEL_NAMES = {
     0: "Cantrips",
@@ -44,7 +44,9 @@ def _spell_detail_lines(spell: dict) -> list[str]:
     return lines
 
 
-def _max_detail_height(*spell_lists: list[dict], lower: int = 4, upper: int = 20) -> int:
+def _max_detail_height(
+    *spell_lists: list[dict], lower: int = 4, upper: int = 20
+) -> int:
     """Return the line count needed to fit the longest spell description."""
     max_lines = lower
     for spells in spell_lists:
@@ -176,7 +178,12 @@ class SpellSwapPanel:
             ).pack(anchor="w", padx=8, pady=4)
 
         # --- Shared Detail Panel ---
-        all_spells = forget_spells + learn_spells + (forget_cantrips or []) + (learn_cantrips or [])
+        all_spells = (
+            forget_spells
+            + learn_spells
+            + (forget_cantrips or [])
+            + (learn_cantrips or [])
+        )
         detail_h = _max_detail_height(all_spells)
         detail_lf = ttk.LabelFrame(parent, text="Spell Details")
         detail_lf.pack(fill=tk.X, pady=(4, 0))
@@ -251,7 +258,6 @@ class SpellSwapPanel:
         else:
             for rb, _ in self._spell_rbs:
                 rb.configure(state=tk.NORMAL)
-
 
 
 class MultiSpellSwapPanel:
@@ -388,15 +394,27 @@ class MultiSpellSwapPanel:
 
         # Update counter
         if n_forget == 0 and n_learn == 0:
-            self._counter.configure(text="Check spells on the left to unprepare, then check replacements on the right.", foreground=COLORS["fg_dim"])
+            self._counter.configure(
+                text="Check spells on the left to unprepare, then check replacements on the right.",
+                foreground=COLORS["fg_dim"],
+            )
         elif n_forget == n_learn:
-            self._counter.configure(text=f"Swapping {n_forget} spell{'s' if n_forget != 1 else ''}.", foreground=COLORS["fg"])
+            self._counter.configure(
+                text=f"Swapping {n_forget} spell{'s' if n_forget != 1 else ''}.",
+                foreground=COLORS["fg"],
+            )
         else:
             diff = n_forget - n_learn
             if diff > 0:
-                self._counter.configure(text=f"Unpreparing {n_forget}, preparing {n_learn} — select {diff} more on the right.", foreground=COLORS["accent"])
+                self._counter.configure(
+                    text=f"Unpreparing {n_forget}, preparing {n_learn} — select {diff} more on the right.",
+                    foreground=COLORS["accent"],
+                )
             else:
-                self._counter.configure(text=f"Unpreparing {n_forget}, preparing {n_learn} — deselect {-diff} on the right or select more on the left.", foreground=COLORS["accent"])
+                self._counter.configure(
+                    text=f"Unpreparing {n_forget}, preparing {n_learn} — deselect {-diff} on the right or select more on the left.",
+                    foreground=COLORS["accent"],
+                )
 
 
 # ── Module-level helpers ──
@@ -407,9 +425,7 @@ def _make_scrollable_list(parent_frame):
     canvas = tk.Canvas(
         parent_frame, bg=COLORS["bg"], highlightthickness=0, borderwidth=0
     )
-    scrollbar = ttk.Scrollbar(
-        parent_frame, orient=tk.VERTICAL, command=canvas.yview
-    )
+    scrollbar = ttk.Scrollbar(parent_frame, orient=tk.VERTICAL, command=canvas.yview)
     inner = ttk.Frame(canvas)
 
     inner.bind(
@@ -418,18 +434,14 @@ def _make_scrollable_list(parent_frame):
     cw = canvas.create_window((0, 0), window=inner, anchor="nw")
     canvas.configure(yscrollcommand=scrollbar.set)
 
-    canvas.bind(
-        "<Configure>", lambda e, _cw=cw: canvas.itemconfig(_cw, width=e.width)
-    )
+    canvas.bind("<Configure>", lambda e, _cw=cw: canvas.itemconfig(_cw, width=e.width))
 
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
     canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-    def _on_wheel(event):
-        canvas.yview_scroll(_wheel_units(event), "units")
-
-    inner.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_wheel))
-    inner.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
+    register_mousewheel_target(parent_frame, canvas)
+    register_mousewheel_target(canvas, canvas)
+    register_mousewheel_target(inner, canvas)
 
     return canvas, inner
 
