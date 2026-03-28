@@ -983,43 +983,54 @@ class CharacterViewer(ttk.Frame):
                 _make_arrow(arrows, "\u25bc", row, 1)
 
                 # Name and kind
-                info_col = ttk.Frame(row)
+                info_col = tk.Frame(row, bg=COLORS["bg_surface"])
                 info_col.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
                 display_name = a.get("name", "Unknown")
                 kind_label = "Cantrip" if a.get("kind") == "cantrip" else "Weapon"
 
-                ttk.Label(
+                tk.Label(
                     info_col,
                     text=display_name,
                     font=FONTS["body_bold"],
-                    foreground=COLORS["fg"],
-                    background=COLORS["bg_surface"],
+                    fg=COLORS["fg"],
+                    bg=COLORS["bg_surface"],
                 ).pack(anchor="w")
 
-                ttk.Label(
+                tk.Label(
                     info_col,
                     text=kind_label,
-                    foreground=COLORS["fg_dim"],
-                    background=COLORS["bg_surface"],
+                    fg=COLORS["fg_dim"],
+                    bg=COLORS["bg_surface"],
                     font=FONTS["label_tiny"],
                 ).pack(anchor="w")
 
                 # Weapon option checkboxes (inline, right side)
                 if is_configurable:
-                    opts_frame = ttk.Frame(row)
+                    opts_frame = tk.Frame(row, bg=COLORS["bg_surface"])
                     opts_frame.pack(side=tk.RIGHT, padx=(8, 0))
+
+                    _cb_kw = dict(
+                        font=FONTS["body"],
+                        fg=COLORS["fg"],
+                        bg=COLORS["bg_surface"],
+                        activebackground=COLORS["bg_surface"],
+                        activeforeground=COLORS["fg"],
+                        selectcolor=COLORS["bg_surface"],
+                        highlightthickness=0,
+                        bd=0,
+                    )
 
                     if a.get("can_true_strike"):
                         var = tk.BooleanVar(
                             value=bool(weapon_saved.get("true_strike", False))
                         )
                         check_vars.append((weapon_key, "true_strike", var))
-                        ttk.Checkbutton(
+                        tk.Checkbutton(
                             opts_frame,
                             text="True Strike",
                             variable=var,
-                            style="Card.TCheckbutton",
+                            **_cb_kw,
                         ).pack(side=tk.LEFT, padx=(0, 8))
 
                     if a.get("versatile"):
@@ -1027,11 +1038,11 @@ class CharacterViewer(ttk.Frame):
                             value=bool(weapon_saved.get("two_handed", False))
                         )
                         check_vars.append((weapon_key, "two_handed", var))
-                        ttk.Checkbutton(
+                        tk.Checkbutton(
                             opts_frame,
                             text="Two-Handed",
                             variable=var,
-                            style="Card.TCheckbutton",
+                            **_cb_kw,
                         ).pack(side=tk.LEFT)
 
                 row_widgets.append((row, akey))
