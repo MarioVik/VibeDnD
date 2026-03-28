@@ -568,13 +568,22 @@ class CharacterViewer(ttk.Frame):
                 bg=COLORS["bg_surface"],
             ).pack(side=tk.RIGHT)
 
-        # ── Senses ──
-        SectionHeader(inner, text="Senses").pack(
+        # ── Senses & Proficiencies (side-by-side) ──
+        senses_prof_row = tk.Frame(inner, bg=COLORS["bg"])
+        senses_prof_row.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        senses_prof_row.columnconfigure(0, weight=1, uniform="sp")
+        senses_prof_row.columnconfigure(1, weight=1, uniform="sp")
+
+        # Left column — Senses
+        senses_col = tk.Frame(senses_prof_row, bg=COLORS["bg"])
+        senses_col.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["sm"] // 2))
+
+        SectionHeader(senses_col, text="Senses").pack(
             fill=tk.X, pady=(0, SPACING["sm"])
         )
 
-        senses_card = CardFrame(inner, pad=SPACING["lg"])
-        senses_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        senses_card = CardFrame(senses_col, pad=SPACING["lg"])
+        senses_card.pack(fill=tk.BOTH, expand=True)
         senses_frame = senses_card.inner
 
         wis_mod = c.ability_scores.modifier("Wisdom")
@@ -607,13 +616,16 @@ class CharacterViewer(ttk.Frame):
                 bg=COLORS["bg_surface"],
             ).pack(side=tk.RIGHT)
 
-        # ── Proficiencies ──
-        SectionHeader(inner, text="Proficiencies").pack(
+        # Right column — Proficiencies
+        prof_col = tk.Frame(senses_prof_row, bg=COLORS["bg"])
+        prof_col.grid(row=0, column=1, sticky="nsew", padx=(SPACING["sm"] // 2, 0))
+
+        SectionHeader(prof_col, text="Proficiencies").pack(
             fill=tk.X, pady=(0, SPACING["sm"])
         )
 
-        prof_card = CardFrame(inner, pad=SPACING["lg"])
-        prof_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        prof_card = CardFrame(prof_col, pad=SPACING["lg"])
+        prof_card.pack(fill=tk.BOTH, expand=True)
         prof_frame = prof_card.inner
 
         cls = c.character_class or {}
