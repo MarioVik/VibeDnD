@@ -780,8 +780,7 @@ class CharacterViewer(ttk.Frame):
                     ).pack(anchor="w")
 
                 # Attack Bonus
-                attack_bonus = action.get("attack_bonus", 0)
-                hit_str = f"+{attack_bonus}" if attack_bonus >= 0 else str(attack_bonus)
+                hit_str = action.get("attack", "+0")
 
                 tk.Label(
                     attacks_frame,
@@ -793,11 +792,10 @@ class CharacterViewer(ttk.Frame):
 
                 # Damage
                 damage = action.get("damage", "")
-                dmg_type = action.get("damage_type", "")
 
                 tk.Label(
                     attacks_frame,
-                    text=f"{damage} {dmg_type}",
+                    text=damage,
                     font=FONTS["heading_serif_sm"],
                     fg=COLORS["fg"],
                     bg=COLORS["bg_surface"],
