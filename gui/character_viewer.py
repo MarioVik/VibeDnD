@@ -383,17 +383,11 @@ class CharacterViewer(ttk.Frame):
         sub_hero_row.columnconfigure(1, weight=0)
         sub_hero_row.columnconfigure(2, weight=1)
 
-        # Build hit dice display string showing remaining/total per die type
+        # Build hit dice pool data
         _hd_pool = c.hit_dice_pool
-        if _hd_pool:
-            # Sort by die size descending for consistent display
-            _hd_parts = []
-            for _slug in sorted(_hd_pool, key=lambda s: _hd_pool[s][2], reverse=True):
-                _rem, _tot, _die = _hd_pool[_slug]
-                _hd_parts.append(f"{_rem}/{_tot} d{_die}")
-            _hd_value = "\n".join(_hd_parts)
-        else:
-            _hd_value = f"{c.level}d{(c.character_class or {}).get('hit_die', 8)}"
+        # Sort by die size descending
+        _hd_sorted = sorted(_hd_pool, key=lambda s: _hd_pool[s][2], reverse=True) if _hd_pool else []
+        _hd_is_multi = len(_hd_sorted) > 1
 
         # Proficiency box — square (width = height)
         prof_frame = tk.Frame(sub_hero_row, bg=COLORS["bg_surface"])
@@ -411,39 +405,79 @@ class CharacterViewer(ttk.Frame):
             prof_frame, text="PROFICIENCY",
             font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
         ).pack(side=tk.TOP, pady=(6, 0))
+        _prof_center = tk.Frame(prof_frame, bg=COLORS["bg_surface"])
+        _prof_center.pack(expand=True)
         tk.Label(
-            prof_frame, text=f"+{c.proficiency_bonus}",
+            _prof_center, text=f"+{c.proficiency_bonus}",
             font=FONTS["stat_large"], fg=COLORS["fg"], bg=COLORS["bg_surface"],
-        ).pack(expand=True)
+        ).pack()
+        # Invisible spacer to match the die badge height in the Hit Dice box
+        tk.Frame(_prof_center, bg=COLORS["bg_surface"], height=24).pack()
 
-        # Hit Dice box — adapts to multiclass (wider with smaller font)
-        _hd_is_multi = len(_hd_pool) > 1
+        # Hit Dice box — stacked: remaining/total on top, die type below (like ability scores)
         hd_frame = tk.Frame(sub_hero_row, bg=COLORS["bg_surface"])
         hd_frame.grid(row=0, column=1, padx=(3, 3), sticky="ns")
         hd_frame.pack_propagate(False)
         hd_frame.grid_propagate(False)
 
-        if _hd_is_multi:
-            def _keep_hd_wide(event, f=hd_frame):
-                if event.height > 1:
-                    f.configure(width=int(event.height * 1.4))
-            hd_frame.bind("<Configure>", _keep_hd_wide)
-        else:
-            def _keep_hd_square(event, f=hd_frame):
-                if event.height > 1:
-                    f.configure(width=event.height)
-            hd_frame.bind("<Configure>", _keep_hd_square)
+        _hd_width_mult = 1.6 if _hd_is_multi else 1.0
+
+        def _keep_hd_sized(event, f=hd_frame, m=_hd_width_mult):
+            if event.height > 1:
+                f.configure(width=int(event.height * m))
+
+        hd_frame.bind("<Configure>", _keep_hd_sized)
 
         tk.Label(
             hd_frame, text="HIT DICE",
             font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
         ).pack(side=tk.TOP, pady=(6, 0))
-        tk.Label(
-            hd_frame, text=_hd_value,
-            font=FONTS["body"] if _hd_is_multi else FONTS["stat_large"],
-            fg=COLORS["fg"], bg=COLORS["bg_surface"],
-            justify=tk.CENTER,
-        ).pack(expand=True)
+
+        if _hd_sorted:
+            _hd_bg = COLORS["bg_surface"]
+            _hd_center = tk.Frame(hd_frame, bg=_hd_bg)
+            _hd_center.pack(expand=True)
+
+            if _hd_is_multi:
+                # Multiclass: side-by-side columns, each with value + die label
+                _hd_center.columnconfigure(list(range(len(_hd_sorted))), weight=1)
+                for col_i, _slug in enumerate(_hd_sorted):
+                    _rem, _tot, _die = _hd_pool[_slug]
+                    _col_f = tk.Frame(_hd_center, bg=_hd_bg)
+                    _col_f.grid(row=0, column=col_i, padx=4)
+                    tk.Label(
+                        _col_f, text=f"{_rem}/{_tot}",
+                        font=FONTS["stat_large"], fg=COLORS["fg"], bg=_hd_bg,
+                    ).pack()
+                    _badge_bg = COLORS["bg_container"]
+                    _badge = tk.Frame(_col_f, bg=_badge_bg, padx=6, pady=1)
+                    _badge.pack(pady=(2, 0))
+                    tk.Label(
+                        _badge, text=f"d{_die}",
+                        font=FONTS["body_bold"], fg=COLORS["fg_dim"], bg=_badge_bg,
+                    ).pack()
+            else:
+                # Single class: value on top, die badge below
+                _slug = _hd_sorted[0]
+                _rem, _tot, _die = _hd_pool[_slug]
+                tk.Label(
+                    _hd_center, text=f"{_rem}/{_tot}",
+                    font=FONTS["stat_large"], fg=COLORS["fg"], bg=_hd_bg,
+                ).pack()
+                _badge_bg = COLORS["bg_container"]
+                _badge = tk.Frame(_hd_center, bg=_badge_bg, padx=8, pady=2)
+                _badge.pack(pady=(2, 0))
+                tk.Label(
+                    _badge, text=f"d{_die}",
+                    font=FONTS["body_bold"], fg=COLORS["fg_dim"], bg=_badge_bg,
+                ).pack()
+        else:
+            # Fallback for no class levels
+            _die = (c.character_class or {}).get("hit_die", 8)
+            tk.Label(
+                hd_frame, text=f"{c.level}/{c.level}",
+                font=FONTS["stat_large"], fg=COLORS["fg"], bg=COLORS["bg_surface"],
+            ).pack(expand=True)
 
         # Saving Throws box
         saves_cf = CardFrame(sub_hero_row, pad=SPACING["sm"])
