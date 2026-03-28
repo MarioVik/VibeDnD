@@ -697,14 +697,14 @@ class CharacterViewer(ttk.Frame):
         combat_columns = tk.Frame(inner, bg=COLORS["bg"])
         combat_columns.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
         combat_columns.columnconfigure(0, weight=1)
-        combat_columns.columnconfigure(1, weight=1)
+        combat_columns.columnconfigure(1, weight=4)
         combat_columns.rowconfigure(0, weight=1)
 
         left_col = tk.Frame(combat_columns, bg=COLORS["bg"])
-        left_col.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["card_gap"]))
+        left_col.grid(row=0, column=1, sticky="nsew", padx=(SPACING["card_gap"], 0))
 
         right_col = tk.Frame(combat_columns, bg=COLORS["bg"])
-        right_col.grid(row=0, column=1, sticky="nsew", padx=(SPACING["card_gap"], 0))
+        right_col.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["card_gap"]))
 
         # ── Left: Attacks ──
         SectionHeader(left_col, text="Attacks").pack(
@@ -722,10 +722,11 @@ class CharacterViewer(ttk.Frame):
         )
 
         if actions:
-            # Use grid layout so ATK BONUS and DAMAGE columns align vertically
+            # Use grid layout so columns align vertically
             attacks_frame.columnconfigure(0, weight=1)
             attacks_frame.columnconfigure(1, weight=0)
             attacks_frame.columnconfigure(2, weight=0)
+            attacks_frame.columnconfigure(3, weight=0)
 
             # Column headers
             tk.Label(
@@ -737,18 +738,25 @@ class CharacterViewer(ttk.Frame):
             ).grid(row=0, column=0, sticky="w", padx=12, pady=(4, 0))
             tk.Label(
                 attacks_frame,
-                text="ATK BONUS",
+                text="RANGE",
                 font=FONTS["label_tiny"],
                 fg=COLORS["fg_dim"],
                 bg=COLORS["bg_surface"],
             ).grid(row=0, column=1, padx=(16, 0), pady=(4, 0))
             tk.Label(
                 attacks_frame,
-                text="DAMAGE",
+                text="ATK BONUS",
                 font=FONTS["label_tiny"],
                 fg=COLORS["fg_dim"],
                 bg=COLORS["bg_surface"],
             ).grid(row=0, column=2, padx=(16, 0), pady=(4, 0))
+            tk.Label(
+                attacks_frame,
+                text="DAMAGE",
+                font=FONTS["label_tiny"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).grid(row=0, column=3, padx=(16, 0), pady=(4, 0))
 
             # Give each data row equal weight so they space out evenly
             for i in range(len(actions)):
@@ -779,6 +787,19 @@ class CharacterViewer(ttk.Frame):
                         bg=COLORS["bg_surface"],
                     ).pack(anchor="w")
 
+                # Range
+                range_str = action.get("range", "")
+                if not range_str and action.get("kind") == "cantrip":
+                    range_str = action.get("notes", "")
+
+                tk.Label(
+                    attacks_frame,
+                    text=range_str,
+                    font=FONTS["heading_serif_sm"],
+                    fg=COLORS["fg"],
+                    bg=COLORS["bg_surface"],
+                ).grid(row=grid_row, column=1, padx=(16, 0), pady=6)
+
                 # Attack Bonus
                 hit_str = action.get("attack", "+0")
 
@@ -788,7 +809,7 @@ class CharacterViewer(ttk.Frame):
                     font=FONTS["heading_serif_sm"],
                     fg=COLORS["accent_text"],
                     bg=COLORS["bg_surface"],
-                ).grid(row=grid_row, column=1, padx=(16, 0), pady=6)
+                ).grid(row=grid_row, column=2, padx=(16, 0), pady=6)
 
                 # Damage
                 damage = action.get("damage", "")
@@ -799,7 +820,7 @@ class CharacterViewer(ttk.Frame):
                     font=FONTS["heading_serif_sm"],
                     fg=COLORS["fg"],
                     bg=COLORS["bg_surface"],
-                ).grid(row=grid_row, column=2, padx=(16, 0), pady=6)
+                ).grid(row=grid_row, column=3, padx=(16, 0), pady=6)
         else:
             tk.Label(
                 attacks_frame,

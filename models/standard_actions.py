@@ -354,11 +354,19 @@ def _weapon_actions(
         if qty > 1 and not meta.get("thrown_range"):
             notes += f" (x{qty})"
 
+        if meta.get("ranged"):
+            range_str = meta.get("range", "")
+        elif meta.get("thrown_range"):
+            range_str = f"Thrown {meta['thrown_range']}"
+        else:
+            range_str = "-"
+
         rows.append(
             {
                 "name": weapon_name.title(),
                 "attack": _modifier_str(attack_bonus),
                 "damage": damage,
+                "range": range_str,
                 "notes": notes,
                 "kind": "weapon",
                 "weapon_key": weapon_name,
