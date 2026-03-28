@@ -90,6 +90,17 @@ class Character:
     # Level progression
     class_levels: list[ClassLevel] = field(default_factory=list)
 
+    # Mutable HP tracking (persisted)
+    current_hit_points: int | None = None  # None means "full" (backward compat)
+    temp_hit_points: int = 0
+
+    @property
+    def effective_current_hp(self) -> int:
+        """Current HP, defaulting to max if not explicitly set."""
+        if self.current_hit_points is not None:
+            return self.current_hit_points
+        return self.hit_points
+
     # Computed properties
     @property
     def level(self) -> int:

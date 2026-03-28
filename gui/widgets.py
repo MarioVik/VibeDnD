@@ -983,36 +983,43 @@ class HPBar(tk.Canvas):
             highlightthickness=0,
             **kwargs,
         )
-        self._bar_width = width
         self._bar_height = height
-        self._fill_rect = None
+        self._current = 0
+        self._maximum = 1
+        self.bind("<Configure>", lambda e: self._redraw())
 
     def set_hp(self, current: int, maximum: int):
         """Update the bar fill based on current/max HP."""
+        self._current = current
+        self._maximum = maximum
+        self._redraw()
+
+    def _redraw(self):
+        """Redraw the bar using the actual widget width."""
         self.delete("all")
-        if maximum <= 0:
+        if self._maximum <= 0:
             return
-        ratio = max(0, min(1, current / maximum))
-        fill_w = int(self._bar_width * ratio)
 
-        # Choose color based on HP percentage
-        if ratio > 0.5:
-            color = COLORS["accent_text"]
-        elif ratio > 0.25:
-            color = COLORS["gold"]
-        else:
-            color = COLORS["negative"]
+        bar_w = self.winfo_width()
+        if bar_w <= 1:
+            # Widget not yet rendered; fall back to requested width
+            bar_w = self.winfo_reqwidth()
 
+        ratio = max(0, min(1, self._current / self._maximum))
+        fill_w = int(bar_w * ratio)
+
+        color = COLORS["accent_text"]
         h = self._bar_height
         r = h // 2  # radius for rounded ends
 
-        # Draw rounded trough
+        # Draw rounded trough (grey background)
         self.create_oval(0, 0, h, h, fill=COLORS["bg_highest"], outline="")
-        self.create_oval(self._bar_width - h, 0, self._bar_width, h,
+        self.create_oval(bar_w - h, 0, bar_w, h,
                          fill=COLORS["bg_highest"], outline="")
-        self.create_rectangle(r, 0, self._bar_width - r, h,
+        self.create_rectangle(r, 0, bar_w - r, h,
                               fill=COLORS["bg_highest"], outline="")
 
+        # Draw filled portion (red)
         if fill_w > h:
             self.create_oval(0, 0, h, h, fill=color, outline="")
             self.create_oval(fill_w - h, 0, fill_w, h, fill=color, outline="")

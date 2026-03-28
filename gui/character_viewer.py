@@ -812,9 +812,80 @@ class CharacterViewer(ttk.Frame):
             fill=tk.X, pady=(0, SPACING["sm"])
         )
 
-        # Hit Points (full width, top)
-        hp_cf = CardFrame(right_col, accent_left=True, pad=SPACING["md"])
-        hp_cf.pack(fill=tk.X, pady=(0, SPACING["card_gap"]))
+        # ── HP row: Regular HP (left) | Temp HP (right, pinned to Speed width) ──
+        hp_row = tk.Frame(right_col, bg=COLORS["bg"])
+        hp_row.pack(fill=tk.X, pady=(0, SPACING["card_gap"]))
+
+        # Temp HP on the right with a fixed pixel width (updated after layout)
+        temp_cf = CardFrame(hp_row, accent_left=True, pad=SPACING["md"])
+        temp_cf.pack(side=tk.RIGHT, fill=tk.Y)
+
+        tk.Label(
+            temp_cf.inner,
+            text="TEMP HP",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w")
+
+        temp_val = tk.Frame(temp_cf.inner, bg=COLORS["bg_surface"])
+        temp_val.pack(fill=tk.X, pady=(4, 0))
+
+        temp_label = tk.Label(
+            temp_val,
+            text=str(c.temp_hit_points),
+            font=FONTS["stat_large"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+            width=4,
+            anchor="w",
+        )
+        temp_label.pack(side=tk.LEFT)
+
+        # +/- buttons for Temp HP
+        temp_btn_frame = tk.Frame(temp_val, bg=COLORS["bg_surface"])
+        temp_btn_frame.pack(side=tk.RIGHT)
+
+        def _adjust_temp_hp(delta: int):
+            new_val = max(0, c.temp_hit_points + delta)
+            c.temp_hit_points = new_val
+            temp_label.config(text=str(new_val))
+            save_character(c, characters_dir(), existing_filename=self.save_path)
+
+        tk.Button(
+            temp_btn_frame,
+            text="−",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_container"],
+            activebackground=COLORS["bg_highest"],
+            activeforeground=COLORS["fg"],
+            bd=0,
+            padx=8,
+            pady=0,
+            cursor="hand2",
+            command=lambda: _adjust_temp_hp(-1),
+        ).pack(side=tk.LEFT, padx=(0, 4))
+
+        tk.Button(
+            temp_btn_frame,
+            text="+",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_container"],
+            activebackground=COLORS["bg_highest"],
+            activeforeground=COLORS["fg"],
+            bd=0,
+            padx=8,
+            pady=0,
+            cursor="hand2",
+            command=lambda: _adjust_temp_hp(1),
+        ).pack(side=tk.LEFT)
+
+        # Regular HP fills the remaining space to the left
+        hp_cf = CardFrame(hp_row, accent_left=True, pad=SPACING["md"])
+        hp_cf.pack(side=tk.LEFT, fill=tk.BOTH, expand=True,
+                   padx=(0, SPACING["card_gap"]))
 
         tk.Label(
             hp_cf.inner,
@@ -824,33 +895,83 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_surface"],
         ).pack(anchor="w")
 
+        current_hp = c.effective_current_hp
+        max_hp = c.hit_points
+
         hp_val = tk.Frame(hp_cf.inner, bg=COLORS["bg_surface"])
         hp_val.pack(fill=tk.X, pady=(4, 0))
-        tk.Label(
+
+        hp_label = tk.Label(
             hp_val,
-            text=str(c.hit_points),
+            text=str(current_hp),
             font=FONTS["stat_large"],
             fg=COLORS["fg"],
             bg=COLORS["bg_surface"],
-        ).pack(side=tk.LEFT)
+        )
+        hp_label.pack(side=tk.LEFT)
         tk.Label(
             hp_val,
-            text=f"/ {c.hit_points}",
+            text=f"/ {max_hp}",
             font=FONTS["heading_serif_sm"],
             fg=COLORS["fg_dim"],
             bg=COLORS["bg_surface"],
         ).pack(side=tk.LEFT, padx=(4, 0))
 
-        hp_bar = HPBar(hp_cf.inner, width=300, height=6)
-        hp_bar.pack(fill=tk.X, pady=(4, 0))
-        hp_bar.set_hp(c.hit_points, c.hit_points)
+        # +/- buttons for HP
+        hp_btn_frame = tk.Frame(hp_val, bg=COLORS["bg_surface"])
+        hp_btn_frame.pack(side=tk.RIGHT)
 
-        # Initiative, Armor Class, Speed (three boxes in a row)
+        hp_bar = HPBar(hp_cf.inner, width=300, height=6)
+        hp_bar.pack(fill=tk.X, pady=(8, 0))
+        hp_bar.set_hp(current_hp, max_hp)
+
+        def _adjust_hp(delta: int):
+            cur = c.effective_current_hp
+            new_val = max(0, min(c.hit_points, cur + delta))
+            c.current_hit_points = new_val
+            hp_label.config(text=str(new_val))
+            hp_bar.set_hp(new_val, c.hit_points)
+            save_character(c, characters_dir(), existing_filename=self.save_path)
+
+        tk.Button(
+            hp_btn_frame,
+            text="−",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_container"],
+            activebackground=COLORS["bg_highest"],
+            activeforeground=COLORS["fg"],
+            bd=0,
+            padx=8,
+            pady=0,
+            cursor="hand2",
+            command=lambda: _adjust_hp(-1),
+        ).pack(side=tk.LEFT, padx=(0, 4))
+
+        tk.Button(
+            hp_btn_frame,
+            text="+",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_container"],
+            activebackground=COLORS["bg_highest"],
+            activeforeground=COLORS["fg"],
+            bd=0,
+            padx=8,
+            pady=0,
+            cursor="hand2",
+            command=lambda: _adjust_hp(1),
+        ).pack(side=tk.LEFT)
+
+        # ── Stats row: Initiative, Armor Class, Speed ──
         stats_row = tk.Frame(right_col, bg=COLORS["bg"])
         stats_row.pack(fill=tk.X)
-        stats_row.columnconfigure(list(range(3)), weight=1)
+        stats_row.columnconfigure(0, weight=1, uniform="stats")
+        stats_row.columnconfigure(1, weight=1, uniform="stats")
+        stats_row.columnconfigure(2, weight=1, uniform="stats")
 
         init_str = f"+{c.initiative}" if c.initiative >= 0 else str(c.initiative)
+        speed_cf = None
         for col_i, (stat_label, stat_value) in enumerate([
             ("INITIATIVE", init_str),
             ("ARMOR CLASS", str(c.armor_class)),
@@ -859,6 +980,8 @@ class CharacterViewer(ttk.Frame):
             cf = CardFrame(stats_row, accent_left=True, pad=SPACING["md"])
             cf.grid(row=0, column=col_i, sticky="nsew",
                     padx=(0 if col_i == 0 else SPACING["card_gap"], 0))
+            if col_i == 2:
+                speed_cf = cf
             tk.Label(
                 cf.inner,
                 text=stat_label,
@@ -873,6 +996,16 @@ class CharacterViewer(ttk.Frame):
                 fg=COLORS["fg"],
                 bg=COLORS["bg_surface"],
             ).pack(anchor="w")
+
+        # Sync Temp HP width to Speed box width
+        def _sync_temp_width(event=None):
+            w = speed_cf.winfo_width()
+            if w > 1:
+                temp_cf.configure(width=w)
+                temp_cf.pack_propagate(False)
+
+        if speed_cf:
+            speed_cf.bind("<Configure>", _sync_temp_width)
 
         # ── Standard Actions ──
         SectionHeader(inner, text="Actions").pack(
