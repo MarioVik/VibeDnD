@@ -67,6 +67,8 @@ def character_to_save_dict(character: Character) -> dict:
         "removed_items": dict(c.removed_items),
         "wealth_adjust_cp": int(c.wealth_adjust_cp),
         "inventory_transactions": list(c.inventory_transactions),
+        "current_hit_points": c.current_hit_points,
+        "temp_hit_points": c.temp_hit_points,
     }
 
     # Serialize class_levels
@@ -155,6 +157,8 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.removed_items = data.get("removed_items", {}) or {}
     c.wealth_adjust_cp = int(data.get("wealth_adjust_cp", 0))
     c.inventory_transactions = data.get("inventory_transactions", [])
+    c.current_hit_points = data.get("current_hit_points", None)
+    c.temp_hit_points = int(data.get("temp_hit_points", 0))
 
     # Load class_levels (v2) or construct from v1 data
     if "class_levels" in data:
@@ -305,6 +309,8 @@ def import_character_from_export(filepath: str, game_data) -> Character:
     save["custom_inventory"] = data.get("custom_inventory", [])
     save["wealth_adjust_cp"] = int(data.get("wealth_adjust_cp", 0))
     save["inventory_transactions"] = data.get("inventory_transactions", [])
+    save["current_hit_points"] = data.get("current_hit_points", None)
+    save["temp_hit_points"] = int(data.get("temp_hit_points", 0))
 
     return save_dict_to_character(save, game_data)
 
