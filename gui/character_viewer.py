@@ -733,21 +733,21 @@ class CharacterViewer(ttk.Frame):
                 text="NAME",
                 font=FONTS["label_tiny"],
                 fg=COLORS["fg_dim"],
-                bg=COLORS["bg_container"],
+                bg=COLORS["bg_surface"],
             ).grid(row=0, column=0, sticky="w", padx=12, pady=(4, 0))
             tk.Label(
                 attacks_frame,
                 text="ATK BONUS",
                 font=FONTS["label_tiny"],
                 fg=COLORS["fg_dim"],
-                bg=COLORS["bg_container"],
+                bg=COLORS["bg_surface"],
             ).grid(row=0, column=1, padx=(16, 0), pady=(4, 0))
             tk.Label(
                 attacks_frame,
                 text="DAMAGE",
                 font=FONTS["label_tiny"],
                 fg=COLORS["fg_dim"],
-                bg=COLORS["bg_container"],
+                bg=COLORS["bg_surface"],
             ).grid(row=0, column=2, padx=(16, 0), pady=(4, 0))
 
             # Give each data row equal weight so they space out evenly
@@ -758,7 +758,7 @@ class CharacterViewer(ttk.Frame):
                 grid_row = i + 1
 
                 # Name and properties
-                name_col = tk.Frame(attacks_frame, bg=COLORS["bg_container"])
+                name_col = tk.Frame(attacks_frame, bg=COLORS["bg_surface"])
                 name_col.grid(row=grid_row, column=0, sticky="w", padx=12, pady=6)
 
                 tk.Label(
@@ -766,7 +766,7 @@ class CharacterViewer(ttk.Frame):
                     text=action.get("name", "Unknown"),
                     font=FONTS["heading_serif_sm"],
                     fg=COLORS["fg"],
-                    bg=COLORS["bg_container"],
+                    bg=COLORS["bg_surface"],
                 ).pack(anchor="w")
 
                 props = action.get("properties", "")
@@ -776,7 +776,7 @@ class CharacterViewer(ttk.Frame):
                         text=props.upper(),
                         font=FONTS["label_tiny"],
                         fg=COLORS["fg_dim"],
-                        bg=COLORS["bg_container"],
+                        bg=COLORS["bg_surface"],
                     ).pack(anchor="w")
 
                 # Attack Bonus
@@ -788,7 +788,7 @@ class CharacterViewer(ttk.Frame):
                     text=hit_str,
                     font=FONTS["heading_serif_sm"],
                     fg=COLORS["accent_text"],
-                    bg=COLORS["bg_container"],
+                    bg=COLORS["bg_surface"],
                 ).grid(row=grid_row, column=1, padx=(16, 0), pady=6)
 
                 # Damage
@@ -800,7 +800,7 @@ class CharacterViewer(ttk.Frame):
                     text=f"{damage} {dmg_type}",
                     font=FONTS["heading_serif_sm"],
                     fg=COLORS["fg"],
-                    bg=COLORS["bg_container"],
+                    bg=COLORS["bg_surface"],
                 ).grid(row=grid_row, column=2, padx=(16, 0), pady=6)
         else:
             tk.Label(
