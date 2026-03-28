@@ -189,7 +189,7 @@ class SummaryStep(WizardStep):
             include_sections={
                 "header", "combat", "abilities", "saving_throws", "skills",
                 "standard_actions", "species_traits", "class_features",
-                "subclass", "feats", "spells", "wealth", "equipment",
+                "subclass", "feats", "languages", "spells", "wealth", "equipment",
                 "inventory", "biography",
             },
         )

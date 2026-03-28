@@ -27,6 +27,7 @@ from gui.widgets import (
 )
 from models.character import Character
 from models.class_level import ClassLevel
+from models.language_utils import STANDARD_LANGUAGES
 
 # Load class choices data (maneuvers, invocations, plans, arcane shots)
 _CHOICES_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "class_choices.json")
@@ -2159,6 +2160,90 @@ class LevelUpWizard(tk.Toplevel):
     # Confirm
     # ------------------------------------------------------------------
 
+    def _pick_deft_explorer_languages(self):
+        """Prompt the player to pick 2 languages from Deft Explorer (Ranger level 2)."""
+        already_known = set(
+            lang
+            for lang in self.character.chosen_languages
+        )
+        # Also include auto languages (Common, Thieves' Cant, Druidic) so they can't
+        # be double-selected — build the available pool from Standard Languages only.
+        choices_needed = 2
+        available = [l for l in STANDARD_LANGUAGES if l not in already_known]
+
+        dlg = tk.Toplevel(self)
+        dlg.title("Deft Explorer — Choose Languages")
+        dlg.geometry("360x420")
+        dlg.resizable(False, False)
+
+        from gui.widgets import configure_modal_dialog
+        configure_modal_dialog(dlg, self)
+
+        ttk.Label(
+            dlg,
+            text="Deft Explorer",
+            font=FONTS["subheading"],
+        ).pack(anchor="w", padx=16, pady=(16, 4))
+        ttk.Label(
+            dlg,
+            text=f"Choose {choices_needed} languages of your choice.",
+            style="Dim.TLabel",
+        ).pack(anchor="w", padx=16)
+
+        self._deft_lang_vars: dict[str, tk.BooleanVar] = {}
+        self._deft_counter_var = tk.StringVar(value=f"0 / {choices_needed} chosen")
+
+        counter_lbl = ttk.Label(dlg, textvariable=self._deft_counter_var)
+        counter_lbl.pack(anchor="w", padx=16, pady=(8, 4))
+
+        scroll_frame = ttk.Frame(dlg)
+        scroll_frame.pack(fill=tk.BOTH, expand=True, padx=16)
+
+        for lang in available:
+            var = tk.BooleanVar(value=False)
+
+            def on_toggle(l=lang, v=var):
+                chosen = [k for k, v2 in self._deft_lang_vars.items() if v2.get()]
+                if v.get() and len(chosen) > choices_needed:
+                    v.set(False)
+                    return
+                chosen = [k for k, v2 in self._deft_lang_vars.items() if v2.get()]
+                self._deft_counter_var.set(f"{len(chosen)} / {choices_needed} chosen")
+                # Disable unchosen if at cap
+                at_cap = len(chosen) >= choices_needed
+                for lk, cb in self._deft_lang_cbs.items():
+                    lv = self._deft_lang_vars[lk]
+                    if not lv.get():
+                        cb.configure(state="disabled" if at_cap else "normal")
+
+            cb = ttk.Checkbutton(scroll_frame, text=lang, variable=var, command=on_toggle)
+            cb.pack(anchor="w", pady=1)
+            self._deft_lang_vars[lang] = var
+        self._deft_lang_cbs = {
+            lang: scroll_frame.winfo_children()[i]
+            for i, lang in enumerate(available)
+        }
+
+        def _confirm_deft():
+            chosen = [l for l, v in self._deft_lang_vars.items() if v.get()]
+            if len(chosen) != choices_needed:
+                from gui.widgets import AlertDialog
+                AlertDialog(
+                    dlg,
+                    "Choose Languages",
+                    f"Please choose exactly {choices_needed} languages.",
+                )
+                return
+            for lang in chosen:
+                if lang not in self.character.chosen_languages:
+                    self.character.chosen_languages.append(lang)
+            dlg.destroy()
+
+        ttk.Button(dlg, text="Confirm", style="Accent.TButton", command=_confirm_deft).pack(
+            pady=12
+        )
+        dlg.wait_window()
+
     def _confirm(self):
         """Validate choices, apply the level-up, and close."""
         if not self._validate_step1():
@@ -2317,7 +2402,13 @@ class LevelUpWizard(tk.Toplevel):
                 self.character.selected_spells.remove(cl.swapped_out_spell)
             self.character.selected_spells.append(cl.swapped_in_spell)
 
-        # Apply to character
+        # Deft Explorer: Ranger level 2 grants 2 language choices
+        if self.level_data:
+            new_features = self.level_data.get("features", [])
+            if "Deft Explorer" in new_features:
+                self._pick_deft_explorer_languages()
+
+        # Apply to character (Deft Explorer dialog runs before appending)
         self.character.class_levels.append(cl)
 
         if self.on_complete:

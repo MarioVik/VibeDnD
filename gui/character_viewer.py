@@ -42,6 +42,7 @@ from models.inventory_service import (
     cp_to_coins,
 )
 from models.enums import ALL_SKILLS
+from models.language_utils import all_languages
 from models.standard_actions import (
     WEAPON_DATA,
     build_standard_actions,
@@ -628,22 +629,23 @@ class CharacterViewer(ttk.Frame):
                 )
 
         # Languages
-        species = c.species or {}
-        languages = []
-        for feat in species.get("features", []):
-            if "language" in feat.get("name", "").lower():
-                desc = feat.get("description", "")
-                languages.append(desc if desc else feat.get("name", ""))
-        if languages:
+        lang_list = all_languages(c)
+        if lang_list:
+            lang_header = tk.Frame(prof_frame, bg=COLORS["bg_surface"])
+            lang_header.pack(fill=tk.X, anchor="w", pady=(8, 2))
+            tk.Label(
+                lang_header,
+                text="LANGUAGES",
+                font=FONTS["label_upper"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(anchor="w")
             lang_frame = tk.Frame(prof_frame, bg=COLORS["bg_surface"])
-            lang_frame.pack(fill=tk.X, anchor="w", pady=(8, 0))
-            for lang in languages:
-                for l_part in lang.split(","):
-                    l_part = l_part.strip()
-                    if l_part:
-                        Chip(lang_frame, text=l_part, style="default").pack(
-                            side=tk.LEFT, padx=(0, 4), pady=2
-                        )
+            lang_frame.pack(fill=tk.X, anchor="w")
+            for lang in lang_list:
+                Chip(lang_frame, text=lang, style="default").pack(
+                    side=tk.LEFT, padx=(0, 4), pady=2
+                )
 
 
     # ================================================================
