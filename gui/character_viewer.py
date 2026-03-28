@@ -129,19 +129,22 @@ class CharacterViewer(ttk.Frame):
         short_state = tk.NORMAL if can_short_rest(c) else tk.DISABLED
         long_state = tk.NORMAL if can_long_rest(c) else tk.DISABLED
 
-        bottom_buttons = []
-        if c.level < 20:
-            bottom_buttons.append(
-                {"text": "Level Up", "command": self._on_level_up, "style": "Accent.TButton", "key": "level_up"},
-            )
-        bottom_buttons.extend([
+        bottom_buttons = [
             {"text": "Short Rest", "command": self._on_short_rest, "state": short_state, "key": "short_rest"},
             {"text": "Long Rest", "command": self._on_long_rest, "state": long_state, "key": "long_rest"},
-            {"text": "Export PDF", "command": self._export_pdf},
-            {"text": "Export JSON", "command": self._export_json},
-            {"text": "Respec Character", "command": self._on_edit},
+        ]
+        if c.level < 20:
+            bottom_buttons.append(
+                {"text": "Level Up", "command": self._on_level_up, "key": "level_up"},
+            )
+        bottom_buttons.extend([
+            {"text": "Export  \u25BE", "key": "export_dropdown", "submenu": [
+                {"text": "Export PDF", "command": self._export_pdf},
+                {"text": "Export Character", "command": self._export_json},
+            ]},
             {"text": "\u25c0  Back to Menu", "command": self._on_back},
         ])
+        # TODO: Add back "Respec Character" button (command: self._on_edit) when the respec feature is fully working
 
         self.sidebar = Sidebar(
             self,

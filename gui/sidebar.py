@@ -90,13 +90,33 @@ class Sidebar(tk.Frame):
             for btn_cfg in bottom_buttons:
                 style = btn_cfg.get("style", "TButton")
                 state = btn_cfg.get("state", tk.NORMAL)
-                b = ttk.Button(
-                    btn_frame,
-                    text=btn_cfg["text"],
-                    command=btn_cfg["command"],
-                    style=style,
-                    state=state,
-                )
+                submenu = btn_cfg.get("submenu")
+
+                if submenu:
+                    menu = tk.Menu(
+                        btn_frame, tearoff=0,
+                        bg=COLORS["bg_highest"], fg=COLORS["fg"],
+                        activebackground=COLORS["bg_high"], activeforeground=COLORS["fg"],
+                        font=FONTS["body"],
+                    )
+                    for item in submenu:
+                        menu.add_command(label=item["text"], command=item["command"])
+
+                    def _show_menu(event=None, _btn=None, _menu=menu):
+                        x = _btn.winfo_rootx()
+                        y = _btn.winfo_rooty() + _btn.winfo_height()
+                        _menu.tk_popup(x, y)
+
+                    b = ttk.Button(btn_frame, text=btn_cfg["text"], style=style, state=state)
+                    b.configure(command=lambda _b=b, _m=menu: _show_menu(_btn=_b, _menu=_m))
+                else:
+                    b = ttk.Button(
+                        btn_frame,
+                        text=btn_cfg["text"],
+                        command=btn_cfg.get("command"),
+                        style=style,
+                        state=state,
+                    )
                 b.pack(fill=tk.X, pady=2)
                 key = btn_cfg.get("key")
                 if key:
