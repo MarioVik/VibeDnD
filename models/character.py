@@ -80,6 +80,7 @@ class Character:
     equipment_choice_class: str = "A"
     equipment_choice_background: str = "A"
     standard_action_options: dict[str, dict[str, bool]] = field(default_factory=dict)
+    attack_order: list[str] = field(default_factory=list)
     equipped_weapons: list[str] | None = None
     equipped_armor: list[str] | None = None
     custom_inventory: list[dict] = field(default_factory=list)

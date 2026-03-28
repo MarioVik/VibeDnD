@@ -57,6 +57,7 @@ def character_to_save_dict(character: Character) -> dict:
         "equipment_choice_class": c.equipment_choice_class,
         "equipment_choice_background": c.equipment_choice_background,
         "standard_action_options": dict(c.standard_action_options),
+        "attack_order": list(c.attack_order),
         "equipped_weapons": list(c.equipped_weapons)
         if c.equipped_weapons is not None
         else None,
@@ -152,6 +153,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.equipment_choice_class = data.get("equipment_choice_class", "A")
     c.equipment_choice_background = data.get("equipment_choice_background", "A")
     c.standard_action_options = data.get("standard_action_options", {})
+    c.attack_order = data.get("attack_order", [])
     c.equipped_weapons = data.get("equipped_weapons")
     c.equipped_armor = data.get("equipped_armor")
     c.custom_inventory = data.get("custom_inventory", [])
@@ -306,6 +308,7 @@ def import_character_from_export(filepath: str, game_data) -> Character:
     save["equipment_choice_class"] = data.get("equipment_choice_class", "A")
     save["equipment_choice_background"] = data.get("equipment_choice_background", "A")
     save["standard_action_options"] = data.get("standard_action_options", {})
+    save["attack_order"] = data.get("attack_order", [])
     save["equipped_weapons"] = data.get("equipped_weapons")
     save["equipped_armor"] = data.get("equipped_armor")
     save["custom_inventory"] = data.get("custom_inventory", [])

@@ -733,8 +733,17 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_surface"],
             cursor="hand2",
         )
-        # Initially hidden; shown after first render if there are configurable weapons
+        # Initially hidden; shown after first render when useful
         gear_visible = False
+
+        def _action_sort_key(action: dict) -> int:
+            """Return sort position based on saved attack_order."""
+            order = c.attack_order or []
+            key = action.get("weapon_key") or action.get("name", "")
+            try:
+                return order.index(key)
+            except ValueError:
+                return len(order)
 
         def _render_attacks():
             nonlocal gear_visible
@@ -748,16 +757,20 @@ class CharacterViewer(ttk.Frame):
                 equipped_weapon_keys=set(c.equipped_weapons or []),
             )
 
-            # Show/hide cogwheel based on whether any weapon has options
+            # Sort by saved order
+            actions.sort(key=_action_sort_key)
+
+            # Show cogwheel when there are configurable weapons or 2+ attacks to reorder
             has_configurable = any(
                 a.get("kind") == "weapon"
                 and (a.get("can_true_strike") or a.get("versatile"))
                 for a in actions
             )
-            if has_configurable and not gear_visible:
+            should_show = has_configurable or len(actions) >= 2
+            if should_show and not gear_visible:
                 gear_btn.place(relx=1.0, rely=0, anchor="ne", x=-4, y=4)
                 gear_visible = True
-            elif not has_configurable and gear_visible:
+            elif not should_show and gear_visible:
                 gear_btn.place_forget()
                 gear_visible = False
 
@@ -869,23 +882,20 @@ class CharacterViewer(ttk.Frame):
                 ).grid(row=grid_row, column=3, padx=(16, 0), pady=6)
 
         def _open_weapon_options(event=None):
-            """Open a dialog to configure True Strike / Two-Handed per weapon."""
+            """Open a dialog to configure attack order and weapon modifiers."""
             actions = build_standard_actions(
                 c,
                 spells_by_name=self._spell_index,
                 weapon_options=dict(c.standard_action_options or {}),
                 equipped_weapon_keys=set(c.equipped_weapons or []),
             )
-            configurable = [
-                a for a in actions
-                if a.get("kind") == "weapon"
-                and (a.get("can_true_strike") or a.get("versatile"))
-            ]
-            if not configurable:
+            if not actions:
                 return
 
+            actions.sort(key=_action_sort_key)
+
             dialog = tk.Toplevel(attacks_card)
-            dialog.title("Weapon Options")
+            dialog.title("Attack Options")
             dialog.configure(bg=COLORS["bg"])
             dialog.resizable(False, False)
 
@@ -898,64 +908,147 @@ class CharacterViewer(ttk.Frame):
 
             ttk.Label(
                 header,
-                text="Weapon Options",
+                text="Attack Options",
                 font=FONTS["heading"],
                 foreground=COLORS["accent"],
             ).pack(anchor="w")
 
             ttk.Label(
                 header,
-                text="Configure attack modifiers for your weapons.",
+                text="Reorder attacks and configure weapon modifiers.",
                 foreground=COLORS["fg_dim"],
             ).pack(anchor="w")
 
-            # Content
+            # Content — list of draggable rows
             content = ttk.Frame(dialog)
             content.pack(fill=tk.BOTH, expand=True, padx=16, pady=(8, 4))
 
-            for a in configurable:
-                key = a.get("weapon_key", "")
-                weapon_saved = saved_opts.get(key, {})
+            # Each row: (frame_widget, action_key)
+            row_widgets: list[tuple[tk.Frame, str]] = []
 
-                weapon_frame = ttk.Frame(content)
-                weapon_frame.pack(fill=tk.X, pady=(0, 8))
+            def _action_key(a: dict) -> str:
+                return a.get("weapon_key") or a.get("name", "")
+
+            def _rebuild_rows():
+                """Re-pack rows in current order."""
+                for rw, _ in row_widgets:
+                    rw.pack_forget()
+                for rw, _ in row_widgets:
+                    rw.pack(fill=tk.X, pady=2)
+
+            def _move_row(row_frame, direction: int):
+                """Move a row up (-1) or down (+1)."""
+                idx = next(
+                    (i for i, (rw, _) in enumerate(row_widgets) if rw is row_frame),
+                    -1,
+                )
+                if idx < 0:
+                    return
+                new = idx + direction
+                if new < 0 or new >= len(row_widgets):
+                    return
+                row_widgets.insert(new, row_widgets.pop(idx))
+                _rebuild_rows()
+
+            for i, a in enumerate(actions):
+                akey = _action_key(a)
+                weapon_key = a.get("weapon_key", "")
+                weapon_saved = saved_opts.get(weapon_key, {})
+                is_configurable = (
+                    a.get("kind") == "weapon"
+                    and (a.get("can_true_strike") or a.get("versatile"))
+                )
+
+                row = tk.Frame(content, bg=COLORS["bg_surface"], padx=8, pady=6)
+                row.pack(fill=tk.X, pady=2)
+
+                # Up / Down arrows
+                arrows = tk.Frame(row, bg=COLORS["bg_surface"])
+                arrows.pack(side=tk.LEFT, padx=(0, 8))
+
+                def _make_arrow(parent, text, rf, direction):
+                    lbl = tk.Label(
+                        parent,
+                        text=text,
+                        font=FONTS["body"],
+                        fg=COLORS["fg_dim"],
+                        bg=COLORS["bg_surface"],
+                        cursor="hand2",
+                    )
+                    lbl.pack()
+                    lbl.bind("<Button-1>", lambda e: _move_row(rf, direction))
+                    return lbl
+
+                _make_arrow(arrows, "\u25b2", row, -1)
+                _make_arrow(arrows, "\u25bc", row, 1)
+
+                # Name and kind
+                info_col = ttk.Frame(row)
+                info_col.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+                display_name = a.get("name", "Unknown")
+                kind_label = "Cantrip" if a.get("kind") == "cantrip" else "Weapon"
 
                 ttk.Label(
-                    weapon_frame,
-                    text=a["name"],
+                    info_col,
+                    text=display_name,
                     font=FONTS["body_bold"],
                     foreground=COLORS["fg"],
+                    background=COLORS["bg_surface"],
                 ).pack(anchor="w")
 
-                opts_row = ttk.Frame(weapon_frame)
-                opts_row.pack(anchor="w", padx=(12, 0), pady=(2, 0))
+                ttk.Label(
+                    info_col,
+                    text=kind_label,
+                    foreground=COLORS["fg_dim"],
+                    background=COLORS["bg_surface"],
+                    font=FONTS["label_tiny"],
+                ).pack(anchor="w")
 
-                if a.get("can_true_strike"):
-                    var = tk.BooleanVar(value=bool(weapon_saved.get("true_strike", False)))
-                    check_vars.append((key, "true_strike", var))
-                    ttk.Checkbutton(
-                        opts_row,
-                        text="Use True Strike",
-                        variable=var,
-                    ).pack(side=tk.LEFT, padx=(0, 12))
+                # Weapon option checkboxes (inline, right side)
+                if is_configurable:
+                    opts_frame = ttk.Frame(row)
+                    opts_frame.pack(side=tk.RIGHT, padx=(8, 0))
 
-                if a.get("versatile"):
-                    var = tk.BooleanVar(value=bool(weapon_saved.get("two_handed", False)))
-                    check_vars.append((key, "two_handed", var))
-                    ttk.Checkbutton(
-                        opts_row,
-                        text="Use Two Hands",
-                        variable=var,
-                    ).pack(side=tk.LEFT)
+                    if a.get("can_true_strike"):
+                        var = tk.BooleanVar(
+                            value=bool(weapon_saved.get("true_strike", False))
+                        )
+                        check_vars.append((weapon_key, "true_strike", var))
+                        ttk.Checkbutton(
+                            opts_frame,
+                            text="True Strike",
+                            variable=var,
+                            style="Card.TCheckbutton",
+                        ).pack(side=tk.LEFT, padx=(0, 8))
+
+                    if a.get("versatile"):
+                        var = tk.BooleanVar(
+                            value=bool(weapon_saved.get("two_handed", False))
+                        )
+                        check_vars.append((weapon_key, "two_handed", var))
+                        ttk.Checkbutton(
+                            opts_frame,
+                            text="Two-Handed",
+                            variable=var,
+                            style="Card.TCheckbutton",
+                        ).pack(side=tk.LEFT)
+
+                row_widgets.append((row, akey))
 
             # Footer
             def _apply_and_close():
+                # Save attack order
+                new_order = [akey for _, akey in row_widgets]
+                c.attack_order = new_order
+
+                # Save weapon options
                 new_opts: dict[str, dict[str, bool]] = {}
                 for wkey, opt_name, var in check_vars:
                     new_opts.setdefault(wkey, {})[opt_name] = var.get()
-                if c.standard_action_options != new_opts:
-                    c.standard_action_options = new_opts
-                    save_character(c, characters_dir(), existing_filename=self.save_path)
+                c.standard_action_options = new_opts
+
+                save_character(c, characters_dir(), existing_filename=self.save_path)
                 dialog.destroy()
                 _render_attacks()
 
