@@ -40,7 +40,7 @@ _WHEEL_CANVAS_ATTR = "_vibednd_wheel_canvas"
 _GLOBAL_WHEEL_BINDING_INSTALLED = False
 _WHEEL_BOUND_TOPLEVELS: set[str] = set()
 _CLASS_WHEEL_BINDING_INSTALLED = False
-_TOUCHPAD_PIXELS_PER_UNIT = 10.0
+_TOUCHPAD_PIXELS_PER_UNIT = 12.0
 
 
 def _quantize_wheel_units(raw_units: float) -> int:
