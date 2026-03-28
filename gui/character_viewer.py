@@ -679,20 +679,11 @@ class CharacterViewer(ttk.Frame):
 
         tk.Label(
             combat_hero.inner,
-            text="Combat & Actions",
+            text="Combat",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg_hero"],
-        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], 4))
-
-        info_text = f"Initiative +{c.initiative}  \u2022  Speed {c.speed}ft  \u2022  AC {c.armor_class}  \u2022  HP {c.hit_points}"
-        tk.Label(
-            combat_hero.inner,
-            text=info_text,
-            font=FONTS["body"],
-            fg=COLORS["fg_dim"],
-            bg=COLORS["bg_hero"],
-        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(0, SPACING["xl"]))
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
 
         # ── Two-column layout: Vital Stats (left 20%) | Attacks (right 80%) ──
         combat_columns = tk.Frame(inner, bg=COLORS["bg"], height=200)
@@ -720,7 +711,7 @@ class CharacterViewer(ttk.Frame):
             fill=tk.X, pady=(0, SPACING["sm"])
         )
 
-        attacks_card = CardFrame(left_col, pad=SPACING["md"])
+        attacks_card = CardFrame(left_col, accent_left=True, pad=SPACING["md"])
         attacks_card.pack(fill=tk.BOTH, expand=True)
         attacks_frame = attacks_card.inner
 
@@ -1108,7 +1099,7 @@ class CharacterViewer(ttk.Frame):
         hp_row.pack(fill=tk.X, pady=(0, SPACING["card_gap"]))
 
         # Temp HP on the right with a fixed pixel width (updated after layout)
-        temp_cf = CardFrame(hp_row, accent_left=True, pad=SPACING["md"])
+        temp_cf = CardFrame(hp_row, pad=SPACING["md"])
         temp_cf.pack(side=tk.RIGHT, fill=tk.Y)
 
         tk.Label(
@@ -1211,7 +1202,7 @@ class CharacterViewer(ttk.Frame):
             ("ARMOR CLASS", str(c.armor_class)),
             ("SPEED", f"{c.speed} ft"),
         ]):
-            cf = CardFrame(stats_row, accent_left=True, pad=SPACING["md"])
+            cf = CardFrame(stats_row, accent_left=(col_i == 0), pad=SPACING["md"])
             cf.grid(row=0, column=col_i, sticky="nsew",
                     padx=(0 if col_i == 0 else SPACING["card_gap"], 0))
             if col_i == 2:
@@ -1298,12 +1289,6 @@ class CharacterViewer(ttk.Frame):
                 col_idx = 0
                 row_idx += 1
 
-        # ── Spell slots (if caster) ──
-        if self._character_has_spells():
-            SectionHeader(inner, text="Spell Slots").pack(
-                fill=tk.X, pady=(SPACING["sm"], SPACING["sm"])
-            )
-            self._build_spell_slot_display(inner)
 
     def _build_spell_slot_display(self, parent):
         """Build spell slot indicators."""
@@ -1328,7 +1313,7 @@ class CharacterViewer(ttk.Frame):
             return
 
         slots_card = CardFrame(parent, pad=SPACING["lg"])
-        slots_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        slots_card.pack(side=tk.LEFT, fill=tk.Y, padx=(SPACING["card_gap"], 0))
         slots_frame = slots_card.inner
 
         for slot_level, count in sorted(spell_slots.items(), key=lambda x: x[0]):
@@ -1434,6 +1419,9 @@ class CharacterViewer(ttk.Frame):
                     bg_color=COLORS["badge_glass_dim"],
                     fg_color=COLORS["gold"],
                 ).pack(side=tk.LEFT, padx=(8, 0))
+
+            # Spell slots inline with stats
+            self._build_spell_slot_display(stats_frame)
 
         # Spell list (reuse existing pattern with split view)
         spell_area = tk.Frame(wrapper, bg=COLORS["bg"])
