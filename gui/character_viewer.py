@@ -1134,7 +1134,7 @@ class CharacterViewer(ttk.Frame):
             temp_val,
             on_increment=lambda: _adjust_temp_hp(1),
             on_decrement=lambda: _adjust_temp_hp(-1),
-        ).pack(side=tk.LEFT, padx=(4, 0))
+        ).pack(side=tk.RIGHT, padx=(4, 0))
 
         # Regular HP fills the remaining space to the left
         hp_cf = CardFrame(hp_row, accent_left=True, pad=SPACING["md"])
@@ -1187,7 +1187,7 @@ class CharacterViewer(ttk.Frame):
             hp_val,
             on_increment=lambda: _adjust_hp(1),
             on_decrement=lambda: _adjust_hp(-1),
-        ).pack(side=tk.LEFT, padx=(4, 0))
+        ).pack(side=tk.RIGHT, padx=(4, 0))
 
         # ── Stats row: Initiative, Armor Class, Speed ──
         stats_row = tk.Frame(right_col, bg=COLORS["bg"])
