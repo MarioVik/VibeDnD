@@ -8,6 +8,7 @@ from fpdf import FPDF
 from fpdf.enums import RenderStyle, Corner
 from models.character import Character
 from models.enums import ALL_SKILLS
+from models.language_utils import all_languages
 from models.standard_actions import build_standard_actions
 from models.inventory_service import cp_to_coins, current_wealth_cp
 
@@ -1348,19 +1349,8 @@ class CharacterSheetPDF(FPDF):
         """Draw languages box."""
         c = self.c
 
-        languages = ["Common"]
-        if c.species:
-            for trait in (c.species.get("features", []) or c.species.get("traits", [])):
-                name_lower = trait["name"].lower()
-                if "language" in name_lower or "tongue" in name_lower:
-                    desc = trait.get("description", "")
-                    if desc:
-                        languages.append(desc[:60])
-        if len(languages) == 1:
-            languages.append("Common Sign Language")
-            languages.append("(Choose 1 more)")
-
-        lang_text = ", ".join(languages)
+        lang_list = all_languages(c)
+        lang_text = ", ".join(lang_list) if lang_list else "Common"
 
         # Estimate height
         self._sans("B", 7)

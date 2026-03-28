@@ -11,12 +11,14 @@ from gui.widgets import AlertDialog
 from gui.step_species import SpeciesStep
 from gui.step_class import ClassStep
 from gui.step_background import BackgroundStep
+from gui.step_languages import LanguagesStep
 from gui.step_ability_scores import AbilityScoresStep
 from gui.step_feat import FeatStep
 from gui.step_spells import SpellsStep
 from gui.step_equipment import EquipmentStep
 from gui.step_biography import BiographyStep
 from gui.step_summary import SummaryStep
+from models.language_utils import compute_language_sources
 
 from gui.home_screen import HomeScreen
 from gui.character_viewer import CharacterViewer
@@ -26,6 +28,7 @@ _WIZARD_STEPS = [
     ("species", "Species", "\U0001F9EC", SpeciesStep),
     ("class", "Class", "\u2694\ufe0f", ClassStep),
     ("background", "Background", "\U0001F4DC", BackgroundStep),
+    ("languages", "Languages", "\U0001F5E3", LanguagesStep),
     ("abilities", "Ability Scores", "\U0001F3B2", AbilityScoresStep),
     ("feat", "Feat", "\u2B50", FeatStep),
     ("spells", "Spells", "\u2728", SpellsStep),
@@ -34,7 +37,7 @@ _WIZARD_STEPS = [
     ("summary", "Summary", "\u2705", SummaryStep),
 ]
 
-SPELLS_INDEX = 5  # index of spells step in _WIZARD_STEPS
+SPELLS_INDEX = 6  # index of spells step in _WIZARD_STEPS
 
 
 class CharacterCreatorApp:
@@ -312,6 +315,17 @@ class CharacterCreatorApp:
                 "Species Choice Required",
                 f"{species_name} requires an additional choice before moving on. "
                 "Please pick one option in the species details panel.",
+            )
+        elif isinstance(step, LanguagesStep):
+            sources = compute_language_sources(self.character)
+            chosen = len(self.character.chosen_languages)
+            needed = sources["free_count"]
+            lang_word = "language" if needed == 1 else "languages"
+            AlertDialog(
+                self.root,
+                "Language Selection Required",
+                f"Choose {needed} {lang_word} before moving on. "
+                f"({chosen}/{needed} selected)",
             )
         elif isinstance(step, SpellsStep):
             cls = self.character.character_class or {}

@@ -22,7 +22,8 @@ from models.standard_actions import (
     get_selected_non_weapon_items,
     get_selected_weapon_counts,
 )
-from gui.widgets import AlertDialog, WrappingLabel, FormattedDescription
+from gui.widgets import AlertDialog, WrappingLabel, FormattedDescription, Chip
+from models.language_utils import all_languages
 from models.inventory_service import (
     base_wealth_cp,
     cp_to_coins,
@@ -537,6 +538,19 @@ def build_character_sheet(
                     text=f"    {b['name']}: {b.get('description', '')}",
                     foreground=COLORS["fg_dim"],
                 ).pack(fill=tk.X, anchor="w", padx=8, pady=1)
+
+    # ── Languages ───────────────────────────────────────────────
+    if _show("languages"):
+        lang_list = all_languages(c)
+        if lang_list:
+            lang_sec = ttk.LabelFrame(parent, text="Languages")
+            lang_sec.pack(fill=tk.X, pady=section_pady)
+            chip_row = ttk.Frame(lang_sec)
+            chip_row.pack(fill=tk.X, anchor="w", padx=8, pady=4)
+            for lang in lang_list:
+                Chip(chip_row, text=lang, style="default").pack(
+                    side=tk.LEFT, padx=(0, 4), pady=2
+                )
 
     # ── Spells ──────────────────────────────────────────────────
     if _show("spells") and (c.selected_cantrips or c.selected_spells):

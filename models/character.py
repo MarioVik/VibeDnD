@@ -87,6 +87,9 @@ class Character:
     wealth_adjust_cp: int = 0
     inventory_transactions: list[dict] = field(default_factory=list)
 
+    # Languages
+    chosen_languages: list[str] = field(default_factory=list)
+
     # Level progression
     class_levels: list[ClassLevel] = field(default_factory=list)
 
