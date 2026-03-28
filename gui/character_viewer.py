@@ -2494,7 +2494,8 @@ class CharacterViewer(ttk.Frame):
             command=self._toggle_equip_selected,
             state=tk.DISABLED,
         )
-        self._inv_equip_btn.pack(side=tk.LEFT, padx=(0, 6))
+        # Starts hidden; shown only when an equippable item is selected
+
 
         self.remove_one_btn = ttk.Button(
             actions,
@@ -2639,7 +2640,7 @@ class CharacterViewer(ttk.Frame):
         self._selected_inventory_name = ""
         self.remove_one_btn.configure(state=tk.DISABLED)
         self.remove_all_btn.configure(state=tk.DISABLED)
-        self._inv_equip_btn.configure(state=tk.DISABLED)
+        self._inv_equip_btn.pack_forget()
         self.inventory_detail_title.configure(text="No items")
         self._set_inventory_detail_text("No inventory items available.")
 
@@ -2739,8 +2740,9 @@ class CharacterViewer(ttk.Frame):
         if entry.get("equippable"):
             btn_text = "Unequip" if entry.get("equipped") else "Equip"
             self._inv_equip_btn.configure(state=tk.NORMAL, text=btn_text)
+            self._inv_equip_btn.pack(side=tk.LEFT, padx=(0, 6), before=self.remove_one_btn)
         else:
-            self._inv_equip_btn.configure(state=tk.DISABLED, text="Equip")
+            self._inv_equip_btn.pack_forget()
         self._show_inventory_details(entry)
 
     def _find_item_record(self, entry: dict) -> dict | None:
