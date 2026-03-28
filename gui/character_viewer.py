@@ -67,7 +67,7 @@ _NAV_ITEMS = [
     {"key": _SPELLBOOK, "text": "Spellbook", "icon": "\u2726"},
     {"key": _INVENTORY, "text": "Inventory", "icon": "\u229e"},
     {"key": _FEATURES, "text": "Features", "icon": "\u2605"},
-    {"key": _BACKSTORY, "text": "Backstory", "icon": "\u270E"},
+    {"key": _BACKSTORY, "text": "Biography", "icon": "\u270E"},
 ]
 
 
@@ -1648,47 +1648,29 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_hero"],
         ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
 
-        # 2x2 grid layout: 4 even tiles
+        # Grid layout: Portrait + desc/personality on top, backstory full-width bottom
         inner.columnconfigure(0, weight=1)
         inner.columnconfigure(1, weight=1)
         inner.rowconfigure(1, weight=1)
         inner.rowconfigure(2, weight=1)
 
-        # Top-left: Backstory
-        tl = tk.Frame(inner, bg=COLORS["bg"])
-        tl.grid(row=1, column=0, sticky="nsew", padx=(SPACING["lg"], SPACING["sm"]), pady=(0, SPACING["sm"]))
-        tl.columnconfigure(0, weight=1)
-        tl.rowconfigure(1, weight=1)
-        SectionHeader(tl, text="Character Backstory").pack(fill=tk.X, pady=(0, 4))
-        self.bio_backstory_text = self._make_bio_textbox(tl)
-        self.bio_backstory_text.pack(fill=tk.BOTH, expand=True)
+        # Top-left: Portrait
+        portrait = tk.Frame(inner, bg=COLORS["bg_surface"])
+        portrait.grid(row=1, column=0, sticky="nsew", padx=(SPACING["lg"], SPACING["sm"]), pady=(0, SPACING["sm"]))
+        portrait.columnconfigure(0, weight=1)
+        self._bio_portrait_frame = portrait
 
-        # Top-right: Personality
-        tr = tk.Frame(inner, bg=COLORS["bg"])
-        tr.grid(row=1, column=1, sticky="nsew", padx=(SPACING["sm"], 16), pady=(0, SPACING["sm"]))
-        tr.columnconfigure(0, weight=1)
-        tr.rowconfigure(1, weight=1)
-        SectionHeader(tr, text="Personality").pack(fill=tk.X, pady=(0, 4))
-        self.bio_personality_text = self._make_bio_textbox(tr)
-        self.bio_personality_text.pack(fill=tk.BOTH, expand=True)
-
-        # Bottom-left: Portrait
-        right = tk.Frame(inner, bg=COLORS["bg_surface"])
-        right.grid(row=2, column=0, sticky="nsew", padx=(SPACING["lg"], SPACING["sm"]), pady=(SPACING["sm"], SPACING["lg"]))
-        right.columnconfigure(0, weight=1)
-        self._bio_portrait_frame = right
-
-        SectionHeader(right, text="Portrait").pack(fill=tk.X, pady=(0, 4))
+        SectionHeader(portrait, text="Portrait").pack(fill=tk.X, pady=(0, 4))
 
         self.bio_image_canvas = tk.Canvas(
-            right,
+            portrait,
             width=260,
             height=100,
             bg=COLORS["bg_container"],
             highlightthickness=0,
             relief=tk.FLAT,
         )
-        self.bio_image_canvas.pack(padx=12, pady=(0, 8))
+        self.bio_image_canvas.pack(padx=12, pady=(0, 8), fill=tk.BOTH, expand=True)
         self.bio_image_canvas.create_text(
             130,
             50,
@@ -1699,9 +1681,9 @@ class CharacterViewer(ttk.Frame):
             tags=("placeholder",),
         )
         self._last_bio_portrait_width = 0
-        right.bind("<Configure>", self._on_bio_portrait_frame_configure)
+        portrait.bind("<Configure>", self._on_bio_portrait_frame_configure)
 
-        btns = tk.Frame(right, bg=COLORS["bg_surface"])
+        btns = tk.Frame(portrait, bg=COLORS["bg_surface"])
         btns.pack(pady=(0, 12))
         ttk.Button(
             btns, text="Choose Image...", command=self._choose_biography_image
@@ -1710,14 +1692,31 @@ class CharacterViewer(ttk.Frame):
             side=tk.LEFT, padx=(4, 0)
         )
 
-        # Bottom-right: Physical Description
-        br = tk.Frame(inner, bg=COLORS["bg"])
-        br.grid(row=2, column=1, sticky="nsew", padx=(SPACING["sm"], 16), pady=(SPACING["sm"], SPACING["lg"]))
-        br.columnconfigure(0, weight=1)
-        br.rowconfigure(1, weight=1)
-        SectionHeader(br, text="Physical Description").pack(fill=tk.X, pady=(0, 4))
-        self.bio_description_text = self._make_bio_textbox(br)
-        self.bio_description_text.pack(fill=tk.BOTH, expand=True)
+        # Top-right: Physical Description + Personality stacked
+        right_stack = tk.Frame(inner, bg=COLORS["bg"])
+        right_stack.grid(row=1, column=1, sticky="nsew", padx=(SPACING["sm"], 16), pady=(0, SPACING["sm"]))
+        right_stack.columnconfigure(0, weight=1)
+        right_stack.rowconfigure(1, weight=1)
+        right_stack.rowconfigure(3, weight=1)
+
+        SectionHeader(right_stack, text="Physical Description").grid(row=0, column=0, sticky="ew", pady=(0, 4))
+        self.bio_description_text = self._make_bio_textbox(right_stack)
+        self.bio_description_text.configure(height=4)
+        self.bio_description_text.grid(row=1, column=0, sticky="nsew", pady=(0, SPACING["sm"]))
+
+        SectionHeader(right_stack, text="Personality").grid(row=2, column=0, sticky="ew", pady=(0, 4))
+        self.bio_personality_text = self._make_bio_textbox(right_stack)
+        self.bio_personality_text.configure(height=4)
+        self.bio_personality_text.grid(row=3, column=0, sticky="nsew")
+
+        # Bottom: Character Backstory (full width)
+        bottom = tk.Frame(inner, bg=COLORS["bg"])
+        bottom.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=(SPACING["lg"], 16), pady=(SPACING["sm"], SPACING["lg"]))
+        bottom.columnconfigure(0, weight=1)
+        bottom.rowconfigure(1, weight=1)
+        SectionHeader(bottom, text="Character Backstory").pack(fill=tk.X, pady=(0, 4))
+        self.bio_backstory_text = self._make_bio_textbox(bottom)
+        self.bio_backstory_text.pack(fill=tk.BOTH, expand=True)
 
         for widget in (
             self.bio_backstory_text,
