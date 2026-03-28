@@ -102,14 +102,8 @@ def _spell_swap_mode(character) -> str | None:
 
 
 def can_long_rest(character) -> bool:
-    """Return True if this character has anything to do on a Long Rest."""
-    if _has_swappable_features(character, "long"):
-        return True
-    if _is_prepared_caster(character) and character.selected_spells:
-        return True
-    if _can_swap_cantrips_on_rest(character):
-        return True
-    return False
+    """Return True — every character benefits from a Long Rest (HP restoration)."""
+    return True
 
 
 class RestDialog(tk.Toplevel):
@@ -131,19 +125,6 @@ class RestDialog(tk.Toplevel):
         self.resizable(True, True)
         self.configure(bg=COLORS["bg"])
 
-        # Center over parent, same pattern as LevelUpWizard
-        self.update_idletasks()
-        width, height = 1400, 1000
-        top = parent.winfo_toplevel()
-        px = top.winfo_rootx()
-        py = top.winfo_rooty()
-        pw = top.winfo_width()
-        ph = top.winfo_height()
-        x = max(0, px + (pw - width) // 2)
-        y = max(0, py + (ph - height) // 2)
-        self.geometry(f"{width}x{height}+{x}+{y}")
-        self.minsize(1000, 750)
-
         configure_modal_dialog(self, parent)
 
         # State: maps choice_key -> {new_choice: str, old_choice: str}
@@ -157,13 +138,34 @@ class RestDialog(tk.Toplevel):
         # Multi-step navigation state
         self._current_step = 1
         self._total_steps = 1
+        self._info_step_frame: ttk.Frame | None = None
         self._cantrip_step_frame: ttk.Frame | None = None
         self._spell_step_frame: ttk.Frame | None = None
+        self._single_swap_frame: ttk.Frame | None = None
         self._next_btn: ttk.Button | None = None
         self._back_btn: ttk.Button | None = None
         self._finish_btn: ttk.Button | None = None
 
         self._build_ui(title)
+
+        # Center over parent — done after build so we can size based on step count
+        self.update_idletasks()
+        if self.rest_type == "long" and self._total_steps == 1:
+            # Info-only long rest (no swaps) — smaller dialog
+            width, height = 600, 400
+            min_w, min_h = 500, 350
+        else:
+            width, height = 1400, 1000
+            min_w, min_h = 1000, 750
+        top = parent.winfo_toplevel()
+        px = top.winfo_rootx()
+        py = top.winfo_rooty()
+        pw = top.winfo_width()
+        ph = top.winfo_height()
+        x = max(0, px + (pw - width) // 2)
+        y = max(0, py + (ph - height) // 2)
+        self.geometry(f"{width}x{height}+{x}+{y}")
+        self.minsize(min_w, min_h)
 
     def _build_ui(self, title: str):
         self.columnconfigure(0, weight=1)
@@ -178,13 +180,12 @@ class RestDialog(tk.Toplevel):
             font=FONTS["heading"],
             foreground=COLORS["accent"],
         ).pack(anchor="w")
-        ttk.Label(
-            header,
-            text="Optionally swap features or prepared spells before completing this rest.",
-            foreground=COLORS["fg_dim"],
-        ).pack(anchor="w")
-
-        any_section = False
+        if self.rest_type == "short":
+            ttk.Label(
+                header,
+                text="Optionally swap features before completing this rest.",
+                foreground=COLORS["fg_dim"],
+            ).pack(anchor="w")
 
         # ── Check for feature swap sections ────────────────────────
         all_keys: set[str] = set()
@@ -216,74 +217,91 @@ class RestDialog(tk.Toplevel):
             and self.character.selected_spells
         )
         has_features = bool(feature_keys)
-        use_steps = has_cantrip_swap and has_spells  # multi-page only when both
+        has_any_swap = has_features or has_cantrip_swap or has_spells
+        use_three_steps = has_cantrip_swap and has_spells  # cantrip + spell on separate pages
 
         # Content area row (row=1) gets all the weight
         self.rowconfigure(1, weight=1)
 
-        if use_steps:
-            # ── Multi-step: cantrip page and spell page ────────────
-            any_section = True
+        # ── Step 1 (long rest): Info summary ─────────────────────────
+        if self.rest_type == "long":
+            self._info_step_frame = ttk.Frame(self)
+            self._build_info_step(
+                self._info_step_frame,
+                feature_keys=feature_keys,
+                has_cantrip_swap=has_cantrip_swap,
+                has_spells=has_spells,
+            )
 
-            # Step 1: features (if any) + cantrip swap
-            self._cantrip_step_frame = ttk.Frame(self)
-            step1 = self._cantrip_step_frame
-            step1.columnconfigure(0, weight=1)
-            s1_row = 0
-            if has_features:
-                scroll = ScrollableFrame(step1)
-                scroll.grid(row=s1_row, column=0, sticky="nsew", padx=8, pady=2)
-                for key, config, known in feature_keys:
-                    self._build_feature_section(scroll.inner, key, config, known)
-                s1_row += 1
-
-            step1.rowconfigure(s1_row, weight=1)
-            cantrip_frame = ttk.Frame(step1)
-            cantrip_frame.grid(row=s1_row, column=0, sticky="nsew", padx=8, pady=2)
-            self._build_cantrip_section(cantrip_frame)
-
-            # Step 2: leveled spell swap
-            self._spell_step_frame = ttk.Frame(self)
-            step2 = self._spell_step_frame
-            step2.columnconfigure(0, weight=1)
-            step2.rowconfigure(0, weight=1)
-            spell_frame = ttk.Frame(step2)
-            spell_frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=2)
-            self._build_spell_section(spell_frame)
-
-            self._total_steps = 2
-        else:
-            # ── Single page: all sections stacked ──────────────────
-            next_row = 1
-            if has_features:
-                any_section = True
-                scroll = ScrollableFrame(self)
-                scroll.grid(row=next_row, column=0, sticky="nsew", padx=8, pady=2)
-                for key, config, known in feature_keys:
-                    self._build_feature_section(scroll.inner, key, config, known)
-                next_row += 1
-
-            if has_cantrip_swap:
-                any_section = True
-                cantrip_frame = ttk.Frame(self)
-                cantrip_frame.grid(row=next_row, column=0, sticky="nsew", padx=8, pady=2)
+        # ── Build swap step frames (only for long rest with swaps) ─
+        if has_any_swap and self.rest_type == "long":
+            if use_three_steps:
+                # Step 2: features (if any) + cantrip swap
+                self._cantrip_step_frame = ttk.Frame(self)
+                step_c = self._cantrip_step_frame
+                step_c.columnconfigure(0, weight=1)
+                s_row = 0
+                if has_features:
+                    scroll = ScrollableFrame(step_c)
+                    scroll.grid(row=s_row, column=0, sticky="nsew", padx=8, pady=2)
+                    for key, config, known in feature_keys:
+                        self._build_feature_section(scroll.inner, key, config, known)
+                    s_row += 1
+                step_c.rowconfigure(s_row, weight=1)
+                cantrip_frame = ttk.Frame(step_c)
+                cantrip_frame.grid(row=s_row, column=0, sticky="nsew", padx=8, pady=2)
                 self._build_cantrip_section(cantrip_frame)
-                next_row += 1
 
-            if has_spells:
-                any_section = True
-                self.rowconfigure(next_row, weight=1)
-                spell_frame = ttk.Frame(self)
-                spell_frame.grid(row=next_row, column=0, sticky="nsew", padx=8, pady=2)
+                # Step 3: leveled spell swap
+                self._spell_step_frame = ttk.Frame(self)
+                step_s = self._spell_step_frame
+                step_s.columnconfigure(0, weight=1)
+                step_s.rowconfigure(0, weight=1)
+                spell_frame = ttk.Frame(step_s)
+                spell_frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=2)
                 self._build_spell_section(spell_frame)
-                next_row += 1
 
-            if not any_section:
-                ttk.Label(
-                    self,
-                    text="Nothing to swap on this rest.",
-                    foreground=COLORS["fg_dim"],
-                ).grid(row=1, column=0, pady=20)
+                self._total_steps = 3
+            else:
+                # Step 2: all swap sections stacked on one page
+                self._single_swap_frame = ttk.Frame(self)
+                sf = self._single_swap_frame
+                sf.columnconfigure(0, weight=1)
+                sf_row = 0
+                if has_features:
+                    scroll = ScrollableFrame(sf)
+                    scroll.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
+                    for key, config, known in feature_keys:
+                        self._build_feature_section(scroll.inner, key, config, known)
+                    sf_row += 1
+                if has_cantrip_swap:
+                    cantrip_frame = ttk.Frame(sf)
+                    cantrip_frame.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
+                    self._build_cantrip_section(cantrip_frame)
+                    sf_row += 1
+                if has_spells:
+                    sf.rowconfigure(sf_row, weight=1)
+                    spell_frame = ttk.Frame(sf)
+                    spell_frame.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
+                    self._build_spell_section(spell_frame)
+                    sf_row += 1
+
+                self._total_steps = 2
+        elif has_any_swap and self.rest_type == "short":
+            # Short rest: single swap page (no info step for short rests)
+            self._single_swap_frame = ttk.Frame(self)
+            sf = self._single_swap_frame
+            sf.columnconfigure(0, weight=1)
+            sf_row = 0
+            if has_features:
+                scroll = ScrollableFrame(sf)
+                scroll.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
+                for key, config, known in feature_keys:
+                    self._build_feature_section(scroll.inner, key, config, known)
+                sf_row += 1
+            # Short rest has no cantrip or spell swaps — only features
+            self._single_swap_frame.grid(row=1, column=0, sticky="nsew")
+            self._total_steps = 1
 
         # ── Footer ──────────────────────────────────────────────────
         footer = ttk.Frame(self)
@@ -291,7 +309,7 @@ class RestDialog(tk.Toplevel):
 
         self._back_btn = ttk.Button(footer, text="\u25C0 Back", command=self._go_back)
         self._next_btn = ttk.Button(
-            footer, text="Next: Swap Spells \u25B6", command=self._go_next
+            footer, text="Next \u25B6", command=self._go_next
         )
         self._finish_btn = ttk.Button(
             footer,
@@ -305,22 +323,87 @@ class RestDialog(tk.Toplevel):
             command=self.destroy,
         ).pack(side=tk.LEFT)
 
-        if use_steps:
-            self._show_rest_step(1)
-        else:
+        if self.rest_type == "short":
+            # Short rest — no info step, just finish button
             self._finish_btn.pack(side=tk.RIGHT, padx=(4, 0))
+        else:
+            # Long rest — always starts with info step
+            self._show_rest_step(1)
+
+    # ── Info summary step ────────────────────────────────────────
+
+    def _build_info_step(self, parent, *, feature_keys, has_cantrip_swap, has_spells):
+        """Build the long rest info summary as step 1."""
+        parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(0, weight=1)
+
+        inner = ttk.Frame(parent)
+        inner.grid(row=0, column=0, sticky="nsew", padx=24, pady=12)
+        inner.columnconfigure(0, weight=1)
+
+        ttk.Label(
+            inner,
+            text="When you complete this rest:",
+            font=FONTS["heading"],
+            foreground=COLORS["fg"],
+        ).grid(row=0, column=0, sticky="w", pady=(0, 12))
+
+        effects: list[str] = []
+
+        # HP restoration
+        cur = self.character.effective_current_hp
+        max_hp = self.character.hit_points
+        if cur < max_hp:
+            effects.append(f"Hit points restored to full ({cur} \u2192 {max_hp})")
+        else:
+            effects.append(f"Hit points are already full ({max_hp}/{max_hp})")
+
+        # Temp HP
+        if self.character.temp_hit_points > 0:
+            effects.append(
+                f"Temporary hit points ({self.character.temp_hit_points}) will be lost"
+            )
+
+        # Feature swaps
+        for _key, config, _known in feature_keys:
+            label = config.get("choice_label", "feature")
+            effects.append(f"You may swap one {label}")
+
+        # Cantrip swap
+        if has_cantrip_swap:
+            effects.append("You may swap one cantrip")
+
+        # Spell swap
+        if has_spells:
+            mode = self._spell_swap_mode or "one"
+            if mode == "all":
+                effects.append("You may change any number of your prepared spells")
+            else:
+                effects.append("You may swap one prepared spell")
+
+        for i, text in enumerate(effects):
+            ttk.Label(
+                inner,
+                text=f"\u2022  {text}",
+                foreground=COLORS["fg"],
+                wraplength=500,
+            ).grid(row=i + 1, column=0, sticky="w", padx=(12, 0), pady=2)
 
     # ── Step navigation ──────────────────────────────────────────
 
     def _show_rest_step(self, step: int):
-        """Show the given step (1 or 2) and update navigation buttons."""
+        """Show the given step and update navigation buttons."""
         self._current_step = step
 
-        # Hide both step frames
-        if self._cantrip_step_frame:
-            self._cantrip_step_frame.grid_forget()
-        if self._spell_step_frame:
-            self._spell_step_frame.grid_forget()
+        # Hide all step frames
+        for frame in (
+            self._info_step_frame,
+            self._cantrip_step_frame,
+            self._spell_step_frame,
+            self._single_swap_frame,
+        ):
+            if frame:
+                frame.grid_forget()
 
         # Hide nav buttons
         self._back_btn.pack_forget()
@@ -328,10 +411,29 @@ class RestDialog(tk.Toplevel):
         self._finish_btn.pack_forget()
 
         if step == 1:
-            self._cantrip_step_frame.grid(row=1, column=0, sticky="nsew")
-            self._next_btn.pack(side=tk.RIGHT, padx=(4, 0))
+            # Info step (always first for long rests)
+            if self._info_step_frame:
+                self._info_step_frame.grid(row=1, column=0, sticky="nsew")
+            if self._total_steps == 1:
+                self._finish_btn.pack(side=tk.RIGHT, padx=(4, 0))
+            else:
+                self._next_btn.pack(side=tk.RIGHT, padx=(4, 0))
         elif step == 2:
-            self._spell_step_frame.grid(row=1, column=0, sticky="nsew")
+            self._back_btn.pack(side=tk.LEFT)
+            if self._total_steps == 2:
+                # Single swap page
+                if self._single_swap_frame:
+                    self._single_swap_frame.grid(row=1, column=0, sticky="nsew")
+                self._finish_btn.pack(side=tk.RIGHT, padx=(4, 0))
+            elif self._total_steps == 3:
+                # Cantrip step (3-step flow)
+                if self._cantrip_step_frame:
+                    self._cantrip_step_frame.grid(row=1, column=0, sticky="nsew")
+                self._next_btn.pack(side=tk.RIGHT, padx=(4, 0))
+        elif step == 3:
+            # Spell step (3-step flow)
+            if self._spell_step_frame:
+                self._spell_step_frame.grid(row=1, column=0, sticky="nsew")
             self._back_btn.pack(side=tk.LEFT)
             self._finish_btn.pack(side=tk.RIGHT, padx=(4, 0))
 
@@ -606,6 +708,12 @@ class RestDialog(tk.Toplevel):
 
     def _on_confirm(self):
         changed = False
+
+        # Apply HP restoration (Long Rest)
+        if self.rest_type == "long":
+            self.character.current_hit_points = None  # reset to full
+            self.character.temp_hit_points = 0
+            changed = True
 
         # Apply feature swaps
         for key, swap_data in self._swaps.items():
