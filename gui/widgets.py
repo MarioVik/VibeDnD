@@ -240,14 +240,21 @@ def _dispatch_command_touchpad_scroll(event):
 
 
 def _bind_wheel_sequences(bind_fn):
-    bind_fn("<MouseWheel>", _dispatch_mousewheel)
-    bind_fn("<TouchpadScroll>", _dispatch_touchpad_scroll)
-    bind_fn("<Shift-MouseWheel>", _dispatch_shift_mousewheel)
-    bind_fn("<Shift-TouchpadScroll>", _dispatch_shift_touchpad_scroll)
-    bind_fn("<Option-MouseWheel>", _dispatch_option_mousewheel)
-    bind_fn("<Option-TouchpadScroll>", _dispatch_option_touchpad_scroll)
-    bind_fn("<Command-MouseWheel>", _dispatch_command_mousewheel)
-    bind_fn("<Command-TouchpadScroll>", _dispatch_command_touchpad_scroll)
+    sequences = [
+        ("<MouseWheel>", _dispatch_mousewheel),
+        ("<TouchpadScroll>", _dispatch_touchpad_scroll),
+        ("<Shift-MouseWheel>", _dispatch_shift_mousewheel),
+        ("<Shift-TouchpadScroll>", _dispatch_shift_touchpad_scroll),
+        ("<Option-MouseWheel>", _dispatch_option_mousewheel),
+        ("<Option-TouchpadScroll>", _dispatch_option_touchpad_scroll),
+        ("<Command-MouseWheel>", _dispatch_command_mousewheel),
+        ("<Command-TouchpadScroll>", _dispatch_command_touchpad_scroll),
+    ]
+    for seq, handler in sequences:
+        try:
+            bind_fn(seq, handler)
+        except tk.TclError:
+            pass
 
 
 def _dispatch_button4(event):
