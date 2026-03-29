@@ -179,7 +179,7 @@ class HomeScreen:
         back_arrow = tk.Label(
             title_row,
             text="\u25c0",
-            font=FONTS["archive_title"],
+            font=FONTS["archive_back"],
             fg=COLORS["fg"],
             bg=COLORS["bg"],
             cursor="hand2",
@@ -241,7 +241,7 @@ class HomeScreen:
             inner_padding=0,
             auto_hide_scrollbar=True,
         )
-        self._archive_scroll.pack(fill=tk.BOTH, expand=True)
+        self._archive_scroll.pack(fill=tk.BOTH, expand=True, pady=(24, 0))
         self._archive_scroll.canvas.configure(bg=COLORS["bg"])
         self._archive_scroll.inner.configure(style="TFrame")
         self._archive_scroll.canvas.bind("<Configure>", self._on_archive_canvas_configure)
