@@ -731,7 +731,9 @@ class HomeScreen:
             box = (left, 0, left + crop_w, src_h)
         else:
             crop_h = int(src_w / target_ratio)
-            top = max((src_h - crop_h) // 2, 0)
+            # For tall portraits in archive tiles, preserve the top of the image
+            # and trim the overflow from the bottom.
+            top = 0
             box = (0, top, src_w, top + crop_h)
 
         try:
