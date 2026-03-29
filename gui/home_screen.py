@@ -474,10 +474,11 @@ class HomeScreen:
         )
         self._add_archive_delete_control(art, info["path"], width=width)
 
-        body = tk.Frame(card, bg=COLORS["bg_surface"], padx=24, pady=22)
+        body = tk.Frame(card, bg=COLORS["bg_surface"], padx=24, pady=14)
         body.grid(row=1, column=0, sticky="nsew")
         body.grid_columnconfigure(0, weight=1)
         body.grid_rowconfigure(0, weight=1)
+        body.grid_rowconfigure(3, weight=1)
 
         name_label = tk.Label(
             body,
@@ -488,7 +489,7 @@ class HomeScreen:
             anchor="w",
             justify=tk.LEFT,
         )
-        name_label.grid(row=0, column=0, sticky="sw")
+        name_label.grid(row=1, column=0, sticky="nw", pady=(0, 0))
 
         summary = (
             f"LEVEL {info.get('level', 1)} "
@@ -504,7 +505,7 @@ class HomeScreen:
             anchor="w",
             justify=tk.LEFT,
         )
-        summary_label.grid(row=1, column=0, sticky="sw", pady=(10, 0))
+        summary_label.grid(row=2, column=0, sticky="nw", pady=(10, 0))
 
         def on_enter(_event):
             card.configure(bg=COLORS["bg_high"], highlightbackground=COLORS["gold_dark"])
