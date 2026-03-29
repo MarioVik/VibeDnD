@@ -23,8 +23,8 @@ class HomeScreen:
     _ACTION_CARD_WIDTH = 380
     _ACTION_CARD_HEIGHT = 238
     _ARCHIVE_CARD_WIDTH = 320
-    _ARCHIVE_CARD_HEIGHT = 418
-    _ARCHIVE_ART_HEIGHT = 218
+    _ARCHIVE_CARD_HEIGHT = 468
+    _ARCHIVE_ART_HEIGHT = 328
     _ARCHIVE_CARD_GAP = 18
     _MAX_ARCHIVE_COLUMNS = 3
 
@@ -65,7 +65,6 @@ class HomeScreen:
     def refresh_archive(self):
         """Reload the archive list from disk."""
         self._archive_chars = list_saved_characters(characters_dir())
-        self._count_label.configure(text=f"{len(self._archive_chars)} saved")
         if self._archive_chars:
             if self._empty_note.winfo_manager():
                 self._empty_note.pack_forget()
@@ -106,7 +105,7 @@ class HomeScreen:
 
         tk.Label(
             self._landing_content,
-            text="THE ARCHIVIST'S EDGE",
+            text="Vibe Dungeoneering",
             font=FONTS["hero_eyebrow"],
             fg=COLORS["accent_text"],
             bg=COLORS["bg"],
@@ -185,27 +184,14 @@ class HomeScreen:
         back_btn.pack(anchor="w", pady=(0, 14))
         back_btn.bind("<Button-1>", lambda _event: self.app.show_home())
 
-        title_row = tk.Frame(header, bg=COLORS["bg"])
-        title_row.pack(fill=tk.X)
-
         tk.Label(
-            title_row,
+            header,
             text="The Archives",
             font=FONTS["archive_title"],
             fg=COLORS["fg"],
             bg=COLORS["bg"],
             anchor="w",
-        ).pack(side=tk.LEFT)
-
-        self._count_label = tk.Label(
-            title_row,
-            text="",
-            font=FONTS["label_upper"],
-            fg=COLORS["fg_dim"],
-            bg=COLORS["bg"],
-            anchor="e",
-        )
-        self._count_label.pack(side=tk.RIGHT, pady=(10, 0))
+        ).pack(anchor="w")
 
         tk.Label(
             header,
@@ -311,14 +297,6 @@ class HomeScreen:
         )
         token.pack(side=tk.LEFT)
 
-        tk.Label(
-            top_row,
-            text="->",
-            font=FONTS["heading"],
-            fg=COLORS["fg_dim"],
-            bg=COLORS["bg_highest"],
-        ).pack(side=tk.RIGHT)
-
         bottom = tk.Frame(inner, bg=COLORS["bg_highest"])
         bottom.pack(side=tk.BOTTOM, fill=tk.X)
 
@@ -401,13 +379,13 @@ class HomeScreen:
 
         available_width = max(self._archive_scroll.canvas.winfo_width() - 2, 1)
         if self._archive_chars:
-            columns = max(
-                1,
-                min(
-                    self._MAX_ARCHIVE_COLUMNS,
-                    available_width // (self._ARCHIVE_CARD_WIDTH + self._ARCHIVE_CARD_GAP),
-                ),
-            )
+            total_tiles = len(self._archive_chars) + 1  # include import tile
+            if available_width >= 980:
+                columns = min(self._MAX_ARCHIVE_COLUMNS, total_tiles)
+            elif available_width >= 640:
+                columns = min(2, total_tiles)
+            else:
+                columns = 1
         else:
             columns = 1
         self._archive_columns = columns
@@ -416,11 +394,8 @@ class HomeScreen:
             self._archive_grid.grid_columnconfigure(column, weight=1, uniform="archive")
 
         card_width = max(
-            280,
-            min(
-                self._ARCHIVE_CARD_WIDTH + 26,
-                (available_width - ((columns - 1) * self._ARCHIVE_CARD_GAP)) // columns,
-            ),
+            self._ARCHIVE_CARD_WIDTH,
+            (available_width - ((columns - 1) * self._ARCHIVE_CARD_GAP)) // columns,
         )
 
         tiles: list[tuple[str, dict | None]] = [("character", info) for info in self._archive_chars]
@@ -475,15 +450,17 @@ class HomeScreen:
             info=info,
             width=width,
             height=self._ARCHIVE_ART_HEIGHT,
+            surface_fill=COLORS["bg_surface"],
+            placeholder_fill=COLORS["bg_high"],
         )
         self._add_archive_delete_control(art, info["path"], width=width)
 
         body = tk.Frame(card, bg=COLORS["bg_surface"], padx=24, pady=22)
         body.grid(row=1, column=0, sticky="nsew")
         body.grid_columnconfigure(0, weight=1)
-        body.grid_rowconfigure(2, weight=1)
+        body.grid_rowconfigure(0, weight=1)
 
-        tk.Label(
+        name_label = tk.Label(
             body,
             text=info.get("name", "Unknown"),
             font=FONTS["card_title_lg"],
@@ -491,14 +468,15 @@ class HomeScreen:
             bg=COLORS["bg_surface"],
             anchor="w",
             justify=tk.LEFT,
-        ).grid(row=0, column=0, sticky="w")
+        )
+        name_label.grid(row=0, column=0, sticky="sw")
 
         summary = (
             f"LEVEL {info.get('level', 1)} "
             f"{str(info.get('species', '?')).upper()} "
             f"{str(info.get('class_name', '?')).upper()}"
         )
-        tk.Label(
+        summary_label = tk.Label(
             body,
             text=summary,
             font=FONTS["label_upper_bold"],
@@ -506,14 +484,45 @@ class HomeScreen:
             bg=COLORS["bg_surface"],
             anchor="w",
             justify=tk.LEFT,
-        ).grid(row=1, column=0, sticky="w", pady=(10, 0))
+        )
+        summary_label.grid(row=1, column=0, sticky="sw", pady=(10, 0))
 
-        ttk.Button(
-            body,
-            text="LOAD CHARACTER",
-            style="HomeLoad.TButton",
-            command=lambda p=info["path"]: self._on_view(p),
-        ).grid(row=2, column=0, sticky="ew", pady=(22, 0))
+        def on_enter(_event):
+            card.configure(bg=COLORS["bg_high"], highlightbackground=COLORS["gold_dark"])
+            body.configure(bg=COLORS["bg_high"])
+            name_label.configure(bg=COLORS["bg_high"])
+            summary_label.configure(bg=COLORS["bg_high"])
+            self._render_archive_art(
+                art,
+                info=info,
+                width=width,
+                height=self._ARCHIVE_ART_HEIGHT,
+                surface_fill=COLORS["bg_high"],
+                placeholder_fill=COLORS["bg_highest"],
+            )
+            self._add_archive_delete_control(art, info["path"], width=width)
+
+        def on_leave(_event):
+            card.configure(bg=COLORS["bg_surface"], highlightbackground=COLORS["border_medium"])
+            body.configure(bg=COLORS["bg_surface"])
+            name_label.configure(bg=COLORS["bg_surface"])
+            summary_label.configure(bg=COLORS["bg_surface"])
+            self._render_archive_art(
+                art,
+                info=info,
+                width=width,
+                height=self._ARCHIVE_ART_HEIGHT,
+                surface_fill=COLORS["bg_surface"],
+                placeholder_fill=COLORS["bg_high"],
+            )
+            self._add_archive_delete_control(art, info["path"], width=width)
+
+        self._bind_clickable(
+            card,
+            lambda p=info["path"]: self._on_view(p),
+            on_enter,
+            on_leave,
+        )
 
         return card
 
@@ -528,19 +537,20 @@ class HomeScreen:
             cursor="hand2",
         )
         tile.grid_propagate(False)
+        tile.pack_propagate(False)
 
-        inner = tk.Frame(tile, bg=COLORS["bg"], padx=28, pady=28)
-        inner.pack(fill=tk.BOTH, expand=True)
+        inner = tk.Frame(tile, bg=COLORS["bg"])
+        inner.place(relx=0.5, rely=0.5, anchor="center")
 
         icon = tk.Canvas(
             inner,
-            width=72,
-            height=72,
+            width=96,
+            height=96,
             bg=COLORS["bg_highest"],
             highlightthickness=0,
             bd=0,
         )
-        icon.pack(pady=(72, 28))
+        icon.pack(pady=(0, 28))
         self._draw_import_icon(icon)
 
         tk.Label(
@@ -549,6 +559,7 @@ class HomeScreen:
             font=FONTS["card_title_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg"],
+            justify=tk.CENTER,
         ).pack()
 
         tk.Label(
@@ -557,11 +568,13 @@ class HomeScreen:
             font=FONTS["label_upper_bold"],
             fg=COLORS["fg_dim"],
             bg=COLORS["bg"],
-        ).pack(pady=(12, 0))
+            justify=tk.CENTER,
+        ).pack(pady=(16, 0))
 
         def on_enter(_event):
             tile.configure(bg=COLORS["bg_surface"], highlightbackground=COLORS["outline_dim"])
             inner.configure(bg=COLORS["bg_surface"])
+            icon.configure(bg=COLORS["bg_highest"])
             for widget in inner.winfo_children():
                 if isinstance(widget, tk.Label):
                     widget.configure(bg=COLORS["bg_surface"])
@@ -569,6 +582,7 @@ class HomeScreen:
         def on_leave(_event):
             tile.configure(bg=COLORS["bg"], highlightbackground=COLORS["border_medium"])
             inner.configure(bg=COLORS["bg"])
+            icon.configure(bg=COLORS["bg_highest"])
             for widget in inner.winfo_children():
                 if isinstance(widget, tk.Label):
                     widget.configure(bg=COLORS["bg"])
@@ -576,7 +590,15 @@ class HomeScreen:
         self._bind_clickable(tile, self._on_import, on_enter, on_leave)
         return tile
 
-    def _render_archive_art(self, canvas, info: dict, width: int, height: int):
+    def _render_archive_art(
+        self,
+        canvas,
+        info: dict,
+        width: int,
+        height: int,
+        surface_fill: str,
+        placeholder_fill: str,
+    ):
         canvas.delete("all")
         photo = self._build_portrait_photo(
             info.get("biography_image_data", ""),
@@ -586,18 +608,9 @@ class HomeScreen:
         if photo is not None:
             canvas.create_image(width // 2, height // 2, image=photo)
             canvas._portrait_photo = photo
-            canvas.create_rectangle(
-                0,
-                height - 64,
-                width,
-                height,
-                fill=COLORS["bg_surface"],
-                stipple="gray50",
-                outline="",
-            )
         else:
-            canvas.configure(bg=COLORS["bg_high"])
-            canvas.create_rectangle(0, 0, width, height, fill=COLORS["bg_high"], outline="")
+            canvas.configure(bg=placeholder_fill)
+            canvas.create_rectangle(0, 0, width, height, fill=placeholder_fill, outline="")
             initial = (info.get("name", "?") or "?")[0].upper()
             canvas.create_text(
                 width // 2,
@@ -615,7 +628,7 @@ class HomeScreen:
             )
 
     def _add_archive_delete_control(self, canvas, path: str, width: int):
-        hitbox = canvas.create_rectangle(
+        canvas.create_rectangle(
             width - 42,
             8,
             width - 8,
@@ -635,20 +648,18 @@ class HomeScreen:
         )
 
         def on_enter(_event):
-            canvas.configure(cursor="hand2")
             canvas.itemconfigure(icon, fill=COLORS["fg"])
 
         def on_leave(_event):
-            canvas.configure(cursor="")
             canvas.itemconfigure(icon, fill=COLORS["fg_dim"])
+
+        def on_click(_event, p=path):
+            self._on_delete(p)
+            return "break"
 
         canvas.tag_bind("delete_control", "<Enter>", on_enter)
         canvas.tag_bind("delete_control", "<Leave>", on_leave)
-        canvas.tag_bind(
-            "delete_control",
-            "<Button-1>",
-            lambda _event, p=path: self._on_delete(p),
-        )
+        canvas.tag_bind("delete_control", "<Button-1>", on_click)
 
     def _build_portrait_photo(self, image_data: str, width: int, height: int):
         if not image_data or Image is None or ImageTk is None:
@@ -682,13 +693,59 @@ class HomeScreen:
 
     def _draw_import_icon(self, canvas):
         canvas.delete("all")
-        canvas.create_oval(0, 0, 72, 72, fill=COLORS["bg_highest"], outline="")
-        canvas.create_line(36, 18, 36, 44, fill=COLORS["accent_text"], width=3)
-        canvas.create_line(27, 29, 36, 18, fill=COLORS["accent_text"], width=3)
-        canvas.create_line(45, 29, 36, 18, fill=COLORS["accent_text"], width=3)
-        canvas.create_line(24, 50, 48, 50, fill=COLORS["accent_text"], width=3)
-        canvas.create_line(24, 50, 24, 42, fill=COLORS["accent_text"], width=3)
-        canvas.create_line(48, 50, 48, 42, fill=COLORS["accent_text"], width=3)
+        size = int(min(float(canvas.cget("width")), float(canvas.cget("height"))))
+        mid = size // 2
+        stroke = max(3, size // 24)
+
+        canvas.create_oval(0, 0, size, size, fill=COLORS["bg_highest"], outline="")
+        canvas.create_line(
+            mid,
+            int(size * 0.25),
+            mid,
+            int(size * 0.60),
+            fill=COLORS["accent_text"],
+            width=stroke,
+        )
+        canvas.create_line(
+            int(size * 0.38),
+            int(size * 0.38),
+            mid,
+            int(size * 0.25),
+            fill=COLORS["accent_text"],
+            width=stroke,
+        )
+        canvas.create_line(
+            int(size * 0.62),
+            int(size * 0.38),
+            mid,
+            int(size * 0.25),
+            fill=COLORS["accent_text"],
+            width=stroke,
+        )
+        canvas.create_line(
+            int(size * 0.34),
+            int(size * 0.70),
+            int(size * 0.66),
+            int(size * 0.70),
+            fill=COLORS["accent_text"],
+            width=stroke,
+        )
+        canvas.create_line(
+            int(size * 0.34),
+            int(size * 0.70),
+            int(size * 0.34),
+            int(size * 0.58),
+            fill=COLORS["accent_text"],
+            width=stroke,
+        )
+        canvas.create_line(
+            int(size * 0.66),
+            int(size * 0.70),
+            int(size * 0.66),
+            int(size * 0.58),
+            fill=COLORS["accent_text"],
+            width=stroke,
+        )
 
     # ------------------------------------------------------------------
     # Actions
@@ -755,9 +812,21 @@ class HomeScreen:
 
             on_leave(event)
 
+        def handle_click(event):
+            current_widget = event.widget
+            if isinstance(current_widget, tk.Canvas):
+                current_items = current_widget.find_withtag("current")
+                if current_items:
+                    tags = current_widget.gettags(current_items[0])
+                    if "delete_control" in tags:
+                        return "break"
+
+            command()
+            return "break"
+
         def recurse(current):
             current.configure(cursor="hand2")
-            current.bind("<Button-1>", lambda _event: command())
+            current.bind("<Button-1>", handle_click)
             current.bind("<Enter>", on_enter or (lambda _event: None))
             current.bind("<Leave>", handle_leave)
             for child in current.winfo_children():

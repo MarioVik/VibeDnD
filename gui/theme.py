@@ -91,7 +91,7 @@ FONTS = {
     "hero_eyebrow": (_SERIF, 14, "italic"),
     "hero_title": (_SERIF, 48, "bold"),
     "hero_title_italic": (_SERIF, 56, "bold italic"),
-    "archive_title": (_SERIF, 42),
+    "archive_title": (_SERIF, 32),
     "card_title_lg": (_SERIF, 22),
     # Sans headings (legacy)
     "heading": (_SANS, 18, "bold"),
