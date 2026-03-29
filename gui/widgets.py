@@ -829,27 +829,32 @@ class SectionedListbox(ttk.Frame):
 class ScrollableFrame(ttk.Frame):
     """A frame with a vertical scrollbar."""
 
-    def __init__(self, parent, inner_padding: int = 16, **kwargs):
+    def __init__(
+        self,
+        parent,
+        inner_padding: int = 16,
+        auto_hide_scrollbar: bool = False,
+        **kwargs,
+    ):
         super().__init__(parent, **kwargs)
         self._inner_pad = inner_padding
+        self._auto_hide_scrollbar = auto_hide_scrollbar
+        self._scrollbar_visible = True
 
         self.canvas = tk.Canvas(
             self, bg=COLORS["bg"], highlightthickness=0, borderwidth=0
         )
-        scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.canvas.yview)
         self.inner = ttk.Frame(self.canvas, padding=inner_padding)
 
-        self.inner.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")),
-        )
+        self.inner.bind("<Configure>", self._on_inner_configure)
         self.canvas_window = self.canvas.create_window(
             (0, 0), window=self.inner, anchor="nw"
         )
-        self.canvas.configure(yscrollcommand=scrollbar.set)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Make inner frame fill canvas width
         self.canvas.bind("<Configure>", self._on_canvas_configure)
@@ -859,8 +864,29 @@ class ScrollableFrame(ttk.Frame):
         register_mousewheel_target(self.canvas, self.canvas)
         register_mousewheel_target(self.inner, self.canvas)
 
+    def _on_inner_configure(self, _event=None):
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self._update_scrollbar_visibility()
+
     def _on_canvas_configure(self, event):
         self.canvas.itemconfig(self.canvas_window, width=event.width)
+        self._update_scrollbar_visibility()
+
+    def _update_scrollbar_visibility(self):
+        if not self._auto_hide_scrollbar:
+            return
+
+        bbox = self.canvas.bbox("all")
+        content_height = max((bbox[3] - bbox[1]) if bbox else 0, 0)
+        viewport_height = max(self.canvas.winfo_height(), 1)
+        should_show = content_height > viewport_height + 1
+
+        if should_show and not self._scrollbar_visible:
+            self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            self._scrollbar_visible = True
+        elif not should_show and self._scrollbar_visible:
+            self.scrollbar.pack_forget()
+            self._scrollbar_visible = False
 
 
 class StatDisplay(ttk.Frame):

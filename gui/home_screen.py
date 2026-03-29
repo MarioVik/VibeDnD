@@ -173,16 +173,31 @@ class HomeScreen:
         header = tk.Frame(content, bg=COLORS["bg"])
         header.pack(fill=tk.X, pady=(0, 16))
 
-        back_btn = tk.Label(
-            header,
-            text="< BACK TO MAIN MENU",
-            font=FONTS["label_upper_bold"],
+        back_row = tk.Frame(header, bg=COLORS["bg"])
+        back_row.pack(anchor="w", pady=(0, 14))
+
+        back_arrow = tk.Label(
+            back_row,
+            text="\u25c0",
+            font=FONTS["heading_serif_sm"],
             fg=COLORS["gold"],
             bg=COLORS["bg"],
             cursor="hand2",
         )
-        back_btn.pack(anchor="w", pady=(0, 14))
-        back_btn.bind("<Button-1>", lambda _event: self.app.show_home())
+        back_arrow.pack(side=tk.LEFT, padx=(0, 8))
+
+        back_btn = tk.Label(
+            back_row,
+            text="BACK TO MAIN MENU",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["gold"],
+            bg=COLORS["bg"],
+            cursor="hand2",
+        )
+        back_btn.pack(side=tk.LEFT)
+
+        for widget in (back_row, back_arrow, back_btn):
+            widget.bind("<Button-1>", lambda _event: self.app.show_home())
 
         tk.Label(
             header,
@@ -219,7 +234,11 @@ class HomeScreen:
         )
         self._empty_note.pack(fill=tk.X, pady=(0, 18))
 
-        self._archive_scroll = ScrollableFrame(content, inner_padding=0)
+        self._archive_scroll = ScrollableFrame(
+            content,
+            inner_padding=0,
+            auto_hide_scrollbar=True,
+        )
         self._archive_scroll.pack(fill=tk.BOTH, expand=True)
         self._archive_scroll.canvas.configure(bg=COLORS["bg"])
         self._archive_scroll.inner.configure(style="TFrame")
