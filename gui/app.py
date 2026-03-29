@@ -150,13 +150,6 @@ class CharacterCreatorApp:
         )
         self._next_btn.pack(side=tk.RIGHT)
 
-        ttk.Button(
-            nav_inner,
-            text="Save & Finish",
-            style="Gold.TButton",
-            command=self._save_and_finish,
-        ).pack(side=tk.RIGHT, padx=(0, 8))
-
         # -- Create wizard steps --
         self.wizard_steps = []
         self._step_keys = []
