@@ -26,6 +26,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 DIST = os.path.join(ROOT, "dist")
 BUILD = os.path.join(ROOT, "build")
 ICON_FILE = os.path.join(ROOT, "vibednd.ico")
+ICON_SOURCE_PNG = os.path.join(ROOT, "icon-source.png")
 
 DATA_FILES = [
     "data/spells.json",
@@ -78,19 +79,64 @@ def check_prerequisites():
     """Make sure data files and PyInstaller are available."""
     missing = [f for f in DATA_FILES if not os.path.exists(os.path.join(ROOT, f))]
     if missing:
-        sys.exit(f"ERROR: Missing data files: {missing}\n"
-                 f"Run the parsers first:  python parsers/run_all_parsers.py")
+        sys.exit(
+            f"ERROR: Missing data files: {missing}\n"
+            f"Run the parsers first:  python parsers/run_all_parsers.py"
+        )
 
     try:
         import PyInstaller  # noqa: F401
     except ImportError:
-        sys.exit("ERROR: PyInstaller is not installed.\n"
-                 "Install it:  pip install pyinstaller")
+        sys.exit(
+            "ERROR: PyInstaller is not installed.\nInstall it:  pip install pyinstaller"
+        )
+
+
+def maybe_make_ico() -> None:
+    """Regenerate Windows .ico from icon-source.png when possible."""
+    if not os.path.exists(ICON_SOURCE_PNG):
+        return
+
+    try:
+        from PIL import Image
+    except ImportError:
+        print(
+            "WARNING: Pillow not installed, cannot regenerate vibednd.ico from icon-source.png"
+        )
+        return
+
+    try:
+        with Image.open(ICON_SOURCE_PNG) as src:
+            img = src.convert("RGBA")
+            if img.width != img.height:
+                side = min(img.width, img.height)
+                left = (img.width - side) // 2
+                top = (img.height - side) // 2
+                img = img.crop((left, top, left + side, top + side))
+            img.save(
+                ICON_FILE,
+                format="ICO",
+                sizes=[
+                    (16, 16),
+                    (24, 24),
+                    (32, 32),
+                    (48, 48),
+                    (64, 64),
+                    (128, 128),
+                    (256, 256),
+                ],
+            )
+            print(f"Regenerated icon: {ICON_FILE}")
+    except Exception as exc:
+        print(
+            f"WARNING: Failed to regenerate {ICON_FILE} from {ICON_SOURCE_PNG}: {exc}"
+        )
 
 
 def build(onefile: bool = False):
     """Run the PyInstaller build."""
     check_prerequisites()
+    maybe_make_ico()
 
     # Build the --add-data flags (separator is ; on Windows, : elsewhere)
     sep = ";" if platform.system() == "Windows" else ":"
@@ -112,11 +158,14 @@ def build(onefile: bool = False):
         hidden_flags += ["--hidden-import", mod]
 
     cmd = [
-        sys.executable, "-m", "PyInstaller",
+        sys.executable,
+        "-m",
+        "PyInstaller",
         "--noconfirm",
         "--clean",
-        "--name", "VibeDnD",
-        "--windowed",          # no console window
+        "--name",
+        "VibeDnD",
+        "--windowed",  # no console window
     ]
 
     if os.path.exists(ICON_FILE):
@@ -132,11 +181,11 @@ def build(onefile: bool = False):
     cmd += add_data + exclude_flags + collect_flags + hidden_flags
     cmd.append(os.path.join(ROOT, "main.py"))
 
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"  Building VibeDnD for {platform.system()} ({platform.machine()})")
     print(f"  Mode: {'single file' if onefile else 'directory bundle'}")
     print(f"  Python: {sys.version}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print()
     print("Running:", " ".join(cmd))
     print()

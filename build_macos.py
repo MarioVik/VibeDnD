@@ -88,7 +88,9 @@ def check_prereqs() -> None:
     try:
         import PyInstaller  # noqa: F401
     except ImportError:
-        sys.exit("ERROR: PyInstaller not installed. Install with: pip install pyinstaller")
+        sys.exit(
+            "ERROR: PyInstaller not installed. Install with: pip install pyinstaller"
+        )
 
     for tool in ("hdiutil", "sips", "iconutil", "codesign"):
         if shutil.which(tool) is None:
@@ -96,9 +98,6 @@ def check_prereqs() -> None:
 
 
 def maybe_make_icns() -> Path | None:
-    if ICON_ICNS.exists():
-        return ICON_ICNS
-
     if not ICON_PNG.exists():
         print(f"WARNING: {ICON_PNG} not found. Building without custom app icon.")
         return None
@@ -118,7 +117,17 @@ def maybe_make_icns() -> Path | None:
         out_1x = iconset_dir / f"icon_{s}x{s}.png"
         out_2x = iconset_dir / f"icon_{s}x{s}@2x.png"
         run(["sips", "-z", str(s), str(s), str(normalized_png), "--out", str(out_1x)])
-        run(["sips", "-z", str(s * 2), str(s * 2), str(normalized_png), "--out", str(out_2x)])
+        run(
+            [
+                "sips",
+                "-z",
+                str(s * 2),
+                str(s * 2),
+                str(normalized_png),
+                "--out",
+                str(out_2x),
+            ]
+        )
 
     run(["iconutil", "-c", "icns", str(iconset_dir), "-o", str(ICON_ICNS)])
     shutil.rmtree(iconset_dir, ignore_errors=True)
@@ -164,7 +173,13 @@ def build_app(icon_path: Path | None) -> Path:
     if icon_path is not None:
         cmd += ["--icon", str(icon_path)]
 
-    cmd += add_data + exclude_flags + collect_flags + hidden_flags + [str(ROOT / "main.py")]
+    cmd += (
+        add_data
+        + exclude_flags
+        + collect_flags
+        + hidden_flags
+        + [str(ROOT / "main.py")]
+    )
     run(cmd)
 
     app_path = DIST / APP_NAME
