@@ -18,6 +18,208 @@ def _is_subheading(line: str) -> bool:
 _TABLE_VALUE_PATTERN = re.compile(r"^(Yes|No|Varies)$", re.IGNORECASE)
 
 
+def _looks_like_table_header(line: str) -> bool:
+    """Detect short table header labels."""
+    text = line.strip()
+    if not text or text.startswith("•"):
+        return False
+    if len(text) > 32:
+        return False
+    if re.match(r"^Level\s+\d+\s*:", text):
+        return False
+    if text.endswith((".", ":", ";", "?", "!")):
+        return False
+    return True
+
+
+def _looks_like_table_value(line: str) -> bool:
+    """Detect short table cell values (numbers, yes/no, short labels)."""
+    text = line.strip()
+    if not text or text.startswith("•"):
+        return False
+    if len(text) > 40:
+        return False
+    if re.match(r"^Level\s+\d+\s*:", text):
+        return False
+    if text.endswith((".", ":", ";", "?", "!")):
+        return False
+    if re.match(r"^(See|You|When|As|For|To|The|If|Once|Whenever|While)\b", text):
+        return False
+    return True
+
+
+def _has_table_header_keywords(headers: list[str]) -> bool:
+    """Check whether header labels look table-like."""
+    header_text = " ".join(h.lower() for h in headers)
+    keywords = (
+        "level",
+        "cost",
+        "known",
+        "max",
+        "min",
+        "speed",
+        "slot",
+        "point",
+        "attunement",
+        "forms",
+        "cr",
+        "plan",
+    )
+    return any(k in header_text for k in keywords)
+
+
+def _format_subclass_name_lists(lines: list[str]) -> list[str]:
+    """Format 'X Subclasses' + Name + items blocks as bullets."""
+    result: list[str] = []
+    i = 0
+
+    while i < len(lines):
+        title = lines[i].strip()
+
+        if re.match(r"^.+\sSubclasses$", title):
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                j += 1
+
+            if j < len(lines) and lines[j].strip() == "Name":
+                k = j + 1
+                items: list[str] = []
+
+                while k < len(lines):
+                    item = lines[k].strip()
+                    if not item:
+                        break
+                    if item.startswith("•"):
+                        break
+                    if re.match(r"^Level\s+\d+\s*:", item):
+                        break
+                    if len(item) > 45:
+                        break
+                    if item.endswith((".", ":", ";", "?", "!")):
+                        break
+                    if re.match(
+                        r"^(See|You|When|As|For|To|The|If|Once|Whenever|While)\b", item
+                    ):
+                        break
+                    items.append(item)
+                    k += 1
+
+                if len(items) >= 3:
+                    result.append("")
+                    result.append(title)
+                    result.append("")
+                    for item in items:
+                        result.append(f"• {item}")
+                    result.append("")
+                    i = k
+                    continue
+
+        result.append(lines[i])
+        i += 1
+
+    return result
+
+
+def _format_inline_multi_column_tables(lines: list[str]) -> list[str]:
+    """Format compact multi-column inline tables as bullet rows.
+
+    Output format:
+      • <first-col> — <Header2>: <val>, <Header3>: <val>
+    """
+    result: list[str] = []
+    i = 0
+
+    while i < len(lines):
+        stripped = lines[i].strip()
+        candidates: list[dict] = []
+
+        # Try two variants:
+        # A) title line at i, headers start at i+1
+        # B) headers start at i (no standalone title)
+        for has_title in (True, False):
+            for n_cols in (4, 3):
+                header_start = i + 1 if has_title else i
+                data_start = header_start + n_cols
+                if data_start >= len(lines):
+                    continue
+
+                if has_title and (
+                    not stripped or len(stripped) > 45 or stripped.endswith(".")
+                ):
+                    continue
+
+                headers = [lines[header_start + c].strip() for c in range(n_cols)]
+                if not all(_looks_like_table_header(h) for h in headers):
+                    continue
+                if not _has_table_header_keywords(headers):
+                    continue
+
+                values: list[str] = []
+                j = data_start
+                while j < len(lines):
+                    value = lines[j].strip()
+                    if not value:
+                        break
+                    if not _looks_like_table_value(value):
+                        break
+                    values.append(value)
+                    j += 1
+
+                if len(values) < n_cols * 2 or len(values) % n_cols != 0:
+                    continue
+
+                rows = [values[r : r + n_cols] for r in range(0, len(values), n_cols)]
+                first_col = [row[0] for row in rows]
+                yes_no_in_first = sum(
+                    1 for val in first_col if _TABLE_VALUE_PATTERN.match(val)
+                )
+                numeric_in_first = sum(
+                    1 for val in first_col if re.match(r"^\d+(?:/\d+)?$", val)
+                )
+
+                score = len(rows) * 10
+                score -= yes_no_in_first * 6
+                if numeric_in_first == len(first_col):
+                    score += 2
+                if has_title:
+                    score += 1
+                    if _has_table_header_keywords([stripped]):
+                        score -= 8
+
+                candidates.append(
+                    {
+                        "score": score,
+                        "has_title": has_title,
+                        "headers": headers,
+                        "rows": rows,
+                        "end": j,
+                    }
+                )
+
+        if candidates:
+            best = max(candidates, key=lambda c: c["score"])
+            if best["has_title"]:
+                result.append("")
+                result.append(stripped)
+                result.append("")
+            for row in best["rows"]:
+                first = row[0]
+                details = ", ".join(
+                    f"{best['headers'][idx]}: {row[idx]}"
+                    for idx in range(1, len(best["headers"]))
+                )
+                bullet = f"• {first} — {details}" if details else f"• {first}"
+                result.append(bullet)
+            result.append("")
+            i = best["end"]
+            continue
+
+        result.append(lines[i])
+        i += 1
+
+    return result
+
+
 def _format_inline_tables(lines: list[str]) -> list[str]:
     """Detect 2-column tables in raw lines and format them as readable text.
 
@@ -51,7 +253,25 @@ def _format_inline_tables(lines: list[str]) -> list[str]:
                 lines[i + 4].strip()
             )  # second line is Yes/No/Varies
         ):
+            col1_header = lines[i + 1].strip()
             col2_header = lines[i + 2].strip()
+            first_name = lines[i + 3].strip()
+
+            # Guardrails: this formatter is for labeled 2-column tables,
+            # not numeric matrix data.
+            if re.match(r"^\d+(?:/\d+)?$", col1_header):
+                result.append(lines[i])
+                i += 1
+                continue
+            if re.match(r"^\d+(?:/\d+)?$", col2_header):
+                result.append(lines[i])
+                i += 1
+                continue
+            if re.match(r"^\d+(?:/\d+)?$", first_name):
+                result.append(lines[i])
+                i += 1
+                continue
+
             # Verify col2 header is a short label (not a sentence)
             if len(col2_header.split()) <= 3:
                 # Blank line before the table title to separate from prose
@@ -89,8 +309,10 @@ def join_description_lines(lines: list[str]) -> str:
     and get their own paragraph.
     Inline 2-column tables are formatted as bullet lists.
     """
-    # Pre-process: detect and format inline tables
+    # Pre-process: detect and format inline structures
     lines = _format_inline_tables(lines)
+    lines = _format_subclass_name_lists(lines)
+    lines = _format_inline_multi_column_tables(lines)
 
     paragraphs: list[str] = []
     current: list[str] = []

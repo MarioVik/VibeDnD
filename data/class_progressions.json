@@ -71,7 +71,7 @@
         "feature_details": [
           {
             "name": "Artificer Subclass",
-            "description": "You gain an Artificer subclass of your choice. A subclass is a specialization that grants you features at certain Artificer levels. For the rest of your career, you gain each of your subclass’s features that are of your Artificer level or lower. Artificer Subclasses Name Alchemist Armorer Artillerist Battle Smith Cartographer"
+            "description": "You gain an Artificer subclass of your choice. A subclass is a specialization that grants you features at certain Artificer levels. For the rest of your career, you gain each of your subclass’s features that are of your Artificer level or lower.\n\nArtificer Subclasses\n\n• Alchemist\n• Armorer\n• Artillerist\n• Battle Smith\n• Cartographer"
           }
         ]
       },
@@ -515,7 +515,7 @@
         "feature_details": [
           {
             "name": "Barbarian Subclass",
-            "description": "You gain a Barbarian subclass of your choice. The Path of the Berserker, Path of the Wild Heart, Path of the World Tree, and Path of the Zealot subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Barbarian levels. For the rest of your career, you gain each of your subclass’s features that are of your Barbarian level or lower. Barbarian Subclasses Name Path Of The Berserker Path Of The Wild Heart Path Of The World Tree Path Of The Zealot"
+            "description": "You gain a Barbarian subclass of your choice. The Path of the Berserker, Path of the Wild Heart, Path of the World Tree, and Path of the Zealot subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Barbarian levels. For the rest of your career, you gain each of your subclass’s features that are of your Barbarian level or lower.\n\nBarbarian Subclasses\n\n• Path Of The Berserker\n• Path Of The Wild Heart\n• Path Of The World Tree\n• Path Of The Zealot"
           },
           {
             "name": "Primal Knowledge",
@@ -886,7 +886,7 @@
         "feature_details": [
           {
             "name": "Bard Subclass",
-            "description": "You gain a Bard subclass of your choice. The College of Dance, College of Glamour, College of Lore, and College of Valor subclasses are detailed after this class's description. A subclass is a specialization that grants you features at certain Bard levels. For the rest of your career, you gain each of your subclass’s features that are of your Bard level or lower. Bard Subclasses Name College of Dance College of Glamour College of Lore College of the Moon College of Valor"
+            "description": "You gain a Bard subclass of your choice. The College of Dance, College of Glamour, College of Lore, and College of Valor subclasses are detailed after this class's description. A subclass is a specialization that grants you features at certain Bard levels. For the rest of your career, you gain each of your subclass’s features that are of your Bard level or lower.\n\nBard Subclasses\n\n• College of Dance\n• College of Glamour\n• College of Lore\n• College of the Moon\n• College of Valor"
           }
         ]
       },
@@ -1345,7 +1345,7 @@
         "feature_details": [
           {
             "name": "Cleric Subclass",
-            "description": "You gain a Cleric subclass of your choice. The Life Domain, Light Domain, Trickery Domain, and War Domain subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Cleric levels. For the rest of your career, you gain each of your subclass’s features that are of your Cleric level or lower. Cleric Subclasses Name Knowledge Domain Life Domain Light Domain Trickery Domain War Domain"
+            "description": "You gain a Cleric subclass of your choice. The Life Domain, Light Domain, Trickery Domain, and War Domain subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Cleric levels. For the rest of your career, you gain each of your subclass’s features that are of your Cleric level or lower.\n\nCleric Subclasses\n\n• Knowledge Domain\n• Life Domain\n• Light Domain\n• Trickery Domain\n• War Domain"
           }
         ]
       },
@@ -1786,7 +1786,7 @@
         "feature_details": [
           {
             "name": "Wild Shape",
-            "description": "The power of nature allows you to assume the form of an animal. As a Bonus Action, you shape-shift into a Beast form that you have learned for this feature (see “Known Forms” below). You stay in that form for a number of hours equal to half your Druid level or until you use Wild Shape again, have the Incapacitated condition, or die. You can also leave the form early as a Bonus Action.\n\nNumber of Uses.\n\nYou can use Wild Shape twice. You regain one expended use when you finish a Short Rest, and you regain all expended uses when you finish a Long Rest. You gain additional uses when you reach certain Druid levels, as shown in the Wild Shape column of the Druid Features table.\n\nKnown Forms.\n\nYou know four Beast forms for this feature, chosen from among Beast stat blocks that have a maximum Challenge Rating of 1/4 and that lack a Fly Speed (see appendix B for stat block options). The Rat, Riding Horse, Spider, and Wolf are recommended. Whenever you finish a Long Rest, you can replace one of your known forms with another eligible form. When you reach certain Druid levels, your number of known forms and the maximum Challenge Rating for those forms increases, as shown in the Beast Shapes table. In addition, starting at level 8, you can adopt a form that has a Fly Speed. When choosing known forms, you may look in the Monster Manual or elsewhere for eligible Beasts if the Dungeon Master permits you to do so. Druid Level Known Forms Max CR\n\nFly Speed\n\n• 1/4 — 4: No\n\n4 6 1/2\n\nNo\n\n• 1 — 8: Yes\n\nRules While Shape-Shifted.\n\nWhile in a form, you retain your personality, memories, and ability to speak, and the following rules apply:\n\nTemporary Hit Points.\n\nWhen you assume a Wild Shape form, you gain a number of Temporary Hit Points equal to your Druid level.\n\nGame Statistics.\n\nYour game statistics are replaced by the Beast’s stat block, but you retain your creature type; Hit Points; Hit Point Dice; Intelligence, Wisdom, and Charisma scores; class features; languages; and feats. You also retain your skill and saving throw proficiencies and use your Proficiency Bonus for them, in addition to gaining the proficiencies of the creature. If a skill or saving throw modifier in the Beast’s stat block is higher than yours, use the one in the stat block.\n\nNo Spellcasting.\n\nYou can’t cast spells, but shape-shifting doesn’t break your Concentration or otherwise interfere with a spell you’ve already cast.\n\nObjects.\n\nYour ability to handle objects is determined by the form’s limbs rather than your own. In addition, you choose whether your equipment falls in your space, merges into your new form, or is worn by it. Worn equipment functions as normal, but the DM decides whether it’s practical for the new form to wear a piece of equipment based on the creature’s size and shape. Your equipment doesn’t change size or shape to match the new form, and any equipment that the new form can’t wear must either fall to the ground or merge with the form. Equipment that merges with the form has no effect while you’re in that form."
+            "description": "The power of nature allows you to assume the form of an animal. As a Bonus Action, you shape-shift into a Beast form that you have learned for this feature (see “Known Forms” below). You stay in that form for a number of hours equal to half your Druid level or until you use Wild Shape again, have the Incapacitated condition, or die. You can also leave the form early as a Bonus Action.\n\nNumber of Uses.\n\nYou can use Wild Shape twice. You regain one expended use when you finish a Short Rest, and you regain all expended uses when you finish a Long Rest. You gain additional uses when you reach certain Druid levels, as shown in the Wild Shape column of the Druid Features table.\n\nKnown Forms.\n\nYou know four Beast forms for this feature, chosen from among Beast stat blocks that have a maximum Challenge Rating of 1/4 and that lack a Fly Speed (see appendix B for stat block options). The Rat, Riding Horse, Spider, and Wolf are recommended. Whenever you finish a Long Rest, you can replace one of your known forms with another eligible form. When you reach certain Druid levels, your number of known forms and the maximum Challenge Rating for those forms increases, as shown in the Beast Shapes table. In addition, starting at level 8, you can adopt a form that has a Fly Speed. When choosing known forms, you may look in the Monster Manual or elsewhere for eligible Beasts if the Dungeon Master permits you to do so.\n\n• 2 — Known Forms: 4, Max CR: 1/4, Fly Speed: No\n• 4 — Known Forms: 6, Max CR: 1/2, Fly Speed: No\n• 8 — Known Forms: 8, Max CR: 1, Fly Speed: Yes\n\nRules While Shape-Shifted.\n\nWhile in a form, you retain your personality, memories, and ability to speak, and the following rules apply:\n\nTemporary Hit Points.\n\nWhen you assume a Wild Shape form, you gain a number of Temporary Hit Points equal to your Druid level.\n\nGame Statistics.\n\nYour game statistics are replaced by the Beast’s stat block, but you retain your creature type; Hit Points; Hit Point Dice; Intelligence, Wisdom, and Charisma scores; class features; languages; and feats. You also retain your skill and saving throw proficiencies and use your Proficiency Bonus for them, in addition to gaining the proficiencies of the creature. If a skill or saving throw modifier in the Beast’s stat block is higher than yours, use the one in the stat block.\n\nNo Spellcasting.\n\nYou can’t cast spells, but shape-shifting doesn’t break your Concentration or otherwise interfere with a spell you’ve already cast.\n\nObjects.\n\nYour ability to handle objects is determined by the form’s limbs rather than your own. In addition, you choose whether your equipment falls in your space, merges into your new form, or is worn by it. Worn equipment functions as normal, but the DM decides whether it’s practical for the new form to wear a piece of equipment based on the creature’s size and shape. Your equipment doesn’t change size or shape to match the new form, and any equipment that the new form can’t wear must either fall to the ground or merge with the form. Equipment that merges with the form has no effect while you’re in that form."
           },
           {
             "name": "Wild Companion",
@@ -1812,7 +1812,7 @@
         "feature_details": [
           {
             "name": "Druid Subclass",
-            "description": "You gain a Druid subclass of your choice. The Circle of the Land, Circle of the Moon, Circle of the Sea, and Circle of the Stars subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Druid levels. For the rest of your career, you gain each of your subclass’s features that are of your Druid level or lower. Druid Subclasses Name Circle of the Land Circle of the Moon Circle of the Sea Circle of the Stars"
+            "description": "You gain a Druid subclass of your choice. The Circle of the Land, Circle of the Moon, Circle of the Sea, and Circle of the Stars subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Druid levels. For the rest of your career, you gain each of your subclass’s features that are of your Druid level or lower.\n\nDruid Subclasses\n\n• Circle of the Land\n• Circle of the Moon\n• Circle of the Sea\n• Circle of the Stars"
           }
         ]
       },
@@ -2267,7 +2267,7 @@
         "feature_details": [
           {
             "name": "Fighter Subclass",
-            "description": "You gain a Fighter subclass of your choice. The Battle Master, Champion, Eldritch Knight, and Psi Warrior subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Fighter levels. For the rest of your career, you gain each of your subclass’s features that are of your Fighter level or lower. Fighter Subclasses Name Banneret Battle Master Champion Eldritch Knight Psi Warrior"
+            "description": "You gain a Fighter subclass of your choice. The Battle Master, Champion, Eldritch Knight, and Psi Warrior subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Fighter levels. For the rest of your career, you gain each of your subclass’s features that are of your Fighter level or lower.\n\nFighter Subclasses\n\n• Banneret\n• Battle Master\n• Champion\n• Eldritch Knight\n• Psi Warrior"
           }
         ]
       },
@@ -2596,7 +2596,7 @@
           },
           {
             "name": "Monk Subclass",
-            "description": "You gain a Monk subclass of your choice. The Warrior of Mercy, Warrior of Shadow, Warrior of the Elements, and Warrior of the Open Hand subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Monk levels. For the rest of your career, you gain each of your subclass’s features that are of your Monk level or lower. Monk Subclasses Name Warrior of Mercy Warrior of Shadow Warrior of the Elements Warrior of the Open Hand"
+            "description": "You gain a Monk subclass of your choice. The Warrior of Mercy, Warrior of Shadow, Warrior of the Elements, and Warrior of the Open Hand subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Monk levels. For the rest of your career, you gain each of your subclass’s features that are of your Monk level or lower.\n\nMonk Subclasses\n\n• Warrior of Mercy\n• Warrior of Shadow\n• Warrior of the Elements\n• Warrior of the Open Hand"
           }
         ]
       },
@@ -2981,7 +2981,7 @@
           },
           {
             "name": "Paladin Subclass",
-            "description": "You gain a Paladin Subclass of your choice. The Oath of Devotion, Oath of Glory, Oath of the Ancients and Oath of Vengeance subclasses are detailed after this class's description. A Subclass is a specialization that grants you features at certain Paladin levels. For the rest of your career, you gain each of your subclass’s features that are of your Paladin level or lower. Paladin Subclasses Name Oath of Devotion Oath of Glory Oath of the Ancients Oath of the Noble Genies Oath of Vengeance Breaking Your Oath A Paladin tries to hold to the highest standards of conduct, but even the most dedicated are fallible. Sometimes a Paladin transgresses on their oath. A Paladin who has broken a vow typically seeks absolution, spending an all-night vigil as a sign of penitence or undertaking a fast. After a rite of forgiveness, the Paladin starts fresh. If your Paladin unrepentantly violates their oath, talk to your DM. Your Paladin should probably take a more appropriate subclass or even abandon the class and adopt another one."
+            "description": "You gain a Paladin Subclass of your choice. The Oath of Devotion, Oath of Glory, Oath of the Ancients and Oath of Vengeance subclasses are detailed after this class's description. A Subclass is a specialization that grants you features at certain Paladin levels. For the rest of your career, you gain each of your subclass’s features that are of your Paladin level or lower.\n\nPaladin Subclasses\n\n• Oath of Devotion\n• Oath of Glory\n• Oath of the Ancients\n• Oath of the Noble Genies\n• Oath of Vengeance\n• Breaking Your Oath\n\nA Paladin tries to hold to the highest standards of conduct, but even the most dedicated are fallible. Sometimes a Paladin transgresses on their oath. A Paladin who has broken a vow typically seeks absolution, spending an all-night vigil as a sign of penitence or undertaking a fast. After a rite of forgiveness, the Paladin starts fresh. If your Paladin unrepentantly violates their oath, talk to your DM. Your Paladin should probably take a more appropriate subclass or even abandon the class and adopt another one."
           }
         ]
       },
@@ -3403,7 +3403,7 @@
         "feature_details": [
           {
             "name": "Ranger Subclass",
-            "description": "You gain a Ranger Subclass of your choice. The Beast Master, Fey Wanderer, Gloom Stalker and Hunter subclasses are detailed after this class's description. A Subclass is a specialization that grants you features at certain Ranger levels. For the rest of your career, you gain each of your subclass’s features that are of your Ranger level or lower. Ranger Subclasses Name Beast Master Fey Wanderer Gloom Stalker Hunter Winter Walker"
+            "description": "You gain a Ranger Subclass of your choice. The Beast Master, Fey Wanderer, Gloom Stalker and Hunter subclasses are detailed after this class's description. A Subclass is a specialization that grants you features at certain Ranger levels. For the rest of your career, you gain each of your subclass’s features that are of your Ranger level or lower.\n\nRanger Subclasses\n\n• Beast Master\n• Fey Wanderer\n• Gloom Stalker\n• Hunter\n• Winter Walker"
           }
         ]
       },
@@ -3825,7 +3825,7 @@
         "feature_details": [
           {
             "name": "Rogue Subclass",
-            "description": "You gain a Rogue subclass of your choice. The Arcane Trickster, Assassin, Soulknife, and the Thief subclasses are detailed after this class's description. A Subclass is a specialization that grants you features at certain Rogue levels. For the rest of your career, you gain each of your subclass’s features that are of your Rogue level or lower. Rogue Subclasses Name Arcane Trickster Assassin Scion of the Three Soulknife Thief"
+            "description": "You gain a Rogue subclass of your choice. The Arcane Trickster, Assassin, Soulknife, and the Thief subclasses are detailed after this class's description. A Subclass is a specialization that grants you features at certain Rogue levels. For the rest of your career, you gain each of your subclass’s features that are of your Rogue level or lower.\n\nRogue Subclasses\n\n• Arcane Trickster\n• Assassin\n• Scion of the Three\n• Soulknife\n• Thief"
           },
           {
             "name": "Steady Aim",
@@ -4125,7 +4125,7 @@
         "feature_details": [
           {
             "name": "Font of Magic",
-            "description": "You can tap into the wellspring of magic within yourself. This wellspring is represented by Sorcery Points, which allow you to create a variety of magical effects. You have 2 Sorcery Points, and you gain more as you reach higher levels, as shown in the Sorcery Points column of the Sorcerer Features table. You can’t have more Sorcery Points than the number shown in the table for your level. You regain all expended Sorcery Points when you finish a Long Rest. You can use your Sorcery Points to fuel the options below, along with other features, such as Metamagic, that use those points. Converting Spell Slots to Sorcery Points. You can expend a spell slot to gain a number of Sorcery Points equal to the slot’s level (no action required).\n\nCreating Spell Slots.\n\nAs a Bonus Action, you can transform unexpended Sorcery Points into one spell slot. The Creating Spell Slots table shows the cost of creating a spell slot of a given level, and it lists the minimum Sorcerer level you must be to create a slot. You can create a spell slot no higher than level 5. Any spell slot you create with this feature vanishes when you finish a Long Rest. Creating Spell Slots Spell Slot Level Sorcery Point Cost Min. Sorcerer Level 1 2 2 2 3 3 3 5 5 4 6 7 5 7 9"
+            "description": "You can tap into the wellspring of magic within yourself. This wellspring is represented by Sorcery Points, which allow you to create a variety of magical effects. You have 2 Sorcery Points, and you gain more as you reach higher levels, as shown in the Sorcery Points column of the Sorcerer Features table. You can’t have more Sorcery Points than the number shown in the table for your level. You regain all expended Sorcery Points when you finish a Long Rest. You can use your Sorcery Points to fuel the options below, along with other features, such as Metamagic, that use those points. Converting Spell Slots to Sorcery Points. You can expend a spell slot to gain a number of Sorcery Points equal to the slot’s level (no action required).\n\nCreating Spell Slots.\n\nAs a Bonus Action, you can transform unexpended Sorcery Points into one spell slot. The Creating Spell Slots table shows the cost of creating a spell slot of a given level, and it lists the minimum Sorcerer level you must be to create a slot. You can create a spell slot no higher than level 5. Any spell slot you create with this feature vanishes when you finish a Long Rest.\n\nCreating Spell Slots\n\n• 1 — Sorcery Point Cost: 2, Min. Sorcerer Level: 2\n• 2 — Sorcery Point Cost: 3, Min. Sorcerer Level: 3\n• 3 — Sorcery Point Cost: 5, Min. Sorcerer Level: 5\n• 4 — Sorcery Point Cost: 6, Min. Sorcerer Level: 7\n• 5 — Sorcery Point Cost: 7, Min. Sorcerer Level: 9"
           },
           {
             "name": "Metamagic",
@@ -4151,7 +4151,7 @@
         "feature_details": [
           {
             "name": "Sorcerer Subclass",
-            "description": "You gain a Sorcerer subclass of your choice. The Aberrant Sorcery, Clockwork Sorcery, Draconic Sorcery, and Wild Magic Sorcery subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Sorcerer levels. For the rest of your career, you gain each of your subclass’s features that are of your Sorcerer level or lower. Sorcerer Subclasses Name Aberrant Sorcery Clockwork Sorcery Draconic Sorcery Spellfire Sorcery Wild Magic Sorcery"
+            "description": "You gain a Sorcerer subclass of your choice. The Aberrant Sorcery, Clockwork Sorcery, Draconic Sorcery, and Wild Magic Sorcery subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Sorcerer levels. For the rest of your career, you gain each of your subclass’s features that are of your Sorcerer level or lower.\n\nSorcerer Subclasses\n\n• Aberrant Sorcery\n• Clockwork Sorcery\n• Draconic Sorcery\n• Spellfire Sorcery\n• Wild Magic Sorcery"
           }
         ]
       },
@@ -4594,7 +4594,7 @@
         "feature_details": [
           {
             "name": "Warlock Subclass",
-            "description": "You gain a Warlock subclass of your choice. The Archfey Patron, Celestial Patron, Fiend Patron, and Great Old One Patron subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Warlock levels. For the rest of your career, you gain each of your subclass’s features that are of your Warlock level or lower. Warlock Subclasses Name Archfey Patron Celestial Patron Fiend Patron Great Old One Patron"
+            "description": "You gain a Warlock subclass of your choice. The Archfey Patron, Celestial Patron, Fiend Patron, and Great Old One Patron subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Warlock levels. For the rest of your career, you gain each of your subclass’s features that are of your Warlock level or lower.\n\nWarlock Subclasses\n\n• Archfey Patron\n• Celestial Patron\n• Fiend Patron\n• Great Old One Patron"
           }
         ]
       },
@@ -4934,7 +4934,7 @@
         "feature_details": [
           {
             "name": "Arcane Tradition",
-            "description": "You gain a Wizard subclass of your choice. The Abjurer, Diviner, Evoker, and Illusionist subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Wizard levels. For the rest of your career, you gain each of your subclass’s features that are of your Wizard level or lower. Wizard Subclasses Name Abjurer Bladesinger Diviner Evoker Illusionist"
+            "description": "You gain a Wizard subclass of your choice. The Abjurer, Diviner, Evoker, and Illusionist subclasses are detailed after this class’s description. A subclass is a specialization that grants you features at certain Wizard levels. For the rest of your career, you gain each of your subclass’s features that are of your Wizard level or lower.\n\nWizard Subclasses\n\n• Abjurer\n• Bladesinger\n• Diviner\n• Evoker\n• Illusionist"
           }
         ]
       },
