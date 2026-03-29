@@ -22,20 +22,19 @@ class LanguagesStep(WizardStep):
         super().__init__(parent, character, game_data)
 
     def build_ui(self):
-        self.frame.columnconfigure(0, weight=0)
-        self.frame.columnconfigure(1, weight=1)
-        self.frame.rowconfigure(0, weight=1)
+        self.frame.columnconfigure(0, weight=1)
+        self.frame.rowconfigure(1, weight=1)
 
-        # ── Left panel ───────────────────────────────────────────
-        left = ttk.Frame(self.frame, width=260)
-        left.grid(row=0, column=0, sticky="nsew", padx=(8, 4), pady=8)
-        left.grid_propagate(False)
+        # ── Top: description + fixed languages ───────────────────
+        top = ttk.Frame(self.frame)
+        top.grid(row=0, column=0, sticky="ew", padx=16, pady=(12, 0))
+        top.columnconfigure(0, weight=1)
 
-        ttk.Label(left, text="Languages", style="Heading.TLabel").pack(
+        ttk.Label(top, text="Languages", style="Heading.TLabel").pack(
             anchor="w", pady=(0, 4)
         )
         WrappingLabel(
-            left,
+            top,
             text=(
                 "All characters speak Common plus two languages of their choice. "
                 "Some classes grant additional fixed languages."
@@ -43,19 +42,21 @@ class LanguagesStep(WizardStep):
             foreground=COLORS["fg_dim"],
         ).pack(fill=tk.X, anchor="w", pady=(0, 12))
 
-        ttk.Label(left, text="FIXED LANGUAGES", style="Dim.TLabel").pack(
+        ttk.Label(top, text="FIXED LANGUAGES", style="Dim.TLabel").pack(
             anchor="w", pady=(0, 4)
         )
-        self.auto_chips_frame = tk.Frame(left, bg=COLORS["bg_surface"])
-        self.auto_chips_frame.pack(fill=tk.X, anchor="w", pady=(0, 8))
+        self.auto_chips_frame = tk.Frame(top, bg=COLORS["bg_surface"])
+        self.auto_chips_frame.pack(fill=tk.X, anchor="w", pady=(0, 4))
 
-        self.sources_frame = ttk.Frame(left)
-        self.sources_frame.pack(fill=tk.X, anchor="w")
+        self.sources_frame = ttk.Frame(top)
+        self.sources_frame.pack(fill=tk.X, anchor="w", pady=(0, 8))
 
-        # ── Right panel ──────────────────────────────────────────
-        right = ScrollableFrame(self.frame)
-        right.grid(row=0, column=1, sticky="nsew", padx=(4, 8), pady=8)
-        inner = right.inner
+        ttk.Separator(top, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=(4, 0))
+
+        # ── Bottom: scrollable choose section ────────────────────
+        scroll = ScrollableFrame(self.frame)
+        scroll.grid(row=1, column=0, sticky="nsew", padx=16, pady=(8, 12))
+        inner = scroll.inner
 
         # Counter header
         header = ttk.Frame(inner)
