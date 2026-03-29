@@ -24,8 +24,8 @@ class HomeScreen:
     _ACTION_CARD_HEIGHT = 238
     _ARCHIVE_CARD_WIDTH = 320
     _ARCHIVE_CARD_HEIGHT = 468
-    _ARCHIVE_ART_HEIGHT = 328
     _ARCHIVE_CARD_GAP = 18
+    _ARCHIVE_OVERLAY_INSET = 18
     _MAX_ARCHIVE_COLUMNS = 3
 
     def __init__(self, parent, app):
@@ -452,44 +452,54 @@ class HomeScreen:
             highlightthickness=1,
         )
         card.grid_propagate(False)
-        card.columnconfigure(0, weight=1)
-        card.rowconfigure(1, weight=1)
 
         art = tk.Canvas(
             card,
             width=width,
-            height=self._ARCHIVE_ART_HEIGHT,
+            height=self._ARCHIVE_CARD_HEIGHT,
             bg=COLORS["bg_high"],
             highlightthickness=0,
             bd=0,
         )
-        art.grid(row=0, column=0, sticky="ew")
+        art.place(x=0, y=0, relwidth=1, relheight=1)
         self._render_archive_art(
             art,
             info=info,
             width=width,
-            height=self._ARCHIVE_ART_HEIGHT,
+            height=self._ARCHIVE_CARD_HEIGHT,
             surface_fill=COLORS["bg_surface"],
             placeholder_fill=COLORS["bg_high"],
         )
         self._add_archive_delete_control(art, info["path"], width=width)
 
-        body = tk.Frame(card, bg=COLORS["bg_surface"], padx=24, pady=14)
-        body.grid(row=1, column=0, sticky="nsew")
-        body.grid_columnconfigure(0, weight=1)
-        body.grid_rowconfigure(0, weight=1)
-        body.grid_rowconfigure(3, weight=1)
+        overlay_width = max(width - (self._ARCHIVE_OVERLAY_INSET * 2), 1)
+        overlay_wrap = max(overlay_width - 48, 120)
+        body = tk.Frame(
+            card,
+            bg=COLORS["badge_glass"],
+            padx=24,
+            pady=16,
+            highlightbackground=COLORS["border_subtle"],
+            highlightthickness=1,
+        )
+        body.place(
+            x=self._ARCHIVE_OVERLAY_INSET,
+            y=self._ARCHIVE_CARD_HEIGHT - self._ARCHIVE_OVERLAY_INSET,
+            width=overlay_width,
+            anchor="sw",
+        )
 
         name_label = tk.Label(
             body,
             text=info.get("name", "Unknown"),
             font=FONTS["card_title_lg"],
             fg=COLORS["fg"],
-            bg=COLORS["bg_surface"],
+            bg=COLORS["badge_glass"],
             anchor="w",
             justify=tk.LEFT,
+            wraplength=overlay_wrap,
         )
-        name_label.grid(row=1, column=0, sticky="nw", pady=(0, 0))
+        name_label.pack(fill=tk.X)
 
         summary = (
             f"LEVEL {info.get('level', 1)} "
@@ -501,22 +511,23 @@ class HomeScreen:
             text=summary,
             font=FONTS["label_upper_bold"],
             fg=COLORS["gold"],
-            bg=COLORS["bg_surface"],
+            bg=COLORS["badge_glass"],
             anchor="w",
             justify=tk.LEFT,
+            wraplength=overlay_wrap,
         )
-        summary_label.grid(row=2, column=0, sticky="nw", pady=(10, 0))
+        summary_label.pack(fill=tk.X, pady=(10, 0))
 
         def on_enter(_event):
             card.configure(bg=COLORS["bg_high"], highlightbackground=COLORS["gold_dark"])
-            body.configure(bg=COLORS["bg_high"])
+            body.configure(bg=COLORS["bg_high"], highlightbackground=COLORS["gold_dark"])
             name_label.configure(bg=COLORS["bg_high"])
             summary_label.configure(bg=COLORS["bg_high"])
             self._render_archive_art(
                 art,
                 info=info,
                 width=width,
-                height=self._ARCHIVE_ART_HEIGHT,
+                height=self._ARCHIVE_CARD_HEIGHT,
                 surface_fill=COLORS["bg_high"],
                 placeholder_fill=COLORS["bg_highest"],
             )
@@ -524,14 +535,14 @@ class HomeScreen:
 
         def on_leave(_event):
             card.configure(bg=COLORS["bg_surface"], highlightbackground=COLORS["border_medium"])
-            body.configure(bg=COLORS["bg_surface"])
-            name_label.configure(bg=COLORS["bg_surface"])
-            summary_label.configure(bg=COLORS["bg_surface"])
+            body.configure(bg=COLORS["badge_glass"], highlightbackground=COLORS["border_subtle"])
+            name_label.configure(bg=COLORS["badge_glass"])
+            summary_label.configure(bg=COLORS["badge_glass"])
             self._render_archive_art(
                 art,
                 info=info,
                 width=width,
-                height=self._ARCHIVE_ART_HEIGHT,
+                height=self._ARCHIVE_CARD_HEIGHT,
                 surface_fill=COLORS["bg_surface"],
                 placeholder_fill=COLORS["bg_high"],
             )
@@ -649,6 +660,7 @@ class HomeScreen:
         placeholder_fill: str,
     ):
         canvas.delete("all")
+        canvas.configure(bg=surface_fill)
         photo = self._build_portrait_photo(
             info.get("biography_image_data", ""),
             width=width,
