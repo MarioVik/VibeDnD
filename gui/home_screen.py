@@ -6,9 +6,10 @@ import tkinter as tk
 from tkinter import filedialog, ttk
 
 try:
-    from PIL import Image, ImageTk
+    from PIL import Image, ImageDraw, ImageTk
 except ImportError:  # pragma: no cover
     Image = None
+    ImageDraw = None
     ImageTk = None
 
 from gui.theme import COLORS, FONTS
@@ -25,7 +26,7 @@ class HomeScreen:
     _ARCHIVE_CARD_WIDTH = 320
     _ARCHIVE_CARD_HEIGHT = 468
     _ARCHIVE_CARD_GAP = 18
-    _ARCHIVE_OVERLAY_INSET = 18
+    _ARCHIVE_OVERLAY_HEIGHT = 140
     _MAX_ARCHIVE_COLUMNS = 3
 
     def __init__(self, parent, app):
@@ -469,60 +470,12 @@ class HomeScreen:
             height=self._ARCHIVE_CARD_HEIGHT,
             surface_fill=COLORS["bg_surface"],
             placeholder_fill=COLORS["bg_high"],
+            hovered=False,
         )
         self._add_archive_delete_control(art, info["path"], width=width)
 
-        overlay_width = max(width - (self._ARCHIVE_OVERLAY_INSET * 2), 1)
-        overlay_wrap = max(overlay_width - 48, 120)
-        body = tk.Frame(
-            card,
-            bg=COLORS["badge_glass"],
-            padx=24,
-            pady=16,
-            highlightbackground=COLORS["border_subtle"],
-            highlightthickness=1,
-        )
-        body.place(
-            x=self._ARCHIVE_OVERLAY_INSET,
-            y=self._ARCHIVE_CARD_HEIGHT - self._ARCHIVE_OVERLAY_INSET,
-            width=overlay_width,
-            anchor="sw",
-        )
-
-        name_label = tk.Label(
-            body,
-            text=info.get("name", "Unknown"),
-            font=FONTS["card_title_lg"],
-            fg=COLORS["fg"],
-            bg=COLORS["badge_glass"],
-            anchor="w",
-            justify=tk.LEFT,
-            wraplength=overlay_wrap,
-        )
-        name_label.pack(fill=tk.X)
-
-        summary = (
-            f"LEVEL {info.get('level', 1)} "
-            f"{str(info.get('species', '?')).upper()} "
-            f"{str(info.get('class_name', '?')).upper()}"
-        )
-        summary_label = tk.Label(
-            body,
-            text=summary,
-            font=FONTS["label_upper_bold"],
-            fg=COLORS["gold"],
-            bg=COLORS["badge_glass"],
-            anchor="w",
-            justify=tk.LEFT,
-            wraplength=overlay_wrap,
-        )
-        summary_label.pack(fill=tk.X, pady=(10, 0))
-
         def on_enter(_event):
             card.configure(bg=COLORS["bg_high"], highlightbackground=COLORS["gold_dark"])
-            body.configure(bg=COLORS["bg_high"], highlightbackground=COLORS["gold_dark"])
-            name_label.configure(bg=COLORS["bg_high"])
-            summary_label.configure(bg=COLORS["bg_high"])
             self._render_archive_art(
                 art,
                 info=info,
@@ -530,14 +483,12 @@ class HomeScreen:
                 height=self._ARCHIVE_CARD_HEIGHT,
                 surface_fill=COLORS["bg_high"],
                 placeholder_fill=COLORS["bg_highest"],
+                hovered=True,
             )
             self._add_archive_delete_control(art, info["path"], width=width)
 
         def on_leave(_event):
             card.configure(bg=COLORS["bg_surface"], highlightbackground=COLORS["border_medium"])
-            body.configure(bg=COLORS["badge_glass"], highlightbackground=COLORS["border_subtle"])
-            name_label.configure(bg=COLORS["badge_glass"])
-            summary_label.configure(bg=COLORS["badge_glass"])
             self._render_archive_art(
                 art,
                 info=info,
@@ -545,6 +496,7 @@ class HomeScreen:
                 height=self._ARCHIVE_CARD_HEIGHT,
                 surface_fill=COLORS["bg_surface"],
                 placeholder_fill=COLORS["bg_high"],
+                hovered=False,
             )
             self._add_archive_delete_control(art, info["path"], width=width)
 
@@ -658,35 +610,49 @@ class HomeScreen:
         height: int,
         surface_fill: str,
         placeholder_fill: str,
+        hovered: bool = False,
     ):
         canvas.delete("all")
         canvas.configure(bg=surface_fill)
-        photo = self._build_portrait_photo(
-            info.get("biography_image_data", ""),
-            width=width,
-            height=height,
-        )
-        if photo is not None:
+        photo = None
+        has_portrait = False
+
+        if all(tool is not None for tool in (Image, ImageDraw, ImageTk)):
+            base = self._build_portrait_image(
+                info.get("biography_image_data", ""),
+                width=width,
+                height=height,
+            )
+            has_portrait = base is not None
+            if base is None:
+                base = self._build_archive_placeholder_image(width, height, placeholder_fill)
+            composed = self._apply_archive_overlay(base, width, height, hovered=hovered)
+            photo = ImageTk.PhotoImage(composed)
             canvas.create_image(width // 2, height // 2, image=photo)
             canvas._portrait_photo = photo
         else:
             canvas.configure(bg=placeholder_fill)
             canvas.create_rectangle(0, 0, width, height, fill=placeholder_fill, outline="")
+            self._draw_archive_fallback_overlay(canvas, width, height)
+
+        if not has_portrait:
             initial = (info.get("name", "?") or "?")[0].upper()
             canvas.create_text(
                 width // 2,
-                height // 2 - 18,
+                int(height * 0.34),
                 text=initial,
                 font=FONTS["hero_title"],
                 fill=COLORS["fg"],
             )
             canvas.create_text(
                 width // 2,
-                height // 2 + 34,
+                int(height * 0.46),
                 text="Portrait not set",
                 font=FONTS["body_small"],
                 fill=COLORS["fg_dim"],
             )
+
+        self._draw_archive_text(canvas, info, width, height)
 
     def _add_archive_delete_control(self, canvas, path: str, width: int):
         canvas.create_rectangle(
@@ -722,8 +688,14 @@ class HomeScreen:
         canvas.tag_bind("delete_control", "<Leave>", on_leave)
         canvas.tag_bind("delete_control", "<Button-1>", on_click)
 
-    def _build_portrait_photo(self, image_data: str, width: int, height: int):
-        if not image_data or Image is None or ImageTk is None:
+    def _build_archive_placeholder_image(self, width: int, height: int, fill: str):
+        if Image is None:
+            return None
+        rgb = self._hex_to_rgb(fill)
+        return Image.new("RGBA", (width, height), rgb + (255,))
+
+    def _build_portrait_image(self, image_data: str, width: int, height: int):
+        if not image_data or Image is None:
             return None
         try:
             raw = base64.b64decode(image_data)
@@ -752,7 +724,115 @@ class HomeScreen:
             cropped = source.crop(box).resize((width, height), Image.LANCZOS)
         except Exception:
             return None
-        return ImageTk.PhotoImage(cropped)
+        return cropped.convert("RGBA")
+
+    def _apply_archive_overlay(self, base, width: int, height: int, hovered: bool = False):
+        overlay = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(overlay)
+        scrim_rgb = self._hex_to_rgb(COLORS["bg_deepest"])
+        scrim_top = int(height * 0.34)
+        scrim_bottom_alpha = 188 if hovered else 164
+        scrim_span = max(height - scrim_top - 1, 1)
+        for y in range(scrim_top, height):
+            ratio = (y - scrim_top) / float(scrim_span)
+            alpha = int(scrim_bottom_alpha * ratio)
+            draw.line((0, y, width, y), fill=scrim_rgb + (alpha,))
+
+        panel_width = width
+        panel_height = min(self._ARCHIVE_OVERLAY_HEIGHT, height)
+        panel = self._build_archive_overlay_panel(panel_width, panel_height, hovered=hovered)
+        overlay.paste(
+            panel,
+            (
+                0,
+                height - panel_height,
+            ),
+            panel,
+        )
+        return Image.alpha_composite(base.convert("RGBA"), overlay)
+
+    def _build_archive_overlay_panel(self, width: int, height: int, hovered: bool = False):
+        panel = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(panel)
+        panel_rgb = self._hex_to_rgb(COLORS["bg_surface"])
+        top_alpha = 224 if hovered else 202
+        bottom_alpha = 252 if hovered else 244
+        gradient_span = max(height - 1, 1)
+        for y in range(height):
+            ratio = y / float(gradient_span)
+            alpha = int(top_alpha + ((bottom_alpha - top_alpha) * ratio))
+            draw.line((0, y, width, y), fill=panel_rgb + (alpha,))
+        top_line_alpha = 115 if hovered else 90
+        draw.line((0, 0, width, 0), fill=self._hex_to_rgb(COLORS["outline_dim"]) + (top_line_alpha,), width=1)
+        return panel
+
+    def _draw_archive_fallback_overlay(self, canvas, width: int, height: int):
+        panel_height = min(self._ARCHIVE_OVERLAY_HEIGHT, height)
+        panel_top = height - panel_height
+        canvas.create_rectangle(
+            0,
+            panel_top,
+            width,
+            height,
+            fill=COLORS["bg_surface"],
+            outline=COLORS["outline_dim"],
+            width=1,
+        )
+
+    def _draw_archive_text(self, canvas, info: dict, width: int, height: int):
+        panel_height = min(self._ARCHIVE_OVERLAY_HEIGHT, height)
+        panel_left = 24
+        panel_top = height - panel_height + 34
+        text_width = max(width - 48, 120)
+
+        name = info.get("name", "Unknown")
+        canvas.create_text(
+            panel_left + 1,
+            panel_top + 1,
+            text=name,
+            font=FONTS["card_title_lg"],
+            fill=COLORS["bg_deepest"],
+            anchor="nw",
+            justify=tk.LEFT,
+            width=text_width,
+        )
+        title_item = canvas.create_text(
+            panel_left,
+            panel_top,
+            text=name,
+            font=FONTS["card_title_lg"],
+            fill=COLORS["fg"],
+            anchor="nw",
+            justify=tk.LEFT,
+            width=text_width,
+        )
+        title_bbox = canvas.bbox(title_item)
+        summary_y = (title_bbox[3] if title_bbox else panel_top + 28) + 10
+        summary = (
+            f"LEVEL {info.get('level', 1)} "
+            f"{str(info.get('species', '?')).upper()} "
+            f"{str(info.get('class_name', '?')).upper()}"
+        )
+        canvas.create_text(
+            panel_left + 1,
+            summary_y + 1,
+            text=summary,
+            font=FONTS["label_upper_bold"],
+            fill=COLORS["bg_deepest"],
+            anchor="nw",
+            justify=tk.LEFT,
+            width=text_width,
+        )
+        canvas.create_text(
+            panel_left,
+            summary_y,
+            text=summary,
+            font=FONTS["label_upper_bold"],
+            fill=COLORS["gold"],
+            anchor="nw",
+            justify=tk.LEFT,
+            width=text_width,
+        )
 
     def _draw_import_icon(self, canvas):
         canvas.delete("all")
