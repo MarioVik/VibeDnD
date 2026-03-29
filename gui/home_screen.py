@@ -173,40 +173,42 @@ class HomeScreen:
         header = tk.Frame(content, bg=COLORS["bg"])
         header.pack(fill=tk.X, pady=(0, 16))
 
-        back_row = tk.Frame(header, bg=COLORS["bg"])
-        back_row.pack(anchor="w", pady=(0, 14))
+        title_row = tk.Frame(header, bg=COLORS["bg"])
+        title_row.pack(anchor="w")
 
         back_arrow = tk.Label(
-            back_row,
+            title_row,
             text="\u25c0",
-            font=FONTS["heading_serif_sm"],
-            fg=COLORS["gold"],
+            font=FONTS["archive_title"],
+            fg=COLORS["fg"],
             bg=COLORS["bg"],
             cursor="hand2",
         )
-        back_arrow.pack(side=tk.LEFT, padx=(0, 8))
-
-        back_btn = tk.Label(
-            back_row,
-            text="BACK TO MAIN MENU",
-            font=FONTS["heading_serif_sm"],
-            fg=COLORS["gold"],
-            bg=COLORS["bg"],
-            cursor="hand2",
+        back_arrow.pack(side=tk.LEFT, padx=(0, 10))
+        back_arrow.bind("<Button-1>", lambda _event: self.app.show_home())
+        back_arrow.bind(
+            "<Enter>",
+            lambda _event, widget=back_arrow: self._animate_label_color(
+                widget,
+                COLORS["accent_text"],
+            ),
         )
-        back_btn.pack(side=tk.LEFT)
-
-        for widget in (back_row, back_arrow, back_btn):
-            widget.bind("<Button-1>", lambda _event: self.app.show_home())
+        back_arrow.bind(
+            "<Leave>",
+            lambda _event, widget=back_arrow: self._animate_label_color(
+                widget,
+                COLORS["fg"],
+            ),
+        )
 
         tk.Label(
-            header,
+            title_row,
             text="The Archives",
             font=FONTS["archive_title"],
             fg=COLORS["fg"],
             bg=COLORS["bg"],
             anchor="w",
-        ).pack(anchor="w")
+        ).pack(side=tk.LEFT)
 
         tk.Label(
             header,
@@ -879,3 +881,42 @@ class HomeScreen:
                 recurse(child)
 
         recurse(widget)
+
+    def _animate_label_color(self, widget: tk.Label, target_color: str, steps: int = 6, delay: int = 18):
+        current_job = getattr(widget, "_color_anim_job", None)
+        if current_job:
+            try:
+                widget.after_cancel(current_job)
+            except tk.TclError:
+                pass
+
+        start_color = widget.cget("fg")
+        start_rgb = self._hex_to_rgb(start_color)
+        target_rgb = self._hex_to_rgb(target_color)
+
+        def step(index: int):
+            ratio = index / float(steps)
+            blended = tuple(
+                int(start + ((target - start) * ratio))
+                for start, target in zip(start_rgb, target_rgb)
+            )
+            try:
+                widget.configure(fg=self._rgb_to_hex(blended))
+            except tk.TclError:
+                return
+
+            if index < steps:
+                widget._color_anim_job = widget.after(delay, lambda: step(index + 1))
+            else:
+                widget._color_anim_job = None
+
+        step(1)
+
+    def _hex_to_rgb(self, value: str) -> tuple[int, int, int]:
+        color = value.strip().lstrip("#")
+        if len(color) == 3:
+            color = "".join(ch * 2 for ch in color)
+        return tuple(int(color[idx:idx + 2], 16) for idx in (0, 2, 4))
+
+    def _rgb_to_hex(self, value: tuple[int, int, int]) -> str:
+        return "#{:02x}{:02x}{:02x}".format(*value)
