@@ -1852,15 +1852,34 @@ class LevelUpWizard(tk.Toplevel):
         if min_lvl:
             lines.append(f"Available at Artificer level {min_lvl}+")
         desc = opt.get("description", "")
+
+        # Artificer magic item plans: prefer full item text from items.json so
+        # details match Add Inventory.
+        cfg = self._get_choices_config()
+        if (
+            cfg
+            and cfg.get("choice_label") == "Magic Item Plan"
+            and self.class_slug == "artificer"
+            and self.data
+        ):
+            item = self.data.items_by_name.get(opt.get("name", ""))
+            if item:
+                desc = item.get("full_description") or item.get("description") or desc
+
         # Extract attunement prefix from description (e.g. "No attunement required." or "Requires attunement.")
         attune_match = re.match(
             r"^((?:No )?(?:attunement|Attunement) required|Requires (?:attunement|Attunement)(?:\s+by\s+[^.]+)?|Varies)[.\s]*",
-            desc,
+            opt.get("description", ""),
         )
         if attune_match:
             attune_text = attune_match.group(1).strip()
             lines.append(f"Attunement: {attune_text}")
-            desc = desc[attune_match.end() :].strip()
+            # Only strip the attunement prefix when the displayed description
+            # actually starts with that same prefix. Full item descriptions from
+            # items.json usually do not include it.
+            desc_prefix = attune_match.group(0).strip().lower()
+            if desc.strip().lower().startswith(desc_prefix):
+                desc = desc[attune_match.end() :].strip()
 
         if prereq or prereq_feat or min_lvl or attune_match:
             lines.append("")
