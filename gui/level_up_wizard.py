@@ -211,6 +211,12 @@ class LevelUpWizard(tk.Toplevel):
         new_cantrips, new_prepared, _ = self._spell_deltas()
         return new_cantrips > 0 or new_prepared > 0
 
+    def _has_language_step(self) -> bool:
+        """True when the current level grants language choices (Deft Explorer)."""
+        if not self.level_data:
+            return False
+        return "Deft Explorer" in self.level_data.get("features", [])
+
     def _can_swap(self) -> tuple[bool, bool]:
         """Return (can_swap_cantrips, can_swap_spells)."""
         if self.class_slug not in _SWAP_CLASSES:
@@ -516,6 +522,9 @@ class LevelUpWizard(tk.Toplevel):
         # Step 1.5 – subclass proficiency/expertise selection (built lazily)
         self.step_prof_frame = ttk.Frame(self.content_container)
 
+        # Step 16 – language selection (Deft Explorer; built lazily)
+        self.step_lang_frame = ttk.Frame(self.content_container)
+
         # Step 2 – class choices (built lazily; maneuvers, invocations, plans, etc.)
         self.step2b_frame = ttk.Frame(self.content_container)
 
@@ -566,6 +575,8 @@ class LevelUpWizard(tk.Toplevel):
         step_order = [1]
         if self._has_proficiency_step():
             step_order.append(15)
+        if self._has_language_step():
+            step_order.append(16)
         if self._has_class_choices():
             step_order.append(2)
         if self._has_new_spell_options():
@@ -583,6 +594,7 @@ class LevelUpWizard(tk.Toplevel):
         validators = {
             1: self._validate_step1,
             15: self._validate_proficiency_step,
+            16: self._validate_language_step,
             2: self._validate_choices_step,
             3: self._validate_step2,
         }
@@ -661,15 +673,6 @@ class LevelUpWizard(tk.Toplevel):
                 if not self.subclass_var.get():
                     AlertDialog(self, "Missing Choice", "Please select a subclass.")
                     return False
-            if "Deft Explorer" in features:
-                if len(self._deft_lang_selections) < 2:
-                    AlertDialog(
-                        self,
-                        "Missing Choice",
-                        f"Deft Explorer grants 2 languages. Please choose "
-                        f"({len(self._deft_lang_selections)}/2 selected).",
-                    )
-                    return False
         return True
 
     def _validate_step2(self) -> bool:
@@ -725,12 +728,15 @@ class LevelUpWizard(tk.Toplevel):
     def _next_step_after(self, current: int) -> tuple[int, str] | None:
         """Return (step_number, button_label) for the next step after *current*, or None."""
         has_prof = self._has_proficiency_step()
+        has_lang = self._has_language_step()
         has_choices = self._has_class_choices()
         has_spells = self._has_new_spell_options()
         has_swap = self._has_swap_step()
         order: list[tuple[int, str]] = [(1, "")]
         if has_prof:
             order.append((15, "Next: Proficiencies \u2192"))
+        if has_lang:
+            order.append((16, "Next: Languages \u2192"))
         if has_choices:
             order.append((2, "Next: Class Choices \u2192"))
         if has_spells:
@@ -749,11 +755,14 @@ class LevelUpWizard(tk.Toplevel):
     def _prev_step_before(self, current: int) -> int:
         """Return the step number before *current*."""
         has_prof = self._has_proficiency_step()
+        has_lang = self._has_language_step()
         has_choices = self._has_class_choices()
         has_spells = self._has_new_spell_options()
         order = [1]
         if has_prof:
             order.append(15)
+        if has_lang:
+            order.append(16)
         if has_choices:
             order.append(2)
         if has_spells:
@@ -767,12 +776,14 @@ class LevelUpWizard(tk.Toplevel):
 
         Step 1  = features / HP / ASI / subclass
         Step 15 = subclass proficiency/expertise (conditional)
+        Step 16 = language selection — Deft Explorer (conditional)
         Step 2  = class choices (conditional)
         Step 3  = spell selection (conditional)
         Step 4  = spell swap (conditional)
         """
         self.step1_scroll.pack_forget()
         self.step_prof_frame.pack_forget()
+        self.step_lang_frame.pack_forget()
         self.step2b_frame.pack_forget()
         self.step2_frame.pack_forget()
         self.step3_frame.pack_forget()
@@ -812,6 +823,14 @@ class LevelUpWizard(tk.Toplevel):
             self.back_btn.configure(command=lambda: self._show_step(1))
             self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
             _setup_next_or_confirm(15)
+
+        elif step == 16:
+            # Language selection step (Deft Explorer)
+            self._build_language_step()
+            self.step_lang_frame.pack(in_=self.content_container, fill=tk.BOTH, expand=True)
+            self.back_btn.configure(command=lambda p=self._prev_step_before(16): self._show_step(p))
+            self.back_btn.pack(side=tk.LEFT, padx=(8, 0))
+            _setup_next_or_confirm(16)
 
         elif step == 2:
             # Class choices step
@@ -911,55 +930,60 @@ class LevelUpWizard(tk.Toplevel):
 
         if self.level_data:
             features = self.level_data.get("features", [])
-            if "Deft Explorer" in features:
-                self._build_deft_explorer_languages()
             if any("Ability Score Improvement" in f for f in features):
                 self._build_asi_section()
             if any("Subclass" in f and "Feature" not in f for f in features):
                 self._build_subclass_section()
 
-    # ── Deft Explorer languages ────────────────────────────────────
+    # ── Language step (Deft Explorer) ─────────────────────────────
 
-    def _build_deft_explorer_languages(self):
-        """Render inline language checkboxes for Ranger's Deft Explorer (level 2)."""
+    def _build_language_step(self):
+        """Build the dedicated language selection step for Deft Explorer."""
+        for w in self.step_lang_frame.winfo_children():
+            w.destroy()
+        self._deft_lang_vars.clear()
+        self._deft_lang_selections.clear()
+        self._deft_lang_counter_var.set("0 / 2 chosen")
+
         choices_needed = 2
         already_known = set(self.character.chosen_languages)
-        # Also exclude "Common" since it's always auto-granted
-        already_known.add("Common")
+        already_known.add("Common")  # always auto-granted, skip
         available = [l for l in STANDARD_LANGUAGES if l not in already_known]
 
-        SectionHeader(
-            self.step1_content, text="Deft Explorer — Choose Languages"
-        ).pack(fill=tk.X, pady=(8, 4))
+        scroll = ScrollableFrame(self.step_lang_frame)
+        scroll.pack(fill=tk.BOTH, expand=True)
+        inner = scroll.inner
 
+        SectionHeader(inner, text="Deft Explorer — Choose Languages").pack(
+            fill=tk.X, pady=(8, 4)
+        )
         ttk.Label(
-            self.step1_content,
-            text=f"Choose {choices_needed} languages of your choice.",
+            inner,
+            text="Your Deft Explorer feature grants 2 languages of your choice.",
             foreground=COLORS["fg_dim"],
         ).pack(anchor="w", padx=12, pady=(0, 4))
 
         counter = ttk.Label(
-            self.step1_content,
+            inner,
             textvariable=self._deft_lang_counter_var,
             foreground=COLORS["fg_dim"],
         )
-        counter.pack(anchor="w", padx=12, pady=(0, 4))
+        counter.pack(anchor="w", padx=12, pady=(0, 8))
         self._deft_counter_label = counter
 
-        lang_frame = ttk.Frame(self.step1_content)
-        lang_frame.pack(fill=tk.X, padx=12, pady=(0, 8))
+        lang_frame = ttk.Frame(inner)
+        lang_frame.pack(fill=tk.X, padx=12)
 
         for lang in available:
             var = tk.BooleanVar(value=False)
-            cb = ttk.Checkbutton(
+            ttk.Checkbutton(
                 lang_frame,
                 text=lang,
                 variable=var,
                 command=lambda l=lang, v=var: self._on_deft_lang_toggle(
                     l, v, choices_needed
                 ),
-            )
-            cb.pack(anchor="w", pady=1)
+            ).pack(anchor="w", pady=2)
             self._deft_lang_vars[lang] = var
 
     def _on_deft_lang_toggle(self, lang: str, var: tk.BooleanVar, choices_needed: int):
@@ -975,13 +999,20 @@ class LevelUpWizard(tk.Toplevel):
 
         chosen = len(self._deft_lang_selections)
         self._deft_lang_counter_var.set(f"{chosen} / {choices_needed} chosen")
-
-        # Update counter label color
         color = COLORS["positive"] if chosen == choices_needed else COLORS["fg_dim"]
         if hasattr(self, "_deft_counter_label"):
             self._deft_counter_label.configure(foreground=color)
-        # Over-cap selections are reverted at the top of this method, so no
-        # further widget disabling is needed.
+
+    def _validate_language_step(self) -> bool:
+        if len(self._deft_lang_selections) < 2:
+            AlertDialog(
+                self,
+                "Missing Choice",
+                f"Deft Explorer grants 2 languages. "
+                f"Please choose ({len(self._deft_lang_selections)}/2 selected).",
+            )
+            return False
+        return True
 
     # ── features ──────────────────────────────────────────────────
 
