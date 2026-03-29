@@ -64,8 +64,16 @@ def _classify_headers(headers: list[str]) -> dict:
     }
 
     # Identify extra columns (not Level, Prof Bonus, Features, or spell-related)
-    skip = {"Level", "Proficiency Bonus", "Features", "Class Features",
-            "Cantrips", "Prepared Spells", "Spell Slots", "Slot Level"}
+    skip = {
+        "Level",
+        "Proficiency Bonus",
+        "Features",
+        "Class Features",
+        "Cantrips",
+        "Prepared Spells",
+        "Spell Slots",
+        "Slot Level",
+    }
     skip.update(SPELL_SLOT_HEADERS)
     result["extra_cols"] = [h for h in headers if h not in skip]
 
@@ -95,8 +103,9 @@ def _is_level_marker(lines: list[str], idx: int, expected_level: int) -> bool:
     return False
 
 
-def _read_all_rows(lines: list[str], data_start: int, header_info: dict,
-                    end_idx: int | None = None) -> list[dict]:
+def _read_all_rows(
+    lines: list[str], data_start: int, header_info: dict, end_idx: int | None = None
+) -> list[dict]:
     """Read all 20 level rows from a table."""
     if end_idx is None:
         end_idx = len(lines)
@@ -109,8 +118,9 @@ def _read_all_rows(lines: list[str], data_start: int, header_info: dict,
     return _read_feature_rows(lines, data_start, header_info, end_idx)
 
 
-def _read_fixed_column_rows(lines: list[str], data_start: int,
-                             header_info: dict, end_idx: int) -> list[dict]:
+def _read_fixed_column_rows(
+    lines: list[str], data_start: int, header_info: dict, end_idx: int
+) -> list[dict]:
     """Read rows from a fixed-column table (Part B, no features)."""
     # Count columns: Level + extras + spell columns
     n_cols = 1 + len(header_info["extra_cols"])
@@ -130,24 +140,25 @@ def _read_fixed_column_rows(lines: list[str], data_start: int,
         stripped = lines[i].strip()
         if not stripped or stripped == ",":
             continue
-        if re.match(r'^Level\s+\d+\s*:', stripped):
+        if re.match(r"^Level\s+\d+\s*:", stripped):
             break
-        if re.match(r'^.+Features\s*\(Part\s+[AB]\)', stripped):
+        if re.match(r"^.+Features\s*\(Part\s+[AB]\)", stripped):
             break
         all_values.append(stripped)
 
     # Split into rows of n_cols each
     rows = []
     for r in range(0, len(all_values), n_cols):
-        chunk = all_values[r:r + n_cols]
+        chunk = all_values[r : r + n_cols]
         if len(chunk) == n_cols:
             rows.append(_parse_row_values(chunk, header_info))
 
     return rows
 
 
-def _read_feature_rows(lines: list[str], data_start: int,
-                        header_info: dict, end_idx: int) -> list[dict]:
+def _read_feature_rows(
+    lines: list[str], data_start: int, header_info: dict, end_idx: int
+) -> list[dict]:
     """Read rows from a table with variable-length features column."""
     rows = []
     current_level = 1
@@ -163,9 +174,9 @@ def _read_feature_rows(lines: list[str], data_start: int,
             continue
 
         # Stop if we hit feature descriptions, Part B label, or prose text
-        if re.match(r'^Level\s+\d+\s*:', stripped):
+        if re.match(r"^Level\s+\d+\s*:", stripped):
             break
-        if re.match(r'^.+Features\s*\(Part\s+[AB]\)', stripped):
+        if re.match(r"^.+Features\s*\(Part\s+[AB]\)", stripped):
             break
         # Long lines (>60 chars) are prose, not table data
         if len(stripped) > 60:
@@ -173,15 +184,18 @@ def _read_feature_rows(lines: list[str], data_start: int,
 
         # Check if this is the start of the next level
         # Verify with prof bonus look-ahead
-        if (stripped.isdigit() and int(stripped) == current_level + 1
-                and len(current_values) > 1):
+        if (
+            stripped.isdigit()
+            and int(stripped) == current_level + 1
+            and len(current_values) > 1
+        ):
             # Confirm by checking next non-empty line is +N
             is_level = False
             for j in range(i + 1, min(i + 4, len(lines))):
                 nxt = lines[j].strip()
                 if not nxt or nxt == ",":
                     continue
-                is_level = bool(re.match(r'^\+\d+$', nxt))
+                is_level = bool(re.match(r"^\+\d+$", nxt))
                 break
 
             if is_level:
@@ -222,11 +236,13 @@ def _parse_row_values(values: list[str], header_info: dict) -> dict:
         features = []
         # Count expected trailing columns
         n_extra = len(header_info["extra_cols"])
-        n_spell = (1 if header_info["has_cantrips"] else 0) + \
-                  (1 if header_info["has_prepared"] else 0) + \
-                  len(header_info["slot_levels"]) + \
-                  (1 if header_info["has_pact_slots"] else 0) + \
-                  (1 if header_info["has_slot_level"] else 0)
+        n_spell = (
+            (1 if header_info["has_cantrips"] else 0)
+            + (1 if header_info["has_prepared"] else 0)
+            + len(header_info["slot_levels"])
+            + (1 if header_info["has_pact_slots"] else 0)
+            + (1 if header_info["has_slot_level"] else 0)
+        )
         n_trailing = n_extra + n_spell
 
         # Everything between prof bonus and trailing columns is features
@@ -248,7 +264,9 @@ def _parse_row_values(values: list[str], header_info: dict) -> dict:
             else:
                 feature_text += fv
 
-        features = [f.strip() for f in feature_text.split(",") if f.strip() and f.strip() != "-"]
+        features = [
+            f.strip() for f in feature_text.split(",") if f.strip() and f.strip() != "-"
+        ]
         row["features"] = features
 
         # Parse trailing columns
@@ -358,7 +376,7 @@ def _parse_feature_descriptions(content: str) -> dict[int, list[dict]]:
     # Find the start of feature descriptions (after the table)
     desc_start = None
     for i, line in enumerate(lines):
-        m = re.match(r'^Level\s+(\d+)\s*:\s*(.+)', line.strip())
+        m = re.match(r"^Level\s+(\d+)\s*:\s*(.+)", line.strip())
         if m:
             desc_start = i
             break
@@ -368,16 +386,21 @@ def _parse_feature_descriptions(content: str) -> dict[int, list[dict]]:
 
     def _save_current():
         if current_level is not None and current_name:
+            description = join_description_lines(current_desc_lines)
+            if current_name == "Tinker's Magic":
+                description = _sort_tinkers_magic_items(description)
             features_by_level.setdefault(current_level, [])
-            features_by_level[current_level].append({
-                "name": current_name,
-                "description": join_description_lines(current_desc_lines),
-            })
+            features_by_level[current_level].append(
+                {
+                    "name": current_name,
+                    "description": description,
+                }
+            )
 
     for i in range(desc_start, len(lines)):
         stripped = lines[i].strip()
 
-        m = re.match(r'^Level\s+(\d+)\s*:\s*(.+)', stripped)
+        m = re.match(r"^Level\s+(\d+)\s*:\s*(.+)", stripped)
         if m:
             _save_current()
             current_level = int(m.group(1))
@@ -388,6 +411,41 @@ def _parse_feature_descriptions(content: str) -> dict[int, list[dict]]:
 
     _save_current()
     return features_by_level
+
+
+def _sort_tinkers_magic_items(description: str) -> str:
+    """Alphabetize Tinker's Magic crafted-item bullets."""
+    lines = description.split("\n")
+    start = None
+    end = None
+
+    for i, line in enumerate(lines):
+        if "following list:" in line.lower():
+            start = i + 1
+            break
+
+    if start is None:
+        return description
+
+    while start < len(lines) and not lines[start].strip().startswith("• "):
+        start += 1
+
+    if start >= len(lines):
+        return description
+
+    end = start
+    while end < len(lines) and lines[end].strip().startswith("• "):
+        end += 1
+
+    items = [lines[i].strip()[2:].strip() for i in range(start, end)]
+    if len(items) < 2:
+        return description
+
+    items.sort(key=lambda item: item.lower())
+    sorted_bullets = [f"• {item}" for item in items]
+
+    new_lines = lines[:start] + sorted_bullets + lines[end:]
+    return "\n".join(new_lines)
 
 
 def _extract_subclass_list(content: str, class_name: str) -> list[str]:
@@ -403,7 +461,7 @@ def _extract_subclass_list(content: str, class_name: str) -> list[str]:
         stripped = line.strip()
 
         # Detect subclass list section
-        if re.match(rf'{class_name}\s+Subclass(es)?$', stripped, re.IGNORECASE):
+        if re.match(rf"{class_name}\s+Subclass(es)?$", stripped, re.IGNORECASE):
             in_subclass_list = True
             continue
 
@@ -413,7 +471,7 @@ def _extract_subclass_list(content: str, class_name: str) -> list[str]:
                 continue
             if past_name_header:
                 # Stop at next section (Level X:, long prose, or non-name patterns)
-                if re.match(r'^Level\s+\d+', stripped):
+                if re.match(r"^Level\s+\d+", stripped):
                     break
                 if len(stripped) > 40:
                     break
@@ -445,7 +503,7 @@ def parse_progressions(raw_data: list[dict]) -> list[dict]:
         lines = content.split("\n")
 
         # Extract class name
-        name_match = re.search(r'Core\s+(\w+)\s+Traits', content)
+        name_match = re.search(r"Core\s+(\w+)\s+Traits", content)
         name = name_match.group(1) if name_match else slug.title()
 
         # Find all level tables
@@ -470,11 +528,13 @@ def parse_progressions(raw_data: list[dict]) -> list[dict]:
             # End boundary: next table start or end of content
             end_idx = table_starts[t_idx + 1] if t_idx + 1 < len(table_starts) else None
             rows = _read_all_rows(lines, data_start, header_info, end_idx)
-            tables.append({
-                "label": label,
-                "headers": headers,
-                "rows": rows,
-            })
+            tables.append(
+                {
+                    "label": label,
+                    "headers": headers,
+                    "rows": rows,
+                }
+            )
 
         # Parse feature descriptions for all levels
         feature_descriptions = _parse_feature_descriptions(content)
@@ -491,13 +551,15 @@ def parse_progressions(raw_data: list[dict]) -> list[dict]:
             if lvl in feature_descriptions:
                 level_data["feature_details"] = feature_descriptions[lvl]
 
-        progressions.append({
-            "name": name,
-            "slug": slug,
-            "caster_type": CASTER_TYPES.get(slug),
-            "levels": levels,
-            "subclass_names": subclass_names,
-        })
+        progressions.append(
+            {
+                "name": name,
+                "slug": slug,
+                "caster_type": CASTER_TYPES.get(slug),
+                "levels": levels,
+                "subclass_names": subclass_names,
+            }
+        )
 
     return progressions
 
@@ -521,8 +583,13 @@ def _merge_tables(tables: list[dict]) -> list[dict]:
                 lvl = row.get("level")
                 if lvl in part_a_rows:
                     # Merge spell data and extras from Part B
-                    for key in ("cantrips", "prepared_spells", "spell_slots",
-                                "pact_slots", "pact_slot_level"):
+                    for key in (
+                        "cantrips",
+                        "prepared_spells",
+                        "spell_slots",
+                        "pact_slots",
+                        "pact_slot_level",
+                    ):
                         if key in row:
                             part_a_rows[lvl][key] = row[key]
                     # Merge extra columns

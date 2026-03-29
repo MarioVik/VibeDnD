@@ -455,6 +455,7 @@ class FormattedDescription(tk.Text):
             else base_font
         )
         self.tag_configure("subheading", font=bold_font, foreground=fg)
+        self.tag_configure("two_col_bullets", tabs=(260,))
 
         if text:
             self._set_text(text)
@@ -474,6 +475,41 @@ class FormattedDescription(tk.Text):
             and not line.startswith("See ")
         )
 
+    @staticmethod
+    def _maybe_two_column_bullets(paragraph: str) -> str:
+        """Render dense short bullet lists into two columns.
+
+        Keeps long or complex bullet content as a single column.
+        """
+        lines = [line.strip() for line in paragraph.split("\n") if line.strip()]
+        if len(lines) < 12:
+            return paragraph
+        if not all(line.startswith("• ") for line in lines):
+            return paragraph
+
+        items = [line[2:].strip() for line in lines]
+        if not items:
+            return paragraph
+
+        # Only compact very short simple entries (e.g., Tinker's Magic item list).
+        if any(len(item) > 22 for item in items):
+            return paragraph
+        if any("—" in item or ":" in item for item in items):
+            return paragraph
+
+        split = (len(items) + 1) // 2
+        left = items[:split]
+        right = items[split:]
+
+        compact_lines = []
+        for i in range(split):
+            left_cell = f"• {left[i]}"
+            if i < len(right):
+                compact_lines.append(f"{left_cell}\t• {right[i]}")
+            else:
+                compact_lines.append(left_cell)
+        return "\n".join(compact_lines)
+
     def _set_text(self, text: str):
         self.configure(state="normal")
         self.delete("1.0", "end")
@@ -489,7 +525,11 @@ class FormattedDescription(tk.Text):
             if self._is_subheading(para):
                 self.insert("end", para, "subheading")
             else:
-                self.insert("end", para)
+                formatted = self._maybe_two_column_bullets(para)
+                if "\t" in formatted:
+                    self.insert("end", formatted, "two_col_bullets")
+                else:
+                    self.insert("end", formatted)
         self.configure(state="disabled")
 
     def _on_configure(self, event):
