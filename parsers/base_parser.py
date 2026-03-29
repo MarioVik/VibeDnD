@@ -15,7 +15,7 @@ def _is_subheading(line: str) -> bool:
     )
 
 
-_TABLE_VALUE_PATTERN = re.compile(r'^(Yes|No|Varies)$', re.IGNORECASE)
+_TABLE_VALUE_PATTERN = re.compile(r"^(Yes|No|Varies)$", re.IGNORECASE)
 
 
 def _format_inline_tables(lines: list[str]) -> list[str]:
@@ -47,7 +47,9 @@ def _format_inline_tables(lines: list[str]) -> list[str]:
             and lines[i + 1].strip()  # col 1 header
             and lines[i + 2].strip()  # col 2 header
             and lines[i + 3].strip()  # first data value
-            and _TABLE_VALUE_PATTERN.match(lines[i + 4].strip())  # second line is Yes/No/Varies
+            and _TABLE_VALUE_PATTERN.match(
+                lines[i + 4].strip()
+            )  # second line is Yes/No/Varies
         ):
             col2_header = lines[i + 2].strip()
             # Verify col2 header is a short label (not a sentence)
@@ -93,13 +95,52 @@ def join_description_lines(lines: list[str]) -> str:
     paragraphs: list[str] = []
     current: list[str] = []
 
+    def _looks_like_plain_list_item(text: str) -> bool:
+        """Heuristic: short noun-phrase style line suitable for bulleting."""
+        if not text:
+            return False
+        if len(text) > 40:
+            return False
+        if text.endswith((".", ":", ";", "?", "!")):
+            return False
+        if re.match(r"^(See|You|When|As|For|To|The)\b", text):
+            return False
+        return True
+
+    def _flush_plain_list(items: list[str]) -> None:
+        """Emit list items as bullets if there are enough to be meaningful."""
+        if len(items) >= 3:
+            bullet_block = "\n".join(f"• {item}" for item in items)
+            paragraphs.append(bullet_block)
+        elif items:
+            current.extend(items)
+
     in_bullet_list = False
+    collecting_plain_list = False
+    plain_list_items: list[str] = []
+
     for line in lines:
         stripped = line.strip()
+
+        if collecting_plain_list:
+            if _looks_like_plain_list_item(stripped):
+                plain_list_items.append(stripped)
+                continue
+            _flush_plain_list(plain_list_items)
+            plain_list_items = []
+            collecting_plain_list = False
+
         if not stripped:
             if current:
                 paragraphs.append(" ".join(current))
                 current = []
+            in_bullet_list = False
+        elif stripped.lower().endswith("following list:"):
+            if current:
+                paragraphs.append(" ".join(current))
+                current = []
+            paragraphs.append(stripped)
+            collecting_plain_list = True
             in_bullet_list = False
         elif stripped.startswith("•"):
             # Bullet items: flush current paragraph, then group bullets
@@ -121,6 +162,9 @@ def join_description_lines(lines: list[str]) -> str:
         else:
             current.append(stripped)
             in_bullet_list = False
+
+    if collecting_plain_list:
+        _flush_plain_list(plain_list_items)
 
     if current:
         paragraphs.append(" ".join(current))
@@ -151,14 +195,14 @@ def extract_source(content: str) -> str:
     for i, line in enumerate(lines[:3]):
         line = line.strip()
         if line.startswith("Source:"):
-            value = line[len("Source:"):].strip()
+            value = line[len("Source:") :].strip()
             if value:
                 return value
             # "Source:" on its own line — value is on the next line
             if i + 1 < len(lines) and lines[i + 1].strip():
                 return lines[i + 1].strip()
         if line.startswith("Source"):
-            rest = line[len("Source"):].strip().lstrip(":")
+            rest = line[len("Source") :].strip().lstrip(":")
             if rest:
                 return rest.strip()
             if i + 1 < len(lines) and lines[i + 1].strip():
@@ -185,14 +229,16 @@ def extract_field(content: str, field_name: str) -> str | None:
                 if val:
                     return val
         # Match "Field Name: value" on same line
-        pattern = re.compile(rf'^{re.escape(field_name)}\s*:\s*(.+)', re.IGNORECASE)
+        pattern = re.compile(rf"^{re.escape(field_name)}\s*:\s*(.+)", re.IGNORECASE)
         m = pattern.match(stripped)
         if m:
             return m.group(1).strip()
     return None
 
 
-def extract_field_multiline(content: str, field_name: str, stop_fields: list[str] | None = None) -> str | None:
+def extract_field_multiline(
+    content: str, field_name: str, stop_fields: list[str] | None = None
+) -> str | None:
     """Extract multi-line value after a field label, stopping at the next known field."""
     lines = content.split("\n")
     collecting = False
@@ -225,8 +271,8 @@ def split_comma_list(text: str) -> list[str]:
     'Insight and Religion' -> ['Insight', 'Religion']
     """
     # Replace conjunctions with commas
-    text = re.sub(r'\s+and\s+', ', ', text)
-    text = re.sub(r'\s+or\s+', ', ', text)
+    text = re.sub(r"\s+and\s+", ", ", text)
+    text = re.sub(r"\s+or\s+", ", ", text)
     return [item.strip() for item in text.split(",") if item.strip()]
 
 
@@ -254,13 +300,21 @@ def extract_description(content: str, after_source: bool = True) -> str:
     # Collect lines until we hit a traits/mechanics header
     desc_lines = []
     trait_headers = [
-        "core ", "traits", "primary ability", "hit point die",
-        "creature type", "ability scores", "prerequisite",
-        "you gain the following", "feat:", "skill proficiencies",
+        "core ",
+        "traits",
+        "primary ability",
+        "hit point die",
+        "creature type",
+        "ability scores",
+        "prerequisite",
+        "you gain the following",
+        "feat:",
+        "skill proficiencies",
     ]
 
     field_headers = trait_headers + [
-        "tool proficiency", "equipment",
+        "tool proficiency",
+        "equipment",
     ]
 
     first_header_idx = None
@@ -273,7 +327,7 @@ def extract_description(content: str, after_source: bool = True) -> str:
             first_header_idx = i
             break
         # Also stop at labeled field patterns
-        if re.match(r'^[A-Z][a-z]+ [A-Z][a-z]+:', stripped):
+        if re.match(r"^[A-Z][a-z]+ [A-Z][a-z]+:", stripped):
             first_header_idx = i
             break
         desc_lines.append(stripped)
@@ -286,9 +340,8 @@ def extract_description(content: str, after_source: bool = True) -> str:
     # then grab whatever remains as the description.
     def _is_header(line: str) -> bool:
         low = line.strip().lower()
-        return (
-            any(low.startswith(h) for h in field_headers)
-            or bool(re.match(r'^[A-Z][a-z]+ [A-Z][a-z]+:', line.strip()))
+        return any(low.startswith(h) for h in field_headers) or bool(
+            re.match(r"^[A-Z][a-z]+ [A-Z][a-z]+:", line.strip())
         )
 
     i = first_header_idx or start
@@ -331,7 +384,7 @@ def parse_choose_pattern(text: str) -> dict | None:
 
     Returns {'count': N, 'options': ['X', 'Y', 'Z']} or None.
     """
-    m = re.match(r'Choose\s+(\d+)\s*(?:from\s*)?:\s*(.+)', text, re.IGNORECASE)
+    m = re.match(r"Choose\s+(\d+)\s*(?:from\s*)?:\s*(.+)", text, re.IGNORECASE)
     if m:
         count = int(m.group(1))
         options = split_comma_list(m.group(2))

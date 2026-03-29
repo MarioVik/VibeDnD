@@ -27,7 +27,7 @@
           },
           {
             "name": "Tinker's Magic",
-            "description": "You know the Mending cantrip. As a Magic action while holding Tinker’s Tools, you can create one item in an unoccupied space within 5 feet of yourself, choosing the item from the following list: Ball Bearings Flask Pouch Basket Grappling Hook Rope Bedroll Hunting Trap Sack Bell Jug Shovel Blanket Lamp Spikes, Iron Block and Tackle Manacles String Bottle, Glass Net Tinderbox Bucket Oil Torch Caltrops Paper Vial Candle Parchment Crowbar Pole See the rules for the item in the Player’s Handbook. The item lasts until you finish a Long Rest, at which point it vanishes. You can use this feature a number of times equal to your Intelligence modifier (minimum of once), and you regain all expended uses when you finish a Long Rest."
+            "description": "You know the Mending cantrip.\n\nAs a Magic action while holding Tinker’s Tools, you can create one item in an unoccupied space within 5 feet of yourself, choosing the item from the following list:\n\n• Ball Bearings\n• Flask\n• Pouch\n• Basket\n• Grappling Hook\n• Rope\n• Bedroll\n• Hunting Trap\n• Sack\n• Bell\n• Jug\n• Shovel\n• Blanket\n• Lamp\n• Spikes, Iron\n• Block and Tackle\n• Manacles\n• String\n• Bottle, Glass\n• Net\n• Tinderbox\n• Bucket\n• Oil\n• Torch\n• Caltrops\n• Paper\n• Vial\n• Candle\n• Parchment\n• Crowbar\n• Pole\n\nSee the rules for the item in the Player’s Handbook. The item lasts until you finish a Long Rest, at which point it vanishes. You can use this feature a number of times equal to your Intelligence modifier (minimum of once), and you regain all expended uses when you finish a Long Rest."
           }
         ]
       },
