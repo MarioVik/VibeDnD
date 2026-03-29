@@ -12,6 +12,7 @@ from gui.step_species import SpeciesStep
 from gui.step_class import ClassStep
 from gui.step_background import BackgroundStep
 from gui.step_languages import LanguagesStep
+from gui.step_skills import SkillsStep
 from gui.step_ability_scores import AbilityScoresStep
 from gui.step_feat import FeatStep
 from gui.step_spells import SpellsStep
@@ -19,6 +20,7 @@ from gui.step_equipment import EquipmentStep
 from gui.step_biography import BiographyStep
 from gui.step_summary import SummaryStep
 from models.language_utils import compute_language_sources
+from models.skill_utils import compute_skill_sources
 
 from gui.home_screen import HomeScreen
 from gui.character_viewer import CharacterViewer
@@ -29,6 +31,7 @@ _WIZARD_STEPS = [
     ("class", "Class", "\u2694\ufe0f", ClassStep),
     ("background", "Background", "\U0001F4DC", BackgroundStep),
     ("languages", "Languages", "\U0001F5E3", LanguagesStep),
+    ("skills", "Skills", "\U0001F3AF", SkillsStep),
     ("abilities", "Ability Scores", "\U0001F3B2", AbilityScoresStep),
     ("feat", "Feat", "\u2B50", FeatStep),
     ("spells", "Spells", "\u2728", SpellsStep),
@@ -37,7 +40,7 @@ _WIZARD_STEPS = [
     ("summary", "Summary", "\u2705", SummaryStep),
 ]
 
-SPELLS_INDEX = 6  # index of spells step in _WIZARD_STEPS
+SPELLS_INDEX = 7  # index of spells step in _WIZARD_STEPS
 
 
 class CharacterCreatorApp:
@@ -294,15 +297,16 @@ class CharacterCreatorApp:
 
     def _show_validation_error(self, step):
         """Show context-specific validation error for the current step."""
-        if isinstance(step, ClassStep):
-            required = getattr(step, "skill_limit", 0)
-            chosen = len(self.character.selected_skills) if self.character else 0
-            skill_word = "skill" if required == 1 else "skills"
+        if isinstance(step, SkillsStep):
+            sources = compute_skill_sources(self.character)
+            chosen = len(self.character.selected_skills)
+            needed = sources["choose_count"]
+            skill_word = "skill" if needed == 1 else "skills"
             AlertDialog(
                 self.root,
                 "Skill Selection Required",
-                f"Choose {required} class {skill_word} before moving on. "
-                f"({chosen}/{required} selected)",
+                f"Choose {needed} class {skill_word} before moving on. "
+                f"({chosen}/{needed} selected)",
             )
         elif isinstance(step, SpeciesStep):
             species_name = (
@@ -348,8 +352,8 @@ class CharacterCreatorApp:
         curr = self._current_step_idx
         self._back_btn.configure(state=tk.NORMAL if curr > 0 else tk.DISABLED)
 
-        # Class and Species keep Next clickable; validation handled on click
-        if isinstance(self.wizard_steps[curr], (ClassStep, SpeciesStep)):
+        # Species keeps Next clickable; validation handled on click
+        if isinstance(self.wizard_steps[curr], SpeciesStep):
             is_valid = True
         else:
             is_valid = self.wizard_steps[curr].is_valid()

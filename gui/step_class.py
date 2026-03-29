@@ -82,12 +82,6 @@ class ClassStep(WizardStep):
         self.traits_frame = ttk.Frame(self.detail)
         self.traits_frame.pack(fill=tk.X)
 
-        # Skill selection
-        self.skills_frame = ttk.LabelFrame(self.detail, text="Skill Proficiencies")
-        self.skills_frame.pack(fill=tk.X, pady=(8, 0))
-        self.skill_vars = {}
-        self.skill_limit = 0
-
         # Features
         self.features_frame = ttk.Frame(self.detail)
         self.features_frame.pack(fill=tk.X, pady=(8, 0))
@@ -98,19 +92,16 @@ class ClassStep(WizardStep):
         """Show normal class detail sections."""
         self.equip_frame.pack_forget()
         self.traits_frame.pack_forget()
-        self.skills_frame.pack_forget()
         self.features_frame.pack_forget()
 
         self.equip_frame.pack(fill=tk.X)
         self.traits_frame.pack(fill=tk.X)
-        self.skills_frame.pack(fill=tk.X, pady=(8, 0))
         self.features_frame.pack(fill=tk.X, pady=(8, 0))
 
     def _show_subclass_panels(self):
         """Hide class-only sections while previewing subclass details."""
         self.equip_frame.pack_forget()
         self.traits_frame.pack_forget()
-        self.skills_frame.pack_forget()
         if not self.features_frame.winfo_manager():
             self.features_frame.pack(fill=tk.X, pady=(8, 0))
 
@@ -123,7 +114,7 @@ class ClassStep(WizardStep):
         return parts[0].strip()
 
     def on_enter(self):
-        """Pre-select class and skills when editing an existing character."""
+        """Pre-select class when editing an existing character."""
         if not self._edit_initialized and self.character.character_class:
             self._edit_initialized = True
             name = self.character.character_class.get("name", "")
@@ -132,12 +123,8 @@ class ClassStep(WizardStep):
             # Select in list and populate detail panel
             self.class_list.select_item(name)
             self._on_select(name)
-            # Restore skill checkbox selections
-            for skill_name in saved_skills:
-                if skill_name in self.skill_vars:
-                    self.skill_vars[skill_name].set(True)
+            # Restore skills (the Skills step manages the UI for these)
             self.character.selected_skills = saved_skills
-            self._update_skill_states()
 
     def _build_toggles(self):
         """Build source filter checkboxes for classes and subclasses."""
@@ -365,12 +352,21 @@ class ClassStep(WizardStep):
 
         # Core traits
 
+        skill_choices = cls.get("skill_choices", {})
+        skill_count = skill_choices.get("count", 0)
+        skill_options = skill_choices.get("options", [])
+        if skill_options:
+            skill_text = f"Choose {skill_count} from: {', '.join(skill_options)}"
+        else:
+            skill_text = "None"
+
         info = [
             ("Hit Die", f"d{cls['hit_die']}"),
             ("Primary Ability", ", ".join(cls.get("primary_ability", []))),
             ("Saving Throws", ", ".join(cls.get("saving_throws", []))),
             ("Armor", ", ".join(cls.get("armor_proficiencies", [])) or "None"),
             ("Weapons", ", ".join(cls.get("weapon_proficiencies", []))),
+            ("Skills", skill_text),
         ]
 
         if cls.get("caster_type"):
@@ -402,33 +398,6 @@ class ClassStep(WizardStep):
                 anchor="e",
             ).pack(side=tk.LEFT)
             ttk.Label(row, text=f"  {value}").pack(side=tk.LEFT, padx=(4, 0))
-
-        # Skills
-        for w in self.skills_frame.winfo_children():
-            w.destroy()
-        self.skill_vars.clear()
-
-        skill_choices = cls.get("skill_choices", {})
-        self.skill_limit = skill_choices.get("count", 2)
-        options = skill_choices.get("options", [])
-
-        ttk.Label(
-            self.skills_frame, text=f"Choose {self.skill_limit}:", style="Dim.TLabel"
-        ).pack(anchor="w", padx=4)
-
-        cols_frame = ttk.Frame(self.skills_frame)
-        cols_frame.pack(fill=tk.X, padx=4, pady=4)
-
-        self.skill_checkbuttons: dict[str, ttk.Checkbutton] = {}
-        for i, skill_name in enumerate(options):
-            var = tk.BooleanVar(value=False)
-            var.trace_add("write", self._on_skill_change)
-            self.skill_vars[skill_name] = var
-            col = i % 3
-            row = i // 3
-            cb = ttk.Checkbutton(cols_frame, text=skill_name, variable=var)
-            cb.grid(row=row, column=col, sticky="w", padx=8, pady=1)
-            self.skill_checkbuttons[skill_name] = cb
 
         # Features - All Levels Roadmap
         for w in self.features_frame.winfo_children():
@@ -638,22 +607,4 @@ class ClassStep(WizardStep):
         self.notify_change()
 
     def is_valid(self) -> bool:
-        if not self.character.character_class:
-            return False
-        return len(self.character.selected_skills) == self.skill_limit
-
-    def _on_skill_change(self, *args):
-        selected = [name for name, var in self.skill_vars.items() if var.get()]
-        self.character.selected_skills = selected
-        self._update_skill_states()
-        self.notify_change()
-
-    def _update_skill_states(self):
-        """Disable unchecked skill checkboxes when at max."""
-        selected = [name for name, var in self.skill_vars.items() if var.get()]
-        at_max = len(selected) >= self.skill_limit
-        for name, cb in self.skill_checkbuttons.items():
-            if at_max and name not in selected:
-                cb.configure(state=tk.DISABLED)
-            else:
-                cb.configure(state=tk.NORMAL)
+        return self.character.character_class is not None
