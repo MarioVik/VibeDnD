@@ -220,7 +220,6 @@ class ClassStep(WizardStep):
         for f in [
             self.equip_frame,
             self.traits_frame,
-            self.skills_frame,
             self.features_frame,
         ]:
             for w in f.winfo_children():

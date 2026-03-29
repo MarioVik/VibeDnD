@@ -187,7 +187,7 @@ class SpeciesStep(WizardStep):
 
         stats_text = f"Type: {sp.get('creature_type', 'Humanoid')}  |  Speed: {sp.get('speed', 30)} ft"
         ttk.Label(self.stats_frame, text=stats_text, style="Subheading.TLabel").pack(
-            anchor="w"
+            side=tk.LEFT
         )
 
         # Size choice
