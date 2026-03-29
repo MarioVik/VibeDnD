@@ -21,7 +21,7 @@ No Python or technical setup required.
 - **Leveling & Multiclass**: Level up to 20 with multiclass support, subclass selection, HP rolling, ASI/Feat choices, and spell swapping
 - **Inventory Management**: Browse the full D&D 2024 item database, filter by category and cost, and track your wealth
 - **Source Filtering**: Toggle content from Common (PHB), Eberron, Faerun, Exotic, and Unearthed Arcana sources
-- **Character Management**: Save, view, edit/respec, import, and delete characters from the home screen
+- **Cinematic Home & Archive**: Start from a dedicated landing screen, then browse, import, load, and delete characters from a separate archive view
 - **Biography Tab**: Add backstory, personality, and description notes, plus an embedded portrait image
 - **Export**: PDF character sheets and JSON (for backup/sharing)
 

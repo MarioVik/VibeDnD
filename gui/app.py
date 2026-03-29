@@ -74,9 +74,15 @@ class CharacterCreatorApp:
     # ── Screen transitions ──────────────────────────────────────
 
     def show_home(self):
-        """Switch to the home screen."""
+        """Switch to the landing screen."""
         self._hide_all()
-        self.home_screen.refresh()
+        self.home_screen.show_landing()
+        self.home_screen.frame.pack(fill=tk.BOTH, expand=True)
+
+    def show_archive(self):
+        """Switch to the saved-character archive."""
+        self._hide_all()
+        self.home_screen.show_archive()
         self.home_screen.frame.pack(fill=tk.BOTH, expand=True)
 
     def show_wizard(self, character=None, save_path=None):

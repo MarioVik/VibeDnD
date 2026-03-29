@@ -88,12 +88,18 @@ FONTS = {
     "heading_serif_lg": (_SERIF, 28, "bold italic"),
     "heading_serif": (_SERIF, 20, "italic"),
     "heading_serif_sm": (_SERIF, 14, "italic"),
+    "hero_eyebrow": (_SERIF, 14, "italic"),
+    "hero_title": (_SERIF, 48, "bold"),
+    "hero_title_italic": (_SERIF, 56, "bold italic"),
+    "archive_title": (_SERIF, 42),
+    "card_title_lg": (_SERIF, 22),
     # Sans headings (legacy)
     "heading": (_SANS, 18, "bold"),
     "subheading": (_SANS, 13, "bold"),
     # Body
     "body": (_SANS, 11),
     "body_small": (_SANS, 10),
+    "body_large": (_SANS, 13),
     "body_bold": (_SANS, 11, "bold"),
     # Labels — small uppercase style
     "label_upper": (_SANS, 9),
@@ -322,6 +328,43 @@ def apply_theme(root: tk.Tk):
             ("disabled", COLORS["bg_high"]),
         ],
         foreground=[("disabled", COLORS["fg_dim"])],
+    )
+
+    style.configure(
+        "HomeLoad.TButton",
+        background=COLORS["bg_high"],
+        foreground=COLORS["fg"],
+        padding=[14, 10],
+        font=FONTS["label_upper_bold"],
+    )
+    style.map(
+        "HomeLoad.TButton",
+        background=[("active", COLORS["bg_highest"])],
+    )
+
+    style.configure(
+        "HomeLoadAccent.TButton",
+        background=COLORS["accent"],
+        foreground=COLORS["fg"],
+        padding=[14, 10],
+        font=FONTS["label_upper_bold"],
+    )
+    style.map(
+        "HomeLoadAccent.TButton",
+        background=[("active", COLORS["accent_on"])],
+    )
+
+    style.configure(
+        "HomeDelete.TButton",
+        background=COLORS["bg_container"],
+        foreground=COLORS["fg_dim"],
+        padding=[8, 3],
+        font=FONTS["body_small"],
+    )
+    style.map(
+        "HomeDelete.TButton",
+        background=[("active", COLORS["bg_high"])],
+        foreground=[("active", COLORS["fg"])],
     )
 
     # ------------------------------------------------------------------

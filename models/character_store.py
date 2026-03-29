@@ -327,11 +327,12 @@ def list_saved_characters(characters_path: str) -> list[dict]:
     """Return a list of summary dicts for every saved character.
 
     Each dict contains: ``name``, ``species``, ``class_name``, ``path``,
-    ``modified`` (ISO timestamp).  Sorted by most recently modified first.
+    ``modified`` (ISO timestamp), and portrait fields for archive cards.
+    Sorted alphabetically by character name.
     """
-    results = []
+    results: list[dict] = []
     if not os.path.isdir(characters_path):
-        return results
+        return []
 
     for fname in os.listdir(characters_path):
         if not fname.endswith(".json"):
@@ -352,12 +353,18 @@ def list_saved_characters(characters_path: str) -> list[dict]:
                     "modified": datetime.fromtimestamp(mtime).isoformat(
                         sep=" ", timespec="minutes"
                     ),
+                    "biography_image_data": str(
+                        data.get("biography_image_data", "") or ""
+                    ),
+                    "biography_image_format": str(
+                        data.get("biography_image_format", "") or ""
+                    ),
                 }
             )
         except (json.JSONDecodeError, OSError):
             continue
 
-    results.sort(key=lambda r: r["modified"], reverse=True)
+    results.sort(key=lambda item: (str(item.get("name", "")).casefold(), str(item.get("path", ""))))
     return results
 
 

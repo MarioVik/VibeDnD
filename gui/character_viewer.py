@@ -3012,7 +3012,7 @@ class CharacterViewer(ttk.Frame):
 
     def _on_back(self):
         self._save_biography_fields_to_character()
-        self.app.show_home()
+        self.app.show_archive()
 
     def _on_edit(self):
         self._save_biography_fields_to_character()
