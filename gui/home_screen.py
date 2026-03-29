@@ -412,9 +412,10 @@ class HomeScreen:
         for column in range(columns):
             self._archive_grid.grid_columnconfigure(column, weight=1, uniform="archive")
 
+        tile_pad = self._ARCHIVE_CARD_GAP // 2
         card_width = max(
-            self._ARCHIVE_CARD_WIDTH,
-            (available_width - ((columns - 1) * self._ARCHIVE_CARD_GAP)) // columns,
+            280,
+            (available_width - (columns * self._ARCHIVE_CARD_GAP)) // columns,
         )
 
         tiles: list[tuple[str, dict | None]] = [("character", info) for info in self._archive_chars]
@@ -435,10 +436,7 @@ class HomeScreen:
                 row=row,
                 column=column,
                 sticky="n",
-                padx=(
-                    0 if column == 0 else self._ARCHIVE_CARD_GAP // 2,
-                    0 if column == columns - 1 else self._ARCHIVE_CARD_GAP // 2,
-                ),
+                padx=(tile_pad, tile_pad),
                 pady=(0, self._ARCHIVE_CARD_GAP),
             )
 
@@ -551,15 +549,20 @@ class HomeScreen:
             width=width,
             height=self._ARCHIVE_CARD_HEIGHT,
             bg=COLORS["bg"],
-            highlightbackground=COLORS["border_medium"],
-            highlightthickness=1,
             cursor="hand2",
         )
         tile.grid_propagate(False)
         tile.pack_propagate(False)
 
-        inner = tk.Frame(tile, bg=COLORS["bg"])
-        inner.place(relx=0.5, rely=0.5, anchor="center")
+        surface = tk.Canvas(
+            tile,
+            bg=COLORS["bg"],
+            highlightthickness=0,
+            bd=0,
+        )
+        surface.pack(fill=tk.BOTH, expand=True)
+
+        inner = tk.Frame(surface, bg=COLORS["bg"])
 
         icon = tk.Canvas(
             inner,
@@ -590,8 +593,31 @@ class HomeScreen:
             justify=tk.CENTER,
         ).pack(pady=(16, 0))
 
+        inner_window = surface.create_window(0, 0, window=inner, anchor="center")
+
+        def redraw_surface(border_color: str):
+            width_px = max(surface.winfo_width(), 1)
+            height_px = max(surface.winfo_height(), 1)
+            surface.delete("border")
+            surface.create_rectangle(
+                1,
+                1,
+                width_px - 2,
+                height_px - 2,
+                outline=border_color,
+                width=1,
+                tags="border",
+            )
+            surface.coords(inner_window, width_px // 2, height_px // 2)
+
+        def on_surface_configure(_event):
+            redraw_surface(COLORS["border_medium"])
+
+        surface.bind("<Configure>", on_surface_configure)
+
         def on_enter(_event):
-            tile.configure(bg=COLORS["bg_surface"], highlightbackground=COLORS["outline_dim"])
+            surface.configure(bg=COLORS["bg_surface"])
+            redraw_surface(COLORS["outline_dim"])
             inner.configure(bg=COLORS["bg_surface"])
             icon.configure(bg=COLORS["bg_highest"])
             for widget in inner.winfo_children():
@@ -599,14 +625,15 @@ class HomeScreen:
                     widget.configure(bg=COLORS["bg_surface"])
 
         def on_leave(_event):
-            tile.configure(bg=COLORS["bg"], highlightbackground=COLORS["border_medium"])
+            surface.configure(bg=COLORS["bg"])
+            redraw_surface(COLORS["border_medium"])
             inner.configure(bg=COLORS["bg"])
             icon.configure(bg=COLORS["bg_highest"])
             for widget in inner.winfo_children():
                 if isinstance(widget, tk.Label):
                     widget.configure(bg=COLORS["bg"])
 
-        self._bind_clickable(tile, self._on_import, on_enter, on_leave)
+        self._bind_clickable(surface, self._on_import, on_enter, on_leave)
         return tile
 
     def _render_archive_art(
