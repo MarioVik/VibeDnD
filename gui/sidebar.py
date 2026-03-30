@@ -30,10 +30,15 @@ class Sidebar(tk.Frame):
         show_character_info: bool = False,
         on_back: Callable[[], None] | None = None,
         width: int = SIDEBAR_WIDTH,
-    ):
-        super().__init__(parent, bg=COLORS["bg_surface"], width=width,
-                         highlightbackground=COLORS["border_medium"],
-                         highlightthickness=1)
+        ):
+        super().__init__(
+            parent,
+            bg=COLORS["bg_surface"],
+            width=width,
+            highlightbackground=COLORS["border_medium"],
+            highlightcolor=COLORS["border_medium"],
+            highlightthickness=1,
+        )
         self.pack_propagate(False)
         self._on_navigate = on_navigate
         self._on_back: Callable[[], None] | None = on_back
@@ -88,6 +93,7 @@ class Sidebar(tk.Frame):
             self._selection_frame,
             bg=COLORS["bg_container"],
             highlightbackground=COLORS["border_subtle"],
+            highlightcolor=COLORS["border_subtle"],
             highlightthickness=1,
         )
         self._sel_card.pack(fill=tk.X, padx=4, pady=4)
@@ -125,7 +131,12 @@ class Sidebar(tk.Frame):
                         y = _btn.winfo_rooty() + _btn.winfo_height()
                         _menu.tk_popup(x, y)
 
-                    b = ttk.Button(btn_frame, text=btn_cfg["text"], style=style, state=state)
+                    b = ttk.Button(
+                        btn_frame,
+                        text=btn_cfg["text"],
+                        style=style,
+                        state=state,
+                    )
                     b.configure(command=lambda _b=b, _m=menu: _show_menu(_btn=_b, _menu=_m))
                 else:
                     b = ttk.Button(

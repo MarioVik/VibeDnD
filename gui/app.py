@@ -149,6 +149,7 @@ class CharacterCreatorApp:
             content_area,
             bg=COLORS["bg_surface"],
             highlightbackground=COLORS["border_subtle"],
+            highlightcolor=COLORS["border_subtle"],
             highlightthickness=1,
         )
         nav_bar.pack(fill=tk.X, side=tk.BOTTOM)

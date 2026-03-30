@@ -309,6 +309,49 @@ def apply_theme(root: tk.Tk):
         foreground=[("disabled", COLORS["fg_dim"])],
     )
 
+    # Footer nav buttons should not draw the default focus ring, which shows
+    # up as a bright outline against the dark wizard footer after clicking.
+    footer_button_layout = [
+        (
+            "Button.border",
+            {
+                "sticky": "nswe",
+                "border": "1",
+                "children": [
+                    (
+                        "Button.padding",
+                        {
+                            "sticky": "nswe",
+                            "children": [("Button.label", {"sticky": "nswe"})],
+                        },
+                    )
+                ],
+            },
+        )
+    ]
+    style.layout("Footer.TButton", footer_button_layout)
+    style.configure(
+        "Footer.TButton",
+        background=COLORS["bg_highest"],
+        foreground=COLORS["fg"],
+        padding=[12, 6],
+        font=FONTS["body"],
+        bordercolor=COLORS["outline_dim"],
+        lightcolor=COLORS["bg_highest"],
+        darkcolor=COLORS["bg_surface"],
+    )
+    style.map(
+        "Footer.TButton",
+        background=[
+            ("active", COLORS["bg_high"]),
+            ("disabled", COLORS["bg_high"]),
+        ],
+        foreground=[("disabled", COLORS["fg_dim"])],
+        bordercolor=[("active", COLORS["outline"]), ("disabled", COLORS["outline_dim"])],
+        lightcolor=[("active", COLORS["bg_high"])],
+        darkcolor=[("active", COLORS["bg_surface"])],
+    )
+
     style.configure(
         "Accent.TButton",
         background=COLORS["accent"],
@@ -318,6 +361,25 @@ def apply_theme(root: tk.Tk):
     style.map(
         "Accent.TButton",
         background=[("active", COLORS["accent_on"])],
+    )
+
+    style.layout("FooterAccent.TButton", footer_button_layout)
+    style.configure(
+        "FooterAccent.TButton",
+        background=COLORS["accent"],
+        foreground=COLORS["fg"],
+        font=FONTS["body_bold"],
+        padding=[12, 6],
+        bordercolor=COLORS["accent_text"],
+        lightcolor=COLORS["accent"],
+        darkcolor=COLORS["accent_on"],
+    )
+    style.map(
+        "FooterAccent.TButton",
+        background=[("active", COLORS["accent_on"])],
+        bordercolor=[("active", COLORS["accent_text"])],
+        lightcolor=[("active", COLORS["accent_on"])],
+        darkcolor=[("active", COLORS["accent_on"])],
     )
 
     style.configure(
