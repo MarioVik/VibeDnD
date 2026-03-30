@@ -297,6 +297,7 @@ class SpeciesStep(WizardStep):
         self.character.species = sp
         self._requires_sub_choice = False
         self.character.species_sub_choice = None
+        self.character.species_origin_feat = None
         self.sub_var.set("")
         self.detail_name.configure(text=sp["name"])
         self.detail_source.configure(text=f"Source: {sp.get('source', 'Unknown')}")

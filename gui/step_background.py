@@ -1,11 +1,13 @@
 """Step 3: Background selection with grid tile view and detail substep."""
 
+import re
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
 from gui.widgets import (
     ScrollableFrame,
     WrappingLabel,
+    FormattedDescription,
     GradientHeader,
     SectionHeader,
     CardFrame,
@@ -234,6 +236,14 @@ class BackgroundStep(WizardStep):
         self.bonus_frame = tk.Frame(self.detail, bg=COLORS["bg"])
         self.bonus_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
 
+        # Background feat details
+        self.feat_frame = tk.Frame(self.detail, bg=COLORS["bg"])
+        self.feat_frame.pack(
+            fill=tk.X,
+            padx=SPACING["lg"],
+            pady=(SPACING["sm"], SPACING["lg"]),
+        )
+
     def on_enter(self):
         """Pre-select background and bonus assignments when editing."""
         if not self._edit_initialized and self.character.background:
@@ -275,7 +285,6 @@ class BackgroundStep(WizardStep):
         info_card.pack(fill=tk.X)
 
         info = [
-            ("Feat", bg.get("feat", "None")),
             ("Skills", ", ".join(bg.get("skill_proficiencies", []))),
             ("Tool", bg.get("tool_proficiency", "None")),
         ]
@@ -352,11 +361,92 @@ class BackgroundStep(WizardStep):
 
         # Set feat from background
         feat_name = bg.get("feat")
-        if feat_name:
-            feat = self.data.find_feat(feat_name)
-            self.character.feat = feat
+        feat = self.data.find_feat(feat_name) if feat_name else None
+        self.character.feat = feat
+        self._render_background_feat(feat_name, feat)
 
         self.notify_change()
+
+    def _render_background_feat(self, feat_name: str, feat: dict | None):
+        for w in self.feat_frame.winfo_children():
+            w.destroy()
+
+        if not feat_name:
+            return
+
+        SectionHeader(self.feat_frame, text="Background Feat").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
+
+        feat_card = CardFrame(self.feat_frame, pad=SPACING["lg"])
+        feat_card.pack(fill=tk.X)
+
+        tk.Label(
+            feat_card.inner,
+            text=feat_name,
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w")
+
+        source_text = (
+            f"Source: {feat.get('source', 'Unknown')}"
+            if feat
+            else "(Feat data not found)"
+        )
+        tk.Label(
+            feat_card.inner,
+            text=source_text,
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w")
+
+        benefits_frame = tk.Frame(feat_card.inner, bg=COLORS["bg_surface"])
+        benefits_frame.pack(fill=tk.X, pady=(SPACING["xs"], 0))
+
+        if feat:
+            self._render_feat_benefits(feat, benefits_frame)
+
+        if "Magic Initiate" in feat_name:
+            match = re.search(r"\(([^)]+)\)", feat_name)
+            if match:
+                spell_class = match.group(1)
+                tk.Label(
+                    feat_card.inner,
+                    text=(
+                        f"This grants 2 cantrips and 1 level 1 spell from the "
+                        f"{spell_class} list. Select them in the Spells tab."
+                    ),
+                    font=FONTS["body"],
+                    fg=COLORS["accent_text"],
+                    bg=COLORS["bg_surface"],
+                    wraplength=700,
+                    justify=tk.LEFT,
+                ).pack(fill=tk.X, anchor="w", pady=(SPACING["xs"], 0))
+
+    def _render_feat_benefits(self, feat: dict, parent):
+        """Render feat benefits into a frame."""
+        _bg = parent.cget("bg") if hasattr(parent, "cget") else COLORS["bg_surface"]
+        for benefit in feat.get("benefits", []):
+            bf = tk.Frame(parent, bg=_bg)
+            bf.pack(fill=tk.X, pady=2)
+            tk.Label(
+                bf,
+                text=benefit.get("name", ""),
+                font=FONTS["body_bold"],
+                fg=COLORS["accent_text"],
+                bg=_bg,
+            ).pack(anchor="w")
+            desc = benefit.get("description", "")
+            if desc:
+                FormattedDescription(
+                    bf,
+                    text=desc,
+                    font=FONTS["body_small"],
+                    foreground=COLORS["fg_dim"],
+                    background=_bg,
+                ).pack(fill=tk.X, anchor="w", padx=(SPACING["lg"], 0))
 
     def _update_bonus_ui(self):
         for w in self.assign_frame.winfo_children():

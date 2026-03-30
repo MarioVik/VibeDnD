@@ -40,20 +40,21 @@ _WIZARD_STEPS = [
     ("summary", "Summary", "", SummaryStep),
 ]
 
+FEAT_INDEX = 3  # index of feat step in _WIZARD_STEPS
 SPELLS_INDEX = 7  # index of spells step in _WIZARD_STEPS
 
-# Map step keys to contextual next labels
-_NEXT_LABELS = {
-    "species": "Next: Choose Class  \u25b6",
-    "class": "Next: Choose Background  \u25b6",
-    "background": "Next: Choose Feat  \u25b6",
-    "feat": "Next: Ability Scores  \u25b6",
-    "abilities": "Next: Skills  \u25b6",
-    "skills": "Next: Equipment  \u25b6",
-    "equipment": "Next: Spells  \u25b6",
-    "spells": "Next: Languages  \u25b6",
-    "languages": "Next: Biography  \u25b6",
-    "biography": "Next: Summary  \u25b6",
+# Map destination step keys to contextual next labels
+_NEXT_DEST_LABELS = {
+    "class": "Choose Class",
+    "background": "Choose Background",
+    "feat": "Choose Feat",
+    "abilities": "Ability Scores",
+    "skills": "Skills",
+    "equipment": "Equipment",
+    "spells": "Spells",
+    "languages": "Languages",
+    "biography": "Biography",
+    "summary": "Summary",
 }
 
 
@@ -242,7 +243,8 @@ class CharacterCreatorApp:
             self._step_keys.append(key)
 
         # Register callbacks
-        self.wizard_steps[1].on_change_callbacks.append(self._update_spells_visibility)
+        self.wizard_steps[0].on_change_callbacks.append(self._update_optional_step_visibility)
+        self.wizard_steps[1].on_change_callbacks.append(self._update_optional_step_visibility)
         for step in self.wizard_steps:
             step.on_change_callbacks.append(self._update_nav_buttons)
 
@@ -268,7 +270,7 @@ class CharacterCreatorApp:
         content_area.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         # Initial state
-        self._update_spells_visibility()
+        self._update_optional_step_visibility()
         self._show_step(0)
 
         return frame
@@ -284,8 +286,7 @@ class CharacterCreatorApp:
         if idx > self._reached_step:
             return
 
-        # Skip spells step if not a caster
-        if idx == SPELLS_INDEX and not self.character.is_caster:
+        if not self._is_step_visible(idx):
             return
 
         # If navigating to a step with substeps that has a selection, show detail
@@ -318,7 +319,9 @@ class CharacterCreatorApp:
 
         idx = self._current_step_idx
         self._wizard_sidebar.update_step_states(idx, self._reached_step)
-        deferred_choice_steps = {"species", "class", "background", "feat"}
+        deferred_choice_steps = {"species", "class", "background"}
+        if self._feat_selection_required():
+            deferred_choice_steps.add("feat")
 
         for step_idx, step_key in enumerate(self._step_keys):
             if step_idx > self._reached_step:
@@ -347,11 +350,13 @@ class CharacterCreatorApp:
             return background.get("name", "")
 
         if key == "feat":
-            feat_names: list[str] = []
-            for feat in (self.character.feat, self.character.species_origin_feat):
-                if feat and feat.get("name") and feat["name"] not in feat_names:
-                    feat_names.append(feat["name"])
-            return " + ".join(feat_names)
+            feat = self.character.species_origin_feat or {}
+            name = feat.get("name", "")
+            if name and self._feat_selection_required():
+                return name
+            if self._is_sidebar_step_complete(key):
+                return "Completed"
+            return ""
 
         if self._is_sidebar_step_complete(key):
             return "Completed"
@@ -360,6 +365,9 @@ class CharacterCreatorApp:
 
     def _is_sidebar_step_complete(self, key: str) -> bool:
         """Return whether a non-selection sidebar step should show as completed."""
+        if key == "feat":
+            return not self._feat_selection_required()
+
         if key == "abilities":
             return self.wizard_steps[self._step_keys.index(key)].is_valid()
 
@@ -391,22 +399,63 @@ class CharacterCreatorApp:
 
         return False
 
-    def _update_spells_visibility(self):
-        """Hide or show the spells nav item based on caster status."""
+    def _feat_selection_required(self) -> bool:
+        """Return True when the selected species grants an origin feat."""
+        species = self.character.species or {}
+        for trait in species.get("traits", []):
+            if "origin feat" in trait.get("description", "").lower():
+                return True
+        return False
+
+    def _is_step_visible(self, idx: int) -> bool:
+        """Return whether a wizard step should currently be visible."""
+        if idx == FEAT_INDEX:
+            return self._feat_selection_required()
+        if idx == SPELLS_INDEX:
+            return self.character.is_caster
+        return True
+
+    def _next_visible_step_index(self, idx: int) -> int | None:
+        """Return the next visible step index after idx."""
+        for next_idx in range(idx + 1, len(self.wizard_steps)):
+            if self._is_step_visible(next_idx):
+                return next_idx
+        return None
+
+    def _previous_visible_step_index(self, idx: int) -> int | None:
+        """Return the previous visible step index before idx."""
+        for prev_idx in range(idx - 1, -1, -1):
+            if self._is_step_visible(prev_idx):
+                return prev_idx
+        return None
+
+    def _visible_step_indices(self) -> list[int]:
+        """Return the list of currently visible wizard step indices."""
+        return [idx for idx in range(len(self.wizard_steps)) if self._is_step_visible(idx)]
+
+    def _update_optional_step_visibility(self):
+        """Hide or show optional wizard steps such as feat and spells."""
         if not hasattr(self, "_wizard_sidebar"):
             return
-        spells_key = _WIZARD_STEPS[SPELLS_INDEX][0]
-        if spells_key in self._wizard_sidebar._nav_buttons:
-            btn = self._wizard_sidebar._nav_buttons[spells_key]
-            if self.character.is_caster:
-                for key, _, _, _ in _WIZARD_STEPS:
-                    if key in self._wizard_sidebar._nav_buttons:
-                        self._wizard_sidebar._nav_buttons[key].pack_forget()
-                        self._wizard_sidebar._nav_buttons[key].pack(fill=tk.X, pady=1)
-            else:
-                btn.pack_forget()
-                if self._current_step_idx == SPELLS_INDEX:
-                    self._show_step(SPELLS_INDEX - 1)
+
+        for idx, (key, _, _, _) in enumerate(_WIZARD_STEPS):
+            btn = self._wizard_sidebar._nav_buttons.get(key)
+            if not btn:
+                continue
+            btn.pack_forget()
+            if self._is_step_visible(idx):
+                btn.pack(fill=tk.X, pady=1)
+
+        if not self._is_step_visible(self._current_step_idx):
+            fallback_idx = self._previous_visible_step_index(self._current_step_idx)
+            if fallback_idx is None:
+                fallback_idx = self._next_visible_step_index(self._current_step_idx)
+            if fallback_idx is not None:
+                self._show_step(fallback_idx)
+            return
+
+        self._update_sidebar_state()
+        self._update_nav_buttons()
 
     def _wizard_next(self):
         curr = self._current_step_idx
@@ -422,13 +471,9 @@ class CharacterCreatorApp:
             self._show_validation_error(step)
             return
 
-        next_idx = curr + 1
+        next_idx = self._next_visible_step_index(curr)
 
-        # Skip spells if not a caster
-        if next_idx == SPELLS_INDEX and not self.character.is_caster:
-            next_idx += 1
-
-        if next_idx < len(self.wizard_steps):
+        if next_idx is not None:
             if next_idx > self._reached_step:
                 self._reached_step = next_idx
             self._show_step(next_idx)
@@ -444,13 +489,9 @@ class CharacterCreatorApp:
             return
 
         if curr > 0:
-            prev_idx = curr - 1
+            prev_idx = self._previous_visible_step_index(curr)
 
-            # Skip spells if not a caster
-            if prev_idx == SPELLS_INDEX and not self.character.is_caster:
-                prev_idx -= 1
-
-            if prev_idx >= 0:
+            if prev_idx is not None:
                 # When going back to a step with substeps, show detail if it has a selection
                 prev_step = self.wizard_steps[prev_idx]
                 if prev_step.has_substeps() and prev_step.is_valid():
@@ -541,25 +582,19 @@ class CharacterCreatorApp:
                 state=tk.NORMAL if is_valid else tk.DISABLED,
             )
         else:
-            # Get contextual next label
-            next_label = step.get_next_label()
-            if not next_label:
-                next_label = _NEXT_LABELS.get(key, "Next  \u25b6")
+            next_idx = self._next_visible_step_index(curr)
+            next_key = self._step_keys[next_idx] if next_idx is not None else None
+            next_label_text = _NEXT_DEST_LABELS.get(next_key, "Next") if next_key else "Next"
             self._next_btn.configure(
-                text=next_label,
+                text=f"Next: {next_label_text}  \u25b6",
                 command=self._wizard_next,
                 state=tk.NORMAL if is_valid else tk.DISABLED,
             )
 
         # Update step counter and progress bar
-        total = len(self.wizard_steps)
-        visible_count = total
-        visible_idx = curr
-        if not self.character.is_caster:
-            visible_count -= 1
-            if curr > SPELLS_INDEX:
-                visible_idx -= 1
-
+        visible_indices = self._visible_step_indices()
+        visible_count = len(visible_indices)
+        visible_idx = visible_indices.index(curr) if curr in visible_indices else 0
         self._step_label.configure(text=f"Step {visible_idx + 1} of {visible_count}")
         progress = ((visible_idx + 1) / visible_count) * 100
         self._progress_var.set(progress)

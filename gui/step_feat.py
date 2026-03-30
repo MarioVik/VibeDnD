@@ -1,18 +1,16 @@
-"""Step 7: Feat display and origin feat selection (from background + species)."""
+"""Feat step for optional species origin feat selection."""
 
-import re
 import tkinter as tk
 from tkinter import ttk
+
 from gui.base_step import WizardStep
 from gui.widgets import (
     ScrollableFrame,
     SectionedListbox,
-    WrappingLabel,
     FormattedDescription,
     GradientHeader,
     SectionHeader,
     CardFrame,
-    PillBadge,
 )
 from gui.theme import COLORS, FONTS, SPACING
 from gui.source_config import (
@@ -31,7 +29,6 @@ class FeatStep(WizardStep):
         self.frame.columnconfigure(0, weight=1)
         self.frame.rowconfigure(1, weight=1)
 
-        # ── Hero header ─────────────────────────────────────────
         hero = GradientHeader(self.frame, min_height=60)
         hero.grid(row=0, column=0, sticky="ew")
 
@@ -40,7 +37,7 @@ class FeatStep(WizardStep):
 
         tk.Label(
             hero_inner,
-            text="Feats",
+            text="Feat",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg_hero"],
@@ -48,56 +45,41 @@ class FeatStep(WizardStep):
 
         tk.Label(
             hero.inner,
-            text="Your background grants a feat. Some species (Human) also grant an origin feat.",
+            text=(
+                "Choose an additional origin feat here only if your species grants one, "
+                "such as Human."
+            ),
             font=FONTS["body"],
             fg=COLORS["fg_dim"],
             bg=COLORS["bg_hero"],
+            wraplength=760,
+            justify=tk.LEFT,
         ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xs"], SPACING["xl"]))
 
-        # ── Scrollable content ──────────────────────────────────
         self.content = ScrollableFrame(self.frame)
         self.content.grid(row=1, column=0, sticky="nsew")
         self.inner = self.content.inner
 
-        # Section 1: Background feat (fixed)
-        self.bg_section = tk.Frame(self.inner, bg=COLORS["bg"])
-        self.bg_section.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"]))
-
-        SectionHeader(self.bg_section, text="Background Feat").pack(
-            fill=tk.X, pady=(0, SPACING["sm"])
-        )
-
-        self.bg_card = CardFrame(self.bg_section, pad=SPACING["lg"])
-        self.bg_card.pack(fill=tk.X)
-
-        self.bg_feat_label = tk.Label(
-            self.bg_card.inner,
-            text="No background selected",
+        self.empty_state = CardFrame(self.inner, pad=SPACING["lg"])
+        tk.Label(
+            self.empty_state.inner,
+            text="No additional feat to choose",
             font=FONTS["heading_serif_sm"],
             fg=COLORS["fg"],
             bg=COLORS["bg_surface"],
-        )
-        self.bg_feat_label.pack(anchor="w")
-
-        self.bg_feat_source = tk.Label(
-            self.bg_card.inner,
-            text="",
-            font=FONTS["label_upper_bold"],
+        ).pack(anchor="w")
+        self.empty_body = tk.Label(
+            self.empty_state.inner,
+            text="Your selected species does not grant an origin feat.",
+            font=FONTS["body"],
             fg=COLORS["fg_dim"],
             bg=COLORS["bg_surface"],
+            wraplength=700,
+            justify=tk.LEFT,
         )
-        self.bg_feat_source.pack(anchor="w")
+        self.empty_body.pack(anchor="w", pady=(SPACING["xs"], 0))
 
-        self.bg_benefits_frame = tk.Frame(self.bg_card.inner, bg=COLORS["bg_surface"])
-        self.bg_benefits_frame.pack(fill=tk.X, pady=(SPACING["xs"], 0))
-
-        self.bg_note_frame = tk.Frame(self.bg_card.inner, bg=COLORS["bg_surface"])
-        self.bg_note_frame.pack(fill=tk.X)
-
-        # Section 2: Species feat (Human Versatile)
         self.sp_section = tk.Frame(self.inner, bg=COLORS["bg"])
-        # Not packed by default — only shown for Human
-
         self.sp_section_header = SectionHeader(self.sp_section, text="Species Feat")
         self.sp_section_header.pack(fill=tk.X, pady=(0, SPACING["sm"]))
 
@@ -106,9 +88,14 @@ class FeatStep(WizardStep):
         self.sp_top.columnconfigure(1, weight=1)
         self.sp_top.rowconfigure(0, weight=1)
 
-        # Left: source toggles + searchable sectioned list
         self.sp_list_frame = tk.Frame(self.sp_top, bg=COLORS["bg"], width=220, height=300)
-        self.sp_list_frame.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["xs"]), pady=0)
+        self.sp_list_frame.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+            padx=(0, SPACING["xs"]),
+            pady=0,
+        )
         self.sp_list_frame.grid_propagate(False)
 
         tk.Label(
@@ -126,11 +113,11 @@ class FeatStep(WizardStep):
         self._build_feat_toggles()
 
         self.origin_feat_list = SectionedListbox(
-            self.sp_list_frame, on_select=self._on_species_feat_select
+            self.sp_list_frame,
+            on_select=self._on_species_feat_select,
         )
         self.origin_feat_list.pack(fill=tk.BOTH, expand=True)
 
-        # Right: detail panel for selected origin feat
         self.sp_detail_card = CardFrame(self.sp_top, pad=SPACING["lg"])
         self.sp_detail_card.grid(row=0, column=1, sticky="nsew", padx=0, pady=0)
 
@@ -152,7 +139,10 @@ class FeatStep(WizardStep):
         )
         self.sp_feat_source.pack(anchor="w")
 
-        self.sp_benefits_frame = tk.Frame(self.sp_detail_card.inner, bg=COLORS["bg_surface"])
+        self.sp_benefits_frame = tk.Frame(
+            self.sp_detail_card.inner,
+            bg=COLORS["bg_surface"],
+        )
         self.sp_benefits_frame.pack(fill=tk.X, pady=(SPACING["xs"], 0))
 
     def _build_feat_toggles(self):
@@ -203,76 +193,49 @@ class FeatStep(WizardStep):
         self.origin_feat_list.set_sectioned_items(sections)
 
     def on_enter(self):
-        self._refresh_background_feat()
         self._refresh_species_feat()
 
-    def _refresh_background_feat(self):
-        for w in self.bg_benefits_frame.winfo_children():
+    def is_valid(self) -> bool:
+        return not self._species_grants_origin_feat()[0] or self.character.species_origin_feat is not None
+
+    def _species_grants_origin_feat(self) -> tuple[bool, str, str]:
+        species = self.character.species or {}
+        species_name = species.get("name", "Species")
+        for trait in species.get("traits", []):
+            if "origin feat" in trait.get("description", "").lower():
+                return True, species_name, trait.get("name", "")
+        return False, species_name, ""
+
+    def _set_species_section_title(self, text: str):
+        self.sp_section_header.destroy()
+        self.sp_section_header = SectionHeader(self.sp_section, text=text)
+        self.sp_section_header.pack(fill=tk.X, pady=(0, SPACING["sm"]), before=self.sp_top)
+
+    def _clear_species_feat_details(self):
+        self.sp_feat_label.configure(text="Select a feat")
+        self.sp_feat_source.configure(text="")
+        for w in self.sp_benefits_frame.winfo_children():
             w.destroy()
-        for w in self.bg_note_frame.winfo_children():
-            w.destroy()
-
-        bg = self.character.background
-        if not bg or not bg.get("feat"):
-            self.bg_feat_label.configure(text="No background selected")
-            self.bg_feat_source.configure(text="")
-            return
-
-        feat_name = bg["feat"]
-        feat = self.data.find_feat(feat_name)
-        self.character.feat = feat
-
-        self.bg_feat_label.configure(text=feat_name)
-        if feat:
-            self.bg_feat_source.configure(
-                text=f"Source: {feat.get('source', 'Unknown')}"
-            )
-            self._render_benefits(feat, self.bg_benefits_frame)
-
-            if "Magic Initiate" in feat_name:
-                m = re.search(r"\((\w+)\)", feat_name)
-                if m:
-                    spell_class = m.group(1)
-                    tk.Label(
-                        self.bg_note_frame,
-                        text=f"This grants 2 cantrips and 1 level 1 spell from the {spell_class} list. "
-                        f"Select them in the Spells tab.",
-                        font=FONTS["body"],
-                        fg=COLORS["accent_text"],
-                        bg=COLORS["bg_surface"],
-                        wraplength=500,
-                        justify=tk.LEFT,
-                    ).pack(fill=tk.X, anchor="w", pady=(SPACING["xs"], 0))
-        else:
-            self.bg_feat_source.configure(text="(Feat data not found)")
 
     def _refresh_species_feat(self):
-        species = self.character.species
-        grants_feat = False
-
-        if species:
-            for t in species.get("traits", []):
-                if "origin feat" in t.get("description", "").lower():
-                    grants_feat = True
-                    break
+        grants_feat, sp_name, trait_name = self._species_grants_origin_feat()
 
         if grants_feat:
-            self.sp_section.pack(fill=tk.BOTH, expand=True, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
+            self.empty_state.pack_forget()
+            if not self.sp_section.winfo_manager():
+                self.sp_section.pack(
+                    fill=tk.BOTH,
+                    expand=True,
+                    padx=SPACING["lg"],
+                    pady=(SPACING["sm"], SPACING["sm"]),
+                )
 
-            sp_name = species.get("name", "Species")
-            trait_name = ""
-            for t in species.get("traits", []):
-                if "origin feat" in t.get("description", "").lower():
-                    trait_name = t["name"]
-                    break
-            self.sp_section_header.set_bg(COLORS["bg"])
-            # Update section header text by destroying and rebuilding
-            for w in self.sp_section_header.winfo_children():
-                w.destroy()
-            self.sp_section_header.__init__(self.sp_section, text=f"Species Feat ({sp_name} \u2014 {trait_name})")
-            self.sp_section_header.pack(fill=tk.X, pady=(0, SPACING["sm"]))
-
+            title = f"Species Feat ({sp_name})"
+            if trait_name:
+                title = f"Species Feat ({sp_name} - {trait_name})"
+            self._set_species_section_title(title)
             self._populate_origin_feats()
+            self._clear_species_feat_details()
 
             if self.character.species_origin_feat:
                 self.origin_feat_list.select_item(
@@ -281,6 +244,22 @@ class FeatStep(WizardStep):
         else:
             self.sp_section.pack_forget()
             self.character.species_origin_feat = None
+            self._clear_species_feat_details()
+
+            body = "Your selected species does not grant an origin feat."
+            if self.character.species:
+                body = (
+                    f"{self.character.species.get('name', 'Your species')} does not "
+                    "grant an origin feat."
+                )
+            self.empty_body.configure(text=body)
+
+            if not self.empty_state.winfo_manager():
+                self.empty_state.pack(
+                    fill=tk.X,
+                    padx=SPACING["lg"],
+                    pady=(SPACING["sm"], SPACING["sm"]),
+                )
 
     def _on_species_feat_select(self, name: str):
         feat = self.data.feats_by_name.get(name)
