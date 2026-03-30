@@ -150,7 +150,7 @@ class HomeScreen:
             title="Create a New Character",
             body="Begin a fresh journey with guided steps and build your hero from scratch.",
             accent=COLORS["accent"],
-            label="NEW LEGEND",
+            label="THE FORGE",
             command=self._on_create_new,
         )
         self._load_card = self._build_action_card(

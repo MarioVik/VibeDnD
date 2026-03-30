@@ -163,7 +163,7 @@ class CharacterCreatorApp:
         nav_inner = tk.Frame(nav_bar, bg=COLORS["bg_surface"])
         nav_inner.pack(fill=tk.X, padx=SPACING["lg"], pady=10)
 
-        # Left section: Cancel + Previous
+        # Left section: Previous
         left_frame = tk.Frame(nav_inner, bg=COLORS["bg_surface"])
         left_frame.pack(side=tk.LEFT)
 
@@ -171,13 +171,6 @@ class CharacterCreatorApp:
             cancel_cmd = lambda: self.show_viewer(character, save_path)
         else:
             cancel_cmd = self.show_home
-
-        self._cancel_btn = ttk.Button(
-            left_frame,
-            text="CANCEL",
-            command=cancel_cmd,
-        )
-        self._cancel_btn.pack(side=tk.LEFT, padx=(0, SPACING["sm"]))
 
         self._back_btn = ttk.Button(
             left_frame,
@@ -263,6 +256,8 @@ class CharacterCreatorApp:
             frame,
             nav_items=nav_items,
             on_navigate=self._on_sidebar_nav,
+            header_title="The Forge",
+            on_back=cancel_cmd,
         )
         self._wizard_sidebar.pack(side=tk.LEFT, fill=tk.Y)
 

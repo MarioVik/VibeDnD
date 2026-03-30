@@ -28,6 +28,7 @@ class Sidebar(tk.Frame):
         on_navigate: Callable[[str], None],
         bottom_buttons: list[dict] | None = None,
         show_character_info: bool = False,
+        header_title: str = "",
         show_selection_panel: bool = False,
         on_back: Callable[[], None] | None = None,
         width: int = SIDEBAR_WIDTH,
@@ -51,13 +52,19 @@ class Sidebar(tk.Frame):
         self._nav_keys: list[str] = [item["key"] for item in nav_items]
         self._show_character_info = show_character_info
         self._show_selection_panel = show_selection_panel
+        self._header_title = header_title
 
         # ---- Step counter header (currently unused) ----
         self._step_counter: tk.Label | None = None
 
-        # ---- Back button + character info (optional) ----
+        # ---- Top header (optional) ----
         if show_character_info:
             self._build_character_info()
+            tk.Frame(self, bg=COLORS["border_subtle"], height=1).pack(
+                fill=tk.X, padx=16, pady=(0, 8)
+            )
+        elif header_title:
+            self._build_title_header(header_title)
             tk.Frame(self, bg=COLORS["border_subtle"], height=1).pack(
                 fill=tk.X, padx=16, pady=(0, 8)
             )
@@ -233,6 +240,49 @@ class Sidebar(tk.Frame):
             self._sel_card.pack_forget()
 
     # ---- Character info (for viewer sidebar) ----
+
+    def _build_title_header(self, title: str):
+        """Build a simple back button + title header."""
+        header = tk.Frame(self, bg=COLORS["bg_surface"])
+        header.pack(fill=tk.X, padx=16, pady=(16, 12))
+
+        row = tk.Frame(header, bg=COLORS["bg_surface"])
+        row.pack(fill=tk.X)
+
+        if self._on_back:
+            back_btn = tk.Label(
+                row,
+                text="\u25c0",
+                font=FONTS["heading_serif"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_surface"],
+                cursor="hand2",
+            )
+            back_btn.pack(side=tk.LEFT, padx=(0, 8))
+            back_btn.bind("<Button-1>", lambda _event: self._on_back())
+            back_btn.bind(
+                "<Enter>",
+                lambda _event, widget=back_btn: self._animate_label_color(
+                    widget, COLORS["accent_text"],
+                ),
+            )
+            back_btn.bind(
+                "<Leave>",
+                lambda _event, widget=back_btn: self._animate_label_color(
+                    widget, COLORS["fg"],
+                ),
+            )
+
+        tk.Label(
+            row,
+            text=title,
+            font=FONTS["heading_serif"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+            justify=tk.LEFT,
+            wraplength=self.SIDEBAR_WIDTH - 70,
+        ).pack(side=tk.LEFT, fill=tk.X, expand=True)
 
     def _build_character_info(self):
         """Build the back button + character name area at the top."""
