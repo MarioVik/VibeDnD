@@ -44,6 +44,14 @@ COLORS = {
     "badge_glass_dim":  "#252525",   # bg_highest at 40% on bg
     "border_subtle_bg": "#191616",   # outline_dim at 10% on bg
     "border_medium_bg": "#201c1c",   # outline_dim at 20% on bg
+    # Tile grid
+    "tile_bg": "#1e1e1e",
+    "tile_border": "#2d2525",
+    "tile_hover": "#2a2222",
+    "tile_selected_border": "#9B1B30",
+    # Sidebar
+    "sidebar_locked_fg": "#5a4a4a",
+    "sidebar_completed_fg": "#8a7a7a",
     # ----- backward-compat aliases (old code still referencing these) -----
     "bg_light": "#2a2a2a",      # → bg_high
     "bg_card": "#1b1b1b",       # → bg_surface
@@ -65,6 +73,8 @@ SPACING = {
     "card_pad": 20,
     "section_gap": 16,
     "card_gap": 8,
+    "tile_gap": 12,
+    "tile_pad": 12,
 }
 
 # ---------------------------------------------------------------------------
@@ -112,6 +122,13 @@ FONTS = {
     "stat_mod": (_SANS, 12),
     # Monospace
     "mono": (_MONO, 11),
+    # Tile grid
+    "tile_name": (_SERIF, 13, "bold"),
+    "tile_desc": (_SANS, 9),
+    "tile_trait": (_SANS, 9, "bold"),
+    # Sidebar / nav
+    "step_counter": (_SANS, 10, "bold"),
+    "nav_subtitle": (_SANS, 8),
 }
 
 

@@ -22,6 +22,7 @@ class WizardStep(ABC):
         self.character = character
         self.data = game_data
         self.on_change_callbacks = []
+        self.on_substep_change_callbacks = []
 
         if isinstance(parent, ttk.Notebook):
             # Legacy notebook mode
@@ -50,4 +51,31 @@ class WizardStep(ABC):
     def notify_change(self):
         """Notify that character data changed (update summary panel etc)."""
         for cb in self.on_change_callbacks:
+            cb()
+
+    # ── Substep protocol (override in steps with grid+detail views) ──
+
+    def has_substeps(self) -> bool:
+        """Return True if this step has internal substeps (grid + detail)."""
+        return False
+
+    def get_current_substep(self) -> int:
+        """Return the current substep index (0-based)."""
+        return 0
+
+    def get_substep_count(self) -> int:
+        """Return the total number of substeps."""
+        return 1
+
+    def go_to_substep(self, index: int):
+        """Navigate to the given substep index."""
+        pass
+
+    def get_next_label(self) -> str | None:
+        """Return contextual label for the Next button, or None for default."""
+        return None
+
+    def notify_substep_change(self):
+        """Notify that the substep changed (update nav bar etc)."""
+        for cb in self.on_substep_change_callbacks:
             cb()
