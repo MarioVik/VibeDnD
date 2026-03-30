@@ -4,6 +4,38 @@ import sys
 import tkinter as tk
 from tkinter import ttk
 
+
+def _clear_button_focus(event):
+    widget = getattr(event, "widget", None)
+    if widget is None:
+        return
+
+    def _after_idle():
+        try:
+            if not widget.winfo_exists():
+                return
+            if widget.focus_displayof() is not widget:
+                return
+            widget.winfo_toplevel().focus_set()
+        except tk.TclError:
+            pass
+
+    try:
+        widget.after_idle(_after_idle)
+    except tk.TclError:
+        pass
+
+
+def _defocus_button_after_activate(event):
+    widget = getattr(event, "widget", None)
+    if widget is None:
+        return
+
+    try:
+        widget.after_idle(lambda: widget.winfo_toplevel().focus_set())
+    except tk.TclError:
+        pass
+
 # ---------------------------------------------------------------------------
 # Color palette — Mythic Modern (crimson / charcoal)
 # ---------------------------------------------------------------------------
@@ -136,6 +168,23 @@ def apply_theme(root: tk.Tk):
     """Apply the Mythic Modern dark theme to the application."""
     style = ttk.Style(root)
     style.theme_use("clam")
+
+    # Prevent buttons from taking focus by default so macOS/Tk doesn't draw
+    # the bright focus ring after mouse clicks.
+    root.option_add("*Button.takeFocus", 0)
+    root.option_add("*Button.takefocus", 0)
+    root.option_add("*TButton.takeFocus", 0)
+    root.option_add("*TButton.takefocus", 0)
+    if not getattr(root, "_button_focus_cleanup_installed", False):
+        root.bind_class("Button", "<FocusIn>", _clear_button_focus, add="+")
+        root.bind_class("TButton", "<FocusIn>", _clear_button_focus, add="+")
+        root.bind_class(
+            "Button", "<ButtonRelease-1>", _defocus_button_after_activate, add="+"
+        )
+        root.bind_class(
+            "TButton", "<ButtonRelease-1>", _defocus_button_after_activate, add="+"
+        )
+        root._button_focus_cleanup_installed = True
 
     # ------------------------------------------------------------------
     # General defaults
@@ -293,25 +342,9 @@ def apply_theme(root: tk.Tk):
     # ------------------------------------------------------------------
     # Buttons
     # ------------------------------------------------------------------
-    style.configure(
-        "TButton",
-        background=COLORS["bg_highest"],
-        foreground=COLORS["fg"],
-        padding=[12, 6],
-        font=FONTS["body"],
-    )
-    style.map(
-        "TButton",
-        background=[
-            ("active", COLORS["bg_high"]),
-            ("disabled", COLORS["bg_high"]),
-        ],
-        foreground=[("disabled", COLORS["fg_dim"])],
-    )
-
-    # Footer nav buttons should not draw the default focus ring, which shows
-    # up as a bright outline against the dark wizard footer after clicking.
-    footer_button_layout = [
+    # Remove the default focus-ring element from all button styles so clicks
+    # don't draw a bright native outline against the dark UI.
+    button_layout = [
         (
             "Button.border",
             {
@@ -329,7 +362,42 @@ def apply_theme(root: tk.Tk):
             },
         )
     ]
-    style.layout("Footer.TButton", footer_button_layout)
+    button_styles = (
+        "TButton",
+        "Accent.TButton",
+        "Gold.TButton",
+        "Compact.TButton",
+        "HomeLoad.TButton",
+        "HomeLoadAccent.TButton",
+        "HomeDelete.TButton",
+        "Footer.TButton",
+        "FooterAccent.TButton",
+    )
+    for style_name in button_styles:
+        style.layout(style_name, button_layout)
+
+    style.configure(
+        "TButton",
+        background=COLORS["bg_highest"],
+        foreground=COLORS["fg"],
+        padding=[12, 6],
+        font=FONTS["body"],
+        bordercolor=COLORS["outline_dim"],
+        lightcolor=COLORS["bg_highest"],
+        darkcolor=COLORS["bg_surface"],
+    )
+    style.map(
+        "TButton",
+        background=[
+            ("active", COLORS["bg_high"]),
+            ("disabled", COLORS["bg_high"]),
+        ],
+        foreground=[("disabled", COLORS["fg_dim"])],
+        bordercolor=[("active", COLORS["outline"]), ("disabled", COLORS["outline_dim"])],
+        lightcolor=[("active", COLORS["bg_high"])],
+        darkcolor=[("active", COLORS["bg_surface"])],
+    )
+
     style.configure(
         "Footer.TButton",
         background=COLORS["bg_highest"],
@@ -357,27 +425,32 @@ def apply_theme(root: tk.Tk):
         background=COLORS["accent"],
         foreground=COLORS["fg"],
         font=FONTS["body_bold"],
+        bordercolor=COLORS["accent_on"],
+        lightcolor=COLORS["accent"],
+        darkcolor=COLORS["accent_on"],
     )
     style.map(
         "Accent.TButton",
         background=[("active", COLORS["accent_on"])],
+        bordercolor=[("active", COLORS["accent_on"])],
+        lightcolor=[("active", COLORS["accent_on"])],
+        darkcolor=[("active", COLORS["accent_on"])],
     )
 
-    style.layout("FooterAccent.TButton", footer_button_layout)
     style.configure(
         "FooterAccent.TButton",
         background=COLORS["accent"],
         foreground=COLORS["fg"],
         font=FONTS["body_bold"],
         padding=[12, 6],
-        bordercolor=COLORS["accent_text"],
+        bordercolor=COLORS["accent_on"],
         lightcolor=COLORS["accent"],
         darkcolor=COLORS["accent_on"],
     )
     style.map(
         "FooterAccent.TButton",
         background=[("active", COLORS["accent_on"])],
-        bordercolor=[("active", COLORS["accent_text"])],
+        bordercolor=[("active", COLORS["accent_on"])],
         lightcolor=[("active", COLORS["accent_on"])],
         darkcolor=[("active", COLORS["accent_on"])],
     )
@@ -387,11 +460,17 @@ def apply_theme(root: tk.Tk):
         background=COLORS["gold_dark"],
         foreground=COLORS["gold"],
         font=FONTS["body_bold"],
+        bordercolor=COLORS["gold"],
+        lightcolor=COLORS["gold_dark"],
+        darkcolor=COLORS["bg_surface"],
     )
     style.map(
         "Gold.TButton",
         background=[("active", COLORS["gold"])],
         foreground=[("active", COLORS["gold_dark"])],
+        bordercolor=[("active", COLORS["gold"])],
+        lightcolor=[("active", COLORS["gold"])],
+        darkcolor=[("active", COLORS["gold_dark"])],
     )
 
     style.configure(
@@ -400,6 +479,9 @@ def apply_theme(root: tk.Tk):
         foreground=COLORS["fg"],
         padding=[6, 1],
         font=FONTS["body"],
+        bordercolor=COLORS["outline_dim"],
+        lightcolor=COLORS["bg_highest"],
+        darkcolor=COLORS["bg_surface"],
     )
     style.map(
         "Compact.TButton",
@@ -408,6 +490,9 @@ def apply_theme(root: tk.Tk):
             ("disabled", COLORS["bg_high"]),
         ],
         foreground=[("disabled", COLORS["fg_dim"])],
+        bordercolor=[("active", COLORS["outline"]), ("disabled", COLORS["outline_dim"])],
+        lightcolor=[("active", COLORS["bg_high"])],
+        darkcolor=[("active", COLORS["bg_surface"])],
     )
 
     style.configure(
@@ -416,10 +501,16 @@ def apply_theme(root: tk.Tk):
         foreground=COLORS["fg"],
         padding=[14, 10],
         font=FONTS["label_upper_bold"],
+        bordercolor=COLORS["outline_dim"],
+        lightcolor=COLORS["bg_high"],
+        darkcolor=COLORS["bg_surface"],
     )
     style.map(
         "HomeLoad.TButton",
         background=[("active", COLORS["bg_highest"])],
+        bordercolor=[("active", COLORS["outline"])],
+        lightcolor=[("active", COLORS["bg_highest"])],
+        darkcolor=[("active", COLORS["bg_high"])],
     )
 
     style.configure(
@@ -428,10 +519,16 @@ def apply_theme(root: tk.Tk):
         foreground=COLORS["fg"],
         padding=[14, 10],
         font=FONTS["label_upper_bold"],
+        bordercolor=COLORS["accent_on"],
+        lightcolor=COLORS["accent"],
+        darkcolor=COLORS["accent_on"],
     )
     style.map(
         "HomeLoadAccent.TButton",
         background=[("active", COLORS["accent_on"])],
+        bordercolor=[("active", COLORS["accent_on"])],
+        lightcolor=[("active", COLORS["accent_on"])],
+        darkcolor=[("active", COLORS["accent_on"])],
     )
 
     style.configure(
@@ -440,11 +537,17 @@ def apply_theme(root: tk.Tk):
         foreground=COLORS["fg_dim"],
         padding=[8, 3],
         font=FONTS["body_small"],
+        bordercolor=COLORS["outline_dim"],
+        lightcolor=COLORS["bg_container"],
+        darkcolor=COLORS["bg_surface"],
     )
     style.map(
         "HomeDelete.TButton",
         background=[("active", COLORS["bg_high"])],
         foreground=[("active", COLORS["fg"])],
+        bordercolor=[("active", COLORS["outline"])],
+        lightcolor=[("active", COLORS["bg_high"])],
+        darkcolor=[("active", COLORS["bg_surface"])],
     )
 
     # ------------------------------------------------------------------

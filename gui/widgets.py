@@ -976,7 +976,7 @@ class AlertDialog(tk.Toplevel):
         self.bind("<Escape>", lambda e: self.destroy())
         self.bind("<Return>", lambda e: self.destroy())
 
-        self.ok_btn.focus_set()
+        self.focus_set()
         self.wait_window(self)
 
 
@@ -1030,8 +1030,7 @@ class ConfirmDialog(tk.Toplevel):
         self.bind("<Escape>", lambda e: self._on_no())
         self.bind("<Return>", lambda e: self._on_yes())
 
-        # Focus the Yes button by default
-        self.yes_btn.focus_set()
+        self.focus_set()
 
         self.wait_window(self)
 
