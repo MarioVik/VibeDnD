@@ -312,34 +312,82 @@ class CharacterCreatorApp:
         self._update_nav_buttons()
 
     def _update_sidebar_state(self):
-        """Update sidebar step counter, step states, and selection panel."""
+        """Update sidebar step states and per-step selections."""
         if not hasattr(self, "_wizard_sidebar"):
             return
 
         idx = self._current_step_idx
-        total = len(self.wizard_steps)
-
-        # Count visible steps (exclude hidden spells for non-casters)
-        visible_count = total
-        visible_idx = idx
-        if not self.character.is_caster:
-            visible_count -= 1
-            if idx > SPELLS_INDEX:
-                visible_idx -= 1
-
-        self._wizard_sidebar.set_step_counter(visible_idx + 1, visible_count)
         self._wizard_sidebar.update_step_states(idx, self._reached_step)
+        deferred_choice_steps = {"species", "class", "background", "feat"}
 
-        # Update selection panel
-        sp = self.character.species
-        if sp:
-            self._wizard_sidebar.set_selection("species", sp.get("name", ""))
-        cls = self.character.character_class
-        if cls:
-            self._wizard_sidebar.set_selection("class", cls.get("name", ""))
-        bg = self.character.background
-        if bg:
-            self._wizard_sidebar.set_selection("background", bg.get("name", ""))
+        for step_idx, step_key in enumerate(self._step_keys):
+            if step_idx > self._reached_step:
+                continue
+            value = self._get_sidebar_selection_text(step_key)
+            if step_idx == idx and step_key in deferred_choice_steps:
+                value = "Currently Editing"
+            elif step_idx == idx and not value:
+                value = "Currently Editing"
+            self._wizard_sidebar.set_selection(step_key, value)
+
+    def _get_sidebar_selection_text(self, key: str) -> str:
+        """Return the sidebar subtitle for a wizard step."""
+        if key == "species":
+            species = self.character.species or {}
+            return species.get("name", "")
+
+        if key == "class":
+            char_class = self.character.character_class or {}
+            return char_class.get("name", "")
+
+        if key == "background":
+            background = self.character.background or {}
+            return background.get("name", "")
+
+        if key == "feat":
+            feat_names: list[str] = []
+            for feat in (self.character.feat, self.character.species_origin_feat):
+                if feat and feat.get("name") and feat["name"] not in feat_names:
+                    feat_names.append(feat["name"])
+            return " + ".join(feat_names)
+
+        if self._is_sidebar_step_complete(key):
+            return "Completed"
+
+        return ""
+
+    def _is_sidebar_step_complete(self, key: str) -> bool:
+        """Return whether a non-selection sidebar step should show as completed."""
+        if key == "abilities":
+            return self.wizard_steps[self._step_keys.index(key)].is_valid()
+
+        if key == "skills":
+            return self.wizard_steps[self._step_keys.index(key)].is_valid()
+
+        if key == "equipment":
+            return bool(self.character.character_class or self.character.background)
+
+        if key == "spells":
+            return self.wizard_steps[self._step_keys.index(key)].is_valid()
+
+        if key == "languages":
+            return self.wizard_steps[self._step_keys.index(key)].is_valid()
+
+        if key == "biography":
+            return any(
+                [
+                    self.character.name and self.character.name != "New Character",
+                    self.character.biography_backstory,
+                    self.character.biography_personality,
+                    self.character.biography_description,
+                    self.character.biography_image_data,
+                ]
+            )
+
+        if key == "summary":
+            return self._current_step_idx == self._step_keys.index("summary")
+
+        return False
 
     def _update_spells_visibility(self):
         """Hide or show the spells nav item based on caster status."""
@@ -465,9 +513,14 @@ class CharacterCreatorApp:
         step = self.wizard_steps[curr]
         key = self._step_keys[curr]
 
-        # Back button: disabled at step 0 substep 0
+        # Back button: hide it when there's nowhere to go back to
         can_go_back = curr > 0 or (step.has_substeps() and step.get_current_substep() > 0)
-        self._back_btn.configure(state=tk.NORMAL if can_go_back else tk.DISABLED)
+        if can_go_back:
+            self._back_btn.configure(state=tk.NORMAL)
+            if not self._back_btn.winfo_manager():
+                self._back_btn.pack(side=tk.LEFT)
+        elif self._back_btn.winfo_manager():
+            self._back_btn.pack_forget()
 
         # Species keeps Next clickable; validation handled on click
         if isinstance(step, SpeciesStep):

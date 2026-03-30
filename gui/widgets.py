@@ -1137,11 +1137,13 @@ class NavButton(tk.Frame):
 
         self._subtitle = tk.Label(
             self._text_col,
-            text=subtitle.upper() if subtitle else "",
+            text=subtitle or "",
             font=FONTS["nav_subtitle"],
             fg=COLORS["sidebar_locked_fg"],
             bg=COLORS["bg_surface"],
             anchor="w",
+            justify=tk.LEFT,
+            wraplength=190,
         )
         if subtitle:
             self._subtitle.pack(fill=tk.X)
@@ -1180,7 +1182,7 @@ class NavButton(tk.Frame):
                 self._set_bg_recursive(child, bg)
 
     def set_subtitle(self, text: str):
-        self._subtitle.configure(text=text.upper())
+        self._subtitle.configure(text=text)
         if text:
             self._subtitle.pack(fill=tk.X)
         else:

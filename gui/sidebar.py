@@ -28,6 +28,7 @@ class Sidebar(tk.Frame):
         on_navigate: Callable[[str], None],
         bottom_buttons: list[dict] | None = None,
         show_character_info: bool = False,
+        show_selection_panel: bool = False,
         on_back: Callable[[], None] | None = None,
         width: int = SIDEBAR_WIDTH,
         ):
@@ -48,23 +49,11 @@ class Sidebar(tk.Frame):
         self._summary_label: tk.Label | None = None
         self._level_label: tk.Label | None = None
         self._nav_keys: list[str] = [item["key"] for item in nav_items]
+        self._show_character_info = show_character_info
+        self._show_selection_panel = show_selection_panel
 
-        # ---- Step counter header (wizard only) ----
+        # ---- Step counter header (currently unused) ----
         self._step_counter: tk.Label | None = None
-        if not show_character_info:
-            self._step_counter = tk.Label(
-                self,
-                text="",
-                font=FONTS["step_counter"],
-                fg=COLORS["fg_dim"],
-                bg=COLORS["bg_surface"],
-                anchor="w",
-            )
-            self._step_counter.pack(
-                fill=tk.X,
-                padx=SPACING["lg"],
-                pady=(SPACING["xl"], SPACING["lg"]),
-            )
 
         # ---- Back button + character info (optional) ----
         if show_character_info:
@@ -84,27 +73,33 @@ class Sidebar(tk.Frame):
                 key=item["key"],
                 icon_char=item.get("icon", ""),
                 on_click=self._handle_nav,
-                subtitle="" if show_character_info else "Locked",
+                subtitle="",
             )
             btn.pack(fill=tk.X, pady=1)
             self._nav_buttons[item["key"]] = btn
 
-        # ---- Bottom selection panel ----
-        self._selection_frame = tk.Frame(self, bg=COLORS["bg_surface"])
-        self._selection_frame.pack(fill=tk.X, side=tk.BOTTOM, padx=SPACING["sm"], pady=(0, SPACING["md"]))
+        # ---- Bottom selection panel (optional) ----
         self._selection_labels: dict[str, tuple[tk.Label, tk.Label]] = {}
+        self._selection_frame: tk.Frame | None = None
+        self._sel_card: tk.Frame | None = None
+        if show_selection_panel:
+            self._selection_frame = tk.Frame(self, bg=COLORS["bg_surface"])
+            self._selection_frame.pack(
+                fill=tk.X,
+                side=tk.BOTTOM,
+                padx=SPACING["sm"],
+                pady=(0, SPACING["md"]),
+            )
 
-        # Glass-style card for selections
-        self._sel_card = tk.Frame(
-            self._selection_frame,
-            bg=COLORS["bg_container"],
-            highlightbackground=COLORS["border_subtle"],
-            highlightcolor=COLORS["border_subtle"],
-            highlightthickness=1,
-        )
-        self._sel_card.pack(fill=tk.X, padx=4, pady=4)
-        # Initially hidden
-        self._sel_card.pack_forget()
+            self._sel_card = tk.Frame(
+                self._selection_frame,
+                bg=COLORS["bg_container"],
+                highlightbackground=COLORS["border_subtle"],
+                highlightcolor=COLORS["border_subtle"],
+                highlightthickness=1,
+            )
+            self._sel_card.pack(fill=tk.X, padx=4, pady=4)
+            self._sel_card.pack_forget()
 
         # ---- Bottom actions (legacy support) ----
         self._action_buttons: dict[str, "ttk.Button"] = {}
@@ -179,10 +174,8 @@ class Sidebar(tk.Frame):
 
             if i == current_idx:
                 btn.set_status(active=True)
-                btn.set_subtitle("Currently Editing")
             elif i <= reached_idx:
                 btn.set_status(completed=True)
-                btn.set_subtitle("Completed")
             else:
                 btn.set_status(locked=True)
                 btn.set_subtitle("Locked")
@@ -195,6 +188,12 @@ class Sidebar(tk.Frame):
         key: step key (e.g., "species"), value: selection name (e.g., "Elf")
         Empty value removes the entry.
         """
+        if key in self._nav_buttons:
+            self._nav_buttons[key].set_subtitle(value)
+
+        if not self._show_selection_panel or self._sel_card is None:
+            return
+
         if key in self._selection_labels:
             header_lbl, val_lbl = self._selection_labels[key]
             if value:
@@ -326,7 +325,7 @@ class Sidebar(tk.Frame):
         self._active_key = key
         if key in self._nav_buttons:
             self._nav_buttons[key].set_active(True)
-        if self._step_counter is None:
+        if self._show_character_info:
             for nav_key, btn in self._nav_buttons.items():
                 btn.set_subtitle("")
 
