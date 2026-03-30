@@ -185,13 +185,14 @@ class CharacterViewer(ttk.Frame):
             self._views[key] = frame
 
         # Show initial view
-        self.sidebar.set_active(_DASHBOARD)
         self._show_view(_DASHBOARD)
 
     def _on_navigate(self, key: str):
         self._show_view(key)
 
     def _show_view(self, key: str):
+        self.sidebar.set_active(key)
+
         # Hide current
         for name, frame in self._views.items():
             frame.pack_forget()

@@ -49,16 +49,22 @@ class Sidebar(tk.Frame):
         self._level_label: tk.Label | None = None
         self._nav_keys: list[str] = [item["key"] for item in nav_items]
 
-        # ---- Step counter header ----
-        self._step_counter = tk.Label(
-            self,
-            text="",
-            font=FONTS["step_counter"],
-            fg=COLORS["fg_dim"],
-            bg=COLORS["bg_surface"],
-            anchor="w",
-        )
-        self._step_counter.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["xl"], SPACING["lg"]))
+        # ---- Step counter header (wizard only) ----
+        self._step_counter: tk.Label | None = None
+        if not show_character_info:
+            self._step_counter = tk.Label(
+                self,
+                text="",
+                font=FONTS["step_counter"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+                anchor="w",
+            )
+            self._step_counter.pack(
+                fill=tk.X,
+                padx=SPACING["lg"],
+                pady=(SPACING["xl"], SPACING["lg"]),
+            )
 
         # ---- Back button + character info (optional) ----
         if show_character_info:
@@ -78,7 +84,7 @@ class Sidebar(tk.Frame):
                 key=item["key"],
                 icon_char=item.get("icon", ""),
                 on_click=self._handle_nav,
-                subtitle="Locked",
+                subtitle="" if show_character_info else "Locked",
             )
             btn.pack(fill=tk.X, pady=1)
             self._nav_buttons[item["key"]] = btn
@@ -159,7 +165,8 @@ class Sidebar(tk.Frame):
 
     def set_step_counter(self, current: int, total: int):
         """Update the 'STEP X OF N' header text."""
-        self._step_counter.configure(text=f"STEP  {current}  OF  {total}")
+        if self._step_counter is not None:
+            self._step_counter.configure(text=f"STEP  {current}  OF  {total}")
 
     # ---- Step states ----
 
@@ -319,6 +326,9 @@ class Sidebar(tk.Frame):
         self._active_key = key
         if key in self._nav_buttons:
             self._nav_buttons[key].set_active(True)
+        if self._step_counter is None:
+            for nav_key, btn in self._nav_buttons.items():
+                btn.set_subtitle("")
 
     def _animate_label_color(self, widget: tk.Label, target_color: str, steps: int = 6, delay: int = 18):
         current_job = getattr(widget, "_color_anim_job", None)
