@@ -5,7 +5,6 @@ from tkinter import ttk
 
 from gui.base_step import WizardStep
 from gui.widgets import (
-    ScrollableFrame,
     SectionedListbox,
     FormattedDescription,
     GradientHeader,
@@ -56,11 +55,12 @@ class FeatStep(WizardStep):
             justify=tk.LEFT,
         ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xs"], SPACING["xl"]))
 
-        self.content = ScrollableFrame(self.frame)
+        self.content = tk.Frame(self.frame, bg=COLORS["bg"])
         self.content.grid(row=1, column=0, sticky="nsew")
-        self.inner = self.content.inner
+        self.content.columnconfigure(0, weight=1)
+        self.content.rowconfigure(0, weight=1)
 
-        self.empty_state = CardFrame(self.inner, pad=SPACING["lg"])
+        self.empty_state = CardFrame(self.content, pad=SPACING["lg"])
         tk.Label(
             self.empty_state.inner,
             text="No additional feat to choose",
@@ -79,24 +79,27 @@ class FeatStep(WizardStep):
         )
         self.empty_body.pack(anchor="w", pady=(SPACING["xs"], 0))
 
-        self.sp_section = tk.Frame(self.inner, bg=COLORS["bg"])
+        self.sp_section = tk.Frame(self.content, bg=COLORS["bg"])
+        self.sp_section.columnconfigure(1, weight=1)
+        self.sp_section.rowconfigure(1, weight=1)
+
         self.sp_section_header = SectionHeader(self.sp_section, text="Species Feat")
-        self.sp_section_header.pack(fill=tk.X, pady=(0, SPACING["sm"]))
+        self.sp_section_header.grid(
+            row=0, column=0, columnspan=2, sticky="ew", pady=(0, SPACING["sm"])
+        )
 
-        self.sp_top = tk.Frame(self.sp_section, bg=COLORS["bg"])
-        self.sp_top.pack(fill=tk.BOTH, expand=True)
-        self.sp_top.columnconfigure(1, weight=1)
-        self.sp_top.rowconfigure(0, weight=1)
+        self.sp_section.columnconfigure(0, minsize=260)
 
-        self.sp_list_frame = tk.Frame(self.sp_top, bg=COLORS["bg"], width=220, height=300)
+        self.sp_list_frame = tk.Frame(self.sp_section, bg=COLORS["bg"], width=260)
         self.sp_list_frame.grid(
-            row=0,
+            row=1,
             column=0,
             sticky="nsew",
             padx=(0, SPACING["xs"]),
             pady=0,
         )
-        self.sp_list_frame.grid_propagate(False)
+        self.sp_list_frame.columnconfigure(0, weight=1)
+        self.sp_list_frame.rowconfigure(2, weight=1)
 
         tk.Label(
             self.sp_list_frame,
@@ -104,10 +107,10 @@ class FeatStep(WizardStep):
             font=FONTS["body"],
             fg=COLORS["fg_dim"],
             bg=COLORS["bg"],
-        ).pack(anchor="w", pady=(0, 2))
+        ).grid(row=0, column=0, sticky="w", pady=(0, 2))
 
         self.feat_toggle_frame = tk.Frame(self.sp_list_frame, bg=COLORS["bg"])
-        self.feat_toggle_frame.pack(fill=tk.X, pady=(0, SPACING["xs"]))
+        self.feat_toggle_frame.grid(row=1, column=0, sticky="ew", pady=(0, SPACING["xs"]))
         self.feat_toggle_vars: dict[str, tk.BooleanVar] = {}
         self._ua_prev_enabled = False
         self._build_feat_toggles()
@@ -116,10 +119,15 @@ class FeatStep(WizardStep):
             self.sp_list_frame,
             on_select=self._on_species_feat_select,
         )
-        self.origin_feat_list.pack(fill=tk.BOTH, expand=True)
+        self.origin_feat_list.grid(row=2, column=0, sticky="nsew")
 
-        self.sp_detail_card = CardFrame(self.sp_top, pad=SPACING["lg"])
-        self.sp_detail_card.grid(row=0, column=1, sticky="nsew", padx=0, pady=0)
+        self.sp_detail_scroll = tk.Frame(self.sp_section, bg=COLORS["bg"])
+        self.sp_detail_scroll.grid(row=1, column=1, sticky="nsew", padx=0, pady=0)
+        self.sp_detail_scroll.columnconfigure(0, weight=1)
+        self.sp_detail_scroll.rowconfigure(0, weight=1)
+
+        self.sp_detail_card = CardFrame(self.sp_detail_scroll, pad=SPACING["lg"])
+        self.sp_detail_card.grid(row=0, column=0, sticky="nsew")
 
         self.sp_feat_label = tk.Label(
             self.sp_detail_card.inner,
@@ -209,7 +217,9 @@ class FeatStep(WizardStep):
     def _set_species_section_title(self, text: str):
         self.sp_section_header.destroy()
         self.sp_section_header = SectionHeader(self.sp_section, text=text)
-        self.sp_section_header.pack(fill=tk.X, pady=(0, SPACING["sm"]), before=self.sp_top)
+        self.sp_section_header.grid(
+            row=0, column=0, columnspan=2, sticky="ew", pady=(0, SPACING["sm"])
+        )
 
     def _clear_species_feat_details(self):
         self.sp_feat_label.configure(text="Select a feat")
@@ -221,11 +231,12 @@ class FeatStep(WizardStep):
         grants_feat, sp_name, trait_name = self._species_grants_origin_feat()
 
         if grants_feat:
-            self.empty_state.pack_forget()
+            self.empty_state.grid_forget()
             if not self.sp_section.winfo_manager():
-                self.sp_section.pack(
-                    fill=tk.BOTH,
-                    expand=True,
+                self.sp_section.grid(
+                    row=0,
+                    column=0,
+                    sticky="nsew",
                     padx=SPACING["lg"],
                     pady=(SPACING["sm"], SPACING["sm"]),
                 )
@@ -242,7 +253,7 @@ class FeatStep(WizardStep):
                     self.character.species_origin_feat.get("name", "")
                 )
         else:
-            self.sp_section.pack_forget()
+            self.sp_section.grid_forget()
             self.character.species_origin_feat = None
             self._clear_species_feat_details()
 
@@ -255,8 +266,10 @@ class FeatStep(WizardStep):
             self.empty_body.configure(text=body)
 
             if not self.empty_state.winfo_manager():
-                self.empty_state.pack(
-                    fill=tk.X,
+                self.empty_state.grid(
+                    row=0,
+                    column=0,
+                    sticky="new",
                     padx=SPACING["lg"],
                     pady=(SPACING["sm"], SPACING["sm"]),
                 )
