@@ -556,15 +556,6 @@ class ClassStep(WizardStep):
                     f"{cls['spellcasting_ability']} ({cls['caster_type']} caster)",
                 )
             )
-            if cls.get("cantrips_known"):
-                info.append(("Cantrips at Lvl 1", str(cls["cantrips_known"])))
-            if cls.get("spells_prepared"):
-                info.append(("Prepared Spells", str(cls["spells_prepared"])))
-            if cls.get("spell_slots"):
-                slots_str = ", ".join(
-                    f"{k}: {v}" for k, v in cls["spell_slots"].items()
-                )
-                info.append(("Spell Slots", slots_str))
 
         _bg = COLORS["bg_surface"]
         for label, value in info:
