@@ -1,5 +1,6 @@
-"""Step 2: Class selection."""
+"""Step 2: Class selection with grid tile view and detail substep."""
 
+import os
 import re
 import tkinter as tk
 from tkinter import ttk
@@ -15,6 +16,7 @@ from gui.widgets import (
     CardFrame,
     PillBadge,
     Chip,
+    TileGrid,
 )
 from gui.theme import COLORS, FONTS, SPACING
 from gui.source_config import (
@@ -25,6 +27,21 @@ from gui.source_config import (
     handle_ua_toggle,
     save_settings,
 )
+from paths import images_dir
+
+
+def _first_sentence(text: str) -> str:
+    if not text:
+        return ""
+    for end in (".", "!", "?"):
+        idx = text.find(end)
+        if idx != -1:
+            return text[: idx + 1]
+    return text[:120] + ("..." if len(text) > 120 else "")
+
+
+def _slug(name: str) -> str:
+    return name.lower().replace(" ", "_").replace("'", "")
 
 
 class ClassStep(WizardStep):
@@ -32,11 +49,180 @@ class ClassStep(WizardStep):
 
     def build_ui(self):
         self._edit_initialized = False
-        self.frame.columnconfigure(1, weight=1)
-        self.frame.rowconfigure(0, weight=1)
+        self._current_substep = 0
+
+        # Two containers: grid view (substep 0) and detail view (substep 1)
+        self._grid_frame = tk.Frame(self.frame, bg=COLORS["bg"])
+        self._detail_frame = tk.Frame(self.frame, bg=COLORS["bg"])
+
+        self._build_grid_view()
+        self._build_detail_view()
+
+        # Start on grid
+        self._grid_frame.pack(fill=tk.BOTH, expand=True)
+
+    # ── Substep protocol ──────────────────────────────────────────
+
+    def has_substeps(self) -> bool:
+        return True
+
+    def get_current_substep(self) -> int:
+        return self._current_substep
+
+    def get_substep_count(self) -> int:
+        return 2
+
+    def go_to_substep(self, index: int):
+        if index == self._current_substep:
+            return
+        self._current_substep = index
+        if index == 0:
+            self._detail_frame.pack_forget()
+            self._grid_frame.pack(fill=tk.BOTH, expand=True)
+        else:
+            self._grid_frame.pack_forget()
+            self._detail_frame.pack(fill=tk.BOTH, expand=True)
+        self.notify_substep_change()
+
+    def get_next_label(self) -> str | None:
+        if self._current_substep == 1 and self.is_valid():
+            return "Next: Choose Background  \u25b6"
+        return None
+
+    # ── Grid View (substep 0) ─────────────────────────────────────
+
+    def _build_grid_view(self):
+        header = tk.Frame(self._grid_frame, bg=COLORS["bg"])
+        header.pack(fill=tk.X, padx=SPACING["xl"], pady=(SPACING["xl"], 0))
+
+        tk.Label(
+            header,
+            text="Choose Your Class",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg"],
+        ).pack(anchor="w")
+
+        tk.Label(
+            header,
+            text="Your class defines your hero\u2019s training, abilities, and role in the party. "
+            "Select the path that best matches your desired playstyle.",
+            font=FONTS["body_large"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg"],
+            wraplength=800,
+            justify=tk.LEFT,
+        ).pack(anchor="w", pady=(SPACING["sm"], 0))
+
+        # Source filter toggles
+        self._grid_toggle_frame = tk.Frame(self._grid_frame, bg=COLORS["bg"])
+        self._grid_toggle_frame.pack(fill=tk.X, padx=SPACING["xl"], pady=(SPACING["md"], 0))
+        self.toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._ua_prev_enabled = False
+        self._build_toggles()
+
+        # Tile grid
+        self._tile_grid = TileGrid(self._grid_frame, on_select=self._on_tile_click)
+        self._tile_grid.pack(fill=tk.BOTH, expand=True, padx=SPACING["sm"], pady=SPACING["sm"])
+
+        self._populate_tiles()
+
+    def _build_toggles(self):
+        """Build source filter checkboxes for classes and subclasses."""
+        for w in self._grid_toggle_frame.winfo_children():
+            w.destroy()
+        self.toggle_vars.clear()
+
+        filters = self.data.source_filters.get("classes", {})
+        sections = SECTION_ORDER["classes"]
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
+
+        for cat in sections:
+            label = "UA" if cat == UA_CATEGORY else cat
+            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
+            cb = ttk.Checkbutton(
+                self._grid_toggle_frame,
+                text=label,
+                variable=var,
+                command=self._on_toggle_change,
+            )
+            cb.pack(side=tk.LEFT, padx=(0, 6))
+            self.toggle_vars[cat] = var
+
+        # Keep subclass filters fully in sync
+        self.data.source_filters["subclasses"] = {
+            cat: filters.get(cat, cat != UA_CATEGORY) for cat in sections
+        }
+
+    def _on_toggle_change(self):
+        """Update filters and rebuild tiles/list when a toggle changes."""
+        ua_var = self.toggle_vars.get(UA_CATEGORY)
+        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
+        if not proceed:
+            return
+
+        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
+        self.data.source_filters["classes"] = filters
+        self.data.source_filters["subclasses"] = dict(filters)
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
+        save_settings(self.data.source_filters)
+        self._populate_tiles()
+        if hasattr(self, "class_list"):
+            self._populate_list()
+
+    def _get_class_level1_features(self, cls: dict) -> list[str]:
+        """Get up to 3 level 1 feature names from progression data."""
+        prog = self.data.get_progression(cls.get("slug", ""))
+        if prog and prog.get("levels"):
+            lvl1 = prog["levels"][0]
+            details = lvl1.get("feature_details", [])
+            if details:
+                return [f["name"] for f in details[:3]]
+            return lvl1.get("features", [])[:3]
+        # Fallback to level_1_features
+        return [f["name"] for f in cls.get("level_1_features", [])[:3]]
+
+    def _populate_tiles(self):
+        filters = self.data.source_filters.get("classes", {})
+        enabled = {cat for cat, on in filters.items() if on}
+
+        grouped = group_by_category(self.data.classes, "classes")
+        img_base = os.path.join(images_dir(), "classes")
+
+        tiles = []
+        for cat, items in grouped:
+            if cat not in enabled:
+                continue
+            for cls in items:
+                traits = self._get_class_level1_features(cls)
+                slug = _slug(cls["name"])
+                img_path = os.path.join(img_base, f"{slug}.png")
+                tiles.append({
+                    "name": cls["name"],
+                    "description": _first_sentence(cls.get("description", "")),
+                    "traits": traits,
+                    "image_path": img_path if os.path.isfile(img_path) else None,
+                })
+        self._tile_grid.set_tiles(tiles)
+
+    def _on_tile_click(self, name: str):
+        """Handle tile click: select class and switch to detail view."""
+        cls = self.data.classes_by_name.get(name)
+        if not cls:
+            return
+        self._on_select(name)
+        if hasattr(self, "class_list"):
+            self.class_list.select_item(name)
+        self.go_to_substep(1)
+
+    # ── Detail View (substep 1) — existing layout ─────────────────
+
+    def _build_detail_view(self):
+        self._detail_frame.columnconfigure(1, weight=1)
+        self._detail_frame.rowconfigure(0, weight=1)
 
         # Left: class list
-        left = tk.Frame(self.frame, bg=COLORS["bg"], width=280)
+        left = tk.Frame(self._detail_frame, bg=COLORS["bg"], width=280)
         left.grid(row=0, column=0, sticky="nsew", padx=(SPACING["sm"], SPACING["xs"]), pady=0)
         left.grid_propagate(False)
 
@@ -44,12 +230,10 @@ class ClassStep(WizardStep):
             fill=tk.X, pady=(SPACING["lg"], SPACING["sm"])
         )
 
-        # Source filter toggles
-        self.toggle_frame = tk.Frame(left, bg=COLORS["bg"])
-        self.toggle_frame.pack(fill=tk.X, pady=(0, SPACING["xs"]))
-        self.toggle_vars: dict[str, tk.BooleanVar] = {}
-        self._ua_prev_enabled = False
-        self._build_toggles()
+        # Source filter toggles (detail view)
+        self._detail_toggle_frame = tk.Frame(left, bg=COLORS["bg"])
+        self._detail_toggle_frame.pack(fill=tk.X, pady=(0, SPACING["xs"]))
+        self._build_detail_toggles()
 
         # Subclass visibility filter
         self._show_subclasses_var = tk.BooleanVar(value=False)
@@ -69,7 +253,7 @@ class ClassStep(WizardStep):
         self._subclass_lookup_by_class: dict[str, dict[str, dict]] = {}
 
         # Right: detail
-        right = ScrollableFrame(self.frame)
+        right = ScrollableFrame(self._detail_frame)
         right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0), pady=0)
         self.detail = right.inner
 
@@ -113,6 +297,27 @@ class ClassStep(WizardStep):
 
         self._populate_list()
 
+    def _build_detail_toggles(self):
+        for w in self._detail_toggle_frame.winfo_children():
+            w.destroy()
+
+        filters = self.data.source_filters.get("classes", {})
+        sections = SECTION_ORDER["classes"]
+
+        for cat in sections:
+            label = "UA" if cat == UA_CATEGORY else cat
+            var = self.toggle_vars.get(cat)
+            if var is None:
+                var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
+                self.toggle_vars[cat] = var
+            cb = ttk.Checkbutton(
+                self._detail_toggle_frame,
+                text=label,
+                variable=var,
+                command=self._on_toggle_change,
+            )
+            cb.pack(side=tk.LEFT, padx=(0, 6))
+
     def _show_class_panels(self):
         """Show normal class detail sections."""
         self.equip_frame.pack_forget()
@@ -131,7 +336,6 @@ class ClassStep(WizardStep):
             self.features_frame.pack(fill=tk.X, pady=(SPACING["sm"], 0))
 
     def _subclass_summary(self, subclass: dict) -> str:
-        """Keep intro summary only, avoid repeating all level feature text."""
         desc = (subclass.get("description") or "").strip()
         if not desc:
             return ""
@@ -143,56 +347,12 @@ class ClassStep(WizardStep):
         if not self._edit_initialized and self.character.character_class:
             self._edit_initialized = True
             name = self.character.character_class.get("name", "")
-            # Snapshot skills (_on_select resets selected_skills to [])
             saved_skills = list(self.character.selected_skills)
-            # Select in list and populate detail panel
-            self.class_list.select_item(name)
+            if hasattr(self, "class_list"):
+                self.class_list.select_item(name)
             self._on_select(name)
-            # Restore skills (the Skills step manages the UI for these)
             self.character.selected_skills = saved_skills
-
-    def _build_toggles(self):
-        """Build source filter checkboxes for classes and subclasses."""
-        for w in self.toggle_frame.winfo_children():
-            w.destroy()
-        self.toggle_vars.clear()
-
-        filters = self.data.source_filters.get("classes", {})
-        sections = SECTION_ORDER["classes"]
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-            cb = ttk.Checkbutton(
-                self.toggle_frame,
-                text=label,
-                variable=var,
-                command=self._on_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, 6))
-            self.toggle_vars[cat] = var
-
-        # Keep subclass filters fully in sync with the class filter toggles.
-        self.data.source_filters["subclasses"] = {
-            cat: filters.get(cat, cat != UA_CATEGORY) for cat in sections
-        }
-
-    def _on_toggle_change(self):
-        """Update filters and rebuild list when a toggle changes."""
-        # Intercept UA enable with confirmation dialog
-        ua_var = self.toggle_vars.get(UA_CATEGORY)
-        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
-        if not proceed:
-            return
-
-        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
-        self.data.source_filters["classes"] = filters
-        # Sync subclass filters with same toggle state
-        self.data.source_filters["subclasses"] = dict(filters)
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-        save_settings(self.data.source_filters)
-        self._populate_list()
+            self.go_to_substep(1)
 
     def _populate_list(self):
         filters = self.data.source_filters.get("classes", {})
@@ -205,7 +365,7 @@ class ClassStep(WizardStep):
             if cat in enabled
         ]
 
-        # Build sub-items: subclass names listed under each class, filtered by source
+        # Build sub-items: subclass names listed under each class
         sub_filters = self.data.source_filters.get("subclasses", {})
         enabled_sub_cats = {cat for cat, on in sub_filters.items() if on}
         sub_items: dict[str, list[str]] = {}
@@ -236,17 +396,12 @@ class ClassStep(WizardStep):
                     sub_lookup[cls["name"]] = class_lookup
 
         self._subclass_lookup_by_class = sub_lookup
-        # Only pass sub_items when the checkbox is enabled
         show_subs = getattr(self, "_show_subclasses_var", None)
         effective_sub_items = sub_items if (show_subs and show_subs.get()) else {}
         self.class_list.set_sectioned_items(sections, sub_items=effective_sub_items)
 
     def _clear_detail_frames(self):
-        for f in [
-            self.equip_frame,
-            self.traits_frame,
-            self.features_frame,
-        ]:
+        for f in [self.equip_frame, self.traits_frame, self.features_frame]:
             for w in f.winfo_children():
                 w.destroy()
 
@@ -255,7 +410,6 @@ class ClassStep(WizardStep):
         if not subclass:
             return
 
-        # Auto-select parent class if not already selected
         current_cls = self.character.character_class
         if not current_cls or current_cls.get("name") != class_name:
             self._on_select(class_name)
@@ -268,7 +422,7 @@ class ClassStep(WizardStep):
         )
 
         preview_note = (
-            "Previewing subclass details — class selection remains unchanged."
+            "Previewing subclass details \u2014 class selection remains unchanged."
         )
         desc = self._subclass_summary(subclass)
         self.detail_desc.configure(
@@ -465,7 +619,6 @@ class ClassStep(WizardStep):
                 fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
             )
 
-            # 1. Gather all unique columns across all 20 levels
             extra_keys = set()
             all_slots = set()
             has_cantrips = False
@@ -507,7 +660,6 @@ class ClassStep(WizardStep):
 
             col_ids = [c["id"] for c in col_configs]
 
-            # 2. Build and Populate Table
             container = tk.Frame(self.features_frame, bg=COLORS["bg"])
             container.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["xl"]))
 
@@ -543,7 +695,6 @@ class ClassStep(WizardStep):
                         row_vals.append(val if val is not None else "-")
                 table.insert_row(row_vals)
 
-            # 3. Feature Descriptions Roadmap
             SectionHeader(self.features_frame, text="Feature Descriptions").pack(
                 fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"])
             )
@@ -629,7 +780,6 @@ class ClassStep(WizardStep):
                             bg=COLORS["bg"],
                         ).pack(anchor="w", padx=SPACING["lg"])
         else:
-            # Fallback to current simple feature display if no progression
             features = cls.get("level_1_features", [])
             if features:
                 SectionHeader(self.features_frame, text="Level 1 Features").pack(

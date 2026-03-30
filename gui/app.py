@@ -3,7 +3,7 @@
 import tkinter as tk
 from tkinter import ttk, filedialog
 
-from gui.theme import apply_theme, COLORS, FONTS
+from gui.theme import apply_theme, COLORS, FONTS, SPACING
 from gui.data_loader import GameData
 from gui.sidebar import Sidebar
 from gui.widgets import AlertDialog
@@ -27,20 +27,34 @@ from gui.character_viewer import CharacterViewer
 
 # Wizard step definitions: (key, label, icon, StepClass)
 _WIZARD_STEPS = [
-    ("species", "Species", "\U0001F9EC", SpeciesStep),
-    ("class", "Class", "\u2694\ufe0f", ClassStep),
-    ("background", "Background", "\U0001F4DC", BackgroundStep),
-    ("feat", "Feat", "\u2B50", FeatStep),
-    ("abilities", "Ability Scores", "\U0001F3B2", AbilityScoresStep),
-    ("skills", "Skills", "\U0001F3AF", SkillsStep),
-    ("equipment", "Equipment", "\U0001F6E1\ufe0f", EquipmentStep),
-    ("spells", "Spells", "\u2728", SpellsStep),
-    ("languages", "Languages", "\U0001F5E3", LanguagesStep),
-    ("biography", "Biography", "\U0001F4D6", BiographyStep),
-    ("summary", "Summary", "\u2705", SummaryStep),
+    ("species", "Species", "", SpeciesStep),
+    ("class", "Class", "", ClassStep),
+    ("background", "Background", "", BackgroundStep),
+    ("feat", "Feat", "", FeatStep),
+    ("abilities", "Ability Scores", "", AbilityScoresStep),
+    ("skills", "Skills", "", SkillsStep),
+    ("equipment", "Equipment", "", EquipmentStep),
+    ("spells", "Spells", "", SpellsStep),
+    ("languages", "Languages", "", LanguagesStep),
+    ("biography", "Biography", "", BiographyStep),
+    ("summary", "Summary", "", SummaryStep),
 ]
 
 SPELLS_INDEX = 7  # index of spells step in _WIZARD_STEPS
+
+# Map step keys to contextual next labels
+_NEXT_LABELS = {
+    "species": "Next: Choose Class  \u25b6",
+    "class": "Next: Choose Background  \u25b6",
+    "background": "Next: Choose Feat  \u25b6",
+    "feat": "Next: Ability Scores  \u25b6",
+    "abilities": "Next: Skills  \u25b6",
+    "skills": "Next: Equipment  \u25b6",
+    "equipment": "Next: Spells  \u25b6",
+    "spells": "Next: Languages  \u25b6",
+    "languages": "Next: Biography  \u25b6",
+    "biography": "Next: Summary  \u25b6",
+}
 
 
 class CharacterCreatorApp:
@@ -48,7 +62,7 @@ class CharacterCreatorApp:
 
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("VibeDnD — D&D 2024 Character Creator")
+        self.root.title("VibeDnD \u2014 D&D 2024 Character Creator")
         self.root.geometry("1600x1050")
         self.root.minsize(1100, 750)
 
@@ -130,26 +144,79 @@ class CharacterCreatorApp:
         # -- Content area (right side) --
         content_area = tk.Frame(frame, bg=COLORS["bg"])
 
-        # Bottom nav bar with Back / Next / Save buttons (pack FIRST so it claims space)
-        nav_bar = tk.Frame(content_area, bg=COLORS["bg_surface"])
+        # Bottom nav bar (pack FIRST so it claims space)
+        nav_bar = tk.Frame(
+            content_area,
+            bg=COLORS["bg_surface"],
+            highlightbackground=COLORS["border_subtle"],
+            highlightthickness=1,
+        )
         nav_bar.pack(fill=tk.X, side=tk.BOTTOM)
 
-        # Step content container — steps are packed here one at a time
+        # Step content container
         self._step_container = tk.Frame(content_area, bg=COLORS["bg"])
         self._step_container.pack(fill=tk.BOTH, expand=True)
 
+        # ---- Build bottom nav bar ----
         nav_inner = tk.Frame(nav_bar, bg=COLORS["bg_surface"])
-        nav_inner.pack(fill=tk.X, padx=16, pady=10)
+        nav_inner.pack(fill=tk.X, padx=SPACING["lg"], pady=10)
+
+        # Left section: Cancel + Previous
+        left_frame = tk.Frame(nav_inner, bg=COLORS["bg_surface"])
+        left_frame.pack(side=tk.LEFT)
+
+        if save_path:
+            cancel_cmd = lambda: self.show_viewer(character, save_path)
+        else:
+            cancel_cmd = self.show_home
+
+        self._cancel_btn = ttk.Button(
+            left_frame,
+            text="CANCEL",
+            command=cancel_cmd,
+        )
+        self._cancel_btn.pack(side=tk.LEFT, padx=(0, SPACING["sm"]))
 
         self._back_btn = ttk.Button(
-            nav_inner,
+            left_frame,
             text="\u25c0  Back",
             command=self._wizard_back,
         )
         self._back_btn.pack(side=tk.LEFT)
 
+        # Center section: Step counter + progress bar
+        center_frame = tk.Frame(nav_inner, bg=COLORS["bg_surface"])
+        center_frame.pack(side=tk.LEFT, expand=True)
+
+        center_inner = tk.Frame(center_frame, bg=COLORS["bg_surface"])
+        center_inner.pack()
+
+        self._step_label = tk.Label(
+            center_inner,
+            text="Step 1 of 11",
+            font=FONTS["step_counter"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        )
+        self._step_label.pack(side=tk.LEFT, padx=(0, SPACING["md"]))
+
+        # Progress bar
+        self._progress_var = tk.DoubleVar(value=0)
+        self._progress_bar = ttk.Progressbar(
+            center_inner,
+            variable=self._progress_var,
+            maximum=100,
+            length=160,
+            mode="determinate",
+        )
+        self._progress_bar.pack(side=tk.LEFT)
+
+        # Right section: Next button
+        right_frame = tk.Frame(nav_inner, bg=COLORS["bg_surface"])
+        right_frame.pack(side=tk.RIGHT)
+
         self._next_btn = ttk.Button(
-            nav_inner,
+            right_frame,
             text="Next  \u25b6",
             style="Accent.TButton",
             command=self._wizard_next,
@@ -160,7 +227,6 @@ class CharacterCreatorApp:
         self.wizard_steps = []
         self._step_keys = []
         self._current_step_idx = 0
-        # Track which steps have been reached (for progressive disclosure)
         self._reached_step = 0 if not save_path else len(_WIZARD_STEPS) - 1
 
         for key, label, icon, StepClass in _WIZARD_STEPS:
@@ -175,30 +241,25 @@ class CharacterCreatorApp:
             self._step_keys.append(key)
 
         # Register callbacks
-        # ClassStep (index 1) toggles spells visibility
         self.wizard_steps[1].on_change_callbacks.append(self._update_spells_visibility)
         for step in self.wizard_steps:
             step.on_change_callbacks.append(self._update_nav_buttons)
+
+        # Register substep change callbacks for steps with substeps
+        for step in self.wizard_steps:
+            if step.has_substeps():
+                step.on_substep_change_callbacks.append(self._update_nav_buttons)
+                step.on_substep_change_callbacks.append(self._update_sidebar_state)
 
         # -- Sidebar (left side) --
         nav_items = []
         for key, label, icon, _ in _WIZARD_STEPS:
             nav_items.append({"key": key, "text": label, "icon": icon})
 
-        if save_path:
-            back_text = "\u25c0  Back to Character"
-            back_cmd = lambda: self.show_viewer(character, save_path)
-        else:
-            back_text = "\u25c0  Back to Menu"
-            back_cmd = self.show_home
-
         self._wizard_sidebar = Sidebar(
             frame,
             nav_items=nav_items,
             on_navigate=self._on_sidebar_nav,
-            bottom_buttons=[
-                {"text": back_text, "command": back_cmd},
-            ],
         )
         self._wizard_sidebar.pack(side=tk.LEFT, fill=tk.Y)
 
@@ -226,6 +287,14 @@ class CharacterCreatorApp:
         if idx == SPELLS_INDEX and not self.character.is_caster:
             return
 
+        # If navigating to a step with substeps that has a selection, show detail
+        step = self.wizard_steps[idx]
+        if step.has_substeps():
+            if step.is_valid():
+                step.go_to_substep(1)
+            else:
+                step.go_to_substep(0)
+
         self._show_step(idx)
 
     def _show_step(self, idx: int):
@@ -238,33 +307,65 @@ class CharacterCreatorApp:
         step.frame.pack(fill=tk.BOTH, expand=True)
         step.on_enter()
 
-        key = self._step_keys[idx]
-        self._wizard_sidebar.set_active(key)
+        self._update_sidebar_state()
         self._update_nav_buttons()
+
+    def _update_sidebar_state(self):
+        """Update sidebar step counter, step states, and selection panel."""
+        if not hasattr(self, "_wizard_sidebar"):
+            return
+
+        idx = self._current_step_idx
+        total = len(self.wizard_steps)
+
+        # Count visible steps (exclude hidden spells for non-casters)
+        visible_count = total
+        visible_idx = idx
+        if not self.character.is_caster:
+            visible_count -= 1
+            if idx > SPELLS_INDEX:
+                visible_idx -= 1
+
+        self._wizard_sidebar.set_step_counter(visible_idx + 1, visible_count)
+        self._wizard_sidebar.update_step_states(idx, self._reached_step)
+
+        # Update selection panel
+        sp = self.character.species
+        if sp:
+            self._wizard_sidebar.set_selection("species", sp.get("name", ""))
+        cls = self.character.character_class
+        if cls:
+            self._wizard_sidebar.set_selection("class", cls.get("name", ""))
+        bg = self.character.background
+        if bg:
+            self._wizard_sidebar.set_selection("background", bg.get("name", ""))
 
     def _update_spells_visibility(self):
         """Hide or show the spells nav item based on caster status."""
         if not hasattr(self, "_wizard_sidebar"):
             return
-        # Spells step nav button — dim it if not a caster
         spells_key = _WIZARD_STEPS[SPELLS_INDEX][0]
         if spells_key in self._wizard_sidebar._nav_buttons:
             btn = self._wizard_sidebar._nav_buttons[spells_key]
             if self.character.is_caster:
-                # Repack all nav buttons in order to preserve position
                 for key, _, _, _ in _WIZARD_STEPS:
                     if key in self._wizard_sidebar._nav_buttons:
                         self._wizard_sidebar._nav_buttons[key].pack_forget()
                         self._wizard_sidebar._nav_buttons[key].pack(fill=tk.X, pady=1)
             else:
                 btn.pack_forget()
-                # If currently on spells step, move away
                 if self._current_step_idx == SPELLS_INDEX:
                     self._show_step(SPELLS_INDEX - 1)
 
     def _wizard_next(self):
         curr = self._current_step_idx
         step = self.wizard_steps[curr]
+
+        # Handle substep advancement (grid -> detail)
+        if step.has_substeps() and step.get_current_substep() < step.get_substep_count() - 1:
+            step.go_to_substep(step.get_current_substep() + 1)
+            self._update_nav_buttons()
+            return
 
         if not step.is_valid():
             self._show_validation_error(step)
@@ -277,13 +378,20 @@ class CharacterCreatorApp:
             next_idx += 1
 
         if next_idx < len(self.wizard_steps):
-            # Update reached step for progressive disclosure
             if next_idx > self._reached_step:
                 self._reached_step = next_idx
             self._show_step(next_idx)
 
     def _wizard_back(self):
         curr = self._current_step_idx
+        step = self.wizard_steps[curr]
+
+        # Handle substep back (detail -> grid)
+        if step.has_substeps() and step.get_current_substep() > 0:
+            step.go_to_substep(step.get_current_substep() - 1)
+            self._update_nav_buttons()
+            return
+
         if curr > 0:
             prev_idx = curr - 1
 
@@ -292,6 +400,10 @@ class CharacterCreatorApp:
                 prev_idx -= 1
 
             if prev_idx >= 0:
+                # When going back to a step with substeps, show detail if it has a selection
+                prev_step = self.wizard_steps[prev_idx]
+                if prev_step.has_substeps() and prev_step.is_valid():
+                    prev_step.go_to_substep(1)
                 self._show_step(prev_idx)
 
     def _show_validation_error(self, step):
@@ -349,13 +461,22 @@ class CharacterCreatorApp:
 
     def _update_nav_buttons(self):
         curr = self._current_step_idx
-        self._back_btn.configure(state=tk.NORMAL if curr > 0 else tk.DISABLED)
+        step = self.wizard_steps[curr]
+        key = self._step_keys[curr]
+
+        # Back button: disabled at step 0 substep 0
+        can_go_back = curr > 0 or (step.has_substeps() and step.get_current_substep() > 0)
+        self._back_btn.configure(state=tk.NORMAL if can_go_back else tk.DISABLED)
 
         # Species keeps Next clickable; validation handled on click
-        if isinstance(self.wizard_steps[curr], SpeciesStep):
+        if isinstance(step, SpeciesStep):
             is_valid = True
         else:
-            is_valid = self.wizard_steps[curr].is_valid()
+            is_valid = step.is_valid()
+
+        # On grid substep, Next is disabled (user clicks tiles to advance)
+        if step.has_substeps() and step.get_current_substep() == 0:
+            is_valid = False
 
         if curr == len(self.wizard_steps) - 1:
             self._next_btn.configure(
@@ -364,11 +485,28 @@ class CharacterCreatorApp:
                 state=tk.NORMAL if is_valid else tk.DISABLED,
             )
         else:
+            # Get contextual next label
+            next_label = step.get_next_label()
+            if not next_label:
+                next_label = _NEXT_LABELS.get(key, "Next  \u25b6")
             self._next_btn.configure(
-                text="Next  \u25b6",
+                text=next_label,
                 command=self._wizard_next,
                 state=tk.NORMAL if is_valid else tk.DISABLED,
             )
+
+        # Update step counter and progress bar
+        total = len(self.wizard_steps)
+        visible_count = total
+        visible_idx = curr
+        if not self.character.is_caster:
+            visible_count -= 1
+            if curr > SPELLS_INDEX:
+                visible_idx -= 1
+
+        self._step_label.configure(text=f"Step {visible_idx + 1} of {visible_count}")
+        progress = ((visible_idx + 1) / visible_count) * 100
+        self._progress_var.set(progress)
 
     # ── Save & Export ──────────────────────────────────────────
 

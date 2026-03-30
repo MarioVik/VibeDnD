@@ -65,6 +65,11 @@ def settings_path() -> str:
     return os.path.join(_exe_dir(), "settings.json")
 
 
+def images_dir() -> str:
+    """Path to the ``images/`` folder with tile placeholder images."""
+    return os.path.join(_bundle_dir(), "images")
+
+
 def characters_dir() -> str:
     """Path to the ``characters/`` directory for saved characters."""
     if is_frozen():

@@ -117,6 +117,12 @@ def build_app() -> Path:
         src = ROOT / f
         add_data += ["--add-data", f"{src}{sep}data"]
 
+    # Bundle image directories
+    for img_subdir in ("images/species", "images/classes"):
+        img_path = ROOT / img_subdir
+        if img_path.is_dir():
+            add_data += ["--add-data", f"{img_path}{sep}{img_subdir}"]
+
     exclude_flags: list[str] = []
     for mod in EXCLUDES:
         exclude_flags += ["--exclude-module", mod]

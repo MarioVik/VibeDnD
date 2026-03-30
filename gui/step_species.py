@@ -1,5 +1,6 @@
-"""Step 1: Species selection."""
+"""Step 1: Species selection with grid tile view and detail substep."""
 
+import os
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
@@ -11,6 +12,7 @@ from gui.widgets import (
     GradientHeader,
     SectionHeader,
     CardFrame,
+    TileGrid,
 )
 from gui.theme import COLORS, FONTS, SPACING
 from gui.source_config import (
@@ -20,6 +22,22 @@ from gui.source_config import (
     handle_ua_toggle,
     save_settings,
 )
+from paths import images_dir
+
+
+def _first_sentence(text: str) -> str:
+    """Return the first sentence of a description."""
+    if not text:
+        return ""
+    for end in (".", "!", "?"):
+        idx = text.find(end)
+        if idx != -1:
+            return text[: idx + 1]
+    return text[:120] + ("..." if len(text) > 120 else "")
+
+
+def _slug(name: str) -> str:
+    return name.lower().replace(" ", "_").replace("'", "")
 
 
 class SpeciesStep(WizardStep):
@@ -51,11 +69,166 @@ class SpeciesStep(WizardStep):
     def build_ui(self):
         self._edit_initialized = False
         self._requires_sub_choice = False
-        self.frame.columnconfigure(1, weight=1)
-        self.frame.rowconfigure(0, weight=1)
+        self._current_substep = 0
+
+        # Two containers: grid view (substep 0) and detail view (substep 1)
+        self._grid_frame = tk.Frame(self.frame, bg=COLORS["bg"])
+        self._detail_frame = tk.Frame(self.frame, bg=COLORS["bg"])
+
+        self._build_grid_view()
+        self._build_detail_view()
+
+        # Start on grid
+        self._grid_frame.pack(fill=tk.BOTH, expand=True)
+
+    # ── Substep protocol ──────────────────────────────────────────
+
+    def has_substeps(self) -> bool:
+        return True
+
+    def get_current_substep(self) -> int:
+        return self._current_substep
+
+    def get_substep_count(self) -> int:
+        return 2
+
+    def go_to_substep(self, index: int):
+        if index == self._current_substep:
+            return
+        self._current_substep = index
+        if index == 0:
+            self._detail_frame.pack_forget()
+            self._grid_frame.pack(fill=tk.BOTH, expand=True)
+        else:
+            self._grid_frame.pack_forget()
+            self._detail_frame.pack(fill=tk.BOTH, expand=True)
+        self.notify_substep_change()
+
+    def get_next_label(self) -> str | None:
+        if self._current_substep == 1 and self.is_valid():
+            return "Next: Choose Class  \u25b6"
+        return None
+
+    # ── Grid View (substep 0) ─────────────────────────────────────
+
+    def _build_grid_view(self):
+        # Header
+        header = tk.Frame(self._grid_frame, bg=COLORS["bg"])
+        header.pack(fill=tk.X, padx=SPACING["xl"], pady=(SPACING["xl"], 0))
+
+        tk.Label(
+            header,
+            text="Choose Your Origin",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg"],
+        ).pack(anchor="w")
+
+        tk.Label(
+            header,
+            text="Your species represents your heritage and inherent biological traits. "
+            "Select the bloodline that will define your hero\u2019s physical prowess "
+            "and mystical connection to the world.",
+            font=FONTS["body_large"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg"],
+            wraplength=800,
+            justify=tk.LEFT,
+        ).pack(anchor="w", pady=(SPACING["sm"], 0))
+
+        # Source filter toggles
+        self._grid_toggle_frame = tk.Frame(self._grid_frame, bg=COLORS["bg"])
+        self._grid_toggle_frame.pack(fill=tk.X, padx=SPACING["xl"], pady=(SPACING["md"], 0))
+        self.toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._ua_prev_enabled = False
+        self._build_toggles()
+
+        # Tile grid
+        self._tile_grid = TileGrid(self._grid_frame, on_select=self._on_tile_click)
+        self._tile_grid.pack(fill=tk.BOTH, expand=True, padx=SPACING["sm"], pady=SPACING["sm"])
+
+        self._populate_tiles()
+
+    def _build_toggles(self):
+        """Build source filter checkboxes."""
+        for w in self._grid_toggle_frame.winfo_children():
+            w.destroy()
+        self.toggle_vars.clear()
+
+        filters = self.data.source_filters.get("species", {})
+        sections = SECTION_ORDER["species"]
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
+
+        for cat in sections:
+            label = "UA" if cat == UA_CATEGORY else cat
+            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
+            cb = ttk.Checkbutton(
+                self._grid_toggle_frame,
+                text=label,
+                variable=var,
+                command=self._on_toggle_change,
+            )
+            cb.pack(side=tk.LEFT, padx=(0, 6))
+            self.toggle_vars[cat] = var
+
+    def _on_toggle_change(self):
+        """Update filters and rebuild tiles when a toggle changes."""
+        ua_var = self.toggle_vars.get(UA_CATEGORY)
+        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
+        if not proceed:
+            return
+
+        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
+        self.data.source_filters["species"] = filters
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
+        save_settings(self.data.source_filters)
+        self._populate_tiles()
+        # Also update detail list if it exists
+        if hasattr(self, "species_list"):
+            self._populate_list()
+
+    def _populate_tiles(self):
+        filters = self.data.source_filters.get("species", {})
+        enabled = {cat for cat, on in filters.items() if on}
+
+        grouped = group_by_category(self.data.species, "species")
+        img_base = os.path.join(images_dir(), "species")
+
+        tiles = []
+        for cat, items in grouped:
+            if cat not in enabled:
+                continue
+            for sp in items:
+                traits = [t["name"] for t in sp.get("traits", [])[:3]]
+                slug = _slug(sp["name"])
+                img_path = os.path.join(img_base, f"{slug}.png")
+                tiles.append({
+                    "name": sp["name"],
+                    "description": _first_sentence(sp.get("description", "")),
+                    "traits": traits,
+                    "image_path": img_path if os.path.isfile(img_path) else None,
+                })
+        self._tile_grid.set_tiles(tiles)
+
+    def _on_tile_click(self, name: str):
+        """Handle tile click: select species and switch to detail view."""
+        sp = self.data.species_by_name.get(name)
+        if not sp:
+            return
+        self._on_select(name)
+        # Also select in the detail list
+        if hasattr(self, "species_list"):
+            self.species_list.select_item(name)
+        self.go_to_substep(1)
+
+    # ── Detail View (substep 1) — existing layout ─────────────────
+
+    def _build_detail_view(self):
+        self._detail_frame.columnconfigure(1, weight=1)
+        self._detail_frame.rowconfigure(0, weight=1)
 
         # Left: species list with source toggles
-        left = tk.Frame(self.frame, bg=COLORS["bg"], width=220)
+        left = tk.Frame(self._detail_frame, bg=COLORS["bg"], width=220)
         left.grid(row=0, column=0, sticky="nsew", padx=(SPACING["sm"], SPACING["xs"]), pady=0)
         left.grid_propagate(False)
 
@@ -64,18 +237,16 @@ class SpeciesStep(WizardStep):
             fill=tk.X, pady=(SPACING["lg"], SPACING["sm"])
         )
 
-        # Source filter toggles
-        self.toggle_frame = tk.Frame(left, bg=COLORS["bg"])
-        self.toggle_frame.pack(fill=tk.X, pady=(0, SPACING["xs"]))
-        self.toggle_vars: dict[str, tk.BooleanVar] = {}
-        self._ua_prev_enabled = False
-        self._build_toggles()
+        # Source filter toggles (detail view shares state with grid)
+        self._detail_toggle_frame = tk.Frame(left, bg=COLORS["bg"])
+        self._detail_toggle_frame.pack(fill=tk.X, pady=(0, SPACING["xs"]))
+        self._build_detail_toggles()
 
         self.species_list = SectionedListbox(left, on_select=self._on_select)
         self.species_list.pack(fill=tk.BOTH, expand=True)
 
         # Right: detail panel
-        right = ScrollableFrame(self.frame)
+        right = ScrollableFrame(self._detail_frame)
         right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0), pady=0)
         self.detail = right.inner
 
@@ -126,6 +297,29 @@ class SpeciesStep(WizardStep):
 
         self._populate_list()
 
+    def _build_detail_toggles(self):
+        """Build source filter checkboxes on the detail view (synced with grid)."""
+        for w in self._detail_toggle_frame.winfo_children():
+            w.destroy()
+
+        filters = self.data.source_filters.get("species", {})
+        sections = SECTION_ORDER["species"]
+
+        for cat in sections:
+            label = "UA" if cat == UA_CATEGORY else cat
+            # Reuse the same toggle_vars from grid
+            var = self.toggle_vars.get(cat)
+            if var is None:
+                var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
+                self.toggle_vars[cat] = var
+            cb = ttk.Checkbutton(
+                self._detail_toggle_frame,
+                text=label,
+                variable=var,
+                command=self._on_toggle_change,
+            )
+            cb.pack(side=tk.LEFT, padx=(0, 6))
+
     def on_enter(self):
         """Pre-select species when editing an existing character."""
         if not self._edit_initialized and self.character.species:
@@ -135,48 +329,16 @@ class SpeciesStep(WizardStep):
             saved_sub = self.character.species_sub_choice
             saved_size = self.character.size_choice
             # Select in list and populate detail panel
-            self.species_list.select_item(name)
+            if hasattr(self, "species_list"):
+                self.species_list.select_item(name)
             self._on_select(name)
             # Restore saved choices
             if saved_sub:
                 self.sub_var.set(saved_sub)
             if saved_size:
                 self.size_var.set(saved_size)
-
-    def _build_toggles(self):
-        """Build source filter checkboxes."""
-        for w in self.toggle_frame.winfo_children():
-            w.destroy()
-        self.toggle_vars.clear()
-
-        filters = self.data.source_filters.get("species", {})
-        sections = SECTION_ORDER["species"]
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-            cb = ttk.Checkbutton(
-                self.toggle_frame,
-                text=label,
-                variable=var,
-                command=self._on_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, 6))
-            self.toggle_vars[cat] = var
-
-    def _on_toggle_change(self):
-        """Update filters and rebuild list when a toggle changes."""
-        ua_var = self.toggle_vars.get(UA_CATEGORY)
-        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
-        if not proceed:
-            return
-
-        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
-        self.data.source_filters["species"] = filters
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-        save_settings(self.data.source_filters)
-        self._populate_list()
+            # Go to detail view
+            self.go_to_substep(1)
 
     def _populate_list(self):
         filters = self.data.source_filters.get("species", {})

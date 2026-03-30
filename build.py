@@ -145,6 +145,12 @@ def build(onefile: bool = False):
         src = os.path.join(ROOT, f)
         add_data += ["--add-data", f"{src}{sep}data"]
 
+    # Bundle image directories
+    for img_subdir in ("images/species", "images/classes"):
+        img_path = os.path.join(ROOT, img_subdir)
+        if os.path.isdir(img_path):
+            add_data += ["--add-data", f"{img_path}{sep}{img_subdir}"]
+
     exclude_flags = []
     for mod in EXCLUDES:
         exclude_flags += ["--exclude-module", mod]

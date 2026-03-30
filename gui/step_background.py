@@ -1,4 +1,4 @@
-"""Step 3: Background selection."""
+"""Step 3: Background selection with grid tile view and detail substep."""
 
 import tkinter as tk
 from tkinter import ttk
@@ -10,6 +10,7 @@ from gui.widgets import (
     GradientHeader,
     SectionHeader,
     CardFrame,
+    TileGrid,
 )
 from gui.theme import COLORS, FONTS, SPACING
 from gui.source_config import (
@@ -21,16 +22,184 @@ from gui.source_config import (
 )
 
 
+def _first_sentence(text: str) -> str:
+    if not text:
+        return ""
+    for end in (".", "!", "?"):
+        idx = text.find(end)
+        if idx != -1:
+            return text[: idx + 1]
+    return text[:120] + ("..." if len(text) > 120 else "")
+
+
 class BackgroundStep(WizardStep):
     tab_title = "Background"
 
     def build_ui(self):
         self._edit_initialized = False
-        self.frame.columnconfigure(1, weight=1)
-        self.frame.rowconfigure(0, weight=1)
+        self._current_substep = 0
+
+        # Two containers: grid view (substep 0) and detail view (substep 1)
+        self._grid_frame = tk.Frame(self.frame, bg=COLORS["bg"])
+        self._detail_frame = tk.Frame(self.frame, bg=COLORS["bg"])
+
+        self._build_grid_view()
+        self._build_detail_view()
+
+        # Start on grid
+        self._grid_frame.pack(fill=tk.BOTH, expand=True)
+
+    # ── Substep protocol ──────────────────────────────────────────
+
+    def has_substeps(self) -> bool:
+        return True
+
+    def get_current_substep(self) -> int:
+        return self._current_substep
+
+    def get_substep_count(self) -> int:
+        return 2
+
+    def go_to_substep(self, index: int):
+        if index == self._current_substep:
+            return
+        self._current_substep = index
+        if index == 0:
+            self._detail_frame.pack_forget()
+            self._grid_frame.pack(fill=tk.BOTH, expand=True)
+        else:
+            self._grid_frame.pack_forget()
+            self._detail_frame.pack(fill=tk.BOTH, expand=True)
+        self.notify_substep_change()
+
+    def get_next_label(self) -> str | None:
+        if self._current_substep == 1 and self.is_valid():
+            return "Next: Choose Feat  \u25b6"
+        return None
+
+    # ── Grid View (substep 0) ─────────────────────────────────────
+
+    def _build_grid_view(self):
+        header = tk.Frame(self._grid_frame, bg=COLORS["bg"])
+        header.pack(fill=tk.X, padx=SPACING["xl"], pady=(SPACING["xl"], 0))
+
+        tk.Label(
+            header,
+            text="Choose Your Background",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg"],
+        ).pack(anchor="w")
+
+        tk.Label(
+            header,
+            text="Your background represents your character\u2019s life before adventuring. "
+            "It grants skill proficiencies, a feat, and helps shape your identity.",
+            font=FONTS["body_large"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg"],
+            wraplength=800,
+            justify=tk.LEFT,
+        ).pack(anchor="w", pady=(SPACING["sm"], 0))
+
+        # Source filter toggles
+        self._grid_toggle_frame = tk.Frame(self._grid_frame, bg=COLORS["bg"])
+        self._grid_toggle_frame.pack(fill=tk.X, padx=SPACING["xl"], pady=(SPACING["md"], 0))
+        self.toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._ua_prev_enabled = False
+        self._build_toggles()
+
+        # Tile grid (no images for backgrounds, narrower tiles)
+        self._tile_grid = TileGrid(
+            self._grid_frame, on_select=self._on_tile_click, tile_width=220,
+        )
+        self._tile_grid.pack(fill=tk.BOTH, expand=True, padx=SPACING["sm"], pady=SPACING["sm"])
+
+        self._populate_tiles()
+
+    def _build_toggles(self):
+        """Build source filter checkboxes."""
+        for w in self._grid_toggle_frame.winfo_children():
+            w.destroy()
+        self.toggle_vars.clear()
+
+        filters = self.data.source_filters.get("backgrounds", {})
+        sections = SECTION_ORDER["backgrounds"]
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
+
+        for cat in sections:
+            label = "UA" if cat == UA_CATEGORY else cat
+            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
+            cb = ttk.Checkbutton(
+                self._grid_toggle_frame,
+                text=label,
+                variable=var,
+                command=self._on_toggle_change,
+            )
+            cb.pack(side=tk.LEFT, padx=(0, 6))
+            self.toggle_vars[cat] = var
+
+    def _on_toggle_change(self):
+        ua_var = self.toggle_vars.get(UA_CATEGORY)
+        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
+        if not proceed:
+            return
+
+        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
+        self.data.source_filters["backgrounds"] = filters
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
+        save_settings(self.data.source_filters)
+        self._populate_tiles()
+        if hasattr(self, "bg_list"):
+            self._populate_list()
+
+    def _populate_tiles(self):
+        filters = self.data.source_filters.get("backgrounds", {})
+        enabled = {cat for cat, on in filters.items() if on}
+
+        grouped = group_by_category(self.data.backgrounds, "backgrounds")
+        tiles = []
+        for cat, items in grouped:
+            if cat not in enabled:
+                continue
+            for bg in items:
+                traits = []
+                feat = bg.get("feat", "")
+                if feat:
+                    traits.append(f"Feat: {feat}")
+                skills = bg.get("skill_proficiencies", [])
+                if skills:
+                    traits.append(f"Skills: {', '.join(skills)}")
+                tool = bg.get("tool_proficiency", "")
+                if tool:
+                    traits.append(f"Tool: {tool}")
+
+                tiles.append({
+                    "name": bg["name"],
+                    "description": _first_sentence(bg.get("description", "")),
+                    "traits": traits,
+                    "image_path": None,  # No images for backgrounds
+                })
+        self._tile_grid.set_tiles(tiles)
+
+    def _on_tile_click(self, name: str):
+        """Handle tile click: select background and switch to detail view."""
+        bg = self.data.backgrounds_by_name.get(name)
+        if not bg:
+            return
+        self._on_select(name)
+        if hasattr(self, "bg_list"):
+            self.bg_list.select_item(name)
+        self.go_to_substep(1)
+
+    # ── Detail View (substep 1) — existing layout ─────────────────
+
+    def _build_detail_view(self):
+        self._detail_frame.columnconfigure(1, weight=1)
+        self._detail_frame.rowconfigure(0, weight=1)
 
         # Left: background list with source toggles
-        left = tk.Frame(self.frame, bg=COLORS["bg"], width=220)
+        left = tk.Frame(self._detail_frame, bg=COLORS["bg"], width=220)
         left.grid(row=0, column=0, sticky="nsew", padx=(SPACING["sm"], SPACING["xs"]), pady=0)
         left.grid_propagate(False)
 
@@ -38,18 +207,16 @@ class BackgroundStep(WizardStep):
             fill=tk.X, pady=(SPACING["lg"], SPACING["sm"])
         )
 
-        # Source filter toggles
-        self.toggle_frame = tk.Frame(left, bg=COLORS["bg"])
-        self.toggle_frame.pack(fill=tk.X, pady=(0, SPACING["xs"]))
-        self.toggle_vars: dict[str, tk.BooleanVar] = {}
-        self._ua_prev_enabled = False
-        self._build_toggles()
+        # Source filter toggles (detail view)
+        self._detail_toggle_frame = tk.Frame(left, bg=COLORS["bg"])
+        self._detail_toggle_frame.pack(fill=tk.X, pady=(0, SPACING["xs"]))
+        self._build_detail_toggles()
 
         self.bg_list = SectionedListbox(left, on_select=self._on_select)
         self.bg_list.pack(fill=tk.BOTH, expand=True)
 
         # Right: detail
-        right = ScrollableFrame(self.frame)
+        right = ScrollableFrame(self._detail_frame)
         right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0), pady=0)
         self.detail = right.inner
 
@@ -89,18 +256,37 @@ class BackgroundStep(WizardStep):
 
         self._populate_list()
 
+    def _build_detail_toggles(self):
+        for w in self._detail_toggle_frame.winfo_children():
+            w.destroy()
+
+        filters = self.data.source_filters.get("backgrounds", {})
+        sections = SECTION_ORDER["backgrounds"]
+
+        for cat in sections:
+            label = "UA" if cat == UA_CATEGORY else cat
+            var = self.toggle_vars.get(cat)
+            if var is None:
+                var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
+                self.toggle_vars[cat] = var
+            cb = ttk.Checkbutton(
+                self._detail_toggle_frame,
+                text=label,
+                variable=var,
+                command=self._on_toggle_change,
+            )
+            cb.pack(side=tk.LEFT, padx=(0, 6))
+
     def on_enter(self):
         """Pre-select background and bonus assignments when editing."""
         if not self._edit_initialized and self.character.background:
             self._edit_initialized = True
             name = self.character.background.get("name", "")
-            # Snapshot bonus settings (_on_select will reset them)
             saved_mode = self.character.ability_bonus_mode
             saved_bonuses = dict(self.character.ability_scores.bonuses)
-            # Select in list and populate detail panel
-            self.bg_list.select_item(name)
+            if hasattr(self, "bg_list"):
+                self.bg_list.select_item(name)
             self._on_select(name)
-            # Restore bonus mode and assignments
             if hasattr(self, "bonus_mode"):
                 self.bonus_mode.set(saved_mode)
                 self._update_bonus_ui()
@@ -110,41 +296,7 @@ class BackgroundStep(WizardStep):
                             self.bonus_combos["+2"].set(ab)
                         elif val == 1 and "+1" in self.bonus_combos:
                             self.bonus_combos["+1"].set(ab)
-
-    def _build_toggles(self):
-        """Build source filter checkboxes."""
-        for w in self.toggle_frame.winfo_children():
-            w.destroy()
-        self.toggle_vars.clear()
-
-        filters = self.data.source_filters.get("backgrounds", {})
-        sections = SECTION_ORDER["backgrounds"]
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-            cb = ttk.Checkbutton(
-                self.toggle_frame,
-                text=label,
-                variable=var,
-                command=self._on_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, 6))
-            self.toggle_vars[cat] = var
-
-    def _on_toggle_change(self):
-        """Update filters and rebuild list when a toggle changes."""
-        ua_var = self.toggle_vars.get(UA_CATEGORY)
-        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
-        if not proceed:
-            return
-
-        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
-        self.data.source_filters["backgrounds"] = filters
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-        save_settings(self.data.source_filters)
-        self._populate_list()
+            self.go_to_substep(1)
 
     def _populate_list(self):
         filters = self.data.source_filters.get("backgrounds", {})
@@ -229,7 +381,6 @@ class BackgroundStep(WizardStep):
                 bg=COLORS["bg_surface"],
             ).pack(anchor="w", pady=(0, SPACING["xs"]))
 
-            # Mode selection
             mode_frame = tk.Frame(bonus_inner, bg=COLORS["bg_surface"])
             mode_frame.pack(fill=tk.X)
             self.bonus_mode = tk.StringVar(value="2/1")
@@ -248,7 +399,6 @@ class BackgroundStep(WizardStep):
                 command=self._update_bonus_ui,
             ).pack(side=tk.LEFT, padx=SPACING["sm"])
 
-            # Assignment combos
             self.assign_frame = tk.Frame(bonus_inner, bg=COLORS["bg_surface"])
             self.assign_frame.pack(fill=tk.X, pady=(SPACING["xs"], 0))
             self.bonus_combos = {}

@@ -3,12 +3,12 @@
 import tkinter as tk
 from typing import Callable
 
-from gui.theme import COLORS, FONTS
+from gui.theme import COLORS, FONTS, SPACING
 from gui.widgets import NavButton
 
 
 class Sidebar(tk.Frame):
-    """Fixed-width sidebar with optional character info, nav items, and bottom actions.
+    """Fixed-width sidebar with step counter, nav items, and selection panel.
 
     Args:
         parent: Parent widget.
@@ -42,13 +42,22 @@ class Sidebar(tk.Frame):
         self._name_label: tk.Label | None = None
         self._summary_label: tk.Label | None = None
         self._level_label: tk.Label | None = None
+        self._nav_keys: list[str] = [item["key"] for item in nav_items]
+
+        # ---- Step counter header ----
+        self._step_counter = tk.Label(
+            self,
+            text="",
+            font=FONTS["step_counter"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+        )
+        self._step_counter.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["xl"], SPACING["lg"]))
 
         # ---- Back button + character info (optional) ----
         if show_character_info:
             self._build_character_info()
-
-        # ---- Separator ----
-        if show_character_info:
             tk.Frame(self, bg=COLORS["border_subtle"], height=1).pack(
                 fill=tk.X, padx=16, pady=(0, 8)
             )
@@ -64,11 +73,28 @@ class Sidebar(tk.Frame):
                 key=item["key"],
                 icon_char=item.get("icon", ""),
                 on_click=self._handle_nav,
+                subtitle="Locked",
             )
             btn.pack(fill=tk.X, pady=1)
             self._nav_buttons[item["key"]] = btn
 
-        # ---- Bottom actions ----
+        # ---- Bottom selection panel ----
+        self._selection_frame = tk.Frame(self, bg=COLORS["bg_surface"])
+        self._selection_frame.pack(fill=tk.X, side=tk.BOTTOM, padx=SPACING["sm"], pady=(0, SPACING["md"]))
+        self._selection_labels: dict[str, tuple[tk.Label, tk.Label]] = {}
+
+        # Glass-style card for selections
+        self._sel_card = tk.Frame(
+            self._selection_frame,
+            bg=COLORS["bg_container"],
+            highlightbackground=COLORS["border_subtle"],
+            highlightthickness=1,
+        )
+        self._sel_card.pack(fill=tk.X, padx=4, pady=4)
+        # Initially hidden
+        self._sel_card.pack_forget()
+
+        # ---- Bottom actions (legacy support) ----
         self._action_buttons: dict[str, "ttk.Button"] = {}
         if bottom_buttons:
             tk.Frame(self, bg=COLORS["border_subtle"], height=1).pack(
@@ -118,6 +144,79 @@ class Sidebar(tk.Frame):
         """Return a bottom action button by key, or None."""
         return self._action_buttons.get(key)
 
+    # ---- Step counter ----
+
+    def set_step_counter(self, current: int, total: int):
+        """Update the 'STEP X OF N' header text."""
+        self._step_counter.configure(text=f"STEP  {current}  OF  {total}")
+
+    # ---- Step states ----
+
+    def update_step_states(self, current_idx: int, reached_idx: int):
+        """Update all nav buttons to reflect current, completed, and locked states."""
+        for i, key in enumerate(self._nav_keys):
+            btn = self._nav_buttons.get(key)
+            if not btn:
+                continue
+
+            if i == current_idx:
+                btn.set_status(active=True)
+                btn.set_subtitle("Currently Editing")
+            elif i <= reached_idx:
+                btn.set_status(completed=True)
+                btn.set_subtitle("Completed")
+            else:
+                btn.set_status(locked=True)
+                btn.set_subtitle("Locked")
+
+    # ---- Selection panel ----
+
+    def set_selection(self, key: str, value: str):
+        """Update or add a selection entry in the bottom panel.
+
+        key: step key (e.g., "species"), value: selection name (e.g., "Elf")
+        Empty value removes the entry.
+        """
+        if key in self._selection_labels:
+            header_lbl, val_lbl = self._selection_labels[key]
+            if value:
+                val_lbl.configure(text=value)
+                header_lbl.pack(fill=tk.X)
+                val_lbl.pack(fill=tk.X)
+            else:
+                header_lbl.pack_forget()
+                val_lbl.pack_forget()
+                del self._selection_labels[key]
+        elif value:
+            header_lbl = tk.Label(
+                self._sel_card,
+                text=f"SELECTED {key.upper()}",
+                font=FONTS["nav_subtitle"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_container"],
+                anchor="w",
+            )
+            header_lbl.pack(fill=tk.X, padx=SPACING["md"], pady=(SPACING["sm"], 0))
+
+            val_lbl = tk.Label(
+                self._sel_card,
+                text=value,
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["gold"],
+                bg=COLORS["bg_container"],
+                anchor="w",
+            )
+            val_lbl.pack(fill=tk.X, padx=SPACING["md"], pady=(0, SPACING["sm"]))
+            self._selection_labels[key] = (header_lbl, val_lbl)
+
+        # Show/hide the card based on whether there are any selections
+        if self._selection_labels:
+            self._sel_card.pack(fill=tk.X, padx=4, pady=4)
+        else:
+            self._sel_card.pack_forget()
+
+    # ---- Character info (for viewer sidebar) ----
+
     def _build_character_info(self):
         """Build the back button + character name area at the top."""
         info_frame = tk.Frame(self, bg=COLORS["bg_surface"])
@@ -126,7 +225,6 @@ class Sidebar(tk.Frame):
         row = tk.Frame(info_frame, bg=COLORS["bg_surface"])
         row.pack(fill=tk.X)
 
-        # Back arrow button
         if self._on_back:
             back_btn = tk.Label(
                 row,
@@ -141,19 +239,16 @@ class Sidebar(tk.Frame):
             back_btn.bind(
                 "<Enter>",
                 lambda _event, widget=back_btn: self._animate_label_color(
-                    widget,
-                    COLORS["accent_text"],
+                    widget, COLORS["accent_text"],
                 ),
             )
             back_btn.bind(
                 "<Leave>",
                 lambda _event, widget=back_btn: self._animate_label_color(
-                    widget,
-                    COLORS["fg_dim"],
+                    widget, COLORS["fg_dim"],
                 ),
             )
 
-        # Text column
         text_col = tk.Frame(row, bg=COLORS["bg_surface"])
         text_col.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
@@ -204,7 +299,6 @@ class Sidebar(tk.Frame):
             self._level_label.configure(text=level.upper())
 
     def _handle_nav(self, key: str):
-        self.set_active(key)
         self._on_navigate(key)
 
     def set_active(self, key: str):
