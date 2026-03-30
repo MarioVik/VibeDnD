@@ -4,8 +4,8 @@ import tkinter as tk
 from tkinter import ttk
 
 from gui.base_step import WizardStep
-from gui.widgets import ScrollableFrame, WrappingLabel, Chip
-from gui.theme import COLORS, FONTS
+from gui.widgets import ScrollableFrame, WrappingLabel, Chip, GradientHeader, SectionHeader, CardFrame
+from gui.theme import COLORS, FONTS, SPACING
 from models.skill_utils import compute_skill_sources
 
 
@@ -22,62 +22,85 @@ class SkillsStep(WizardStep):
         self.frame.columnconfigure(0, weight=1)
         self.frame.rowconfigure(1, weight=1)
 
-        # ── Top: description + fixed skills ──────────────────────
-        top = ttk.Frame(self.frame)
-        top.grid(row=0, column=0, sticky="ew", padx=16, pady=(12, 0))
-        top.columnconfigure(0, weight=1)
+        # ── Hero header ─────────────────────────────────────────
+        hero = GradientHeader(self.frame, min_height=60)
+        hero.grid(row=0, column=0, sticky="ew")
 
-        ttk.Label(top, text="Skills", style="Heading.TLabel").pack(
-            anchor="w", pady=(0, 4)
-        )
-        WrappingLabel(
-            top,
-            text=(
-                "Your background grants fixed skill proficiencies. "
-                "Your class lets you choose additional skills from its list."
-            ),
-            foreground=COLORS["fg_dim"],
-        ).pack(fill=tk.X, anchor="w", pady=(0, 12))
+        hero_inner = tk.Frame(hero.inner, bg=COLORS["bg_hero"])
+        hero_inner.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(SPACING["xl"], 0))
 
-        ttk.Label(top, text="FIXED SKILLS", style="Dim.TLabel").pack(
-            anchor="w", pady=(0, 4)
-        )
-        self.auto_chips_frame = tk.Frame(top, bg=COLORS["bg_surface"])
-        self.auto_chips_frame.pack(fill=tk.X, anchor="w", pady=(0, 4))
+        tk.Label(
+            hero_inner,
+            text="Skills",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_hero"],
+        ).pack(side=tk.LEFT)
 
-        self.sources_frame = ttk.Frame(top)
-        self.sources_frame.pack(fill=tk.X, anchor="w", pady=(0, 8))
+        tk.Label(
+            hero.inner,
+            text="Your background grants fixed skill proficiencies. Your class lets you choose additional skills.",
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_hero"],
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xs"], SPACING["xl"]))
 
-        ttk.Separator(top, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=(4, 0))
-
-        # ── Bottom: scrollable choose section ────────────────────
+        # ── Scrollable content ──────────────────────────────────
         scroll = ScrollableFrame(self.frame)
-        scroll.grid(row=1, column=0, sticky="nsew", padx=16, pady=(8, 12))
+        scroll.grid(row=1, column=0, sticky="nsew")
         inner = scroll.inner
 
-        # Counter header
-        header = ttk.Frame(inner)
-        header.pack(fill=tk.X, anchor="w", pady=(0, 8))
-        self.choose_label = ttk.Label(
-            header, text="Choose Skills", style="Subheading.TLabel"
+        # Fixed skills section
+        SectionHeader(inner, text="Fixed Skills").pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
         )
-        self.choose_label.pack(side=tk.LEFT)
-        self.counter_label = ttk.Label(header, text="(0 / 0)", style="Dim.TLabel")
-        self.counter_label.pack(side=tk.LEFT, padx=(8, 0))
+
+        fixed_card = CardFrame(inner, pad=SPACING["lg"])
+        fixed_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
+
+        self.auto_chips_frame = tk.Frame(fixed_card.inner, bg=COLORS["bg_surface"])
+        self.auto_chips_frame.pack(fill=tk.X, anchor="w", pady=(0, SPACING["xs"]))
+
+        self.sources_frame = tk.Frame(fixed_card.inner, bg=COLORS["bg_surface"])
+        self.sources_frame.pack(fill=tk.X, anchor="w")
+
+        # Choose section header with counter
+        self._choose_header_frame = tk.Frame(inner, bg=COLORS["bg"])
+        self._choose_header_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"]))
+
+        self.choose_section_header = SectionHeader(self._choose_header_frame, text="Choose Skills")
+        self.choose_section_header.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.counter_label = tk.Label(
+            self._choose_header_frame,
+            text="(0 / 0)",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg"],
+        )
+        self.counter_label.pack(side=tk.RIGHT, padx=(SPACING["sm"], 0))
 
         # Class skill options
-        ttk.Label(inner, text="CLASS SKILLS", style="Dim.TLabel").pack(
-            anchor="w", pady=(0, 4)
-        )
-        self.options_frame = ttk.Frame(inner)
-        self.options_frame.pack(fill=tk.X, anchor="w", pady=(0, 12))
+        options_card = CardFrame(inner, pad=SPACING["lg"])
+        options_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
+
+        tk.Label(
+            options_card.inner,
+            text="CLASS SKILLS",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", pady=(0, SPACING["xs"]))
+
+        self.options_frame = tk.Frame(options_card.inner, bg=COLORS["bg_surface"])
+        self.options_frame.pack(fill=tk.X, anchor="w")
 
         # Selected chips
-        ttk.Separator(inner, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=8)
-        ttk.Label(inner, text="SELECTED", style="Dim.TLabel").pack(
-            anchor="w", pady=(0, 4)
+        SectionHeader(inner, text="Selected").pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
         )
-        self.selected_frame = tk.Frame(inner, bg=COLORS["bg_surface"])
+        selected_card = CardFrame(inner, pad=SPACING["lg"])
+        selected_card.pack(fill=tk.X, padx=SPACING["lg"])
+        self.selected_frame = tk.Frame(selected_card.inner, bg=COLORS["bg_surface"])
         self.selected_frame.pack(fill=tk.X, anchor="w")
 
     # ── Lifecycle ────────────────────────────────────────────────
@@ -91,8 +114,6 @@ class SkillsStep(WizardStep):
 
         auto_names = {name for name, _ in auto}
 
-        # Sanitise selected_skills: remove any that are now auto-granted
-        # or no longer in class options.
         valid_options = set(class_options) - auto_names
         self.character.selected_skills = [
             s for s in self.character.selected_skills if s in valid_options
@@ -108,10 +129,10 @@ class SkillsStep(WizardStep):
         for w in self.auto_chips_frame.winfo_children():
             w.destroy()
         if not auto:
-            ttk.Label(
+            tk.Label(
                 self.auto_chips_frame,
-                text="No fixed skills yet — choose a background first.",
-                style="Dim.TLabel",
+                text="No fixed skills yet \u2014 choose a background first.",
+                font=FONTS["body"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
             ).pack(anchor="w")
         else:
             for name, _ in auto:
@@ -122,13 +143,12 @@ class SkillsStep(WizardStep):
     def _rebuild_sources_info(self, auto: list[tuple[str, str]]):
         for w in self.sources_frame.winfo_children():
             w.destroy()
+        _bg = COLORS["bg_surface"]
         for name, source in auto:
-            row = ttk.Frame(self.sources_frame)
+            row = tk.Frame(self.sources_frame, bg=_bg)
             row.pack(fill=tk.X, anchor="w", pady=1)
-            ttk.Label(row, text=f"• {name}:", font=FONTS["body_bold"]).pack(
-                side=tk.LEFT
-            )
-            ttk.Label(row, text=f" {source}", style="Dim.TLabel").pack(side=tk.LEFT)
+            tk.Label(row, text=f"\u2022 {name}:", font=FONTS["body_bold"], fg=COLORS["fg"], bg=_bg).pack(side=tk.LEFT)
+            tk.Label(row, text=f" {source}", font=FONTS["body_small"], fg=COLORS["fg_dim"], bg=_bg).pack(side=tk.LEFT)
 
     def _rebuild_skill_list(
         self, class_options: list[str], auto_names: set[str]
@@ -141,33 +161,29 @@ class SkillsStep(WizardStep):
             w.destroy()
 
         if not class_options:
-            ttk.Label(
+            tk.Label(
                 self.options_frame,
                 text="No class selected yet.",
-                style="Dim.TLabel",
+                font=FONTS["body"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
             ).pack(anchor="w")
             return
 
         chosen_set = set(self.character.selected_skills)
 
-        cols_frame = ttk.Frame(self.options_frame)
-        cols_frame.pack(fill=tk.X)
-
         idx = 0
         for skill_name in class_options:
             if skill_name in auto_names:
-                # Already granted by background — skip from choosable list
                 continue
             var = tk.BooleanVar(value=skill_name in chosen_set)
             cb = ttk.Checkbutton(
-                cols_frame,
+                self.options_frame,
                 text=skill_name,
                 variable=var,
                 command=lambda s=skill_name, v=var: self._on_toggle(s, v),
             )
             col = idx % 3
             row = idx // 3
-            cb.grid(row=row, column=col, sticky="w", padx=8, pady=1)
+            cb.grid(row=row, column=col, sticky="w", padx=SPACING["sm"], pady=1)
             self._skill_vars[skill_name] = var
             self._skill_cbs[skill_name] = cb
             idx += 1
@@ -205,7 +221,7 @@ class SkillsStep(WizardStep):
         chosen_count = len(self.character.selected_skills)
         self.counter_label.configure(
             text=f"({chosen_count} / {self._choose_count})",
-            foreground=(
+            fg=(
                 COLORS["positive"]
                 if chosen_count == self._choose_count
                 else COLORS["fg_dim"]
@@ -214,7 +230,7 @@ class SkillsStep(WizardStep):
 
     def _flash_counter(self):
         """Briefly highlight the counter to signal capacity reached."""
-        self.counter_label.configure(foreground=COLORS["accent"])
+        self.counter_label.configure(fg=COLORS["accent"])
         self.frame.after(600, self._update_counter)
 
     def _update_selected_chips(self):
@@ -222,8 +238,9 @@ class SkillsStep(WizardStep):
             w.destroy()
         chosen = self.character.selected_skills
         if not chosen:
-            ttk.Label(
-                self.selected_frame, text="None chosen yet.", style="Dim.TLabel"
+            tk.Label(
+                self.selected_frame, text="None chosen yet.",
+                font=FONTS["body"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
             ).pack(anchor="w")
         else:
             for skill in chosen:

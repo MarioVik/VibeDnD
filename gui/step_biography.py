@@ -12,65 +12,102 @@ except ImportError:  # pragma: no cover
     ImageTk = None
 
 from gui.base_step import WizardStep
-from gui.theme import COLORS, FONTS
-from gui.widgets import AlertDialog
+from gui.theme import COLORS, FONTS, SPACING
+from gui.widgets import (
+    ScrollableFrame,
+    GradientHeader,
+    SectionHeader,
+    CardFrame,
+    AlertDialog,
+)
 
 
 class BiographyStep(WizardStep):
-    """Optional biography details: backstory, personality, description, portrait."""
+    """Optional biography details: name, backstory, personality, description, portrait."""
 
     tab_title = "Biography"
 
     def build_ui(self):
-        self.frame.columnconfigure(0, weight=2)
-        self.frame.columnconfigure(1, weight=1)
-        self.frame.rowconfigure(0, weight=1)
+        self.frame.columnconfigure(0, weight=1)
+        self.frame.rowconfigure(1, weight=1)
 
-        # --- Left column: text fields ---
-        left = ttk.Frame(self.frame)
-        left.grid(row=0, column=0, sticky="nsew", padx=(8, 6), pady=(8, 8))
-        left.columnconfigure(0, weight=1)
-        left.rowconfigure(1, weight=1)
-        left.rowconfigure(3, weight=1)
-        left.rowconfigure(5, weight=1)
+        # ── Hero header ─────────────────────────────────────────
+        hero = GradientHeader(self.frame, min_height=60)
+        hero.grid(row=0, column=0, sticky="ew")
 
-        ttk.Label(left, text="Backstory", style="Subheading.TLabel").grid(
-            row=0, column=0, sticky="w", pady=(0, 4)
+        tk.Label(
+            hero.inner,
+            text="Biography",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_hero"],
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
+
+        # ── Scrollable content ──────────────────────────────────
+        scroll = ScrollableFrame(self.frame)
+        scroll.grid(row=1, column=0, sticky="nsew")
+        inner = scroll.inner
+
+        # Grid layout: portrait left + description/personality right, backstory full-width bottom
+        inner.columnconfigure(0, weight=1)
+        inner.columnconfigure(1, weight=1)
+        inner.rowconfigure(2, weight=1)
+        inner.rowconfigure(3, weight=1)
+
+        # ── Character Name (full width, top) ────────────────────
+        name_section = tk.Frame(inner, bg=COLORS["bg"])
+        name_section.grid(row=0, column=0, columnspan=2, sticky="ew",
+                          padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"]))
+
+        SectionHeader(name_section, text="Character Name").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
         )
-        self._backstory = self._make_textbox(left)
-        self._backstory.grid(row=1, column=0, sticky="nsew", pady=(0, 8))
 
-        ttk.Label(left, text="Personality", style="Subheading.TLabel").grid(
-            row=2, column=0, sticky="w", pady=(0, 4)
+        name_card = CardFrame(name_section, pad=SPACING["lg"])
+        name_card.pack(fill=tk.X)
+
+        self.name_var = tk.StringVar(value=self.character.name or "New Character")
+        self.name_var.trace_add("write", self._on_name_change)
+
+        name_entry = tk.Entry(
+            name_card.inner,
+            textvariable=self.name_var,
+            font=FONTS["heading_serif"],
+            bg=COLORS["bg_container"],
+            fg=COLORS["fg"],
+            insertbackground=COLORS["fg"],
+            borderwidth=0,
+            highlightthickness=1,
+            highlightbackground=COLORS["border_subtle"],
+            highlightcolor=COLORS["accent"],
         )
-        self._personality = self._make_textbox(left)
-        self._personality.grid(row=3, column=0, sticky="nsew", pady=(0, 8))
+        name_entry.pack(fill=tk.X, ipady=6)
 
-        ttk.Label(left, text="Description", style="Subheading.TLabel").grid(
-            row=4, column=0, sticky="w", pady=(0, 4)
+        # ── Row 1: Portrait (left) ─────────────────────────────
+        portrait_section = tk.Frame(inner, bg=COLORS["bg"])
+        portrait_section.grid(row=1, column=0, rowspan=2, sticky="nsew",
+                              padx=(SPACING["lg"], SPACING["sm"]),
+                              pady=(0, SPACING["sm"]))
+        portrait_section.columnconfigure(0, weight=1)
+
+        SectionHeader(portrait_section, text="Portrait").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
         )
-        self._description = self._make_textbox(left)
-        self._description.grid(row=5, column=0, sticky="nsew")
 
-        for w in (self._backstory, self._personality, self._description):
-            w.bind("<FocusOut>", self._save_text_fields)
-
-        # --- Right column: portrait ---
-        right = ttk.LabelFrame(self.frame, text="Portrait")
-        right.grid(row=0, column=1, sticky="nsew", padx=(0, 8), pady=(8, 8))
-        right.columnconfigure(0, weight=1)
-        self._portrait_frame = right
+        portrait_card = tk.Frame(portrait_section, bg=COLORS["bg_surface"])
+        portrait_card.pack(fill=tk.BOTH, expand=True)
+        portrait_card.columnconfigure(0, weight=1)
+        self._portrait_frame = portrait_card
 
         self._canvas = tk.Canvas(
-            right,
+            portrait_card,
             width=260,
             height=100,
-            bg=COLORS["bg_light"],
-            highlightthickness=1,
-            highlightbackground=COLORS["border"],
+            bg=COLORS["bg_container"],
+            highlightthickness=0,
             relief=tk.FLAT,
         )
-        self._canvas.grid(row=0, column=0, padx=10, pady=10)
+        self._canvas.pack(padx=12, pady=(12, 8), fill=tk.BOTH, expand=True)
         self._canvas.create_text(
             130, 50,
             text="No image selected",
@@ -80,10 +117,10 @@ class BiographyStep(WizardStep):
             tags=("placeholder",),
         )
         self._last_portrait_width = 0
-        right.bind("<Configure>", self._on_portrait_frame_configure)
+        portrait_card.bind("<Configure>", self._on_portrait_frame_configure)
 
-        btns = ttk.Frame(right)
-        btns.grid(row=1, column=0, pady=(0, 10))
+        btns = tk.Frame(portrait_card, bg=COLORS["bg_surface"])
+        btns.pack(pady=(0, 12))
         ttk.Button(btns, text="Choose Image...", command=self._choose_image).pack(
             side=tk.LEFT, padx=(0, 4)
         )
@@ -91,17 +128,59 @@ class BiographyStep(WizardStep):
             side=tk.LEFT, padx=(4, 0)
         )
 
+        # ── Row 1 right: Physical Description + Personality stacked ─
+        right_stack = tk.Frame(inner, bg=COLORS["bg"])
+        right_stack.grid(row=1, column=1, rowspan=2, sticky="nsew",
+                         padx=(SPACING["sm"], SPACING["lg"]),
+                         pady=(0, SPACING["sm"]))
+        right_stack.columnconfigure(0, weight=1)
+        right_stack.rowconfigure(1, weight=1)
+        right_stack.rowconfigure(3, weight=1)
+
+        SectionHeader(right_stack, text="Physical Description").grid(
+            row=0, column=0, sticky="ew", pady=(0, SPACING["sm"])
+        )
+        self._description = self._make_bio_textbox(right_stack)
+        self._description.configure(height=6)
+        self._description.grid(row=1, column=0, sticky="nsew", pady=(0, SPACING["sm"]))
+
+        SectionHeader(right_stack, text="Personality").grid(
+            row=2, column=0, sticky="ew", pady=(0, SPACING["sm"])
+        )
+        self._personality = self._make_bio_textbox(right_stack)
+        self._personality.configure(height=6)
+        self._personality.grid(row=3, column=0, sticky="nsew")
+
+        # ── Row 2: Backstory (full width) ───────────────────────
+        backstory_section = tk.Frame(inner, bg=COLORS["bg"])
+        backstory_section.grid(row=3, column=0, columnspan=2, sticky="nsew",
+                               padx=SPACING["lg"],
+                               pady=(SPACING["sm"], SPACING["lg"]))
+        backstory_section.columnconfigure(0, weight=1)
+        backstory_section.rowconfigure(1, weight=1)
+
+        SectionHeader(backstory_section, text="Character Backstory").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
+        self._backstory = self._make_bio_textbox(backstory_section)
+        self._backstory.configure(height=8)
+        self._backstory.pack(fill=tk.BOTH, expand=True)
+
+        # Bind focus-out to save
+        for w in (self._backstory, self._personality, self._description):
+            w.bind("<FocusOut>", self._save_text_fields)
+
         # Keep references so PhotoImage isn't garbage-collected
         self._photo = None
         self._photo_display = None
 
-    # ---- helpers ----
+    # ── helpers ──────────────────────────────────────────────────
 
-    def _make_textbox(self, parent) -> tk.Text:
+    def _make_bio_textbox(self, parent) -> tk.Text:
         return tk.Text(
             parent,
             wrap=tk.WORD,
-            bg=COLORS["bg_light"],
+            bg=COLORS["bg_container"],
             fg=COLORS["fg"],
             font=FONTS["body"],
             borderwidth=0,
@@ -120,13 +199,21 @@ class BiographyStep(WizardStep):
         widget.delete("1.0", tk.END)
         widget.insert("1.0", value)
 
-    # ---- data sync ----
+    # ── data sync ────────────────────────────────────────────────
 
     def on_enter(self):
+        if self.character.name and self.character.name != self.name_var.get():
+            self.name_var.set(self.character.name)
+        elif not self.character.name:
+            self.character.name = self.name_var.get()
         self._set_text(self._backstory, self.character.biography_backstory or "")
         self._set_text(self._personality, self.character.biography_personality or "")
         self._set_text(self._description, self.character.biography_description or "")
         self._refresh_image()
+
+    def _on_name_change(self, *args):
+        self.character.name = self.name_var.get()
+        self.notify_change()
 
     def _save_text_fields(self, _event=None):
         self.character.biography_backstory = self._text_value(self._backstory)
@@ -134,21 +221,19 @@ class BiographyStep(WizardStep):
         self.character.biography_description = self._text_value(self._description)
         self.notify_change()
 
-    # ---- image handling ----
+    # ── image handling ──────────────────────────────────────────
 
     def _on_portrait_frame_configure(self, event):
-        # Use the frame's width (minus padding) to scale the image
         new_width = event.width
         if new_width > 1 and new_width != self._last_portrait_width:
             self._last_portrait_width = new_width
             self._refresh_image()
 
     def _get_portrait_width(self):
-        """Return the available width for the portrait image."""
         fw = self._portrait_frame.winfo_width()
         if fw > 1:
-            return max(100, fw - 24)  # subtract padding (10px each side + borders)
-        return 260  # fallback before layout
+            return max(100, fw - 24)
+        return 260
 
     def _refresh_image(self):
         self._canvas.delete("all")

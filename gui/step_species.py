@@ -3,8 +3,16 @@
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.widgets import SectionedListbox, ScrollableFrame, WrappingLabel
-from gui.theme import COLORS, FONTS
+from gui.widgets import (
+    SectionedListbox,
+    ScrollableFrame,
+    WrappingLabel,
+    FormattedDescription,
+    GradientHeader,
+    SectionHeader,
+    CardFrame,
+)
+from gui.theme import COLORS, FONTS, SPACING
 from gui.source_config import (
     SECTION_ORDER,
     UA_CATEGORY,
@@ -47,17 +55,18 @@ class SpeciesStep(WizardStep):
         self.frame.rowconfigure(0, weight=1)
 
         # Left: species list with source toggles
-        left = ttk.Frame(self.frame, width=220)
-        left.grid(row=0, column=0, sticky="nsew", padx=(8, 4), pady=8)
+        left = tk.Frame(self.frame, bg=COLORS["bg"], width=220)
+        left.grid(row=0, column=0, sticky="nsew", padx=(SPACING["sm"], SPACING["xs"]), pady=0)
         left.grid_propagate(False)
 
-        ttk.Label(left, text="Choose Species", style="Heading.TLabel").pack(
-            anchor="w", pady=(0, 4)
+        # Left panel header
+        SectionHeader(left, text="Choose Species").pack(
+            fill=tk.X, pady=(SPACING["lg"], SPACING["sm"])
         )
 
         # Source filter toggles
-        self.toggle_frame = ttk.Frame(left)
-        self.toggle_frame.pack(fill=tk.X, pady=(0, 4))
+        self.toggle_frame = tk.Frame(left, bg=COLORS["bg"])
+        self.toggle_frame.pack(fill=tk.X, pady=(0, SPACING["xs"]))
         self.toggle_vars: dict[str, tk.BooleanVar] = {}
         self._ua_prev_enabled = False
         self._build_toggles()
@@ -67,39 +76,53 @@ class SpeciesStep(WizardStep):
 
         # Right: detail panel
         right = ScrollableFrame(self.frame)
-        right.grid(row=0, column=1, sticky="nsew", padx=(4, 8), pady=8)
+        right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0), pady=0)
         self.detail = right.inner
 
-        self.detail_name = ttk.Label(
-            self.detail, text="Select a species", style="Heading.TLabel"
+        # Hero header for selected species
+        self._hero = GradientHeader(self.detail, min_height=60)
+        self._hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+
+        self.detail_name = tk.Label(
+            self._hero.inner,
+            text="Select a species",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_hero"],
         )
-        self.detail_name.pack(anchor="w", pady=(0, 4))
+        self.detail_name.pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], 0))
 
-        self.detail_source = ttk.Label(self.detail, text="", style="Dim.TLabel")
-        self.detail_source.pack(anchor="w")
+        self.detail_source = tk.Label(
+            self._hero.inner,
+            text="",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_hero"],
+        )
+        self.detail_source.pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xs"], SPACING["xl"]))
 
-        self.detail_desc = WrappingLabel(self.detail, text="")
-        self.detail_desc.pack(fill=tk.X, anchor="w", pady=(8, 0))
+        self.detail_desc = WrappingLabel(
+            self.detail, text="", foreground=COLORS["fg_dim"]
+        )
+        self.detail_desc.pack(fill=tk.X, anchor="w", padx=SPACING["lg"], pady=(0, SPACING["sm"]))
 
-        ttk.Separator(self.detail, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=8)
-
-        # Stats frame
-        self.stats_frame = ttk.Frame(self.detail)
-        self.stats_frame.pack(fill=tk.X)
+        # Stats card
+        self.stats_frame = tk.Frame(self.detail, bg=COLORS["bg"])
+        self.stats_frame.pack(fill=tk.X, padx=SPACING["lg"])
 
         # Size choice (for species with options)
-        self.size_frame = ttk.Frame(self.detail)
+        self.size_frame = tk.Frame(self.detail, bg=COLORS["bg"])
         self.size_var = tk.StringVar(value="Medium")
         self.size_var.trace_add("write", self._on_size_change)
 
         # Sub-choice (lineages etc)
-        self.sub_frame = ttk.Frame(self.detail)
+        self.sub_frame = tk.Frame(self.detail, bg=COLORS["bg"])
         self.sub_var = tk.StringVar()
         self.sub_var.trace_add("write", self._on_sub_change)
 
         # Traits
-        self.traits_frame = ttk.Frame(self.detail)
-        self.traits_frame.pack(fill=tk.X, pady=(8, 0))
+        self.traits_frame = tk.Frame(self.detail, bg=COLORS["bg"])
+        self.traits_frame.pack(fill=tk.X, pady=(SPACING["sm"], 0))
 
         self._populate_list()
 
@@ -181,14 +204,14 @@ class SpeciesStep(WizardStep):
         self.detail_source.configure(text=f"Source: {sp.get('source', 'Unknown')}")
         self.detail_desc.configure(text=sp.get("description", ""))
 
-        # Stats
+        # Stats card
         for w in self.stats_frame.winfo_children():
             w.destroy()
 
+        stats_card = CardFrame(self.stats_frame, pad=SPACING["md"])
+        stats_card.pack(fill=tk.X)
+
         stats_text = f"Type: {sp.get('creature_type', 'Humanoid')}  |  Speed: {sp.get('speed', 30)} ft"
-        ttk.Label(self.stats_frame, text=stats_text, style="Subheading.TLabel").pack(
-            side=tk.LEFT
-        )
 
         # Size choice
         for w in self.size_frame.winfo_children():
@@ -197,23 +220,30 @@ class SpeciesStep(WizardStep):
 
         size_data = sp.get("size", {})
         size_options = size_data.get("options", ["Medium"])
+        if len(size_options) <= 1:
+            self.character.size_choice = size_options[0]
+            stats_text += f"  |  Size: {size_options[0]}"
+
+        tk.Label(
+            stats_card.inner,
+            text=stats_text,
+            font=FONTS["body_bold"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w")
+
         if len(size_options) > 1:
-            self.size_frame.pack(fill=tk.X, pady=(8, 0))
-            ttk.Label(self.size_frame, text="Size:", style="Subheading.TLabel").pack(
-                anchor="w"
-            )
+            self.size_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
+
+            SectionHeader(self.size_frame, text="Size").pack(fill=tk.X, pady=(0, SPACING["xs"]))
+
+            size_card = CardFrame(self.size_frame, pad=SPACING["md"])
+            size_card.pack(fill=tk.X)
             for opt in size_options:
                 ttk.Radiobutton(
-                    self.size_frame, text=opt, variable=self.size_var, value=opt
-                ).pack(anchor="w", padx=16)
+                    size_card.inner, text=opt, variable=self.size_var, value=opt
+                ).pack(anchor="w", padx=SPACING["sm"])
             self.size_var.set(size_options[0])
-        else:
-            self.character.size_choice = size_options[0]
-            ttk.Label(
-                self.stats_frame,
-                text=f"  |  Size: {size_options[0]}",
-                style="Subheading.TLabel",
-            ).pack(side=tk.LEFT)
 
         # Sub-choices
         for w in self.sub_frame.winfo_children():
@@ -223,35 +253,36 @@ class SpeciesStep(WizardStep):
         if sp.get("sub_choices"):
             choices = sp["sub_choices"]
             if choices and isinstance(choices[0], dict):
-                self.sub_frame.pack(fill=tk.X, pady=(8, 0))
+                self.sub_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
                 self._requires_sub_choice = True
 
-                ttk.Label(
-                    self.sub_frame,
-                    text="Choose one (required):",
-                    style="Subheading.TLabel",
-                ).pack(anchor="w", pady=(0, 4))
+                SectionHeader(self.sub_frame, text="Choose One (Required)").pack(
+                    fill=tk.X, pady=(0, SPACING["xs"])
+                )
 
                 for choice in choices:
-                    name = choice.get("name", "Unknown")
+                    cname = choice.get("name", "Unknown")
                     desc = choice.get("description", "")
 
-                    row = ttk.Frame(self.sub_frame)
-                    row.pack(fill=tk.X, padx=8, pady=(2, 6))
+                    card = CardFrame(self.sub_frame, bg=COLORS["bg_container"],
+                                     border_color=COLORS["border_subtle"], pad=SPACING["md"])
+                    card.pack(fill=tk.X, pady=SPACING["xs"])
 
                     ttk.Radiobutton(
-                        row,
-                        text=name,
+                        card.inner,
+                        text=cname,
                         variable=self.sub_var,
-                        value=name,
+                        value=cname,
                     ).pack(anchor="w")
 
                     if desc:
-                        WrappingLabel(
-                            row,
-                            text=f"  {desc}",
+                        FormattedDescription(
+                            card.inner,
+                            text=desc,
+                            font=FONTS["body_small"],
                             foreground=COLORS["fg_dim"],
-                        ).pack(fill=tk.X, anchor="w", padx=(20, 0))
+                            background=COLORS["bg_container"],
+                        ).pack(fill=tk.X, pady=(SPACING["xs"], 0))
 
         # Trait option choices (e.g. Gnome lineage, Goliath ancestry, Shifter form)
         if not sp.get("sub_choices"):
@@ -262,14 +293,12 @@ class SpeciesStep(WizardStep):
                     opt for opt in trait_choice["options"] if opt in available
                 ]
                 if option_names:
-                    self.sub_frame.pack(fill=tk.X, pady=(8, 0))
+                    self.sub_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
                     self._requires_sub_choice = True
 
-                    ttk.Label(
-                        self.sub_frame,
-                        text=f"Choose {trait_choice['label']} (required):",
-                        style="Subheading.TLabel",
-                    ).pack(anchor="w", pady=(0, 4))
+                    SectionHeader(
+                        self.sub_frame, text=f"{trait_choice['label']} (Required)"
+                    ).pack(fill=tk.X, pady=(0, SPACING["xs"]))
 
                     # Find matching trait descriptions
                     trait_descs = {
@@ -278,11 +307,12 @@ class SpeciesStep(WizardStep):
                     }
 
                     for opt_name in option_names:
-                        row = ttk.Frame(self.sub_frame)
-                        row.pack(fill=tk.X, padx=8, pady=(2, 6))
+                        card = CardFrame(self.sub_frame, bg=COLORS["bg_container"],
+                                         border_color=COLORS["border_subtle"], pad=SPACING["md"])
+                        card.pack(fill=tk.X, pady=SPACING["xs"])
 
                         ttk.Radiobutton(
-                            row,
+                            card.inner,
                             text=opt_name,
                             variable=self.sub_var,
                             value=opt_name,
@@ -290,11 +320,13 @@ class SpeciesStep(WizardStep):
 
                         opt_desc = trait_descs.get(opt_name, "")
                         if opt_desc:
-                            WrappingLabel(
-                                row,
-                                text=f"  {opt_desc}",
+                            FormattedDescription(
+                                card.inner,
+                                text=opt_desc,
+                                font=FONTS["body_small"],
                                 foreground=COLORS["fg_dim"],
-                            ).pack(fill=tk.X, anchor="w", padx=(20, 0))
+                                background=COLORS["bg_container"],
+                            ).pack(fill=tk.X, pady=(SPACING["xs"], 0))
 
         # Traits — exclude any that are shown as radio button sub-choices
         for w in self.traits_frame.winfo_children():
@@ -310,23 +342,39 @@ class SpeciesStep(WizardStep):
             t for t in traits if t.get("name", "") not in radio_trait_names
         ]
         if visible_traits:
-            ttk.Label(self.traits_frame, text="Traits", style="Subheading.TLabel").pack(
-                anchor="w", pady=(0, 4)
+            SectionHeader(self.traits_frame, text="Traits").pack(
+                fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"])
             )
-            for trait in visible_traits:
-                tf = ttk.Frame(self.traits_frame)
-                tf.pack(fill=tk.X, pady=2)
-                ttk.Label(
-                    tf,
-                    text=f"  {trait['name']}.",
-                    font=FONTS["subheading"],
-                    foreground=COLORS["accent"],
+            traits_grid = tk.Frame(self.traits_frame, bg=COLORS["bg"])
+            traits_grid.pack(fill=tk.X, padx=SPACING["lg"])
+            traits_grid.columnconfigure(0, weight=1)
+            traits_grid.columnconfigure(1, weight=1)
+
+            for i, trait in enumerate(visible_traits):
+                card = CardFrame(
+                    traits_grid,
+                    bg=COLORS["bg_container"],
+                    border_color=COLORS["border_subtle"],
+                    pad=SPACING["lg"],
+                )
+                card.grid(row=i // 2, column=i % 2, padx=4, pady=4, sticky="nsew")
+
+                tk.Label(
+                    card.inner,
+                    text=trait["name"],
+                    font=FONTS["heading_serif_sm"],
+                    fg=COLORS["fg"],
+                    bg=COLORS["bg_container"],
                 ).pack(anchor="w")
-                WrappingLabel(
-                    tf,
-                    text=f"    {trait.get('description', '')}",
-                    foreground=COLORS["fg_dim"],
-                ).pack(fill=tk.X, anchor="w")
+
+                if trait.get("description"):
+                    FormattedDescription(
+                        card.inner,
+                        text=trait["description"],
+                        font=FONTS["body_small"],
+                        foreground=COLORS["fg_dim"],
+                        background=COLORS["bg_container"],
+                    ).pack(fill=tk.X, pady=(6, 0))
 
         self.notify_change()
 

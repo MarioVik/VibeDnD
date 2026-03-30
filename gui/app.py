@@ -375,7 +375,7 @@ class CharacterCreatorApp:
             AlertDialog(
                 self.root,
                 "Name Required",
-                "Please enter a character name on the Summary tab before saving.",
+                "Please enter a character name on the Biography tab before saving.",
             )
             return
 

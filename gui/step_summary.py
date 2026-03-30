@@ -1,13 +1,21 @@
-"""Step 8: Character sheet summary."""
+"""Step 11: Dashboard-style character summary (replaces old summary sheet)."""
 
 import tkinter as tk
 from tkinter import ttk
+
 from gui.base_step import WizardStep
-from gui.widgets import ScrollableFrame
-from gui.sheet_builder import build_character_sheet
-from gui.theme import FONTS, COLORS
-from models.character_store import save_character
-from paths import characters_dir
+from gui.theme import COLORS, FONTS, SPACING
+from gui.widgets import (
+    ScrollableFrame,
+    GradientHeader,
+    SectionHeader,
+    CardFrame,
+    StatCard,
+    PillBadge,
+    Chip,
+)
+from models.enums import ALL_SKILLS
+from models.language_utils import all_languages
 
 
 class SummaryStep(WizardStep):
@@ -20,187 +28,456 @@ class SummaryStep(WizardStep):
 
     def build_ui(self):
         self.frame.columnconfigure(0, weight=1)
-        self.frame.rowconfigure(2, weight=1)
+        self.frame.rowconfigure(0, weight=1)
 
-        # Top bar: name entry
-        top = ttk.Frame(self.frame)
-        top.pack(fill=tk.X, padx=12, pady=(12, 4))
-
-        ttk.Label(top, text="Character Name:", style="Subheading.TLabel").pack(
-            side=tk.LEFT
-        )
-        self.name_var = tk.StringVar(value=self.character.name or "New Character")
-        self.name_var.trace_add("write", self._on_name_change)
-        name_entry = ttk.Entry(
-            top, textvariable=self.name_var, width=25, font=FONTS["heading"]
-        )
-        name_entry.pack(side=tk.LEFT, padx=8)
-
-        # HP override container (populated in on_enter once class is known)
-        self._hp_frame = ttk.Frame(self.frame)
-        self._hp_frame.pack(fill=tk.X, padx=12, pady=(0, 4))
-
-        # Scrollable character sheet
-        self.scroll = ScrollableFrame(self.frame)
-        self.scroll.pack(fill=tk.BOTH, expand=True, padx=12, pady=(4, 12))
-        self.sheet = self.scroll.inner
+        # Placeholder — rebuilt on each on_enter
+        self._scroll = None
 
     def on_enter(self):
-        # Sync name field
-        if self.character.name and self.character.name != self.name_var.get():
-            self.name_var.set(self.character.name)
-        elif not self.character.name:
-            self.character.name = self.name_var.get()
-        self._build_hp_override()
-        self._refresh_sheet()
+        self._build_dashboard()
 
-    def _build_hp_override(self):
-        """Build/rebuild the level-1 HP override section based on current class."""
-        for w in self._hp_frame.winfo_children():
-            w.destroy()
+    def _build_dashboard(self):
+        """Build a read-only Dashboard preview of the character."""
+        # Tear down previous content
+        if self._scroll:
+            self._scroll.destroy()
 
-        if not self.character.class_levels:
-            return
+        self._scroll = ScrollableFrame(self.frame)
+        self._scroll.grid(row=0, column=0, sticky="nsew")
+        inner = self._scroll.inner
 
-        cl0 = self.character.class_levels[0]
-        char_class = self.character.character_class
-        if not char_class:
-            return
+        c = self.character
 
-        hit_die = char_class.get("hit_die", 8)
-        con_mod = self.character.ability_scores.modifier("Constitution")
-        average = hit_die // 2 + 1
+        # ── Hero header ─────────────────────────────────────────
+        hero = GradientHeader(inner, min_height=100)
+        hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        _hero_bg = COLORS["bg_hero"]
 
-        # Fresh StringVars each rebuild to avoid stale trace accumulation
-        self._hp_mode = tk.StringVar()
-        self._hp_manual_var = tk.StringVar()
+        name_frame = tk.Frame(hero.inner, bg=_hero_bg)
+        name_frame.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(SPACING["2xl"], 0))
 
-        # Restore mode from existing hp_roll if any
-        if cl0.hp_roll is None:
-            self._hp_mode.set("max")
-        elif cl0.hp_roll == hit_die:
-            self._hp_mode.set("max")
-        elif cl0.hp_roll == average:
-            self._hp_mode.set("average")
-        else:
-            self._hp_mode.set("manual")
-            self._hp_manual_var.set(str(cl0.hp_roll))
-
-        ttk.Label(
-            self._hp_frame,
-            text="HP at Level 1",
-            style="Subheading.TLabel",
-        ).pack(anchor="w", pady=(2, 2))
-
-        radio_row = ttk.Frame(self._hp_frame)
-        radio_row.pack(fill=tk.X)
-
-        ttk.Radiobutton(
-            radio_row,
-            text=f"Max ({hit_die} + {con_mod} CON = {hit_die + con_mod} HP)",
-            variable=self._hp_mode,
-            value="max",
-        ).pack(side=tk.LEFT, padx=(0, 12))
-
-        ttk.Radiobutton(
-            radio_row,
-            text=f"Average ({average} + {con_mod} CON = {average + con_mod} HP)",
-            variable=self._hp_mode,
-            value="average",
-        ).pack(side=tk.LEFT, padx=(0, 12))
-
-        ttk.Radiobutton(
-            radio_row,
-            text="Manual:",
-            variable=self._hp_mode,
-            value="manual",
+        tk.Label(
+            name_frame,
+            text=c.name or "Unnamed",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=_hero_bg,
         ).pack(side=tk.LEFT)
 
-        manual_entry = ttk.Entry(radio_row, textvariable=self._hp_manual_var, width=5)
-        manual_entry.pack(side=tk.LEFT, padx=(4, 4))
+        PillBadge(
+            name_frame,
+            text=f"LEVEL {c.level}",
+            bg_color=COLORS["badge_glass"],
+            fg_color=COLORS["gold"],
+        ).pack(side=tk.RIGHT, padx=8)
 
-        self._hp_hint_label = ttk.Label(
-            radio_row,
-            text=f"+ {con_mod} CON = ? HP",
-            foreground=COLORS["fg_dim"],
+        # Summary line
+        summary_frame = tk.Frame(hero.inner, bg=_hero_bg)
+        summary_frame.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(4, SPACING["2xl"]))
+
+        _identity_parts = []
+        if c.species:
+            _identity_parts.append(c.species_name)
+        if c.character_class:
+            _identity_parts.append(c.class_name)
+        _class_line = " ".join(_identity_parts) if _identity_parts else "No selections"
+        if c.background_name:
+            _class_line += f" - {c.background_name}"
+
+        tk.Label(
+            summary_frame,
+            text=_class_line,
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=_hero_bg,
+        ).pack(anchor="w")
+
+        # ── Sub-hero row: Proficiency, Hit Dice, Saving Throws ──
+        sub_hero_row = tk.Frame(inner, bg=COLORS["bg"])
+        sub_hero_row.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        sub_hero_row.columnconfigure(0, weight=0)
+        sub_hero_row.columnconfigure(1, weight=0)
+        sub_hero_row.columnconfigure(2, weight=1)
+
+        # Proficiency box
+        prof_frame = tk.Frame(sub_hero_row, bg=COLORS["bg_surface"])
+        prof_frame.grid(row=0, column=0, padx=(0, 3), sticky="ns")
+        prof_frame.pack_propagate(False)
+        prof_frame.grid_propagate(False)
+
+        def _keep_prof_square(event, f=prof_frame):
+            if event.height > 1:
+                f.configure(width=event.height)
+        prof_frame.bind("<Configure>", _keep_prof_square)
+
+        tk.Label(
+            prof_frame, text="PROFICIENCY",
+            font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+        ).pack(side=tk.TOP, pady=(6, 0))
+        _prof_center = tk.Frame(prof_frame, bg=COLORS["bg_surface"])
+        _prof_center.pack(expand=True)
+        tk.Label(
+            _prof_center, text=f"+{c.proficiency_bonus}",
+            font=FONTS["stat_large"], fg=COLORS["fg"], bg=COLORS["bg_surface"],
+        ).pack()
+        tk.Frame(_prof_center, bg=COLORS["bg_surface"], height=24).pack()
+
+        # Hit Dice box
+        hd_frame = tk.Frame(sub_hero_row, bg=COLORS["bg_surface"])
+        hd_frame.grid(row=0, column=1, padx=(3, 3), sticky="ns")
+        hd_frame.pack_propagate(False)
+        hd_frame.grid_propagate(False)
+
+        def _keep_hd_sized(event, f=hd_frame):
+            if event.height > 1:
+                f.configure(width=event.height)
+        hd_frame.bind("<Configure>", _keep_hd_sized)
+
+        tk.Label(
+            hd_frame, text="HIT DICE",
+            font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+        ).pack(side=tk.TOP, pady=(6, 0))
+
+        _die = (c.character_class or {}).get("hit_die", 8)
+        _hd_bg = COLORS["bg_surface"]
+        _hd_center = tk.Frame(hd_frame, bg=_hd_bg)
+        _hd_center.pack(expand=True)
+        tk.Label(
+            _hd_center, text=f"{c.level}/{c.level}",
+            font=FONTS["stat_large"], fg=COLORS["fg"], bg=_hd_bg,
+        ).pack()
+        _badge_bg = COLORS["bg_container"]
+        _badge = tk.Frame(_hd_center, bg=_badge_bg, padx=8, pady=2)
+        _badge.pack(pady=(2, 0))
+        tk.Label(
+            _badge, text=f"d{_die}",
+            font=FONTS["body_bold"], fg=COLORS["fg_dim"], bg=_badge_bg,
+        ).pack()
+
+        # Saving Throws box
+        saving_throws = (c.character_class or {}).get("saving_throws", [])
+        saving_throws_lower = [s.lower() for s in saving_throws]
+
+        saves_cf = CardFrame(sub_hero_row, pad=SPACING["sm"])
+        saves_cf.grid(row=0, column=2, padx=(3, 0), sticky="nsew")
+
+        tk.Label(
+            saves_cf.inner, text="SAVING THROWS",
+            font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+        ).pack(anchor="w")
+
+        saves_grid = tk.Frame(saves_cf.inner, bg=COLORS["bg_surface"])
+        saves_grid.pack(fill=tk.X, pady=(4, 0))
+        saves_grid.columnconfigure(0, weight=1)
+        saves_grid.columnconfigure(1, weight=1)
+
+        _save_order = [
+            "Strength", "Intelligence",
+            "Dexterity", "Wisdom",
+            "Constitution", "Charisma",
+        ]
+        for i, ability_name in enumerate(_save_order):
+            col = i % 2
+            row = i // 2
+            is_prof = ability_name.lower() in saving_throws_lower
+            save_mod = c.ability_scores.modifier(ability_name)
+            if is_prof:
+                save_mod += c.proficiency_bonus
+            save_str = f"+{save_mod}" if save_mod >= 0 else str(save_mod)
+            indicator = "\u25cf" if is_prof else "\u25cb"
+            color = COLORS["accent_text"] if is_prof else COLORS["fg_dim"]
+
+            save_row_f = tk.Frame(saves_grid, bg=COLORS["bg_surface"])
+            save_row_f.grid(row=row, column=col, sticky="ew", padx=(0, 12), pady=2)
+
+            tk.Label(
+                save_row_f, text=indicator,
+                font=FONTS["body"], fg=color, bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT, padx=(0, 4))
+            tk.Label(
+                save_row_f, text=ability_name[:3].upper(),
+                font=FONTS["body"],
+                fg=COLORS["fg"] if is_prof else COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT)
+            tk.Label(
+                save_row_f, text=save_str,
+                font=FONTS["heading_serif_sm"], fg=color, bg=COLORS["bg_surface"],
+            ).pack(side=tk.RIGHT)
+
+        # ── Ability Scores ──────────────────────────────────────
+        SectionHeader(inner, text="Ability Scores").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
         )
-        self._hp_hint_label.pack(side=tk.LEFT)
 
-        def _update_state(*_):
-            if self._hp_mode.get() == "manual":
-                manual_entry.config(state="normal")
-            else:
-                manual_entry.config(state="disabled")
-            _update_hint()
-            self._apply_hp_override(hit_die, con_mod, average)
+        ab_row = tk.Frame(inner, bg=COLORS["bg"])
+        ab_row.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        ab_row.columnconfigure(list(range(6)), weight=1)
 
-        def _update_hint(*_):
-            if self._hp_mode.get() != "manual":
-                return
-            val = self._hp_manual_var.get().strip()
-            try:
-                roll = int(val)
-                if roll >= 1:
-                    self._hp_hint_label.config(text=f"+ {con_mod} CON = {roll + con_mod} HP")
-                else:
-                    self._hp_hint_label.config(text="(must be ≥ 1)")
-            except ValueError:
-                self._hp_hint_label.config(text=f"+ {con_mod} CON = ? HP")
+        for i, ability_name in enumerate(
+            ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
+        ):
+            total = c.ability_scores.total(ability_name)
+            mod_str = c.ability_scores.modifier_str(ability_name)
+            card = StatCard(ab_row, label=ability_name, value=mod_str, modifier=str(total))
+            card.grid(row=0, column=i, padx=3, sticky="nsew")
 
-        self._hp_mode.trace_add("write", _update_state)
-        self._hp_manual_var.trace_add("write", lambda *_: (_update_hint(), self._apply_hp_override(hit_die, con_mod, average)))
+        # ── Skills ──────────────────────────────────────────────
+        SectionHeader(inner, text="Skills").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
 
-        # Set initial disabled state
-        if self._hp_mode.get() != "manual":
-            manual_entry.config(state="disabled")
+        skills_card = CardFrame(inner, pad=SPACING["lg"])
+        skills_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        skills_frame = skills_card.inner
+        skills_frame.columnconfigure(0, weight=1)
+        skills_frame.columnconfigure(1, weight=1)
 
-    def _apply_hp_override(self, hit_die, con_mod, average):
-        """Write the chosen HP value into character.class_levels[0].hp_roll."""
-        if not self.character.class_levels:
+        all_profs = c.all_skill_proficiencies
+
+        half = (len(ALL_SKILLS) + 1) // 2
+        for idx, skill_enum in enumerate(ALL_SKILLS):
+            skill_display = skill_enum.display_name
+            ability = skill_enum.ability
+            col = 0 if idx < half else 1
+            row_idx = idx if col == 0 else idx - half
+
+            skill_row = tk.Frame(skills_frame, bg=COLORS["bg_surface"])
+            skill_row.grid(row=row_idx, column=col, sticky="ew", padx=4, pady=3)
+
+            is_prof = skill_display in all_profs
+            indicator = "\u25cf" if is_prof else "\u25cb"
+            fg_color = COLORS["accent_text"] if is_prof else COLORS["fg_dim"]
+
+            tk.Label(
+                skill_row, text=indicator,
+                font=FONTS["body_small"], fg=fg_color, bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT, padx=(0, 4))
+
+            tk.Label(
+                skill_row,
+                text=skill_display.upper(),
+                font=FONTS["label_upper_bold"] if is_prof else FONTS["label_upper"],
+                fg=fg_color, bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT)
+
+            tk.Label(
+                skill_row,
+                text=f"({ability.value[:3].upper()})",
+                font=FONTS["label_tiny"],
+                fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT, padx=(4, 0))
+
+            mod_val = c.skill_modifier(skill_display)
+            mod_text = f"+{mod_val}" if mod_val >= 0 else str(mod_val)
+            tk.Label(
+                skill_row, text=mod_text,
+                font=FONTS["heading_serif_sm"], fg=fg_color, bg=COLORS["bg_surface"],
+            ).pack(side=tk.RIGHT)
+
+        # ── Senses & Proficiencies (side-by-side) ───────────────
+        senses_prof_row = tk.Frame(inner, bg=COLORS["bg"])
+        senses_prof_row.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        senses_prof_row.columnconfigure(0, weight=1, uniform="sp")
+        senses_prof_row.columnconfigure(1, weight=1, uniform="sp")
+
+        # Left: Senses
+        senses_col = tk.Frame(senses_prof_row, bg=COLORS["bg"])
+        senses_col.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["sm"] // 2))
+
+        SectionHeader(senses_col, text="Senses").pack(fill=tk.X, pady=(0, SPACING["sm"]))
+        senses_card = CardFrame(senses_col, pad=SPACING["lg"])
+        senses_card.pack(fill=tk.BOTH, expand=True)
+
+        wis_mod = c.ability_scores.modifier("Wisdom")
+        int_mod = c.ability_scores.modifier("Intelligence")
+        perception_prof = "Perception" in all_profs
+        insight_prof = "Insight" in all_profs
+        investigation_prof = "Investigation" in all_profs
+
+        senses = [
+            ("Passive Perception", 10 + wis_mod + (c.proficiency_bonus if perception_prof else 0)),
+            ("Passive Insight", 10 + wis_mod + (c.proficiency_bonus if insight_prof else 0)),
+            ("Passive Investigation", 10 + int_mod + (c.proficiency_bonus if investigation_prof else 0)),
+        ]
+
+        for label, value in senses:
+            row = tk.Frame(senses_card.inner, bg=COLORS["bg_surface"])
+            row.pack(fill=tk.X, pady=2)
+            tk.Label(
+                row, text=label.upper(),
+                font=FONTS["label_upper"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT)
+            tk.Label(
+                row, text=str(value),
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["gold"] if label == "Passive Perception" else COLORS["fg"],
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.RIGHT)
+
+        # Right: Proficiencies
+        prof_col = tk.Frame(senses_prof_row, bg=COLORS["bg"])
+        prof_col.grid(row=0, column=1, sticky="nsew", padx=(SPACING["sm"] // 2, 0))
+
+        SectionHeader(prof_col, text="Proficiencies").pack(fill=tk.X, pady=(0, SPACING["sm"]))
+        prof_card = CardFrame(prof_col, pad=SPACING["lg"])
+        prof_card.pack(fill=tk.BOTH, expand=True)
+
+        cls_data = c.character_class or {}
+        weapon_profs = cls_data.get("weapon_proficiencies", [])
+        armor_profs = cls_data.get("armor_proficiencies", [])
+
+        if weapon_profs or armor_profs:
+            chip_frame = tk.Frame(prof_card.inner, bg=COLORS["bg_surface"])
+            chip_frame.pack(fill=tk.X, anchor="w")
+            for p in weapon_profs + armor_profs:
+                Chip(chip_frame, text=p, style="gold").pack(
+                    side=tk.LEFT, padx=(0, 4), pady=2
+                )
+
+        lang_list = all_languages(c)
+        if lang_list:
+            lang_header = tk.Frame(prof_card.inner, bg=COLORS["bg_surface"])
+            lang_header.pack(fill=tk.X, anchor="w", pady=(8, 2))
+            tk.Label(
+                lang_header, text="LANGUAGES",
+                font=FONTS["label_upper"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+            ).pack(anchor="w")
+            lang_frame = tk.Frame(prof_card.inner, bg=COLORS["bg_surface"])
+            lang_frame.pack(fill=tk.X, anchor="w")
+            for lang in lang_list:
+                Chip(lang_frame, text=lang, style="default").pack(
+                    side=tk.LEFT, padx=(0, 4), pady=2
+                )
+
+        # ── Spells (if caster) ──────────────────────────────────
+        if c.is_caster:
+            SectionHeader(inner, text="Spells").pack(
+                fill=tk.X, pady=(0, SPACING["sm"])
+            )
+            spells_card = CardFrame(inner, pad=SPACING["lg"])
+            spells_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+
+            cantrips = c.selected_cantrips
+            spells = c.selected_spells
+
+            _bg = COLORS["bg_surface"]
+            if cantrips:
+                tk.Label(
+                    spells_card.inner, text="CANTRIPS",
+                    font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=_bg,
+                ).pack(anchor="w", pady=(0, 2))
+                cantrip_row = tk.Frame(spells_card.inner, bg=_bg)
+                cantrip_row.pack(fill=tk.X, anchor="w", pady=(0, SPACING["sm"]))
+                for name in cantrips:
+                    Chip(cantrip_row, text=name, style="default").pack(
+                        side=tk.LEFT, padx=(0, 4), pady=2
+                    )
+
+            if spells:
+                tk.Label(
+                    spells_card.inner, text="1ST-LEVEL SPELLS",
+                    font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=_bg,
+                ).pack(anchor="w", pady=(0, 2))
+                spell_row = tk.Frame(spells_card.inner, bg=_bg)
+                spell_row.pack(fill=tk.X, anchor="w")
+                for name in spells:
+                    Chip(spell_row, text=name, style="accent").pack(
+                        side=tk.LEFT, padx=(0, 4), pady=2
+                    )
+
+        # ── Equipment ───────────────────────────────────────────
+        self._build_equipment_section(inner, c)
+
+        # ── Feats ───────────────────────────────────────────────
+        self._build_feats_section(inner, c)
+
+    def _build_equipment_section(self, inner, c):
+        """Render equipment summary."""
+        cls = c.character_class
+        bg_data = c.background
+
+        class_items = None
+        bg_items = None
+
+        if cls:
+            choice = c.equipment_choice_class
+            for opt in cls.get("starting_equipment", []):
+                if opt["option"] == choice:
+                    class_items = opt["items"]
+                    break
+
+        if bg_data:
+            choice = c.equipment_choice_background
+            for opt in bg_data.get("equipment", []):
+                if opt["option"] == choice:
+                    bg_items = opt["items"]
+                    break
+
+        if class_items or bg_items:
+            SectionHeader(inner, text="Equipment").pack(
+                fill=tk.X, pady=(0, SPACING["sm"])
+            )
+            equip_card = CardFrame(inner, pad=SPACING["lg"])
+            equip_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+            _bg = COLORS["bg_surface"]
+
+            if class_items:
+                tk.Label(
+                    equip_card.inner,
+                    text=f"FROM {c.class_name.upper()}",
+                    font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=_bg,
+                ).pack(anchor="w", pady=(0, 2))
+                tk.Label(
+                    equip_card.inner,
+                    text=class_items,
+                    font=FONTS["body"], fg=COLORS["fg"], bg=_bg,
+                    wraplength=600, justify=tk.LEFT,
+                ).pack(anchor="w", pady=(0, SPACING["sm"]))
+
+            if bg_items:
+                tk.Label(
+                    equip_card.inner,
+                    text=f"FROM {c.background_name.upper()}",
+                    font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=_bg,
+                ).pack(anchor="w", pady=(0, 2))
+                tk.Label(
+                    equip_card.inner,
+                    text=bg_items,
+                    font=FONTS["body"], fg=COLORS["fg"], bg=_bg,
+                    wraplength=600, justify=tk.LEFT,
+                ).pack(anchor="w")
+
+    def _build_feats_section(self, inner, c):
+        """Render feat summary."""
+        feats = []
+        if c.feat:
+            feats.append(("Background", c.feat))
+        if c.species_origin_feat:
+            feats.append(("Species", c.species_origin_feat))
+
+        if not feats:
             return
-        cl0 = self.character.class_levels[0]
-        mode = self._hp_mode.get()
-        if mode == "max":
-            cl0.hp_roll = None  # None = use max (default)
-        elif mode == "average":
-            cl0.hp_roll = average
-        elif mode == "manual":
-            val = self._hp_manual_var.get().strip()
-            try:
-                roll = int(val)
-                if roll >= 1:
-                    cl0.hp_roll = roll
-            except ValueError:
-                pass  # leave existing value until valid input
-        # Refresh the sheet so HP stat updates live
-        if hasattr(self, "sheet") and self.sheet.winfo_exists():
-            self._refresh_sheet()
 
-    def _refresh_sheet(self):
-        for w in self.sheet.winfo_children():
-            w.destroy()
-        build_character_sheet(
-            self.sheet,
-            self.character,
-            self.data,
-            on_change=self._on_sheet_changed,
-            compact=True,
-            read_only=True,
-            include_sections={
-                "header", "combat", "abilities", "saving_throws", "skills",
-                "standard_actions", "species_traits", "class_features",
-                "subclass", "feats", "languages", "spells", "wealth", "equipment",
-                "inventory", "biography",
-            },
+        SectionHeader(inner, text="Feats").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
         )
+        feats_card = CardFrame(inner, pad=SPACING["lg"])
+        feats_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        _bg = COLORS["bg_surface"]
 
-    def _on_sheet_changed(self):
-        if not self.save_path:
-            return
-        save_character(
-            self.character, characters_dir(), existing_filename=self.save_path
-        )
+        for source_label, feat in feats:
+            row = tk.Frame(feats_card.inner, bg=_bg)
+            row.pack(fill=tk.X, pady=(0, SPACING["sm"]))
 
-    def _on_name_change(self, *args):
-        self.character.name = self.name_var.get()
+            tk.Label(
+                row, text=feat["name"],
+                font=FONTS["heading_serif_sm"], fg=COLORS["fg"], bg=_bg,
+            ).pack(side=tk.LEFT)
 
+            PillBadge(
+                row,
+                text=source_label.upper(),
+                bg_color=COLORS["badge_glass"],
+                fg_color=COLORS["fg_dim"],
+            ).pack(side=tk.LEFT, padx=(SPACING["sm"], 0))
