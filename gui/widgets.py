@@ -1095,7 +1095,7 @@ class ThemedTable(ttk.Frame):
 
 
 class NavButton(tk.Frame):
-    """Sidebar navigation item with icon text, active indicator, and hover."""
+    """Sidebar navigation item with step name, subtitle, active indicator, and hover."""
 
     def __init__(
         self,
@@ -1104,86 +1104,133 @@ class NavButton(tk.Frame):
         key: str,
         icon_char: str = "",
         on_click=None,
+        subtitle: str = "",
         **kwargs,
     ):
         super().__init__(parent, bg=COLORS["bg_surface"], cursor="hand2", **kwargs)
         self.key = key
         self._on_click = on_click
         self._active = False
+        self._locked = False
+        self._completed = False
 
         # Accent left-border indicator (hidden by default)
         self._indicator = tk.Frame(self, bg=COLORS["bg_surface"], width=3)
         self._indicator.pack(side=tk.LEFT, fill=tk.Y)
 
         # Content area
-        inner = tk.Frame(self, bg=COLORS["bg_surface"])
-        inner.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(8, 12), pady=8)
+        self._inner = tk.Frame(self, bg=COLORS["bg_surface"])
+        self._inner.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(8, 12), pady=6)
 
-        if icon_char:
-            self._icon = tk.Label(
-                inner,
-                text=icon_char,
-                font=FONTS["body"],
-                fg=COLORS["fg_dim"],
-                bg=COLORS["bg_surface"],
-            )
-            self._icon.pack(side=tk.LEFT, padx=(0, 8))
-        else:
-            self._icon = None
+        # Text column
+        self._text_col = tk.Frame(self._inner, bg=COLORS["bg_surface"])
+        self._text_col.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
         self._label = tk.Label(
-            inner,
-            text=text.upper(),
-            font=FONTS["label_upper_bold"],
+            self._text_col,
+            text=text,
+            font=FONTS["heading_serif_sm"],
             fg=COLORS["fg_dim"],
             bg=COLORS["bg_surface"],
             anchor="w",
         )
-        self._label.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self._label.pack(fill=tk.X)
+
+        self._subtitle = tk.Label(
+            self._text_col,
+            text=subtitle.upper() if subtitle else "",
+            font=FONTS["nav_subtitle"],
+            fg=COLORS["sidebar_locked_fg"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+        )
+        if subtitle:
+            self._subtitle.pack(fill=tk.X)
+
+        # Keep icon ref for backward compat but don't display
+        self._icon = None
 
         # Bind click and hover to all child widgets
-        for widget in (self, inner, self._label) + (
-            (self._icon,) if self._icon else ()
-        ):
+        self._bind_all_children()
+
+    def _bind_all_children(self):
+        widgets = [self, self._inner, self._text_col, self._label, self._subtitle]
+        for widget in widgets:
             widget.bind("<Button-1>", self._handle_click)
             widget.bind("<Enter>", self._on_enter)
             widget.bind("<Leave>", self._on_leave)
 
     def _handle_click(self, _event=None):
+        if self._locked:
+            return
         if self._on_click:
             self._on_click(self.key)
 
     def _on_enter(self, _event=None):
-        if not self._active:
+        if not self._active and not self._locked:
             bg = COLORS["bg_container"]
             self.configure(bg=bg)
             for child in self.winfo_children():
                 self._set_bg_recursive(child, bg)
 
     def _on_leave(self, _event=None):
-        if not self._active:
+        if not self._active and not self._locked:
             bg = COLORS["bg_surface"]
             self.configure(bg=bg)
             for child in self.winfo_children():
                 self._set_bg_recursive(child, bg)
 
-    def set_active(self, active: bool):
+    def set_subtitle(self, text: str):
+        self._subtitle.configure(text=text.upper())
+        if text:
+            self._subtitle.pack(fill=tk.X)
+        else:
+            self._subtitle.pack_forget()
+
+    def set_status(self, active: bool = False, completed: bool = False, locked: bool = False):
+        """Update visual state: active, completed, or locked."""
         self._active = active
-        if active:
+        self._locked = locked
+        self._completed = completed
+
+        if locked:
+            bg = COLORS["bg_surface"]
+            fg = COLORS["sidebar_locked_fg"]
+            sub_fg = COLORS["sidebar_locked_fg"]
+            indicator_bg = COLORS["outline_dim"]
+            self.configure(cursor="")
+        elif active:
             bg = COLORS["bg_container"]
             fg = COLORS["accent_text"]
-            self._indicator.configure(bg="#4a2028")
+            sub_fg = COLORS["accent_text"]
+            indicator_bg = COLORS["accent"]
+            self.configure(cursor="hand2")
+        elif completed:
+            bg = COLORS["bg_surface"]
+            fg = COLORS["fg_dim"]
+            sub_fg = COLORS["sidebar_completed_fg"]
+            indicator_bg = COLORS["outline_dim"]
+            self.configure(cursor="hand2")
         else:
             bg = COLORS["bg_surface"]
             fg = COLORS["fg_dim"]
-            self._indicator.configure(bg=COLORS["bg_surface"])
+            sub_fg = COLORS["sidebar_locked_fg"]
+            indicator_bg = COLORS["bg_surface"]
+            self.configure(cursor="hand2")
 
+        self._indicator.configure(bg=indicator_bg)
         self.configure(bg=bg)
         for child in self.winfo_children():
             self._set_bg_recursive(child, bg)
         self._label.configure(fg=fg)
-        if self._icon:
-            self._icon.configure(fg=fg)
+        self._subtitle.configure(fg=sub_fg)
+
+    def set_active(self, active: bool):
+        """Backward-compatible: set active state only."""
+        if active:
+            self.set_status(active=True)
+        else:
+            self.set_status(active=False, completed=self._completed, locked=self._locked)
 
     @staticmethod
     def _set_bg_recursive(widget, bg):
@@ -1780,3 +1827,224 @@ class StepperPair(tk.Frame):
         StepperButton(self, text="\u2212", command=on_decrement, size=size).pack(
             side=tk.TOP,
         )
+
+
+# ── Tile Grid widgets for substep selection views ────────────────────
+
+from gui.theme import SPACING
+
+
+class OptionTile(tk.Frame):
+    """A clickable tile card for species/class/background selection.
+
+    Shows an optional image on top, the name, a one-line description,
+    and up to 3 trait bullet points.
+    """
+
+    TILE_WIDTH = 280
+
+    def __init__(
+        self,
+        parent,
+        name: str,
+        description: str = "",
+        traits: list[str] | None = None,
+        image_path: str | None = None,
+        on_click=None,
+        **kwargs,
+    ):
+        super().__init__(
+            parent,
+            bg=COLORS["tile_bg"],
+            highlightbackground=COLORS["tile_border"],
+            highlightthickness=1,
+            cursor="hand2",
+            **kwargs,
+        )
+        self._name = name
+        self._on_click = on_click
+        self._photo = None  # prevent GC
+
+        # Image section
+        if image_path and os.path.isfile(image_path):
+            try:
+                from PIL import Image as PILImage, ImageTk
+                img = PILImage.open(image_path)
+                img = img.resize((self.TILE_WIDTH, 150), PILImage.LANCZOS)
+                self._photo = ImageTk.PhotoImage(img)
+            except Exception:
+                # Fallback to native PhotoImage (PNG only)
+                try:
+                    self._photo = tk.PhotoImage(file=image_path)
+                except Exception:
+                    self._photo = None
+
+            if self._photo:
+                img_label = tk.Label(self, image=self._photo, bg=COLORS["tile_bg"])
+                img_label.pack(fill=tk.X)
+                img_label.bind("<Button-1>", self._handle_click)
+
+        # Text section
+        text_frame = tk.Frame(self, bg=COLORS["tile_bg"])
+        text_frame.pack(fill=tk.BOTH, expand=True, padx=SPACING["tile_pad"], pady=SPACING["tile_pad"])
+
+        name_label = tk.Label(
+            text_frame,
+            text=name,
+            font=FONTS["tile_name"],
+            fg=COLORS["fg"],
+            bg=COLORS["tile_bg"],
+            anchor="w",
+        )
+        name_label.pack(fill=tk.X)
+
+        if description:
+            desc_label = tk.Label(
+                text_frame,
+                text=description,
+                font=FONTS["tile_desc"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["tile_bg"],
+                anchor="w",
+                justify=tk.LEFT,
+                wraplength=self.TILE_WIDTH - 2 * SPACING["tile_pad"],
+            )
+            desc_label.pack(fill=tk.X, pady=(4, 0))
+
+        if traits:
+            traits_frame = tk.Frame(text_frame, bg=COLORS["tile_bg"])
+            traits_frame.pack(fill=tk.X, pady=(6, 0))
+            for trait in traits[:3]:
+                trait_label = tk.Label(
+                    traits_frame,
+                    text=f"•  {trait}",
+                    font=FONTS["tile_trait"],
+                    fg=COLORS["gold"],
+                    bg=COLORS["tile_bg"],
+                    anchor="w",
+                )
+                trait_label.pack(fill=tk.X)
+                trait_label.bind("<Button-1>", self._handle_click)
+
+        # Bind click and hover to all widgets recursively
+        self._bind_recursive(self)
+
+    def _bind_recursive(self, widget):
+        widget.bind("<Button-1>", self._handle_click)
+        widget.bind("<Enter>", self._on_enter)
+        widget.bind("<Leave>", self._on_leave)
+        for child in widget.winfo_children():
+            self._bind_recursive(child)
+
+    def _handle_click(self, _event=None):
+        if self._on_click:
+            self._on_click(self._name)
+
+    def _on_enter(self, _event=None):
+        self._set_bg_all(COLORS["tile_hover"])
+        self.configure(highlightbackground=COLORS["accent_text"])
+
+    def _on_leave(self, _event=None):
+        self._set_bg_all(COLORS["tile_bg"])
+        self.configure(highlightbackground=COLORS["tile_border"])
+
+    def _set_bg_all(self, bg):
+        for child in self.winfo_children():
+            NavButton._set_bg_recursive(child, bg)
+
+
+class TileGrid(tk.Frame):
+    """Responsive grid of OptionTile widgets inside a ScrollableFrame.
+
+    Automatically recalculates column count on resize.
+    """
+
+    def __init__(self, parent, on_select=None, tile_width: int = 280, **kwargs):
+        super().__init__(parent, bg=COLORS["bg"], **kwargs)
+        self._on_select = on_select
+        self._tile_width = tile_width
+        self._tiles: list[OptionTile] = []
+        self._tile_data: list[dict] = []
+        self._visible_names: set[str] | None = None
+        self._cols = 3
+        self._relayout_job = None
+
+        self._scroll = ScrollableFrame(self, inner_padding=SPACING["lg"])
+        self._scroll.pack(fill=tk.BOTH, expand=True)
+        self._grid_frame = self._scroll.inner
+
+        self._scroll.canvas.bind("<Configure>", self._on_canvas_resize)
+
+    def set_tiles(self, tiles: list[dict]):
+        """Rebuild the tile grid.
+
+        Each dict: {"name": str, "description": str, "traits": list[str], "image_path": str | None}
+        """
+        # Destroy old tiles
+        for t in self._tiles:
+            t.destroy()
+        self._tiles.clear()
+        self._tile_data = tiles
+
+        for td in tiles:
+            tile = OptionTile(
+                self._grid_frame,
+                name=td["name"],
+                description=td.get("description", ""),
+                traits=td.get("traits"),
+                image_path=td.get("image_path"),
+                on_click=self._handle_select,
+            )
+            self._tiles.append(tile)
+
+        self._layout_tiles()
+
+    def set_filter(self, enabled_names: set[str] | None):
+        """Show only tiles whose names are in enabled_names (None = show all)."""
+        self._visible_names = enabled_names
+        self._layout_tiles()
+
+    def _handle_select(self, name: str):
+        if self._on_select:
+            self._on_select(name)
+
+    def _on_canvas_resize(self, event):
+        if self._relayout_job:
+            try:
+                self.after_cancel(self._relayout_job)
+            except Exception:
+                pass
+        self._relayout_job = self.after(50, lambda: self._recalc_layout(event.width))
+
+    def _recalc_layout(self, width: int):
+        self._relayout_job = None
+        gap = SPACING["tile_gap"]
+        new_cols = max(1, (width + gap) // (self._tile_width + gap))
+        if new_cols != self._cols:
+            self._cols = new_cols
+            self._layout_tiles()
+
+    def _layout_tiles(self):
+        gap = SPACING["tile_gap"]
+        col = 0
+        row = 0
+
+        # Configure columns
+        for c in range(self._cols):
+            self._grid_frame.columnconfigure(c, weight=1)
+
+        for tile in self._tiles:
+            tile.grid_forget()
+
+            if self._visible_names is not None and tile._name not in self._visible_names:
+                continue
+
+            tile.grid(
+                row=row, column=col,
+                padx=gap // 2, pady=gap // 2,
+                sticky="nsew",
+            )
+            col += 1
+            if col >= self._cols:
+                col = 0
+                row += 1
