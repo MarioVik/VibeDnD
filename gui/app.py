@@ -6,7 +6,7 @@ from tkinter import ttk, filedialog
 from gui.theme import apply_theme, COLORS, FONTS, SPACING
 from gui.data_loader import GameData
 from gui.sidebar import Sidebar
-from gui.widgets import AlertDialog
+from gui.widgets import AlertDialog, HPBar
 
 from gui.step_species import SpeciesStep
 from gui.step_class import ClassStep
@@ -178,6 +178,12 @@ class CharacterCreatorApp:
             command=self._wizard_back,
         )
         self._back_btn.pack(side=tk.LEFT)
+        left_frame.update_idletasks()
+        left_frame.configure(
+            width=self._back_btn.winfo_reqwidth(),
+            height=self._back_btn.winfo_reqheight(),
+        )
+        left_frame.pack_propagate(False)
 
         # Center section: Step counter + progress bar
         center_frame = tk.Frame(nav_inner, bg=COLORS["bg_surface"])
@@ -196,14 +202,7 @@ class CharacterCreatorApp:
         self._step_label.pack(side=tk.LEFT, padx=(0, SPACING["md"]))
 
         # Progress bar
-        self._progress_var = tk.DoubleVar(value=0)
-        self._progress_bar = ttk.Progressbar(
-            center_inner,
-            variable=self._progress_var,
-            maximum=100,
-            length=160,
-            mode="determinate",
-        )
+        self._progress_bar = HPBar(center_inner, width=160, height=6)
         self._progress_bar.pack(side=tk.LEFT)
 
         # Right section: Next button
@@ -217,6 +216,21 @@ class CharacterCreatorApp:
             command=self._wizard_next,
         )
         self._next_btn.pack(side=tk.RIGHT)
+        candidate_next_labels = ["Finish \u2713"] + [
+            f"Next: {label}  \u25b6" for label in _NEXT_DEST_LABELS.values()
+        ]
+        original_next_text = self._next_btn.cget("text")
+        max_next_width = 0
+        for label in candidate_next_labels:
+            self._next_btn.configure(text=label)
+            right_frame.update_idletasks()
+            max_next_width = max(max_next_width, self._next_btn.winfo_reqwidth())
+        self._next_btn.configure(text=original_next_text)
+        right_frame.configure(
+            width=max_next_width,
+            height=self._next_btn.winfo_reqheight(),
+        )
+        right_frame.pack_propagate(False)
 
         # -- Create wizard steps --
         self.wizard_steps = []
@@ -591,8 +605,7 @@ class CharacterCreatorApp:
         visible_count = len(visible_indices)
         visible_idx = visible_indices.index(curr) if curr in visible_indices else 0
         self._step_label.configure(text=f"Step {visible_idx + 1} of {visible_count}")
-        progress = ((visible_idx + 1) / visible_count) * 100
-        self._progress_var.set(progress)
+        self._progress_bar.set_hp(visible_idx + 1, visible_count)
 
     # ── Save & Export ──────────────────────────────────────────
 
