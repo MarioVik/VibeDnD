@@ -1,10 +1,10 @@
-"""Step 6: Spell selection for caster classes."""
+"""Step 8: Spell selection for caster classes."""
 
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.theme import COLORS, FONTS
-from gui.widgets import register_mousewheel_target
+from gui.theme import COLORS, FONTS, SPACING
+from gui.widgets import register_mousewheel_target, GradientHeader, SectionHeader, CardFrame
 
 
 class SpellsStep(WizardStep):
@@ -23,27 +23,43 @@ class SpellsStep(WizardStep):
         self.frame.columnconfigure(0, weight=1)
         self.frame.rowconfigure(1, weight=1)
 
-        # Title row
-        title_frame = ttk.Frame(self.frame)
-        title_frame.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 4))
-        title_frame.columnconfigure(0, weight=1)
+        # ── Hero header ─────────────────────────────────────────
+        hero = GradientHeader(self.frame, min_height=60)
+        hero.grid(row=0, column=0, sticky="ew")
 
-        ttk.Label(title_frame, text="Select Spells", style="Heading.TLabel").grid(
-            row=0, column=0, sticky="w"
+        hero_row = tk.Frame(hero.inner, bg=COLORS["bg_hero"])
+        hero_row.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
+
+        tk.Label(
+            hero_row,
+            text="Select Spells",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_hero"],
+        ).pack(side=tk.LEFT)
+
+        self.info_label = tk.Label(
+            hero_row,
+            text="",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_hero"],
         )
-
-        self.info_label = ttk.Label(title_frame, text="", style="Dim.TLabel")
-        self.info_label.grid(row=0, column=1, sticky="e")
+        self.info_label.pack(side=tk.RIGHT)
 
         # Non-caster message
-        self.no_spells_label = ttk.Label(
-            self.frame,
+        self.no_spells_card = CardFrame(self.frame, pad=SPACING["xl"])
+        self.no_spells_label = tk.Label(
+            self.no_spells_card.inner,
             text="Your class does not have spellcasting at level 1.",
-            style="Dim.TLabel",
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
         )
+        self.no_spells_label.pack()
 
         # Main content: two-column split (list left, detail right)
-        self.content_frame = ttk.Frame(self.frame)
+        self.content_frame = tk.Frame(self.frame, bg=COLORS["bg"])
         # Not gridded yet — done in _show_spell_ui
 
     def on_enter(self):
@@ -57,13 +73,12 @@ class SpellsStep(WizardStep):
 
     def _show_no_spells(self):
         self.content_frame.grid_forget()
-        self.no_spells_label.grid(row=1, column=0, padx=12, pady=20)
+        self.no_spells_card.grid(row=1, column=0, padx=SPACING["lg"], pady=SPACING["xl"], sticky="ew")
 
     def _show_spell_ui(self):
         """Build the full spell selection UI: left list + right detail."""
-        self.no_spells_label.grid_forget()
+        self.no_spells_card.grid_forget()
 
-        # Destroy old content and rebuild
         for w in self.content_frame.winfo_children():
             w.destroy()
         self.cantrip_vars.clear()
@@ -80,17 +95,15 @@ class SpellsStep(WizardStep):
             text=f"{class_name}: {cantrip_max} cantrips, {spell_max} prepared spells"
         )
 
-        # Grid the content frame
-        self.content_frame.grid(row=1, column=0, sticky="nsew", padx=12, pady=(0, 8))
+        self.content_frame.grid(row=1, column=0, sticky="nsew", padx=SPACING["lg"], pady=(0, SPACING["sm"]))
         self.content_frame.columnconfigure(0, weight=1)
         self.content_frame.columnconfigure(1, weight=1)
         self.content_frame.rowconfigure(0, weight=1)
 
         # --- LEFT: spell list column ---
-        left = ttk.Frame(self.content_frame)
-        left.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+        left = tk.Frame(self.content_frame, bg=COLORS["bg"])
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["xs"]))
 
-        # Count labels
         cantrips = self.data.cantrips_for_class(class_name)
         level1_spells = [
             s
@@ -103,37 +116,41 @@ class SpellsStep(WizardStep):
         current_cantrip_count = len(self.character.selected_cantrips)
         current_spell_count = len(self.character.selected_spells)
 
+        _bg = COLORS["bg"]
         if has_cantrips:
-            self.cantrip_count_label = ttk.Label(
+            self.cantrip_count_label = tk.Label(
                 left,
                 text=f"{current_cantrip_count} / {cantrip_max} cantrips selected",
-                style="Dim.TLabel",
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=_bg,
             )
             self.cantrip_count_label.pack(anchor="w", padx=4, pady=(0, 1))
 
         if has_spells:
-            self.spell_count_label = ttk.Label(
+            self.spell_count_label = tk.Label(
                 left,
                 text=f"{current_spell_count} / {spell_max} spells selected",
-                style="Dim.TLabel",
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=_bg,
             )
             self.spell_count_label.pack(anchor="w", padx=4, pady=(0, 1))
 
         # Scrollable list
-        list_outer = ttk.Frame(left)
+        list_outer = tk.Frame(left, bg=COLORS["bg"])
         list_outer.pack(fill=tk.BOTH, expand=True, pady=(2, 0))
         canvas, inner = self._make_scrollable_list(list_outer)
 
-        # Section header helper (matches SectionedListbox style)
         def _section_header(parent, title):
-            ttk.Label(
+            tk.Label(
                 parent,
                 text=f"\u2500\u2500 {title} \u2500\u2500",
-                foreground=COLORS["accent"],
-                font=FONTS["body"],
+                font=FONTS["body_bold"],
+                fg=COLORS["accent_text"],
+                bg=COLORS["bg"],
             ).pack(anchor="w", pady=(6, 2))
 
-        # ── Cantrips ──────────────────────────────────────────────
         if has_cantrips:
             _section_header(inner, "Cantrips")
 
@@ -152,7 +169,6 @@ class SpellsStep(WizardStep):
                 cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
                 self.cantrip_checkbuttons[spell["name"]] = cb
 
-        # ── Level 1 Spells ────────────────────────────────────────
         if has_spells:
             _section_header(inner, "1st-Level")
 
@@ -168,38 +184,41 @@ class SpellsStep(WizardStep):
                 cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
                 self.spell_checkbuttons[spell["name"]] = cb
 
-        # Disable unchecked if already at max
         self._update_cantrip_states()
         self._update_spell_states()
 
         # --- RIGHT: spell detail panel ---
-        detail_lf = ttk.LabelFrame(self.content_frame, text="Spell Details")
-        detail_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
+        right = tk.Frame(self.content_frame, bg=COLORS["bg"])
+        right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0))
+
+        SectionHeader(right, text="Spell Details").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
+
+        detail_card = CardFrame(right, pad=SPACING["lg"])
+        detail_card.pack(fill=tk.BOTH, expand=True)
 
         self.spell_detail_text = tk.Text(
-            detail_lf,
+            detail_card.inner,
             wrap=tk.WORD,
-            bg=COLORS["bg_light"],
+            bg=COLORS["bg_surface"],
             fg=COLORS["fg"],
             font=FONTS["body"],
             borderwidth=0,
+            highlightthickness=0,
+            relief=tk.FLAT,
             state=tk.DISABLED,
         )
-        self.spell_detail_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+        self.spell_detail_text.pack(fill=tk.BOTH, expand=True)
 
     def _make_scrollable_list(self, parent_frame):
-        """Create a scrollable canvas+inner frame inside parent_frame.
-
-        Returns (canvas, inner_frame).  Includes mousewheel scrolling and
-        automatic width-sync so the inner frame fills the canvas.
-        """
         canvas = tk.Canvas(
             parent_frame, bg=COLORS["bg"], highlightthickness=0, borderwidth=0
         )
         scrollbar = ttk.Scrollbar(
             parent_frame, orient=tk.VERTICAL, command=canvas.yview
         )
-        inner = ttk.Frame(canvas)
+        inner = tk.Frame(canvas, bg=COLORS["bg"])
 
         inner.bind(
             "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
@@ -207,17 +226,14 @@ class SpellsStep(WizardStep):
         canvas_window = canvas.create_window((0, 0), window=inner, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        # Keep inner frame as wide as the canvas
         canvas.bind(
             "<Configure>",
             lambda e, cw=canvas_window: canvas.itemconfig(cw, width=e.width),
         )
 
-        # Pack scrollbar FIRST so it gets space priority over the canvas
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        # Mousewheel scrolling
         register_mousewheel_target(parent_frame, canvas)
         register_mousewheel_target(canvas, canvas)
         register_mousewheel_target(inner, canvas)
@@ -236,7 +252,6 @@ class SpellsStep(WizardStep):
 
             selected = [name for name, d in self.cantrip_vars.items() if d["var"].get()]
             if len(selected) > cantrip_max:
-                # Undo the toggle
                 self.cantrip_vars[spell["name"]]["var"].set(False)
                 selected = [
                     name for name, d in self.cantrip_vars.items() if d["var"].get()
@@ -261,7 +276,6 @@ class SpellsStep(WizardStep):
 
             selected = [name for name, d in self.spell_vars.items() if d["var"].get()]
             if len(selected) > spell_max:
-                # Undo the toggle
                 self.spell_vars[spell["name"]]["var"].set(False)
                 selected = [
                     name for name, d in self.spell_vars.items() if d["var"].get()
@@ -277,7 +291,6 @@ class SpellsStep(WizardStep):
             self._updating_spells = False
 
     def _update_cantrip_states(self):
-        """Disable unchecked cantrip checkboxes when at max."""
         cls = self.character.character_class
         cantrip_max = (cls.get("cantrips_known", 0) or 0) if cls else 0
         selected = [name for name, d in self.cantrip_vars.items() if d["var"].get()]
@@ -290,7 +303,6 @@ class SpellsStep(WizardStep):
                 cb.configure(state=tk.NORMAL)
 
     def _update_spell_states(self):
-        """Disable unchecked spell checkboxes when at max."""
         cls = self.character.character_class
         spell_max = (cls.get("spells_prepared", 0) or 0) if cls else 0
         selected = [name for name, d in self.spell_vars.items() if d["var"].get()]
@@ -303,10 +315,9 @@ class SpellsStep(WizardStep):
                 cb.configure(state=tk.NORMAL)
 
     def is_valid(self) -> bool:
-        """Spells step is valid only when all cantrip and spell slots are filled."""
         cls = self.character.character_class
         if not cls or not cls.get("caster_type"):
-            return True  # non-caster, nothing to pick
+            return True
         cantrip_max = cls.get("cantrips_known", 0) or 0
         spell_max = cls.get("spells_prepared", 0) or 0
         if cantrip_max > 0 and len(self.character.selected_cantrips) < cantrip_max:

@@ -3,8 +3,15 @@
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.widgets import SectionedListbox, ScrollableFrame, WrappingLabel
-from gui.theme import COLORS, FONTS
+from gui.widgets import (
+    SectionedListbox,
+    ScrollableFrame,
+    WrappingLabel,
+    GradientHeader,
+    SectionHeader,
+    CardFrame,
+)
+from gui.theme import COLORS, FONTS, SPACING
 from gui.source_config import (
     SECTION_ORDER,
     UA_CATEGORY,
@@ -23,17 +30,17 @@ class BackgroundStep(WizardStep):
         self.frame.rowconfigure(0, weight=1)
 
         # Left: background list with source toggles
-        left = ttk.Frame(self.frame, width=220)
-        left.grid(row=0, column=0, sticky="nsew", padx=(8, 4), pady=8)
+        left = tk.Frame(self.frame, bg=COLORS["bg"], width=220)
+        left.grid(row=0, column=0, sticky="nsew", padx=(SPACING["sm"], SPACING["xs"]), pady=0)
         left.grid_propagate(False)
 
-        ttk.Label(left, text="Choose Background", style="Heading.TLabel").pack(
-            anchor="w", pady=(0, 4)
+        SectionHeader(left, text="Choose Background").pack(
+            fill=tk.X, pady=(SPACING["lg"], SPACING["sm"])
         )
 
         # Source filter toggles
-        self.toggle_frame = ttk.Frame(left)
-        self.toggle_frame.pack(fill=tk.X, pady=(0, 4))
+        self.toggle_frame = tk.Frame(left, bg=COLORS["bg"])
+        self.toggle_frame.pack(fill=tk.X, pady=(0, SPACING["xs"]))
         self.toggle_vars: dict[str, tk.BooleanVar] = {}
         self._ua_prev_enabled = False
         self._build_toggles()
@@ -43,28 +50,42 @@ class BackgroundStep(WizardStep):
 
         # Right: detail
         right = ScrollableFrame(self.frame)
-        right.grid(row=0, column=1, sticky="nsew", padx=(4, 8), pady=8)
+        right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0), pady=0)
         self.detail = right.inner
 
-        self.detail_name = ttk.Label(
-            self.detail, text="Select a background", style="Heading.TLabel"
+        # Hero header
+        self._hero = GradientHeader(self.detail, min_height=60)
+        self._hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+
+        self.detail_name = tk.Label(
+            self._hero.inner,
+            text="Select a background",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_hero"],
         )
-        self.detail_name.pack(anchor="w", pady=(0, 4))
+        self.detail_name.pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], 0))
 
-        self.detail_source = ttk.Label(self.detail, text="", style="Dim.TLabel")
-        self.detail_source.pack(anchor="w")
+        self.detail_source = tk.Label(
+            self._hero.inner,
+            text="",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_hero"],
+        )
+        self.detail_source.pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xs"], SPACING["xl"]))
 
-        self.detail_desc = WrappingLabel(self.detail, text="")
-        self.detail_desc.pack(fill=tk.X, anchor="w", pady=(8, 0))
+        self.detail_desc = WrappingLabel(
+            self.detail, text="", foreground=COLORS["fg_dim"]
+        )
+        self.detail_desc.pack(fill=tk.X, anchor="w", padx=SPACING["lg"], pady=(0, SPACING["sm"]))
 
-        ttk.Separator(self.detail, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=8)
-
-        self.info_frame = ttk.Frame(self.detail)
-        self.info_frame.pack(fill=tk.X)
+        self.info_frame = tk.Frame(self.detail, bg=COLORS["bg"])
+        self.info_frame.pack(fill=tk.X, padx=SPACING["lg"])
 
         # Ability bonus assignment
-        self.bonus_frame = ttk.LabelFrame(self.detail, text="Ability Score Bonuses")
-        self.bonus_frame.pack(fill=tk.X, pady=(8, 0))
+        self.bonus_frame = tk.Frame(self.detail, bg=COLORS["bg"])
+        self.bonus_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
 
         self._populate_list()
 
@@ -151,6 +172,13 @@ class BackgroundStep(WizardStep):
         for w in self.info_frame.winfo_children():
             w.destroy()
 
+        SectionHeader(self.info_frame, text="Details").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
+
+        info_card = CardFrame(self.info_frame, pad=SPACING["lg"])
+        info_card.pack(fill=tk.X)
+
         info = [
             ("Feat", bg.get("feat", "None")),
             ("Skills", ", ".join(bg.get("skill_proficiencies", []))),
@@ -162,20 +190,22 @@ class BackgroundStep(WizardStep):
             equip_text = " / ".join(f"({e['option']}) {e['items']}" for e in equip)
             info.append(("Equipment", equip_text))
 
+        _bg = COLORS["bg_surface"]
         for label, value in info:
-            row = ttk.Frame(self.info_frame)
+            row = tk.Frame(info_card.inner, bg=_bg)
             row.pack(fill=tk.X, pady=1)
-            ttk.Label(
+            tk.Label(
                 row,
                 text=f"{label}:",
-                foreground=COLORS["accent"],
-                font=FONTS["body"],
+                font=FONTS["body_bold"],
+                fg=COLORS["accent_text"],
+                bg=_bg,
                 width=12,
                 anchor="e",
             ).pack(side=tk.LEFT)
-            WrappingLabel(row, text=f"  {value}").pack(
-                side=tk.LEFT, fill=tk.X, expand=True, padx=(4, 0)
-            )
+            WrappingLabel(
+                row, text=f"  {value}", background=_bg
+            ).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(4, 0))
 
         # Ability bonus assignment
         for w in self.bonus_frame.winfo_children():
@@ -183,15 +213,25 @@ class BackgroundStep(WizardStep):
 
         abilities = bg.get("ability_scores", [])
         if abilities:
-            ttk.Label(
-                self.bonus_frame,
+            SectionHeader(self.bonus_frame, text="Ability Score Bonuses").pack(
+                fill=tk.X, pady=(SPACING["sm"], SPACING["sm"])
+            )
+
+            bonus_card = CardFrame(self.bonus_frame, pad=SPACING["lg"])
+            bonus_card.pack(fill=tk.X)
+            bonus_inner = bonus_card.inner
+
+            tk.Label(
+                bonus_inner,
                 text=f"Distribute bonuses among: {', '.join(abilities)}",
-                style="Dim.TLabel",
-            ).pack(anchor="w", padx=4, pady=(4, 2))
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(anchor="w", pady=(0, SPACING["xs"]))
 
             # Mode selection
-            mode_frame = ttk.Frame(self.bonus_frame)
-            mode_frame.pack(fill=tk.X, padx=4)
+            mode_frame = tk.Frame(bonus_inner, bg=COLORS["bg_surface"])
+            mode_frame.pack(fill=tk.X)
             self.bonus_mode = tk.StringVar(value="2/1")
             ttk.Radiobutton(
                 mode_frame,
@@ -199,18 +239,18 @@ class BackgroundStep(WizardStep):
                 variable=self.bonus_mode,
                 value="2/1",
                 command=self._update_bonus_ui,
-            ).pack(side=tk.LEFT, padx=8)
+            ).pack(side=tk.LEFT, padx=SPACING["sm"])
             ttk.Radiobutton(
                 mode_frame,
                 text="+1 / +1 / +1",
                 variable=self.bonus_mode,
                 value="1/1/1",
                 command=self._update_bonus_ui,
-            ).pack(side=tk.LEFT, padx=8)
+            ).pack(side=tk.LEFT, padx=SPACING["sm"])
 
             # Assignment combos
-            self.assign_frame = ttk.Frame(self.bonus_frame)
-            self.assign_frame.pack(fill=tk.X, padx=4, pady=4)
+            self.assign_frame = tk.Frame(bonus_inner, bg=COLORS["bg_surface"])
+            self.assign_frame.pack(fill=tk.X, pady=(SPACING["xs"], 0))
             self.bonus_combos = {}
             self.bonus_widgets = {}
             self.current_abilities = abilities
@@ -234,12 +274,12 @@ class BackgroundStep(WizardStep):
         mode = self.bonus_mode.get()
         self.character.ability_bonus_mode = mode
         abilities = self.current_abilities
+        _bg = COLORS["bg_surface"]
 
         if mode == "2/1":
-            # Two dropdowns: one for +2, one for +1
-            row1 = ttk.Frame(self.assign_frame)
+            row1 = tk.Frame(self.assign_frame, bg=_bg)
             row1.pack(fill=tk.X, pady=2)
-            ttk.Label(row1, text="+2 to:", width=8).pack(side=tk.LEFT)
+            tk.Label(row1, text="+2 to:", font=FONTS["body_bold"], fg=COLORS["fg"], bg=_bg, width=8).pack(side=tk.LEFT)
             var2 = tk.StringVar(value=abilities[0] if abilities else "")
             combo2 = ttk.Combobox(
                 row1, textvariable=var2, values=abilities, state="readonly", width=15
@@ -248,9 +288,9 @@ class BackgroundStep(WizardStep):
             self.bonus_combos["+2"] = var2
             self.bonus_widgets["+2"] = combo2
 
-            row2 = ttk.Frame(self.assign_frame)
+            row2 = tk.Frame(self.assign_frame, bg=_bg)
             row2.pack(fill=tk.X, pady=2)
-            ttk.Label(row2, text="+1 to:", width=8).pack(side=tk.LEFT)
+            tk.Label(row2, text="+1 to:", font=FONTS["body_bold"], fg=COLORS["fg"], bg=_bg, width=8).pack(side=tk.LEFT)
             remaining = [a for a in abilities if a != abilities[0]] if abilities else []
             var1 = tk.StringVar(value=remaining[0] if remaining else "")
             combo1 = ttk.Combobox(
@@ -264,13 +304,12 @@ class BackgroundStep(WizardStep):
             var1.trace_add("write", self._on_bonus_change)
 
         else:
-            # Three abilities each get +1
             for ab in abilities:
-                row = ttk.Frame(self.assign_frame)
+                row = tk.Frame(self.assign_frame, bg=_bg)
                 row.pack(fill=tk.X, pady=2)
-                ttk.Label(row, text="+1 to:", width=8).pack(side=tk.LEFT)
-                ttk.Label(
-                    row, text=ab, foreground=COLORS["accent"], font=FONTS["body"]
+                tk.Label(row, text="+1 to:", font=FONTS["body_bold"], fg=COLORS["fg"], bg=_bg, width=8).pack(side=tk.LEFT)
+                tk.Label(
+                    row, text=ab, font=FONTS["body"], fg=COLORS["accent_text"], bg=_bg,
                 ).pack(side=tk.LEFT, padx=4)
 
         self._on_bonus_change()
@@ -289,17 +328,15 @@ class BackgroundStep(WizardStep):
             ab1 = plus1_var.get() if plus1_var else ""
             abilities = self.current_abilities
 
-            # Cross-filter: update each combo's options to exclude the other's pick
             combo2_w = self.bonus_widgets.get("+2")
             combo1_w = self.bonus_widgets.get("+1")
 
             if combo1_w and ab2:
                 allowed = [a for a in abilities if a != ab2]
                 combo1_w["values"] = allowed
-                # Auto-correct if +1 conflicts with +2
                 if ab1 == ab2 and allowed:
                     plus1_var.set(allowed[0])
-                    return  # .set() re-triggers this callback
+                    return
             elif combo1_w:
                 combo1_w["values"] = abilities
 

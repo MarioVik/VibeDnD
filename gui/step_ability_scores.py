@@ -1,9 +1,10 @@
-"""Step 4: Ability score assignment (standard array or point buy)."""
+"""Step 6: Ability score assignment (standard array or point buy) + HP override."""
 
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.theme import COLORS, FONTS
+from gui.widgets import GradientHeader, SectionHeader, CardFrame, ScrollableFrame
+from gui.theme import COLORS, FONTS, SPACING
 from models.ability_scores import STANDARD_ARRAY, POINT_BUY_COSTS, POINT_BUY_BUDGET, POINT_BUY_MIN, POINT_BUY_MAX
 
 ABILITIES = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
@@ -16,34 +17,64 @@ class AbilityScoresStep(WizardStep):
 
     def build_ui(self):
         self.frame.columnconfigure(0, weight=1)
+        self.frame.rowconfigure(1, weight=1)
 
-        # Title
-        ttk.Label(self.frame, text="Assign Ability Scores", style="Heading.TLabel").pack(
-            anchor="w", padx=12, pady=(12, 4))
+        # ── Hero header ─────────────────────────────────────────
+        hero = GradientHeader(self.frame, min_height=60)
+        hero.grid(row=0, column=0, sticky="ew")
+
+        tk.Label(
+            hero.inner,
+            text="Ability Scores",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_hero"],
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
+
+        # ── Scrollable content ──────────────────────────────────
+        scroll = ScrollableFrame(self.frame)
+        scroll.grid(row=1, column=0, sticky="nsew")
+        inner = scroll.inner
 
         # Method toggle
-        method_frame = ttk.Frame(self.frame)
-        method_frame.pack(fill=tk.X, padx=12, pady=(0, 8))
+        SectionHeader(inner, text="Method").pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
+        )
+        method_card = CardFrame(inner, pad=SPACING["md"])
+        method_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
+
+        method_frame = tk.Frame(method_card.inner, bg=COLORS["bg_surface"])
+        method_frame.pack(fill=tk.X)
         self.method_var = tk.StringVar(value="standard_array")
         ttk.Radiobutton(method_frame, text="Standard Array (15, 14, 13, 12, 10, 8)",
                         variable=self.method_var, value="standard_array",
-                        command=self._on_method_change).pack(side=tk.LEFT, padx=(0, 16))
+                        command=self._on_method_change).pack(side=tk.LEFT, padx=(0, SPACING["lg"]))
         ttk.Radiobutton(method_frame, text="Point Buy (27 points)",
                         variable=self.method_var, value="point_buy",
                         command=self._on_method_change).pack(side=tk.LEFT)
 
         # Main assignment area
-        self.assign_frame = ttk.Frame(self.frame)
-        self.assign_frame.pack(fill=tk.BOTH, expand=True, padx=12)
+        SectionHeader(inner, text="Scores").pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
+        )
+        self.assign_card = CardFrame(inner, pad=SPACING["lg"])
+        self.assign_card.pack(fill=tk.X, padx=SPACING["lg"])
+        self.assign_frame = self.assign_card.inner
 
         # Point buy budget display
-        self.budget_frame = ttk.Frame(self.frame)
-        self.budget_label = ttk.Label(self.budget_frame, text="Points: 27 / 27",
-                                      style="Subheading.TLabel")
-        self.budget_label.pack(side=tk.LEFT, padx=8)
+        self.budget_frame = tk.Frame(inner, bg=COLORS["bg"])
+        self.budget_label = tk.Label(
+            self.budget_frame, text="Points: 27 / 27",
+            font=FONTS["subheading"], fg=COLORS["fg"], bg=COLORS["bg"],
+        )
+        self.budget_label.pack(side=tk.LEFT, padx=SPACING["sm"])
         self.budget_bar = ttk.Progressbar(self.budget_frame, maximum=POINT_BUY_BUDGET,
                                           value=0, length=200)
-        self.budget_bar.pack(side=tk.LEFT, padx=8)
+        self.budget_bar.pack(side=tk.LEFT, padx=SPACING["sm"])
+
+        # HP override container (populated in on_enter once class is known)
+        self._hp_outer = tk.Frame(inner, bg=COLORS["bg"])
+        self._hp_outer.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["lg"]))
 
         # Snapshot loaded scores before defaults overwrite them (edit mode)
         self._loaded_scores = dict(self.character.ability_scores.scores)
@@ -82,8 +113,8 @@ class AbilityScoresStep(WizardStep):
                     val = self._loaded_scores.get(ab, 8)
                     if ab in self.score_widgets:
                         self.score_widgets[ab]["var"].set(val)
-                # _on_pb_change fires for each set and handles bases
         self._update_display()
+        self._build_hp_override()
 
     def _build_assignment_ui(self):
         for w in self.assign_frame.winfo_children():
@@ -91,27 +122,26 @@ class AbilityScoresStep(WizardStep):
         self.score_widgets.clear()
 
         method = self.method_var.get()
+        _bg = COLORS["bg_surface"]
 
         # Header row
-        header = ttk.Frame(self.assign_frame)
-        header.pack(fill=tk.X, pady=(0, 4))
-        ttk.Label(header, text="Ability", width=14, style="Subheading.TLabel").pack(side=tk.LEFT)
-        ttk.Label(header, text="Base", width=8, style="Subheading.TLabel").pack(side=tk.LEFT)
-        ttk.Label(header, text="Bonus", width=8, style="Subheading.TLabel").pack(side=tk.LEFT)
-        ttk.Label(header, text="Total", width=8, style="Subheading.TLabel").pack(side=tk.LEFT)
-        ttk.Label(header, text="Mod", width=8, style="Subheading.TLabel").pack(side=tk.LEFT)
+        header = tk.Frame(self.assign_frame, bg=_bg)
+        header.pack(fill=tk.X, pady=(0, SPACING["xs"]))
+        for text, width in [("Ability", 18), ("Base", 8), ("Bonus", 8), ("Total", 8), ("Mod", 8)]:
+            tk.Label(header, text=text, font=FONTS["label_upper_bold"],
+                     fg=COLORS["fg_dim"], bg=_bg, width=width, anchor="w").pack(side=tk.LEFT)
 
-        ttk.Separator(self.assign_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=2)
+        # Accent line separator
+        tk.Frame(self.assign_frame, bg="#4a2028", height=2).pack(fill=tk.X, pady=(0, SPACING["xs"]))
 
         for ability in ABILITIES:
-            row = ttk.Frame(self.assign_frame)
+            row = tk.Frame(self.assign_frame, bg=_bg)
             row.pack(fill=tk.X, pady=3)
 
-            # Ability name
-            ttk.Label(row, text=f"{ABILITY_SHORT[ability]}  ({ability})", width=18).pack(side=tk.LEFT)
+            tk.Label(row, text=f"{ABILITY_SHORT[ability]}  ({ability})",
+                     font=FONTS["body"], fg=COLORS["fg"], bg=_bg, width=18, anchor="w").pack(side=tk.LEFT)
 
             if method == "standard_array":
-                # Pre-assign array values in order: STR=15, DEX=14, CON=13, INT=12, WIS=10, CHA=8
                 initial_val = sorted(STANDARD_ARRAY, reverse=True)[ABILITIES.index(ability)]
                 var = tk.StringVar(value=str(initial_val))
                 self.character.ability_scores.set_base(ability, initial_val)
@@ -122,7 +152,6 @@ class AbilityScoresStep(WizardStep):
                 var.trace_add("write", lambda *a, ab=ability, v=var: self._on_score_change(ab, v))
                 self.score_widgets[ability] = {"var": var, "widget": combo}
             else:
-                # Spinbox for point buy (8-15)
                 var = tk.IntVar(value=8)
                 spin = ttk.Spinbox(row, from_=POINT_BUY_MIN, to=POINT_BUY_MAX,
                                    textvariable=var, width=5, command=lambda ab=ability: self._on_pb_change(ab))
@@ -130,16 +159,16 @@ class AbilityScoresStep(WizardStep):
                 var.trace_add("write", lambda *a, ab=ability: self._on_pb_change(ab))
                 self.score_widgets[ability] = {"var": var, "widget": spin}
 
-            # Bonus display
-            bonus_label = ttk.Label(row, text="+0", width=6, style="Dim.TLabel")
+            bonus_label = tk.Label(row, text="+0", font=FONTS["body"],
+                                   fg=COLORS["fg_dim"], bg=_bg, width=6)
             bonus_label.pack(side=tk.LEFT, padx=4)
 
-            # Total display
-            total_label = ttk.Label(row, text="10", width=6, style="Stat.TLabel")
+            total_label = tk.Label(row, text="10", font=FONTS["stat"],
+                                   fg=COLORS["fg"], bg=_bg, width=6)
             total_label.pack(side=tk.LEFT, padx=4)
 
-            # Modifier display
-            mod_label = ttk.Label(row, text="+0", width=6, style="StatMod.TLabel")
+            mod_label = tk.Label(row, text="+0", font=FONTS["stat_mod"],
+                                 fg=COLORS["fg_dim"], bg=_bg, width=6)
             mod_label.pack(side=tk.LEFT, padx=4)
 
             self.score_widgets[ability]["bonus_label"] = bonus_label
@@ -148,18 +177,144 @@ class AbilityScoresStep(WizardStep):
 
         # Show/hide budget
         if method == "point_buy":
-            self.budget_frame.pack(fill=tk.X, padx=12, pady=8)
+            self.budget_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=SPACING["sm"])
         else:
             self.budget_frame.pack_forget()
 
         self._update_display()
+
+    # ── HP Override (moved from Summary) ────────────────────────
+
+    def _build_hp_override(self):
+        """Build/rebuild the level-1 HP override section based on current class."""
+        for w in self._hp_outer.winfo_children():
+            w.destroy()
+
+        if not self.character.class_levels:
+            return
+
+        cl0 = self.character.class_levels[0]
+        char_class = self.character.character_class
+        if not char_class:
+            return
+
+        hit_die = char_class.get("hit_die", 8)
+        con_mod = self.character.ability_scores.modifier("Constitution")
+        average = hit_die // 2 + 1
+
+        SectionHeader(self._hp_outer, text="HP at Level 1").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
+
+        hp_card = CardFrame(self._hp_outer, pad=SPACING["lg"])
+        hp_card.pack(fill=tk.X)
+        hp_inner = hp_card.inner
+
+        # Fresh StringVars each rebuild to avoid stale trace accumulation
+        self._hp_mode = tk.StringVar()
+        self._hp_manual_var = tk.StringVar()
+
+        # Restore mode from existing hp_roll if any
+        if cl0.hp_roll is None:
+            self._hp_mode.set("max")
+        elif cl0.hp_roll == hit_die:
+            self._hp_mode.set("max")
+        elif cl0.hp_roll == average:
+            self._hp_mode.set("average")
+        else:
+            self._hp_mode.set("manual")
+            self._hp_manual_var.set(str(cl0.hp_roll))
+
+        radio_row = tk.Frame(hp_inner, bg=COLORS["bg_surface"])
+        radio_row.pack(fill=tk.X)
+
+        ttk.Radiobutton(
+            radio_row,
+            text=f"Max ({hit_die} + {con_mod} CON = {hit_die + con_mod} HP)",
+            variable=self._hp_mode,
+            value="max",
+        ).pack(side=tk.LEFT, padx=(0, SPACING["md"]))
+
+        ttk.Radiobutton(
+            radio_row,
+            text=f"Average ({average} + {con_mod} CON = {average + con_mod} HP)",
+            variable=self._hp_mode,
+            value="average",
+        ).pack(side=tk.LEFT, padx=(0, SPACING["md"]))
+
+        ttk.Radiobutton(
+            radio_row,
+            text="Manual:",
+            variable=self._hp_mode,
+            value="manual",
+        ).pack(side=tk.LEFT)
+
+        manual_entry = ttk.Entry(radio_row, textvariable=self._hp_manual_var, width=5)
+        manual_entry.pack(side=tk.LEFT, padx=(4, 4))
+
+        self._hp_hint_label = tk.Label(
+            radio_row,
+            text=f"+ {con_mod} CON = ? HP",
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        )
+        self._hp_hint_label.pack(side=tk.LEFT)
+
+        def _update_state(*_):
+            if self._hp_mode.get() == "manual":
+                manual_entry.config(state="normal")
+            else:
+                manual_entry.config(state="disabled")
+            _update_hint()
+            self._apply_hp_override(hit_die, con_mod, average)
+
+        def _update_hint(*_):
+            if self._hp_mode.get() != "manual":
+                return
+            val = self._hp_manual_var.get().strip()
+            try:
+                roll = int(val)
+                if roll >= 1:
+                    self._hp_hint_label.config(text=f"+ {con_mod} CON = {roll + con_mod} HP")
+                else:
+                    self._hp_hint_label.config(text="(must be \u2265 1)")
+            except ValueError:
+                self._hp_hint_label.config(text=f"+ {con_mod} CON = ? HP")
+
+        self._hp_mode.trace_add("write", _update_state)
+        self._hp_manual_var.trace_add("write", lambda *_: (_update_hint(), self._apply_hp_override(hit_die, con_mod, average)))
+
+        if self._hp_mode.get() != "manual":
+            manual_entry.config(state="disabled")
+
+    def _apply_hp_override(self, hit_die, con_mod, average):
+        """Write the chosen HP value into character.class_levels[0].hp_roll."""
+        if not self.character.class_levels:
+            return
+        cl0 = self.character.class_levels[0]
+        mode = self._hp_mode.get()
+        if mode == "max":
+            cl0.hp_roll = None
+        elif mode == "average":
+            cl0.hp_roll = average
+        elif mode == "manual":
+            val = self._hp_manual_var.get().strip()
+            try:
+                roll = int(val)
+                if roll >= 1:
+                    cl0.hp_roll = roll
+            except ValueError:
+                pass
+        self.notify_change()
+
+    # ── Method / score changes ──────────────────────────────────
 
     def _on_method_change(self):
         self.character.score_method = self.method_var.get()
         self._build_assignment_ui()
 
     def _on_score_change(self, ability: str, var: tk.StringVar):
-        # Guard against re-entrant calls from programmatic var.set()
         if getattr(self, '_swapping', False):
             return
 
@@ -172,7 +327,6 @@ class AbilityScoresStep(WizardStep):
         try:
             old_val = self.character.ability_scores.base(ability)
 
-            # Find if another ability already has this value (swap needed)
             swap_target = None
             for other_ab in ABILITIES:
                 if other_ab != ability and other_ab in self.score_widgets:
@@ -181,10 +335,8 @@ class AbilityScoresStep(WizardStep):
                         swap_target = other_ab
                         break
 
-            # Set the new value on this ability
             self.character.ability_scores.set_base(ability, val)
 
-            # If another ability had this value, give it our old value (swap)
             if swap_target:
                 self.score_widgets[swap_target]["var"].set(str(old_val))
                 self.character.ability_scores.set_base(swap_target, old_val)
@@ -207,7 +359,6 @@ class AbilityScoresStep(WizardStep):
         if self.method_var.get() == "point_buy":
             return self.character.ability_scores.point_buy_total() == POINT_BUY_BUDGET
         else:
-            # Standard array: simple check that all scores were assigned (already enforced by UI)
             return True
 
     def _update_display(self):
@@ -224,17 +375,16 @@ class AbilityScoresStep(WizardStep):
             mod = scores.modifier(ability)
             mod_str = scores.modifier_str(ability)
 
-            w["bonus_label"].configure(text=f"+{bonus}" if bonus > 0 else str(bonus) if bonus else "—")
+            w["bonus_label"].configure(text=f"+{bonus}" if bonus > 0 else str(bonus) if bonus else "\u2014")
             w["total_label"].configure(text=str(total))
             w["mod_label"].configure(text=mod_str)
 
-            # Color code modifier
             if mod > 0:
-                w["mod_label"].configure(foreground=COLORS["positive"])
+                w["mod_label"].configure(fg=COLORS["positive"])
             elif mod < 0:
-                w["mod_label"].configure(foreground=COLORS["negative"])
+                w["mod_label"].configure(fg=COLORS["negative"])
             else:
-                w["mod_label"].configure(foreground=COLORS["fg_dim"])
+                w["mod_label"].configure(fg=COLORS["fg_dim"])
 
         # Update point buy budget
         if self.method_var.get() == "point_buy":
@@ -243,10 +393,10 @@ class AbilityScoresStep(WizardStep):
             self.budget_label.configure(text=f"Points: {remaining} / {POINT_BUY_BUDGET}")
             self.budget_bar.configure(value=spent)
             if remaining < 0:
-                self.budget_label.configure(foreground=COLORS["negative"])
+                self.budget_label.configure(fg=COLORS["negative"])
             elif remaining == 0:
-                self.budget_label.configure(foreground=COLORS["positive"])
+                self.budget_label.configure(fg=COLORS["positive"])
             else:
-                self.budget_label.configure(foreground=COLORS["fg"])
+                self.budget_label.configure(fg=COLORS["fg"])
 
         self.notify_change()

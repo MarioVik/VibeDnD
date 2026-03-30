@@ -4,6 +4,8 @@ import tkinter as tk
 from tkinter import ttk
 from abc import ABC, abstractmethod
 
+from gui.theme import COLORS
+
 
 class WizardStep(ABC):
     """Abstract base for each page in the character creation wizard.
@@ -24,13 +26,13 @@ class WizardStep(ABC):
         if isinstance(parent, ttk.Notebook):
             # Legacy notebook mode
             self.notebook = parent
-            self.frame = ttk.Frame(parent)
+            self.frame = tk.Frame(parent, bg=COLORS["bg"])
             self.build_ui()
             parent.add(self.frame, text=f" {self.tab_title} ")
         else:
             # Frame-based mode (new sidebar wizard)
             self.notebook = None
-            self.frame = ttk.Frame(parent)
+            self.frame = tk.Frame(parent, bg=COLORS["bg"])
             self.build_ui()
 
     @abstractmethod

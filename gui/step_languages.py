@@ -4,8 +4,8 @@ import tkinter as tk
 from tkinter import ttk
 
 from gui.base_step import WizardStep
-from gui.widgets import ScrollableFrame, WrappingLabel, Chip
-from gui.theme import COLORS, FONTS
+from gui.widgets import ScrollableFrame, WrappingLabel, Chip, GradientHeader, SectionHeader, CardFrame
+from gui.theme import COLORS, FONTS, SPACING
 from models.language_utils import (
     STANDARD_LANGUAGES,
     RARE_LANGUAGES,
@@ -25,76 +25,108 @@ class LanguagesStep(WizardStep):
         self.frame.columnconfigure(0, weight=1)
         self.frame.rowconfigure(1, weight=1)
 
-        # ── Top: description + fixed languages ───────────────────
-        top = ttk.Frame(self.frame)
-        top.grid(row=0, column=0, sticky="ew", padx=16, pady=(12, 0))
-        top.columnconfigure(0, weight=1)
+        # ── Hero header ─────────────────────────────────────────
+        hero = GradientHeader(self.frame, min_height=60)
+        hero.grid(row=0, column=0, sticky="ew")
 
-        ttk.Label(top, text="Languages", style="Heading.TLabel").pack(
-            anchor="w", pady=(0, 4)
-        )
-        WrappingLabel(
-            top,
-            text=(
-                "All characters speak Common plus two languages of their choice. "
-                "Some classes grant additional fixed languages."
-            ),
-            foreground=COLORS["fg_dim"],
-        ).pack(fill=tk.X, anchor="w", pady=(0, 12))
+        hero_inner = tk.Frame(hero.inner, bg=COLORS["bg_hero"])
+        hero_inner.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(SPACING["xl"], 0))
 
-        ttk.Label(top, text="FIXED LANGUAGES", style="Dim.TLabel").pack(
-            anchor="w", pady=(0, 4)
-        )
-        self.auto_chips_frame = tk.Frame(top, bg=COLORS["bg_surface"])
-        self.auto_chips_frame.pack(fill=tk.X, anchor="w", pady=(0, 4))
+        tk.Label(
+            hero_inner,
+            text="Languages",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_hero"],
+        ).pack(side=tk.LEFT)
 
-        self.sources_frame = ttk.Frame(top)
-        self.sources_frame.pack(fill=tk.X, anchor="w", pady=(0, 8))
+        tk.Label(
+            hero.inner,
+            text="All characters speak Common plus two languages of their choice.",
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_hero"],
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xs"], SPACING["xl"]))
 
-        ttk.Separator(top, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=(4, 0))
-
-        # ── Bottom: scrollable choose section ────────────────────
+        # ── Scrollable content ──────────────────────────────────
         scroll = ScrollableFrame(self.frame)
-        scroll.grid(row=1, column=0, sticky="nsew", padx=16, pady=(8, 12))
+        scroll.grid(row=1, column=0, sticky="nsew")
         inner = scroll.inner
 
-        # Counter header
-        header = ttk.Frame(inner)
-        header.pack(fill=tk.X, anchor="w", pady=(0, 8))
-        self.choose_label = ttk.Label(
-            header, text="Choose Languages", style="Subheading.TLabel"
+        # Fixed languages section
+        SectionHeader(inner, text="Fixed Languages").pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
         )
-        self.choose_label.pack(side=tk.LEFT)
-        self.counter_label = ttk.Label(header, text="(0 / 2)", style="Dim.TLabel")
-        self.counter_label.pack(side=tk.LEFT, padx=(8, 0))
 
-        # Standard languages section
-        ttk.Label(inner, text="STANDARD LANGUAGES", style="Dim.TLabel").pack(
-            anchor="w", pady=(0, 4)
-        )
-        self.standard_frame = ttk.Frame(inner)
-        self.standard_frame.pack(fill=tk.X, anchor="w", pady=(0, 12))
+        fixed_card = CardFrame(inner, pad=SPACING["lg"])
+        fixed_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
 
-        # Rare languages section (hidden until Linguist unlocks it)
-        self.rare_outer = ttk.Frame(inner)
-        ttk.Label(self.rare_outer, text="RARE LANGUAGES", style="Dim.TLabel").pack(
-            anchor="w", pady=(0, 4)
+        self.auto_chips_frame = tk.Frame(fixed_card.inner, bg=COLORS["bg_surface"])
+        self.auto_chips_frame.pack(fill=tk.X, anchor="w", pady=(0, SPACING["xs"]))
+
+        self.sources_frame = tk.Frame(fixed_card.inner, bg=COLORS["bg_surface"])
+        self.sources_frame.pack(fill=tk.X, anchor="w")
+
+        # Choose section
+        self._choose_header_frame = tk.Frame(inner, bg=COLORS["bg"])
+        self._choose_header_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"]))
+
+        self.choose_section_header = SectionHeader(self._choose_header_frame, text="Choose Languages")
+        self.choose_section_header.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.counter_label = tk.Label(
+            self._choose_header_frame,
+            text="(0 / 2)",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg"],
         )
-        self.rare_hint = WrappingLabel(
-            self.rare_outer,
+        self.counter_label.pack(side=tk.RIGHT, padx=(SPACING["sm"], 0))
+
+        # Standard languages
+        std_card = CardFrame(inner, pad=SPACING["lg"])
+        std_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
+
+        tk.Label(
+            std_card.inner,
+            text="STANDARD LANGUAGES",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", pady=(0, SPACING["xs"]))
+
+        self.standard_frame = tk.Frame(std_card.inner, bg=COLORS["bg_surface"])
+        self.standard_frame.pack(fill=tk.X, anchor="w")
+
+        # Rare languages (hidden until Linguist unlocks it)
+        self.rare_card = CardFrame(inner, pad=SPACING["lg"])
+        # Not packed by default
+
+        tk.Label(
+            self.rare_card.inner,
+            text="RARE LANGUAGES",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", pady=(0, SPACING["xs"]))
+
+        self.rare_hint = tk.Label(
+            self.rare_card.inner,
             text="Unlocked by the Linguist feat.",
-            foreground=COLORS["fg_dim"],
+            font=FONTS["body_small"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
         )
-        self.rare_hint.pack(fill=tk.X, anchor="w", pady=(0, 4))
-        self.rare_frame = ttk.Frame(self.rare_outer)
-        self.rare_frame.pack(fill=tk.X, anchor="w", pady=(0, 12))
+        self.rare_hint.pack(anchor="w", pady=(0, SPACING["xs"]))
+        self.rare_frame = tk.Frame(self.rare_card.inner, bg=COLORS["bg_surface"])
+        self.rare_frame.pack(fill=tk.X, anchor="w")
 
         # Selected chips
-        ttk.Separator(inner, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=8)
-        ttk.Label(inner, text="SELECTED", style="Dim.TLabel").pack(
-            anchor="w", pady=(0, 4)
+        SectionHeader(inner, text="Selected").pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
         )
-        self.selected_frame = tk.Frame(inner, bg=COLORS["bg_surface"])
+        selected_card = CardFrame(inner, pad=SPACING["lg"])
+        selected_card.pack(fill=tk.X, padx=SPACING["lg"])
+        self.selected_frame = tk.Frame(selected_card.inner, bg=COLORS["bg_surface"])
         self.selected_frame.pack(fill=tk.X, anchor="w")
 
     # ── Lifecycle ────────────────────────────────────────────────
@@ -106,8 +138,6 @@ class LanguagesStep(WizardStep):
         free_count = sources["free_count"]
         can_rare = sources["can_choose_rare"]
 
-        # Sanitise chosen_languages: remove any that are now in auto (e.g.
-        # class was changed) or no longer available.
         available = set(STANDARD_LANGUAGES)
         if can_rare:
             available |= set(RARE_LANGUAGES)
@@ -144,13 +174,12 @@ class LanguagesStep(WizardStep):
         elif class_slug == "rogue":
             entries.append(("Thieves' Cant", "Rogue — Thieves' Cant (level 1)"))
 
+        _bg = COLORS["bg_surface"]
         for lang, source in entries:
-            row = ttk.Frame(self.sources_frame)
+            row = tk.Frame(self.sources_frame, bg=_bg)
             row.pack(fill=tk.X, anchor="w", pady=1)
-            ttk.Label(row, text=f"• {lang}:", font=FONTS["body_bold"]).pack(
-                side=tk.LEFT
-            )
-            ttk.Label(row, text=f" {source}", style="Dim.TLabel").pack(side=tk.LEFT)
+            tk.Label(row, text=f"\u2022 {lang}:", font=FONTS["body_bold"], fg=COLORS["fg"], bg=_bg).pack(side=tk.LEFT)
+            tk.Label(row, text=f" {source}", font=FONTS["body_small"], fg=COLORS["fg_dim"], bg=_bg).pack(side=tk.LEFT)
 
     def _rebuild_language_list(
         self, auto: list[str], free_count: int, can_rare: bool
@@ -187,11 +216,11 @@ class LanguagesStep(WizardStep):
                 _add_lang(self.standard_frame, lang)
 
         if can_rare:
-            self.rare_outer.pack(fill=tk.X, anchor="w", before=self.selected_frame)
+            self.rare_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
             for lang in RARE_LANGUAGES:
                 _add_lang(self.rare_frame, lang)
         else:
-            self.rare_outer.pack_forget()
+            self.rare_card.pack_forget()
 
         self._enforce_capacity(free_count)
 
@@ -199,7 +228,6 @@ class LanguagesStep(WizardStep):
         chosen = self.character.chosen_languages
         if var.get():
             if len(chosen) >= free_count:
-                # Already at capacity — block this selection
                 var.set(False)
                 self._flash_counter()
                 return
@@ -227,14 +255,14 @@ class LanguagesStep(WizardStep):
         chosen_count = len(self.character.chosen_languages)
         self.counter_label.configure(
             text=f"({chosen_count} / {free_count})",
-            foreground=(
+            fg=(
                 COLORS["positive"] if chosen_count == free_count else COLORS["fg_dim"]
             ),
         )
 
     def _flash_counter(self):
         """Briefly highlight the counter to signal capacity reached."""
-        self.counter_label.configure(foreground=COLORS["accent"])
+        self.counter_label.configure(fg=COLORS["accent"])
         self.frame.after(
             600, lambda: self._update_counter_from_state()
         )
@@ -248,8 +276,9 @@ class LanguagesStep(WizardStep):
             w.destroy()
         chosen = self.character.chosen_languages
         if not chosen:
-            ttk.Label(
-                self.selected_frame, text="None chosen yet.", style="Dim.TLabel"
+            tk.Label(
+                self.selected_frame, text="None chosen yet.",
+                font=FONTS["body"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
             ).pack(anchor="w")
         else:
             for lang in chosen:

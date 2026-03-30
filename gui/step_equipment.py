@@ -1,10 +1,11 @@
-"""Step 7: Equipment selection."""
+"""Step 9: Equipment selection."""
 
 from decimal import Decimal
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
-from gui.theme import COLORS, FONTS
+from gui.widgets import GradientHeader, SectionHeader, CardFrame, ScrollableFrame
+from gui.theme import COLORS, FONTS, SPACING
 from gui.equipment_utils import extract_gp, gp_to_coins, strip_wealth
 
 
@@ -13,50 +14,81 @@ class EquipmentStep(WizardStep):
 
     def build_ui(self):
         self.frame.columnconfigure(0, weight=1)
+        self.frame.rowconfigure(1, weight=1)
 
-        ttk.Label(self.frame, text="Starting Equipment", style="Heading.TLabel").pack(
-            anchor="w", padx=12, pady=(12, 4)
-        )
-        ttk.Label(
-            self.frame,
+        # ── Hero header ─────────────────────────────────────────
+        hero = GradientHeader(self.frame, min_height=60)
+        hero.grid(row=0, column=0, sticky="ew")
+
+        hero_inner = tk.Frame(hero.inner, bg=COLORS["bg_hero"])
+        hero_inner.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(SPACING["xl"], 0))
+
+        tk.Label(
+            hero_inner,
+            text="Starting Equipment",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_hero"],
+        ).pack(side=tk.LEFT)
+
+        tk.Label(
+            hero.inner,
             text="Choose equipment from your class and background options.",
-            style="Dim.TLabel",
-        ).pack(anchor="w", padx=12, pady=(0, 8))
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_hero"],
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xs"], SPACING["xl"]))
+
+        # ── Scrollable content ──────────────────────────────────
+        scroll = ScrollableFrame(self.frame)
+        scroll.grid(row=1, column=0, sticky="nsew")
+        inner = scroll.inner
 
         # Class equipment
-        self.class_equip_frame = ttk.LabelFrame(self.frame, text="Class Equipment")
-        self.class_equip_frame.pack(fill=tk.X, padx=12, pady=4)
+        SectionHeader(inner, text="Class Equipment").pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
+        )
+        self.class_equip_card = CardFrame(inner, pad=SPACING["lg"])
+        self.class_equip_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
+        self.class_equip_frame = self.class_equip_card.inner
         self.class_equip_var = tk.StringVar(value="A")
         self.class_equip_var.trace_add("write", self._on_change)
 
         # Background equipment
-        self.bg_equip_frame = ttk.LabelFrame(self.frame, text="Background Equipment")
-        self.bg_equip_frame.pack(fill=tk.X, padx=12, pady=4)
+        SectionHeader(inner, text="Background Equipment").pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
+        )
+        self.bg_equip_card = CardFrame(inner, pad=SPACING["lg"])
+        self.bg_equip_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
+        self.bg_equip_frame = self.bg_equip_card.inner
         self.bg_equip_var = tk.StringVar(value="A")
         self.bg_equip_var.trace_add("write", self._on_change)
 
         # Combined summary
-        self.summary_frame = ttk.LabelFrame(self.frame, text="Your Equipment")
-        self.summary_frame.pack(fill=tk.BOTH, expand=True, padx=12, pady=(8, 12))
+        SectionHeader(inner, text="Your Equipment").pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
+        )
+        summary_card = CardFrame(inner, pad=SPACING["lg"])
+        summary_card.pack(fill=tk.BOTH, expand=True, padx=SPACING["lg"], pady=(0, SPACING["lg"]))
         self.summary_text = tk.Text(
-            self.summary_frame,
+            summary_card.inner,
             wrap=tk.WORD,
             height=8,
-            bg=COLORS["bg_light"],
+            bg=COLORS["bg_surface"],
             fg=COLORS["fg"],
             font=FONTS["body"],
             borderwidth=0,
+            highlightthickness=0,
+            relief=tk.FLAT,
             state=tk.DISABLED,
         )
-        self.summary_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+        self.summary_text.pack(fill=tk.BOTH, expand=True)
 
     def on_enter(self):
-        # Snapshot choices before populate resets them to first option
         saved_class = self.character.equipment_choice_class
         saved_bg = self.character.equipment_choice_background
         self._populate_class_equipment()
         self._populate_bg_equipment()
-        # Restore saved equipment choices
         if saved_class:
             self.class_equip_var.set(saved_class)
         if saved_bg:
@@ -67,43 +99,47 @@ class EquipmentStep(WizardStep):
         for w in self.class_equip_frame.winfo_children():
             w.destroy()
 
+        _bg = COLORS["bg_surface"]
         cls = self.character.character_class
         if not cls:
-            ttk.Label(
-                self.class_equip_frame, text="No class selected", style="Dim.TLabel"
-            ).pack(padx=8, pady=4)
+            tk.Label(
+                self.class_equip_frame, text="No class selected",
+                font=FONTS["body"], fg=COLORS["fg_dim"], bg=_bg,
+            ).pack(anchor="w")
             return
 
         equip_options = cls.get("starting_equipment", [])
         if not equip_options:
-            ttk.Label(
-                self.class_equip_frame,
-                text="No equipment options available",
-                style="Dim.TLabel",
-            ).pack(padx=8, pady=4)
+            tk.Label(
+                self.class_equip_frame, text="No equipment options available",
+                font=FONTS["body"], fg=COLORS["fg_dim"], bg=_bg,
+            ).pack(anchor="w")
             return
 
-        ttk.Label(
+        tk.Label(
             self.class_equip_frame,
             text=f"{cls['name']} Starting Equipment:",
-            style="Subheading.TLabel",
-        ).pack(anchor="w", padx=8, pady=(4, 2))
+            font=FONTS["subheading"],
+            fg=COLORS["fg"],
+            bg=_bg,
+        ).pack(anchor="w", pady=(0, SPACING["xs"]))
 
         for i, opt in enumerate(equip_options):
             if i > 0:
-                ttk.Label(
+                tk.Label(
                     self.class_equip_frame,
-                    text="   or",
-                    foreground=COLORS["fg_dim"],
-                    font=("Segoe UI", 9, "italic"),
-                ).pack(anchor="w", padx=32)
+                    text="or",
+                    font=FONTS["body_small"],
+                    fg=COLORS["fg_dim"],
+                    bg=_bg,
+                ).pack(anchor="w", padx=SPACING["2xl"])
 
             ttk.Radiobutton(
                 self.class_equip_frame,
                 text=f"({opt['option']}) {opt['items']}",
                 variable=self.class_equip_var,
                 value=opt["option"],
-            ).pack(anchor="w", padx=16, pady=2)
+            ).pack(anchor="w", padx=SPACING["lg"], pady=2)
 
         if equip_options:
             self.class_equip_var.set(equip_options[0]["option"])
@@ -112,43 +148,47 @@ class EquipmentStep(WizardStep):
         for w in self.bg_equip_frame.winfo_children():
             w.destroy()
 
+        _bg = COLORS["bg_surface"]
         bg = self.character.background
         if not bg:
-            ttk.Label(
-                self.bg_equip_frame, text="No background selected", style="Dim.TLabel"
-            ).pack(padx=8, pady=4)
+            tk.Label(
+                self.bg_equip_frame, text="No background selected",
+                font=FONTS["body"], fg=COLORS["fg_dim"], bg=_bg,
+            ).pack(anchor="w")
             return
 
         equip_options = bg.get("equipment", [])
         if not equip_options:
-            ttk.Label(
-                self.bg_equip_frame,
-                text="No equipment options available",
-                style="Dim.TLabel",
-            ).pack(padx=8, pady=4)
+            tk.Label(
+                self.bg_equip_frame, text="No equipment options available",
+                font=FONTS["body"], fg=COLORS["fg_dim"], bg=_bg,
+            ).pack(anchor="w")
             return
 
-        ttk.Label(
+        tk.Label(
             self.bg_equip_frame,
             text=f"{bg['name']} Equipment:",
-            style="Subheading.TLabel",
-        ).pack(anchor="w", padx=8, pady=(4, 2))
+            font=FONTS["subheading"],
+            fg=COLORS["fg"],
+            bg=_bg,
+        ).pack(anchor="w", pady=(0, SPACING["xs"]))
 
         for i, opt in enumerate(equip_options):
             if i > 0:
-                ttk.Label(
+                tk.Label(
                     self.bg_equip_frame,
-                    text="   or",
-                    foreground=COLORS["fg_dim"],
-                    font=("Segoe UI", 9, "italic"),
-                ).pack(anchor="w", padx=32)
+                    text="or",
+                    font=FONTS["body_small"],
+                    fg=COLORS["fg_dim"],
+                    bg=_bg,
+                ).pack(anchor="w", padx=SPACING["2xl"])
 
             ttk.Radiobutton(
                 self.bg_equip_frame,
                 text=f"({opt['option']}) {opt['items']}",
                 variable=self.bg_equip_var,
                 value=opt["option"],
-            ).pack(anchor="w", padx=16, pady=2)
+            ).pack(anchor="w", padx=SPACING["lg"], pady=2)
 
         if equip_options:
             self.bg_equip_var.set(equip_options[0]["option"])
@@ -166,7 +206,6 @@ class EquipmentStep(WizardStep):
         lines = []
         total_gp = Decimal("0")
 
-        # Class equipment
         cls = self.character.character_class
         if cls:
             choice = self.class_equip_var.get()
@@ -179,7 +218,6 @@ class EquipmentStep(WizardStep):
                     lines.append("")
                     break
 
-        # Background equipment
         bg = self.character.background
         if bg:
             choice = self.bg_equip_var.get()
