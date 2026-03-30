@@ -6,7 +6,6 @@ import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
 from gui.widgets import (
-    SectionedListbox,
     ScrollableFrame,
     WrappingLabel,
     FormattedDescription,
@@ -46,6 +45,7 @@ def _slug(name: str) -> str:
 
 class ClassStep(WizardStep):
     tab_title = "Class"
+    CLASS_OVERVIEW_LABEL = "Class Overview"
 
     def build_ui(self):
         self._edit_initialized = False
@@ -167,8 +167,9 @@ class ClassStep(WizardStep):
         self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
         save_settings(self.data.source_filters)
         self._populate_tiles()
-        if hasattr(self, "class_list"):
-            self._populate_list()
+        if self.character.character_class and hasattr(self, "_subclass_combo"):
+            class_name = self.character.character_class.get("name", "")
+            self._refresh_subclass_preview_options(class_name)
 
     def _get_class_level1_features(self, cls: dict) -> list[str]:
         """Get up to 3 level 1 feature names from progression data."""
@@ -189,21 +190,24 @@ class ClassStep(WizardStep):
         grouped = group_by_category(self.data.classes, "classes")
         img_base = os.path.join(images_dir(), "classes")
 
-        tiles = []
+        sections = []
         for cat, items in grouped:
             if cat not in enabled:
                 continue
+            cat_tiles = []
             for cls in items:
                 traits = self._get_class_level1_features(cls)
                 slug = _slug(cls["name"])
                 img_path = os.path.join(img_base, f"{slug}.png")
-                tiles.append({
+                cat_tiles.append({
                     "name": cls["name"],
                     "description": _first_sentence(cls.get("description", "")),
                     "traits": traits,
                     "image_path": img_path if os.path.isfile(img_path) else None,
                 })
-        self._tile_grid.set_tiles(tiles)
+            if cat_tiles:
+                sections.append((cat, cat_tiles))
+        self._tile_grid.set_sectioned_tiles(sections)
 
     def _on_tile_click(self, name: str):
         """Handle tile click: select class and switch to detail view."""
@@ -211,51 +215,18 @@ class ClassStep(WizardStep):
         if not cls:
             return
         self._on_select(name)
-        if hasattr(self, "class_list"):
-            self.class_list.select_item(name)
         self.go_to_substep(1)
 
     # ── Detail View (substep 1) — existing layout ─────────────────
 
     def _build_detail_view(self):
-        self._detail_frame.columnconfigure(1, weight=1)
+        self._detail_frame.columnconfigure(0, weight=1)
         self._detail_frame.rowconfigure(0, weight=1)
 
-        # Left: class list
-        left = tk.Frame(self._detail_frame, bg=COLORS["bg"], width=280)
-        left.grid(row=0, column=0, sticky="nsew", padx=(SPACING["sm"], SPACING["xs"]), pady=0)
-        left.grid_propagate(False)
-
-        SectionHeader(left, text="Choose Class").pack(
-            fill=tk.X, pady=(SPACING["lg"], SPACING["sm"])
-        )
-
-        # Source filter toggles (detail view)
-        self._detail_toggle_frame = tk.Frame(left, bg=COLORS["bg"])
-        self._detail_toggle_frame.pack(fill=tk.X, pady=(0, SPACING["xs"]))
-        self._build_detail_toggles()
-
-        # Subclass visibility filter
-        self._show_subclasses_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(
-            left,
-            text="Show subclasses (unlocks at level 3)",
-            variable=self._show_subclasses_var,
-            command=self._populate_list,
-        ).pack(anchor="w", pady=(0, SPACING["xs"]))
-
-        self.class_list = SectionedListbox(
-            left,
-            on_select=self._on_select,
-            on_sub_select=self._on_sub_select,
-        )
-        self.class_list.pack(fill=tk.BOTH, expand=True)
-        self._subclass_lookup_by_class: dict[str, dict[str, dict]] = {}
-
-        # Right: detail
         right = ScrollableFrame(self._detail_frame)
-        right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0), pady=0)
+        right.grid(row=0, column=0, sticky="nsew", padx=SPACING["sm"], pady=0)
         self.detail = right.inner
+        self._subclass_lookup_by_class: dict[str, dict[str, dict]] = {}
 
         # Hero header for selected class
         self._hero = GradientHeader(self.detail, min_height=60)
@@ -284,6 +255,34 @@ class ClassStep(WizardStep):
         )
         self.detail_desc.pack(fill=tk.X, anchor="w", padx=SPACING["lg"], pady=(0, SPACING["sm"]))
 
+        self.subclass_preview_frame = tk.Frame(self.detail, bg=COLORS["bg"])
+        self.subclass_preview_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
+
+        SectionHeader(self.subclass_preview_frame, text="Subclass Preview").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
+
+        subclass_card = CardFrame(self.subclass_preview_frame, pad=SPACING["md"])
+        subclass_card.pack(fill=tk.X)
+
+        tk.Label(
+            subclass_card.inner,
+            text="Preview level 3 subclasses without changing your chosen class.",
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", pady=(0, SPACING["xs"]))
+
+        self._subclass_var = tk.StringVar(value=self.CLASS_OVERVIEW_LABEL)
+        self._subclass_combo = ttk.Combobox(
+            subclass_card.inner,
+            textvariable=self._subclass_var,
+            state="readonly",
+            values=[self.CLASS_OVERVIEW_LABEL],
+        )
+        self._subclass_combo.pack(fill=tk.X)
+        self._subclass_combo.bind("<<ComboboxSelected>>", self._on_subclass_preview_change)
+
         # Equipment - Top
         self.equip_frame = tk.Frame(self.detail, bg=COLORS["bg"])
         self.equip_frame.pack(fill=tk.X)
@@ -294,29 +293,6 @@ class ClassStep(WizardStep):
         # Features
         self.features_frame = tk.Frame(self.detail, bg=COLORS["bg"])
         self.features_frame.pack(fill=tk.X, pady=(SPACING["sm"], 0))
-
-        self._populate_list()
-
-    def _build_detail_toggles(self):
-        for w in self._detail_toggle_frame.winfo_children():
-            w.destroy()
-
-        filters = self.data.source_filters.get("classes", {})
-        sections = SECTION_ORDER["classes"]
-
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            var = self.toggle_vars.get(cat)
-            if var is None:
-                var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-                self.toggle_vars[cat] = var
-            cb = ttk.Checkbutton(
-                self._detail_toggle_frame,
-                text=label,
-                variable=var,
-                command=self._on_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, 6))
 
     def _show_class_panels(self):
         """Show normal class detail sections."""
@@ -348,57 +324,53 @@ class ClassStep(WizardStep):
             self._edit_initialized = True
             name = self.character.character_class.get("name", "")
             saved_skills = list(self.character.selected_skills)
-            if hasattr(self, "class_list"):
-                self.class_list.select_item(name)
             self._on_select(name)
             self.character.selected_skills = saved_skills
             self.go_to_substep(1)
 
-    def _populate_list(self):
-        filters = self.data.source_filters.get("classes", {})
-        enabled = {cat for cat, on in filters.items() if on}
+    def _refresh_subclass_preview_options(self, class_name: str):
+        cls = self.data.classes_by_name.get(class_name)
+        values = [self.CLASS_OVERVIEW_LABEL]
+        lookup: dict[str, dict] = {}
 
-        grouped = group_by_category(self.data.classes, "classes")
-        sections = [
-            (cat, [c["name"] for c in items])
-            for cat, items in grouped
-            if cat in enabled
-        ]
+        if cls:
+            sub_filters = self.data.source_filters.get("subclasses", {})
+            enabled_sub_cats = {cat for cat, on in sub_filters.items() if on}
+            subclasses = self.data.get_subclasses_for_class(cls.get("slug", ""))
+            for subclass in sorted(subclasses, key=lambda s: s["name"]):
+                category = get_category("subclasses", subclass.get("source", ""))
+                if category not in enabled_sub_cats:
+                    continue
+                label = subclass["name"]
+                if category == UA_CATEGORY:
+                    label = f"[UA] {label}"
+                values.append(label)
+                lookup[label] = subclass
 
-        # Build sub-items: subclass names listed under each class
-        sub_filters = self.data.source_filters.get("subclasses", {})
-        enabled_sub_cats = {cat for cat, on in sub_filters.items() if on}
-        sub_items: dict[str, list[str]] = {}
-        sub_lookup: dict[str, dict[str, dict]] = {}
-        for cls in self.data.classes:
-            slug = cls.get("slug", "")
-            subs = self.data.get_subclasses_for_class(slug)
-            if subs:
-                visible = [
-                    sc
-                    for sc in subs
-                    if get_category("subclasses", sc.get("source", ""))
-                    in enabled_sub_cats
-                ]
-                if visible:
-                    names = []
-                    class_lookup: dict[str, dict] = {}
-                    for sc in sorted(visible, key=lambda s: s["name"]):
-                        name = sc["name"]
-                        if (
-                            get_category("subclasses", sc.get("source", ""))
-                            == UA_CATEGORY
-                        ):
-                            name = f"[UA] {name}"
-                        names.append(name)
-                        class_lookup[name] = sc
-                    sub_items[cls["name"]] = names
-                    sub_lookup[cls["name"]] = class_lookup
+        self._subclass_lookup_by_class[class_name] = lookup
+        current_value = self._subclass_var.get()
+        self._subclass_combo.configure(values=values)
 
-        self._subclass_lookup_by_class = sub_lookup
-        show_subs = getattr(self, "_show_subclasses_var", None)
-        effective_sub_items = sub_items if (show_subs and show_subs.get()) else {}
-        self.class_list.set_sectioned_items(sections, sub_items=effective_sub_items)
+        if current_value in values:
+            self._subclass_var.set(current_value)
+            return
+
+        self._subclass_var.set(self.CLASS_OVERVIEW_LABEL)
+        if self.character.character_class and self.character.character_class.get("name") == class_name:
+            self._on_select(class_name)
+
+    def _on_subclass_preview_change(self, _event=None):
+        current_cls = self.character.character_class or {}
+        class_name = current_cls.get("name", "")
+        if not class_name:
+            return
+
+        selected = self._subclass_var.get()
+        if selected == self.CLASS_OVERVIEW_LABEL:
+            self._on_select(class_name)
+            return
+
+        self._on_sub_select(class_name, selected)
 
     def _clear_detail_frames(self):
         for f in [self.equip_frame, self.traits_frame, self.features_frame]:
@@ -414,6 +386,7 @@ class ClassStep(WizardStep):
         if not current_cls or current_cls.get("name") != class_name:
             self._on_select(class_name)
 
+        self._subclass_var.set(sub_label)
         self._show_subclass_panels()
 
         self.detail_name.configure(text=subclass.get("name", "Subclass"))
@@ -498,8 +471,11 @@ class ClassStep(WizardStep):
 
         self._show_class_panels()
 
+        current_cls = self.character.character_class or {}
+        same_class = current_cls.get("slug") == cls.get("slug")
         self.character.character_class = cls
-        self.character.selected_skills = []
+        if not same_class:
+            self.character.selected_skills = []
 
         # Initialize class_levels with level 1 entry
         from models.class_level import ClassLevel
@@ -513,6 +489,8 @@ class ClassStep(WizardStep):
             self.character.class_levels = [
                 ClassLevel(class_slug=slug, class_level=1, hit_die=hit_die)
             ]
+        self._subclass_var.set(self.CLASS_OVERVIEW_LABEL)
+        self._refresh_subclass_preview_options(cls["name"])
         self.detail_name.configure(text=cls["name"])
         self.detail_source.configure(text=f"Source: {cls.get('source', 'Unknown')}")
         self.detail_desc.configure(text=cls.get("description", ""))

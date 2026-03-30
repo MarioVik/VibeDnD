@@ -4,7 +4,6 @@ import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
 from gui.widgets import (
-    SectionedListbox,
     ScrollableFrame,
     WrappingLabel,
     GradientHeader,
@@ -150,18 +149,17 @@ class BackgroundStep(WizardStep):
         self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
         save_settings(self.data.source_filters)
         self._populate_tiles()
-        if hasattr(self, "bg_list"):
-            self._populate_list()
 
     def _populate_tiles(self):
         filters = self.data.source_filters.get("backgrounds", {})
         enabled = {cat for cat, on in filters.items() if on}
 
         grouped = group_by_category(self.data.backgrounds, "backgrounds")
-        tiles = []
+        sections = []
         for cat, items in grouped:
             if cat not in enabled:
                 continue
+            cat_tiles = []
             for bg in items:
                 traits = []
                 feat = bg.get("feat", "")
@@ -174,13 +172,15 @@ class BackgroundStep(WizardStep):
                 if tool:
                     traits.append(f"Tool: {tool}")
 
-                tiles.append({
+                cat_tiles.append({
                     "name": bg["name"],
                     "description": _first_sentence(bg.get("description", "")),
                     "traits": traits,
                     "image_path": None,  # No images for backgrounds
                 })
-        self._tile_grid.set_tiles(tiles)
+            if cat_tiles:
+                sections.append((cat, cat_tiles))
+        self._tile_grid.set_sectioned_tiles(sections)
 
     def _on_tile_click(self, name: str):
         """Handle tile click: select background and switch to detail view."""
@@ -188,36 +188,16 @@ class BackgroundStep(WizardStep):
         if not bg:
             return
         self._on_select(name)
-        if hasattr(self, "bg_list"):
-            self.bg_list.select_item(name)
         self.go_to_substep(1)
 
     # ── Detail View (substep 1) — existing layout ─────────────────
 
     def _build_detail_view(self):
-        self._detail_frame.columnconfigure(1, weight=1)
+        self._detail_frame.columnconfigure(0, weight=1)
         self._detail_frame.rowconfigure(0, weight=1)
 
-        # Left: background list with source toggles
-        left = tk.Frame(self._detail_frame, bg=COLORS["bg"], width=220)
-        left.grid(row=0, column=0, sticky="nsew", padx=(SPACING["sm"], SPACING["xs"]), pady=0)
-        left.grid_propagate(False)
-
-        SectionHeader(left, text="Choose Background").pack(
-            fill=tk.X, pady=(SPACING["lg"], SPACING["sm"])
-        )
-
-        # Source filter toggles (detail view)
-        self._detail_toggle_frame = tk.Frame(left, bg=COLORS["bg"])
-        self._detail_toggle_frame.pack(fill=tk.X, pady=(0, SPACING["xs"]))
-        self._build_detail_toggles()
-
-        self.bg_list = SectionedListbox(left, on_select=self._on_select)
-        self.bg_list.pack(fill=tk.BOTH, expand=True)
-
-        # Right: detail
         right = ScrollableFrame(self._detail_frame)
-        right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0), pady=0)
+        right.grid(row=0, column=0, sticky="nsew", padx=SPACING["sm"], pady=0)
         self.detail = right.inner
 
         # Hero header
@@ -254,29 +234,6 @@ class BackgroundStep(WizardStep):
         self.bonus_frame = tk.Frame(self.detail, bg=COLORS["bg"])
         self.bonus_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
 
-        self._populate_list()
-
-    def _build_detail_toggles(self):
-        for w in self._detail_toggle_frame.winfo_children():
-            w.destroy()
-
-        filters = self.data.source_filters.get("backgrounds", {})
-        sections = SECTION_ORDER["backgrounds"]
-
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            var = self.toggle_vars.get(cat)
-            if var is None:
-                var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-                self.toggle_vars[cat] = var
-            cb = ttk.Checkbutton(
-                self._detail_toggle_frame,
-                text=label,
-                variable=var,
-                command=self._on_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, 6))
-
     def on_enter(self):
         """Pre-select background and bonus assignments when editing."""
         if not self._edit_initialized and self.character.background:
@@ -284,8 +241,6 @@ class BackgroundStep(WizardStep):
             name = self.character.background.get("name", "")
             saved_mode = self.character.ability_bonus_mode
             saved_bonuses = dict(self.character.ability_scores.bonuses)
-            if hasattr(self, "bg_list"):
-                self.bg_list.select_item(name)
             self._on_select(name)
             if hasattr(self, "bonus_mode"):
                 self.bonus_mode.set(saved_mode)
@@ -297,18 +252,6 @@ class BackgroundStep(WizardStep):
                         elif val == 1 and "+1" in self.bonus_combos:
                             self.bonus_combos["+1"].set(ab)
             self.go_to_substep(1)
-
-    def _populate_list(self):
-        filters = self.data.source_filters.get("backgrounds", {})
-        enabled = {cat for cat, on in filters.items() if on}
-
-        grouped = group_by_category(self.data.backgrounds, "backgrounds")
-        sections = [
-            (cat, [b["name"] for b in items])
-            for cat, items in grouped
-            if cat in enabled
-        ]
-        self.bg_list.set_sectioned_items(sections)
 
     def _on_select(self, name: str):
         bg = self.data.backgrounds_by_name.get(name)

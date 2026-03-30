@@ -1850,6 +1850,7 @@ class OptionTile(tk.Frame):
         description: str = "",
         traits: list[str] | None = None,
         image_path: str | None = None,
+        tile_width: int | None = None,
         on_click=None,
         **kwargs,
     ):
@@ -1864,13 +1865,14 @@ class OptionTile(tk.Frame):
         self._name = name
         self._on_click = on_click
         self._photo = None  # prevent GC
+        self._tile_width = tile_width or self.TILE_WIDTH
 
         # Image section
         if image_path and os.path.isfile(image_path):
             try:
                 from PIL import Image as PILImage, ImageTk
                 img = PILImage.open(image_path)
-                img = img.resize((self.TILE_WIDTH, 150), PILImage.LANCZOS)
+                img = img.resize((self._tile_width, 150), PILImage.LANCZOS)
                 self._photo = ImageTk.PhotoImage(img)
             except Exception:
                 # Fallback to native PhotoImage (PNG only)
@@ -1907,7 +1909,7 @@ class OptionTile(tk.Frame):
                 bg=COLORS["tile_bg"],
                 anchor="w",
                 justify=tk.LEFT,
-                wraplength=self.TILE_WIDTH - 2 * SPACING["tile_pad"],
+                wraplength=self._tile_width - 2 * SPACING["tile_pad"],
             )
             desc_label.pack(fill=tk.X, pady=(4, 0))
 
@@ -1964,9 +1966,11 @@ class TileGrid(tk.Frame):
         self._on_select = on_select
         self._tile_width = tile_width
         self._tiles: list[OptionTile] = []
+        self._sections: list[tuple[SectionHeader, list[OptionTile]]] = []
         self._tile_data: list[dict] = []
         self._visible_names: set[str] | None = None
         self._cols = 3
+        self._max_cols_seen = self._cols
         self._relayout_job = None
 
         self._scroll = ScrollableFrame(self, inner_padding=SPACING["lg"])
@@ -1975,27 +1979,49 @@ class TileGrid(tk.Frame):
 
         self._scroll.canvas.bind("<Configure>", self._on_canvas_resize)
 
+    def _clear_content(self):
+        for t in self._tiles:
+            t.destroy()
+        for header, _ in self._sections:
+            header.destroy()
+        self._tiles.clear()
+        self._sections.clear()
+        self._tile_data.clear()
+
+    def _create_tile(self, tile_data: dict) -> OptionTile:
+        return OptionTile(
+            self._grid_frame,
+            name=tile_data["name"],
+            description=tile_data.get("description", ""),
+            traits=tile_data.get("traits"),
+            image_path=tile_data.get("image_path"),
+            tile_width=self._tile_width,
+            on_click=self._handle_select,
+        )
+
     def set_tiles(self, tiles: list[dict]):
         """Rebuild the tile grid.
 
         Each dict: {"name": str, "description": str, "traits": list[str], "image_path": str | None}
         """
-        # Destroy old tiles
-        for t in self._tiles:
-            t.destroy()
-        self._tiles.clear()
-        self._tile_data = tiles
+        self._clear_content()
+        self._tile_data = list(tiles)
+        self._tiles = [self._create_tile(td) for td in tiles]
 
-        for td in tiles:
-            tile = OptionTile(
-                self._grid_frame,
-                name=td["name"],
-                description=td.get("description", ""),
-                traits=td.get("traits"),
-                image_path=td.get("image_path"),
-                on_click=self._handle_select,
-            )
-            self._tiles.append(tile)
+        self._layout_tiles()
+
+    def set_sectioned_tiles(self, sections: list[tuple[str, list[dict]]]):
+        """Rebuild the tile grid with visible section headers."""
+        self._clear_content()
+        self._tile_data = [tile for _section, tiles in sections for tile in tiles]
+
+        for section_name, tiles in sections:
+            if not tiles:
+                continue
+            header = SectionHeader(self._grid_frame, text=section_name)
+            section_tiles = [self._create_tile(td) for td in tiles]
+            self._sections.append((header, section_tiles))
+            self._tiles.extend(section_tiles)
 
         self._layout_tiles()
 
@@ -2026,22 +2052,69 @@ class TileGrid(tk.Frame):
 
     def _layout_tiles(self):
         gap = SPACING["tile_gap"]
-        col = 0
-        row = 0
 
         # Configure columns
-        for c in range(self._cols):
-            self._grid_frame.columnconfigure(c, weight=1)
+        self._max_cols_seen = max(self._max_cols_seen, self._cols)
+        for c in range(self._max_cols_seen):
+            self._grid_frame.columnconfigure(c, weight=1 if c < self._cols else 0)
 
         for tile in self._tiles:
             tile.grid_forget()
+        for header, _ in self._sections:
+            header.grid_forget()
 
+        if self._sections:
+            row = 0
+            for header, tiles in self._sections:
+                visible_tiles = [
+                    tile
+                    for tile in tiles
+                    if self._visible_names is None or tile._name in self._visible_names
+                ]
+                if not visible_tiles:
+                    continue
+
+                top_pad = gap // 2 if row == 0 else gap
+                header.grid(
+                    row=row,
+                    column=0,
+                    columnspan=self._cols,
+                    padx=gap // 2,
+                    pady=(top_pad, gap // 2),
+                    sticky="ew",
+                )
+                row += 1
+
+                col = 0
+                for tile in visible_tiles:
+                    tile.grid(
+                        row=row,
+                        column=col,
+                        padx=gap // 2,
+                        pady=gap // 2,
+                        sticky="nsew",
+                    )
+                    col += 1
+                    if col >= self._cols:
+                        col = 0
+                        row += 1
+
+                if col != 0:
+                    row += 1
+            return
+
+        col = 0
+        row = 0
+
+        for tile in self._tiles:
             if self._visible_names is not None and tile._name not in self._visible_names:
                 continue
 
             tile.grid(
-                row=row, column=col,
-                padx=gap // 2, pady=gap // 2,
+                row=row,
+                column=col,
+                padx=gap // 2,
+                pady=gap // 2,
                 sticky="nsew",
             )
             col += 1

@@ -5,7 +5,6 @@ import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
 from gui.widgets import (
-    SectionedListbox,
     ScrollableFrame,
     WrappingLabel,
     FormattedDescription,
@@ -183,9 +182,6 @@ class SpeciesStep(WizardStep):
         self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
         save_settings(self.data.source_filters)
         self._populate_tiles()
-        # Also update detail list if it exists
-        if hasattr(self, "species_list"):
-            self._populate_list()
 
     def _populate_tiles(self):
         filters = self.data.source_filters.get("species", {})
@@ -194,21 +190,24 @@ class SpeciesStep(WizardStep):
         grouped = group_by_category(self.data.species, "species")
         img_base = os.path.join(images_dir(), "species")
 
-        tiles = []
+        sections = []
         for cat, items in grouped:
             if cat not in enabled:
                 continue
+            cat_tiles = []
             for sp in items:
                 traits = [t["name"] for t in sp.get("traits", [])[:3]]
                 slug = _slug(sp["name"])
                 img_path = os.path.join(img_base, f"{slug}.png")
-                tiles.append({
+                cat_tiles.append({
                     "name": sp["name"],
                     "description": _first_sentence(sp.get("description", "")),
                     "traits": traits,
                     "image_path": img_path if os.path.isfile(img_path) else None,
                 })
-        self._tile_grid.set_tiles(tiles)
+            if cat_tiles:
+                sections.append((cat, cat_tiles))
+        self._tile_grid.set_sectioned_tiles(sections)
 
     def _on_tile_click(self, name: str):
         """Handle tile click: select species and switch to detail view."""
@@ -216,38 +215,16 @@ class SpeciesStep(WizardStep):
         if not sp:
             return
         self._on_select(name)
-        # Also select in the detail list
-        if hasattr(self, "species_list"):
-            self.species_list.select_item(name)
         self.go_to_substep(1)
 
     # ── Detail View (substep 1) — existing layout ─────────────────
 
     def _build_detail_view(self):
-        self._detail_frame.columnconfigure(1, weight=1)
+        self._detail_frame.columnconfigure(0, weight=1)
         self._detail_frame.rowconfigure(0, weight=1)
 
-        # Left: species list with source toggles
-        left = tk.Frame(self._detail_frame, bg=COLORS["bg"], width=220)
-        left.grid(row=0, column=0, sticky="nsew", padx=(SPACING["sm"], SPACING["xs"]), pady=0)
-        left.grid_propagate(False)
-
-        # Left panel header
-        SectionHeader(left, text="Choose Species").pack(
-            fill=tk.X, pady=(SPACING["lg"], SPACING["sm"])
-        )
-
-        # Source filter toggles (detail view shares state with grid)
-        self._detail_toggle_frame = tk.Frame(left, bg=COLORS["bg"])
-        self._detail_toggle_frame.pack(fill=tk.X, pady=(0, SPACING["xs"]))
-        self._build_detail_toggles()
-
-        self.species_list = SectionedListbox(left, on_select=self._on_select)
-        self.species_list.pack(fill=tk.BOTH, expand=True)
-
-        # Right: detail panel
         right = ScrollableFrame(self._detail_frame)
-        right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0), pady=0)
+        right.grid(row=0, column=0, sticky="nsew", padx=SPACING["sm"], pady=0)
         self.detail = right.inner
 
         # Hero header for selected species
@@ -295,31 +272,6 @@ class SpeciesStep(WizardStep):
         self.traits_frame = tk.Frame(self.detail, bg=COLORS["bg"])
         self.traits_frame.pack(fill=tk.X, pady=(SPACING["sm"], 0))
 
-        self._populate_list()
-
-    def _build_detail_toggles(self):
-        """Build source filter checkboxes on the detail view (synced with grid)."""
-        for w in self._detail_toggle_frame.winfo_children():
-            w.destroy()
-
-        filters = self.data.source_filters.get("species", {})
-        sections = SECTION_ORDER["species"]
-
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            # Reuse the same toggle_vars from grid
-            var = self.toggle_vars.get(cat)
-            if var is None:
-                var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-                self.toggle_vars[cat] = var
-            cb = ttk.Checkbutton(
-                self._detail_toggle_frame,
-                text=label,
-                variable=var,
-                command=self._on_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, 6))
-
     def on_enter(self):
         """Pre-select species when editing an existing character."""
         if not self._edit_initialized and self.character.species:
@@ -328,9 +280,6 @@ class SpeciesStep(WizardStep):
             # Snapshot values that _on_select will reset
             saved_sub = self.character.species_sub_choice
             saved_size = self.character.size_choice
-            # Select in list and populate detail panel
-            if hasattr(self, "species_list"):
-                self.species_list.select_item(name)
             self._on_select(name)
             # Restore saved choices
             if saved_sub:
@@ -339,19 +288,6 @@ class SpeciesStep(WizardStep):
                 self.size_var.set(saved_size)
             # Go to detail view
             self.go_to_substep(1)
-
-    def _populate_list(self):
-        filters = self.data.source_filters.get("species", {})
-        enabled = {cat for cat, on in filters.items() if on}
-
-        # Group species by category, only include enabled sections
-        grouped = group_by_category(self.data.species, "species")
-        sections = [
-            (cat, [s["name"] for s in items])
-            for cat, items in grouped
-            if cat in enabled
-        ]
-        self.species_list.set_sectioned_items(sections)
 
     def _on_select(self, name: str):
         sp = self.data.species_by_name.get(name)
