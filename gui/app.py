@@ -328,6 +328,8 @@ class CharacterCreatorApp:
                 value = "Currently Editing"
             elif step_idx == idx and not value:
                 value = "Currently Editing"
+            elif not value:
+                value = "Selection Required"
             self._wizard_sidebar.set_selection(step_key, value)
 
     def _get_sidebar_selection_text(self, key: str) -> str:
