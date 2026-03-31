@@ -1848,9 +1848,9 @@ class OptionTile(tk.Frame):
     Archive card style from the home screen.
     """
 
-    TILE_WIDTH = 280
-    TILE_HEIGHT = 340
-    OVERLAY_HEIGHT = 110
+    TILE_WIDTH = 310
+    TILE_HEIGHT = 380
+    OVERLAY_HEIGHT = 120
 
     def __init__(
         self,
@@ -2099,7 +2099,7 @@ class TileGrid(tk.Frame):
     Automatically recalculates column count on resize.
     """
 
-    def __init__(self, parent, on_select=None, tile_width: int = 280, **kwargs):
+    def __init__(self, parent, on_select=None, tile_width: int = OptionTile.TILE_WIDTH, **kwargs):
         super().__init__(parent, bg=COLORS["bg"], **kwargs)
         self._on_select = on_select
         self._tile_width = tile_width
