@@ -114,18 +114,20 @@ class ClassStep(WizardStep):
             justify=tk.LEFT,
         ).pack(anchor="w", pady=(SPACING["sm"], 0))
 
-        # Source filter toggles
+        # Keep filter state plumbing available, but the class screen no longer
+        # exposes filter controls in the character creator UI.
         self._grid_toggle_frame = tk.Frame(self._grid_frame, bg=COLORS["bg"])
-        self._grid_toggle_frame.pack(fill=tk.X, padx=SPACING["xl"], pady=(SPACING["md"], 0))
         self.toggle_vars: dict[str, tk.BooleanVar] = {}
         self._ua_prev_enabled = False
-        self._build_toggles()
 
         # Tile grid
         self._tile_grid = TileGrid(self._grid_frame, on_select=self._on_tile_click)
         self._tile_grid.pack(fill=tk.BOTH, expand=True, padx=SPACING["sm"], pady=SPACING["sm"])
 
         self._populate_tiles()
+
+    def _visible_class_categories(self) -> set[str]:
+        return {cat for cat in SECTION_ORDER["classes"] if cat != UA_CATEGORY}
 
     def _build_toggles(self):
         """Build source filter checkboxes for classes and subclasses."""
@@ -184,16 +186,15 @@ class ClassStep(WizardStep):
         return [f["name"] for f in cls.get("level_1_features", [])[:3]]
 
     def _populate_tiles(self):
-        filters = self.data.source_filters.get("classes", {})
-        enabled = {cat for cat, on in filters.items() if on}
+        img_base = os.path.join(images_dir(), "classes")
+        visible_categories = self._visible_class_categories()
 
         grouped = group_by_category(self.data.classes, "classes")
-        img_base = os.path.join(images_dir(), "classes")
-
         sections = []
         for cat, items in grouped:
-            if cat not in enabled:
+            if cat not in visible_categories:
                 continue
+
             cat_tiles = []
             for cls in items:
                 traits = self._get_class_level1_features(cls)
@@ -205,8 +206,10 @@ class ClassStep(WizardStep):
                     "traits": traits,
                     "image_path": img_path if os.path.isfile(img_path) else None,
                 })
+
             if cat_tiles:
                 sections.append((cat, cat_tiles))
+
         self._tile_grid.set_sectioned_tiles(sections)
 
     def _on_tile_click(self, name: str):
@@ -334,8 +337,7 @@ class ClassStep(WizardStep):
         lookup: dict[str, dict] = {}
 
         if cls:
-            sub_filters = self.data.source_filters.get("subclasses", {})
-            enabled_sub_cats = {cat for cat, on in sub_filters.items() if on}
+            enabled_sub_cats = self._visible_class_categories()
             subclasses = self.data.get_subclasses_for_class(cls.get("slug", ""))
             for subclass in sorted(subclasses, key=lambda s: s["name"]):
                 category = get_category("subclasses", subclass.get("source", ""))

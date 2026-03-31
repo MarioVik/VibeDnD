@@ -84,6 +84,12 @@ COLORS = {
     # Sidebar
     "sidebar_locked_fg": "#5a4a4a",
     "sidebar_completed_fg": "#8a7a7a",
+    "sidebar_indicator_active_outer": "#9B1B30",
+    "sidebar_indicator_active_inner": "#ffb3b5",
+    "sidebar_indicator_completed_outer": "#584141",
+    "sidebar_indicator_completed_inner": "#8a7a7a",
+    "sidebar_indicator_locked_outer": "#231f1f",
+    "sidebar_indicator_locked_inner": "#3a2d2d",
     # ----- backward-compat aliases (old code still referencing these) -----
     "bg_light": "#2a2a2a",      # → bg_high
     "bg_card": "#1b1b1b",       # → bg_surface

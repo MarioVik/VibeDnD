@@ -1243,6 +1243,256 @@ class NavButton(tk.Frame):
             NavButton._set_bg_recursive(child, bg)
 
 
+class WizardNavButton(tk.Frame):
+    """Creator-only navigation item with a compact vertical pill indicator."""
+
+    _INDICATOR_WIDTH = 10
+    _INDICATOR_HEIGHT = 36
+    _INDICATOR_OUTER_WIDTH = 5
+    _INDICATOR_INNER_WIDTH = 3
+    _INDICATOR_RADIUS = 2
+
+    def __init__(
+        self,
+        parent,
+        text: str,
+        key: str,
+        icon_char: str = "",
+        on_click=None,
+        subtitle: str = "",
+        **kwargs,
+    ):
+        super().__init__(parent, bg=COLORS["bg_surface"], cursor="hand2", **kwargs)
+        self.key = key
+        self._on_click = on_click
+        self._active = False
+        self._locked = False
+        self._completed = False
+
+        self._indicator = tk.Canvas(
+            self,
+            width=self._INDICATOR_WIDTH,
+            height=self._INDICATOR_HEIGHT,
+            highlightthickness=0,
+            bd=0,
+            relief="flat",
+            bg=COLORS["bg_surface"],
+            cursor="hand2",
+        )
+        self._indicator.pack(side=tk.LEFT, padx=(4, 14), pady=2)
+        self._indicator.bind("<Configure>", lambda _event: self._redraw_indicator())
+
+        self._inner = tk.Frame(self, bg=COLORS["bg_surface"])
+        self._inner.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10), pady=4)
+
+        self._text_col = tk.Frame(self._inner, bg=COLORS["bg_surface"])
+        self._text_col.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        self._label = tk.Label(
+            self._text_col,
+            text=text,
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+        )
+        self._label.pack(fill=tk.X)
+
+        self._subtitle = tk.Label(
+            self._text_col,
+            text=subtitle or "",
+            font=FONTS["nav_subtitle"],
+            fg=COLORS["sidebar_locked_fg"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+            justify=tk.LEFT,
+            wraplength=180,
+        )
+        if subtitle:
+            self._subtitle.pack(fill=tk.X, pady=(2, 0))
+
+        self._icon = None
+        self._bind_all_children()
+        self._redraw_indicator()
+
+    def _bind_all_children(self):
+        widgets = [self, self._indicator, self._inner, self._text_col, self._label, self._subtitle]
+        for widget in widgets:
+            widget.bind("<Button-1>", self._handle_click)
+            widget.bind("<Enter>", self._on_enter)
+            widget.bind("<Leave>", self._on_leave)
+
+    def _handle_click(self, _event=None):
+        if self._locked:
+            return
+        if self._on_click:
+            self._on_click(self.key)
+
+    def _on_enter(self, _event=None):
+        if not self._active and not self._locked:
+            bg = COLORS["bg_container"]
+            self.configure(bg=bg)
+            for child in self.winfo_children():
+                self._set_bg_recursive(child, bg)
+            self._redraw_indicator()
+
+    def _on_leave(self, _event=None):
+        if not self._active and not self._locked:
+            bg = COLORS["bg_surface"]
+            self.configure(bg=bg)
+            for child in self.winfo_children():
+                self._set_bg_recursive(child, bg)
+            self._redraw_indicator()
+
+    def set_subtitle(self, text: str):
+        self._subtitle.configure(text=text)
+        if text:
+            self._subtitle.pack(fill=tk.X, pady=(2, 0))
+        else:
+            self._subtitle.pack_forget()
+
+    def set_status(self, active: bool = False, completed: bool = False, locked: bool = False):
+        self._active = active
+        self._locked = locked
+        self._completed = completed
+
+        if locked:
+            bg = COLORS["bg_surface"]
+            fg = COLORS["sidebar_locked_fg"]
+            sub_fg = COLORS["sidebar_locked_fg"]
+            self.configure(cursor="")
+        elif active:
+            bg = COLORS["bg_surface"]
+            fg = COLORS["accent_text"]
+            sub_fg = COLORS["accent_text"]
+            self.configure(cursor="hand2")
+        elif completed:
+            bg = COLORS["bg_surface"]
+            fg = COLORS["fg_dim"]
+            sub_fg = COLORS["sidebar_completed_fg"]
+            self.configure(cursor="hand2")
+        else:
+            bg = COLORS["bg_surface"]
+            fg = COLORS["fg_dim"]
+            sub_fg = COLORS["sidebar_locked_fg"]
+            self.configure(cursor="hand2")
+
+        self.configure(bg=bg)
+        for child in self.winfo_children():
+            self._set_bg_recursive(child, bg)
+        self._label.configure(fg=fg)
+        self._subtitle.configure(fg=sub_fg)
+        self._redraw_indicator()
+
+    def set_active(self, active: bool):
+        if active:
+            self.set_status(active=True)
+        else:
+            self.set_status(active=False, completed=self._completed, locked=self._locked)
+
+    def _indicator_colors(self) -> tuple[str, str]:
+        if self._active:
+            return (
+                COLORS["sidebar_indicator_active_outer"],
+                COLORS["sidebar_indicator_active_inner"],
+            )
+        if self._completed:
+            return (
+                COLORS["sidebar_indicator_completed_outer"],
+                COLORS["sidebar_indicator_completed_inner"],
+            )
+        return (
+            COLORS["sidebar_indicator_locked_outer"],
+            COLORS["sidebar_indicator_locked_inner"],
+        )
+
+    def _redraw_indicator(self):
+        if not self._indicator.winfo_exists():
+            return
+
+        width = max(self._indicator.winfo_width(), self._INDICATOR_WIDTH)
+        height = max(self._indicator.winfo_height(), self._INDICATOR_HEIGHT)
+        self._indicator.delete("all")
+
+        top = 1
+        bottom = height - 1
+        center_x = width / 2.0
+        outer_color, inner_color = self._indicator_colors()
+
+        self._draw_pill(
+            center_x - (self._INDICATOR_OUTER_WIDTH / 2.0),
+            top,
+            center_x + (self._INDICATOR_OUTER_WIDTH / 2.0),
+            bottom,
+            outer_color,
+        )
+        self._draw_pill(
+            center_x - (self._INDICATOR_INNER_WIDTH / 2.0),
+            top + 1,
+            center_x + (self._INDICATOR_INNER_WIDTH / 2.0),
+            bottom - 1,
+            inner_color,
+        )
+
+    def _draw_pill(self, x0: float, y0: float, x1: float, y1: float, fill: str):
+        radius = min(self._INDICATOR_RADIUS, max((x1 - x0) / 2.0, 1.0), max((y1 - y0) / 2.0, 1.0))
+        if (y1 - y0) <= (radius * 2.0):
+            self._indicator.create_oval(x0, y0, x1, y1, fill=fill, outline=fill)
+            return
+
+        self._indicator.create_arc(
+            x0, y0, x0 + (radius * 2.0), y0 + (radius * 2.0),
+            start=90,
+            extent=90,
+            style=tk.PIESLICE,
+            fill=fill,
+            outline=fill,
+        )
+        self._indicator.create_arc(
+            x1 - (radius * 2.0), y0, x1, y0 + (radius * 2.0),
+            start=0,
+            extent=90,
+            style=tk.PIESLICE,
+            fill=fill,
+            outline=fill,
+        )
+        self._indicator.create_arc(
+            x0, y1 - (radius * 2.0), x0 + (radius * 2.0), y1,
+            start=180,
+            extent=90,
+            style=tk.PIESLICE,
+            fill=fill,
+            outline=fill,
+        )
+        self._indicator.create_arc(
+            x1 - (radius * 2.0), y1 - (radius * 2.0), x1, y1,
+            start=270,
+            extent=90,
+            style=tk.PIESLICE,
+            fill=fill,
+            outline=fill,
+        )
+        self._indicator.create_rectangle(
+            x0 + radius, y0, x1 - radius, y1,
+            fill=fill,
+            outline=fill,
+        )
+        self._indicator.create_rectangle(
+            x0, y0 + radius, x1, y1 - radius,
+            fill=fill,
+            outline=fill,
+        )
+
+    @staticmethod
+    def _set_bg_recursive(widget, bg):
+        try:
+            widget.configure(bg=bg)
+        except tk.TclError:
+            pass
+        for child in widget.winfo_children():
+            WizardNavButton._set_bg_recursive(child, bg)
+
+
 class StatCard(tk.Frame):
     """Bento-style stat card: uppercase label, large number, optional modifier badge."""
 
@@ -1968,7 +2218,7 @@ class OptionTile(tk.Frame):
         if not self._image_path or not os.path.isfile(self._image_path):
             return None
         try:
-            source = _PILImage.open(self._image_path).convert("RGB")
+            source = _PILImage.open(self._image_path).convert("RGBA")
         except Exception:
             return None
 
@@ -1992,7 +2242,15 @@ class OptionTile(tk.Frame):
             cropped = source.crop(box).resize((width, height), _PILImage.LANCZOS)
         except Exception:
             return None
-        return cropped.convert("RGBA")
+
+        # Matte transparent artwork onto the tile background so soft alpha
+        # edges do not pick up black halos from the source image.
+        background = _PILImage.new(
+            "RGBA",
+            (width, height),
+            _hex_to_rgb(COLORS["tile_bg"]) + (255,),
+        )
+        return _PILImage.alpha_composite(background, cropped)
 
     def _apply_overlay(self, base, width: int, height: int, hovered: bool = False):
         """Apply scrim gradient + bottom panel overlay (Archive card style)."""

@@ -5,7 +5,7 @@ from tkinter import ttk, filedialog
 
 from gui.theme import apply_theme, COLORS, FONTS, SPACING
 from gui.data_loader import GameData
-from gui.sidebar import Sidebar
+from gui.sidebar import WizardSidebar
 from gui.widgets import AlertDialog, HPBar
 
 from gui.step_species import SpeciesStep
@@ -43,17 +43,18 @@ _WIZARD_STEPS = [
 FEAT_INDEX = 3  # index of feat step in _WIZARD_STEPS
 SPELLS_INDEX = 7  # index of spells step in _WIZARD_STEPS
 
-# Map destination step keys to contextual next labels
-_NEXT_DEST_LABELS = {
-    "class": "Choose Class",
-    "background": "Choose Background",
-    "feat": "Choose Feat",
-    "abilities": "Ability Scores",
-    "skills": "Skills",
-    "equipment": "Equipment",
-    "spells": "Spells",
-    "languages": "Languages",
-    "biography": "Biography",
+# Labels for the wizard's primary confirm action
+_CONFIRM_STEP_LABELS = {
+    "species": "Confirm Species Choice",
+    "class": "Confirm Class Choice",
+    "background": "Confirm Background Choice",
+    "feat": "Confirm Feat Choice",
+    "abilities": "Confirm Ability Scores",
+    "skills": "Confirm Skills",
+    "equipment": "Confirm Equipment",
+    "spells": "Confirm Spells",
+    "languages": "Confirm Languages",
+    "biography": "Confirm Biography",
     "summary": "Summary",
 }
 
@@ -216,9 +217,7 @@ class CharacterCreatorApp:
             command=self._wizard_next,
         )
         self._next_btn.pack(side=tk.RIGHT)
-        candidate_next_labels = ["Finish \u2713"] + [
-            f"Next: {label}  \u25b6" for label in _NEXT_DEST_LABELS.values()
-        ]
+        candidate_next_labels = ["Finish \u2713"] + list(_CONFIRM_STEP_LABELS.values())
         original_next_text = self._next_btn.cget("text")
         max_next_width = 0
         for label in candidate_next_labels:
@@ -266,12 +265,13 @@ class CharacterCreatorApp:
         for key, label, icon, _ in _WIZARD_STEPS:
             nav_items.append({"key": key, "text": label, "icon": icon})
 
-        self._wizard_sidebar = Sidebar(
+        self._wizard_sidebar = WizardSidebar(
             frame,
             nav_items=nav_items,
             on_navigate=self._on_sidebar_nav,
             header_title="The Forge",
             on_back=cancel_cmd,
+            width=232,
         )
         self._wizard_sidebar.pack(side=tk.LEFT, fill=tk.Y)
 
@@ -580,9 +580,12 @@ class CharacterCreatorApp:
         else:
             is_valid = step.is_valid()
 
-        # On grid substep, Next is disabled (user clicks tiles to advance)
-        if step.has_substeps() and step.get_current_substep() == 0:
-            is_valid = False
+        is_tile_selection_substep = step.has_substeps() and step.get_current_substep() == 0
+        if is_tile_selection_substep:
+            if self._next_btn.winfo_manager():
+                self._next_btn.pack_forget()
+        elif not self._next_btn.winfo_manager():
+            self._next_btn.pack(side=tk.RIGHT)
 
         if curr == len(self.wizard_steps) - 1:
             self._next_btn.configure(
@@ -590,12 +593,10 @@ class CharacterCreatorApp:
                 command=self._save_and_finish,
                 state=tk.NORMAL if is_valid else tk.DISABLED,
             )
-        else:
-            next_idx = self._next_visible_step_index(curr)
-            next_key = self._step_keys[next_idx] if next_idx is not None else None
-            next_label_text = _NEXT_DEST_LABELS.get(next_key, "Next") if next_key else "Next"
+        elif not is_tile_selection_substep:
+            confirm_label = _CONFIRM_STEP_LABELS.get(key, "Confirm")
             self._next_btn.configure(
-                text=f"Next: {next_label_text}  \u25b6",
+                text=confirm_label,
                 command=self._wizard_next,
                 state=tk.NORMAL if is_valid else tk.DISABLED,
             )

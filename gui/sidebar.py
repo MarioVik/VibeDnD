@@ -4,7 +4,7 @@ import tkinter as tk
 from typing import Callable
 
 from gui.theme import COLORS, FONTS, SPACING
-from gui.widgets import NavButton
+from gui.widgets import NavButton, WizardNavButton
 
 
 class Sidebar(tk.Frame):
@@ -32,7 +32,7 @@ class Sidebar(tk.Frame):
         show_selection_panel: bool = False,
         on_back: Callable[[], None] | None = None,
         width: int = SIDEBAR_WIDTH,
-        ):
+    ):
         super().__init__(
             parent,
             bg=COLORS["bg_surface"],
@@ -42,9 +42,10 @@ class Sidebar(tk.Frame):
             highlightthickness=1,
         )
         self.pack_propagate(False)
+        self._sidebar_width = width
         self._on_navigate = on_navigate
         self._on_back: Callable[[], None] | None = on_back
-        self._nav_buttons: dict[str, NavButton] = {}
+        self._nav_buttons: dict[str, object] = {}
         self._active_key: str | None = None
         self._name_label: tk.Label | None = None
         self._summary_label: tk.Label | None = None
@@ -71,18 +72,16 @@ class Sidebar(tk.Frame):
 
         # ---- Navigation items ----
         nav_frame = tk.Frame(self, bg=COLORS["bg_surface"])
-        nav_frame.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+        nav_frame.pack(
+            fill=tk.BOTH,
+            expand=True,
+            padx=self._nav_frame_padx(),
+            pady=self._nav_frame_pady(),
+        )
 
         for item in nav_items:
-            btn = NavButton(
-                nav_frame,
-                text=item["text"],
-                key=item["key"],
-                icon_char=item.get("icon", ""),
-                on_click=self._handle_nav,
-                subtitle="",
-            )
-            btn.pack(fill=tk.X, pady=1)
+            btn = self._create_nav_button(nav_frame, item)
+            btn.pack(fill=tk.X, pady=self._nav_button_pady())
             self._nav_buttons[item["key"]] = btn
 
         # ---- Bottom selection panel (optional) ----
@@ -158,6 +157,25 @@ class Sidebar(tk.Frame):
                 key = btn_cfg.get("key")
                 if key:
                     self._action_buttons[key] = b
+
+    def _create_nav_button(self, parent, item: dict):
+        return NavButton(
+            parent,
+            text=item["text"],
+            key=item["key"],
+            icon_char=item.get("icon", ""),
+            on_click=self._handle_nav,
+            subtitle="",
+        )
+
+    def _nav_button_pady(self) -> int:
+        return 1
+
+    def _nav_frame_padx(self):
+        return 4
+
+    def _nav_frame_pady(self):
+        return 4
 
     def get_action_button(self, key: str):
         """Return a bottom action button by key, or None."""
@@ -281,7 +299,7 @@ class Sidebar(tk.Frame):
             bg=COLORS["bg_surface"],
             anchor="w",
             justify=tk.LEFT,
-            wraplength=self.SIDEBAR_WIDTH - 70,
+            wraplength=max(self._sidebar_width - 70, 120),
         ).pack(side=tk.LEFT, fill=tk.X, expand=True)
 
     def _build_character_info(self):
@@ -417,3 +435,26 @@ class Sidebar(tk.Frame):
 
     def _rgb_to_hex(self, value: tuple[int, int, int]) -> str:
         return "#{:02x}{:02x}{:02x}".format(*value)
+
+
+class WizardSidebar(Sidebar):
+    """Wizard-only sidebar that uses creator-specific nav button visuals."""
+
+    def _create_nav_button(self, parent, item: dict):
+        return WizardNavButton(
+            parent,
+            text=item["text"],
+            key=item["key"],
+            icon_char=item.get("icon", ""),
+            on_click=self._handle_nav,
+            subtitle="",
+        )
+
+    def _nav_button_pady(self) -> int:
+        return 0
+
+    def _nav_frame_padx(self):
+        return (18, 4)
+
+    def _nav_frame_pady(self):
+        return 4

@@ -117,7 +117,7 @@ class SpeciesStep(WizardStep):
 
         tk.Label(
             header,
-            text="Choose Your Origin",
+            text="Choose Your Species",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg"],
@@ -135,12 +135,11 @@ class SpeciesStep(WizardStep):
             justify=tk.LEFT,
         ).pack(anchor="w", pady=(SPACING["sm"], 0))
 
-        # Source filter toggles
+        # Keep filter state plumbing available, but the species screen no longer
+        # exposes filter controls in the character creator UI.
         self._grid_toggle_frame = tk.Frame(self._grid_frame, bg=COLORS["bg"])
-        self._grid_toggle_frame.pack(fill=tk.X, padx=SPACING["xl"], pady=(SPACING["md"], 0))
         self.toggle_vars: dict[str, tk.BooleanVar] = {}
         self._ua_prev_enabled = False
-        self._build_toggles()
 
         # Tile grid
         self._tile_grid = TileGrid(self._grid_frame, on_select=self._on_tile_click)
@@ -184,16 +183,11 @@ class SpeciesStep(WizardStep):
         self._populate_tiles()
 
     def _populate_tiles(self):
-        filters = self.data.source_filters.get("species", {})
-        enabled = {cat for cat, on in filters.items() if on}
-
         grouped = group_by_category(self.data.species, "species")
         img_base = os.path.join(images_dir(), "species")
 
         sections = []
         for cat, items in grouped:
-            if cat not in enabled:
-                continue
             cat_tiles = []
             for sp in items:
                 traits = [t["name"] for t in sp.get("traits", [])[:3]]
