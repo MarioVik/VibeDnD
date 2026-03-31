@@ -13,6 +13,7 @@ from gui.widgets import (
     CardFrame,
     TileGrid,
 )
+from gui.species_trait_utils import get_species_trait_cards
 from gui.theme import COLORS, FONTS, SPACING
 from gui.source_config import (
     SECTION_ORDER,
@@ -148,6 +149,7 @@ class SpeciesStep(WizardStep):
             preferred_cols=4,
             min_tile_width=180,
             responsive_tile_height=True,
+            content_side_padding=SPACING["xl"],
         )
         self._tile_grid.pack(fill=tk.BOTH, expand=True, padx=SPACING["sm"], pady=SPACING["sm"])
 
@@ -436,10 +438,10 @@ class SpeciesStep(WizardStep):
         if trait_choice and not sp.get("sub_choices"):
             radio_trait_names = set(trait_choice.get("options", []))
 
-        traits = sp.get("traits", [])
-        visible_traits = [
-            t for t in traits if t.get("name", "") not in radio_trait_names
-        ]
+        visible_traits = get_species_trait_cards(
+            sp,
+            excluded_names=radio_trait_names,
+        )
         if visible_traits:
             SectionHeader(self.traits_frame, text="Traits").pack(
                 fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"])
@@ -474,6 +476,24 @@ class SpeciesStep(WizardStep):
                         foreground=COLORS["fg_dim"],
                         background=COLORS["bg_container"],
                     ).pack(fill=tk.X, pady=(6, 0))
+
+                for subtrait in trait.get("subtraits", []):
+                    tk.Label(
+                        card.inner,
+                        text=subtrait["name"],
+                        font=FONTS["label_upper_bold"],
+                        fg=COLORS["gold"],
+                        bg=COLORS["bg_container"],
+                    ).pack(anchor="w", pady=(SPACING["md"], 0))
+
+                    if subtrait.get("description"):
+                        FormattedDescription(
+                            card.inner,
+                            text=subtrait["description"],
+                            font=FONTS["body_small"],
+                            foreground=COLORS["fg_dim"],
+                            background=COLORS["bg_container"],
+                        ).pack(fill=tk.X, pady=(SPACING["xs"], 0))
 
         self.notify_change()
 

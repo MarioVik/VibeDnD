@@ -27,13 +27,13 @@ def _clear_button_focus(event):
 
 
 def _defocus_button_after_activate(event):
-    widget = getattr(event, "widget", None)
-    if widget is None:
+    widget = getattr(event, "widget", event)
+    if not hasattr(widget, "after_idle") or not hasattr(widget, "winfo_toplevel"):
         return
 
     try:
         widget.after_idle(lambda: widget.winfo_toplevel().focus_set())
-    except tk.TclError:
+    except (tk.TclError, AttributeError):
         pass
 
 # ---------------------------------------------------------------------------

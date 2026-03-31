@@ -118,6 +118,7 @@ class BackgroundStep(WizardStep):
             preferred_cols=4,
             min_tile_width=180,
             responsive_tile_height=True,
+            content_side_padding=SPACING["xl"],
         )
         self._tile_grid.pack(fill=tk.BOTH, expand=True, padx=SPACING["sm"], pady=SPACING["sm"])
 

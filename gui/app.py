@@ -271,7 +271,7 @@ class CharacterCreatorApp:
             on_navigate=self._on_sidebar_nav,
             header_title="The Forge",
             on_back=cancel_cmd,
-            width=232,
+            width=224,
         )
         self._wizard_sidebar.pack(side=tk.LEFT, fill=tk.Y)
 

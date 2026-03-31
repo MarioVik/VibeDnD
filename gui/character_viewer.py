@@ -31,6 +31,7 @@ from gui.widgets import (
     configure_modal_dialog,
 )
 from gui.sidebar import Sidebar
+from gui.species_trait_utils import get_species_trait_cards
 from gui.sheet_builder import build_character_sheet, _container_contents
 from models.character_store import save_character
 from paths import characters_dir
@@ -1700,7 +1701,7 @@ class CharacterViewer(ttk.Frame):
             traits_grid.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
             traits_grid.columnconfigure(0, weight=1)
             traits_grid.columnconfigure(1, weight=1)
-            for i, trait in enumerate(c.species["traits"]):
+            for i, trait in enumerate(get_species_trait_cards(c.species)):
                 card = CardFrame(traits_grid, bg=COLORS["bg_container"],
                                  border_color=COLORS["border_subtle"], pad=SPACING["lg"])
                 card.grid(row=i // 2, column=i % 2, padx=4, pady=4, sticky="nsew")
@@ -1719,6 +1720,24 @@ class CharacterViewer(ttk.Frame):
                         foreground=COLORS["fg_dim"],
                         background=COLORS["bg_container"],
                     ).pack(fill=tk.X, pady=(6, 0))
+
+                for subtrait in trait.get("subtraits", []):
+                    tk.Label(
+                        card.inner,
+                        text=subtrait["name"],
+                        font=FONTS["label_upper_bold"],
+                        fg=COLORS["gold"],
+                        bg=COLORS["bg_container"],
+                    ).pack(anchor="w", pady=(SPACING["md"], 0))
+
+                    if subtrait.get("description"):
+                        FormattedDescription(
+                            card.inner,
+                            text=subtrait["description"],
+                            font=FONTS["body_small"],
+                            foreground=COLORS["fg_dim"],
+                            background=COLORS["bg_container"],
+                        ).pack(fill=tk.X, pady=(SPACING["xs"], 0))
 
         # ── Class Features ──
         if c.character_class and c.class_levels:

@@ -2382,6 +2382,7 @@ class TileGrid(tk.Frame):
         preferred_cols: int | None = None,
         min_tile_width: int | None = None,
         responsive_tile_height: bool = False,
+        content_side_padding: int = 0,
         **kwargs,
     ):
         super().__init__(parent, bg=COLORS["bg"], **kwargs)
@@ -2393,6 +2394,7 @@ class TileGrid(tk.Frame):
         self._preferred_cols = preferred_cols
         self._min_tile_width = min_tile_width
         self._responsive_tile_height = responsive_tile_height
+        self._content_side_padding = max(0, int(content_side_padding))
         self._tile_ratio = tile_height / float(max(tile_width, 1))
         self._tiles: list[OptionTile] = []
         self._sections: list[tuple[SectionHeader, list[OptionTile]]] = []
@@ -2405,6 +2407,7 @@ class TileGrid(tk.Frame):
         self._scroll = ScrollableFrame(self, inner_padding=SPACING["lg"])
         self._scroll.pack(fill=tk.BOTH, expand=True)
         self._grid_frame = self._scroll.inner
+        self._grid_frame.grid_anchor("n")
 
         self._scroll.canvas.bind("<Configure>", self._on_canvas_resize)
 
@@ -2475,13 +2478,16 @@ class TileGrid(tk.Frame):
     def _recalc_layout(self, width: int):
         self._relayout_job = None
         gap = SPACING["tile_gap"]
-        new_cols = max(1, (width + gap) // (self._base_tile_width + gap))
+        available_width = max(1, width - (self._content_side_padding * 2))
+        new_cols = max(1, (available_width + gap) // (self._base_tile_width + gap))
         new_tile_width = self._base_tile_width
 
         if self._preferred_cols is not None:
             preferred_width = max(
                 1,
-                (width - gap * max(self._preferred_cols - 1, 0)) // self._preferred_cols,
+                (
+                    available_width - gap * max(self._preferred_cols - 1, 0)
+                ) // self._preferred_cols,
             )
             min_width = self._min_tile_width or 1
 
@@ -2490,13 +2496,15 @@ class TileGrid(tk.Frame):
                 new_tile_width = min(self._base_tile_width, preferred_width)
             else:
                 fit_width = min_width
-                new_cols = max(1, (width + gap) // (fit_width + gap))
+                new_cols = max(1, (available_width + gap) // (fit_width + gap))
                 if new_cols > 0:
                     new_tile_width = min(
                         self._base_tile_width,
                         max(
                             1,
-                            (width - gap * max(new_cols - 1, 0)) // new_cols,
+                            (
+                                available_width - gap * max(new_cols - 1, 0)
+                            ) // new_cols,
                         ),
                     )
 
@@ -2523,7 +2531,7 @@ class TileGrid(tk.Frame):
         # Configure columns
         self._max_cols_seen = max(self._max_cols_seen, self._cols)
         for c in range(self._max_cols_seen):
-            self._grid_frame.columnconfigure(c, weight=1 if c < self._cols else 0)
+            self._grid_frame.columnconfigure(c, weight=0)
 
         for tile in self._tiles:
             tile.grid_forget()
