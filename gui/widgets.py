@@ -2110,10 +2110,12 @@ class OptionTile(tk.Frame):
         traits: list[str] | None = None,
         image_path: str | None = None,
         tile_width: int | None = None,
+        tile_height: int | None = None,
         on_click=None,
         **kwargs,
     ):
         tw = tile_width or self.TILE_WIDTH
+        th = tile_height or self.TILE_HEIGHT
         super().__init__(
             parent,
             bg=COLORS["tile_bg"],
@@ -2121,7 +2123,7 @@ class OptionTile(tk.Frame):
             highlightthickness=1,
             cursor="hand2",
             width=tw,
-            height=self.TILE_HEIGHT,
+            height=th,
             **kwargs,
         )
         self.pack_propagate(False)
@@ -2132,7 +2134,7 @@ class OptionTile(tk.Frame):
         self._traits = traits or []
         self._image_path = image_path
         self._tile_width = tw
-        self._tile_height = self.TILE_HEIGHT
+        self._tile_height = th
         self._photo_normal = None  # cached normal-state PhotoImage
         self._photo_hover = None   # cached hover-state PhotoImage
         self._last_render_size: tuple[int, int] = (0, 0)
@@ -2152,6 +2154,20 @@ class OptionTile(tk.Frame):
 
         # Render after the widget is mapped so dimensions are available
         self.after_idle(lambda: self._render(hovered=False))
+
+    def set_tile_size(self, width: int, height: int):
+        width = max(1, int(width))
+        height = max(1, int(height))
+        if width == self._tile_width and height == self._tile_height:
+            return
+
+        self._tile_width = width
+        self._tile_height = height
+        self.configure(width=width, height=height)
+        self._photo_normal = None
+        self._photo_hover = None
+        self._last_render_size = (0, 0)
+        self._render(hovered=False)
 
     # ------------------------------------------------------------------
     # Rendering
@@ -2357,10 +2373,27 @@ class TileGrid(tk.Frame):
     Automatically recalculates column count on resize.
     """
 
-    def __init__(self, parent, on_select=None, tile_width: int = OptionTile.TILE_WIDTH, **kwargs):
+    def __init__(
+        self,
+        parent,
+        on_select=None,
+        tile_width: int = OptionTile.TILE_WIDTH,
+        tile_height: int = OptionTile.TILE_HEIGHT,
+        preferred_cols: int | None = None,
+        min_tile_width: int | None = None,
+        responsive_tile_height: bool = False,
+        **kwargs,
+    ):
         super().__init__(parent, bg=COLORS["bg"], **kwargs)
         self._on_select = on_select
+        self._base_tile_width = tile_width
+        self._base_tile_height = tile_height
         self._tile_width = tile_width
+        self._tile_height = tile_height
+        self._preferred_cols = preferred_cols
+        self._min_tile_width = min_tile_width
+        self._responsive_tile_height = responsive_tile_height
+        self._tile_ratio = tile_height / float(max(tile_width, 1))
         self._tiles: list[OptionTile] = []
         self._sections: list[tuple[SectionHeader, list[OptionTile]]] = []
         self._tile_data: list[dict] = []
@@ -2392,6 +2425,7 @@ class TileGrid(tk.Frame):
             traits=tile_data.get("traits"),
             image_path=tile_data.get("image_path"),
             tile_width=self._tile_width,
+            tile_height=self._tile_height,
             on_click=self._handle_select,
         )
 
@@ -2441,8 +2475,45 @@ class TileGrid(tk.Frame):
     def _recalc_layout(self, width: int):
         self._relayout_job = None
         gap = SPACING["tile_gap"]
-        new_cols = max(1, (width + gap) // (self._tile_width + gap))
-        if new_cols != self._cols:
+        new_cols = max(1, (width + gap) // (self._base_tile_width + gap))
+        new_tile_width = self._base_tile_width
+
+        if self._preferred_cols is not None:
+            preferred_width = max(
+                1,
+                (width - gap * max(self._preferred_cols - 1, 0)) // self._preferred_cols,
+            )
+            min_width = self._min_tile_width or 1
+
+            if preferred_width >= min_width:
+                new_cols = self._preferred_cols
+                new_tile_width = min(self._base_tile_width, preferred_width)
+            else:
+                fit_width = min_width
+                new_cols = max(1, (width + gap) // (fit_width + gap))
+                if new_cols > 0:
+                    new_tile_width = min(
+                        self._base_tile_width,
+                        max(
+                            1,
+                            (width - gap * max(new_cols - 1, 0)) // new_cols,
+                        ),
+                    )
+
+        new_tile_height = self._tile_height
+        if self._responsive_tile_height:
+            new_tile_height = max(180, int(round(new_tile_width * self._tile_ratio)))
+
+        size_changed = (
+            new_tile_width != self._tile_width or new_tile_height != self._tile_height
+        )
+        if size_changed:
+            self._tile_width = new_tile_width
+            self._tile_height = new_tile_height
+            for tile in self._tiles:
+                tile.set_tile_size(self._tile_width, self._tile_height)
+
+        if new_cols != self._cols or size_changed:
             self._cols = new_cols
             self._layout_tiles()
 

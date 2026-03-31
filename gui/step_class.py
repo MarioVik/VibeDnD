@@ -121,7 +121,13 @@ class ClassStep(WizardStep):
         self._ua_prev_enabled = False
 
         # Tile grid
-        self._tile_grid = TileGrid(self._grid_frame, on_select=self._on_tile_click)
+        self._tile_grid = TileGrid(
+            self._grid_frame,
+            on_select=self._on_tile_click,
+            preferred_cols=4,
+            min_tile_width=180,
+            responsive_tile_height=True,
+        )
         self._tile_grid.pack(fill=tk.BOTH, expand=True, padx=SPACING["sm"], pady=SPACING["sm"])
 
         self._populate_tiles()

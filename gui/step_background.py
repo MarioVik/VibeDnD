@@ -112,7 +112,12 @@ class BackgroundStep(WizardStep):
 
         # Tile grid (no images for backgrounds, narrower tiles)
         self._tile_grid = TileGrid(
-            self._grid_frame, on_select=self._on_tile_click, tile_width=220,
+            self._grid_frame,
+            on_select=self._on_tile_click,
+            tile_width=220,
+            preferred_cols=4,
+            min_tile_width=180,
+            responsive_tile_height=True,
         )
         self._tile_grid.pack(fill=tk.BOTH, expand=True, padx=SPACING["sm"], pady=SPACING["sm"])
 
