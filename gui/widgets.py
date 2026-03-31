@@ -1834,15 +1834,23 @@ class StepperPair(tk.Frame):
 
 from gui.theme import SPACING
 
+try:
+    from PIL import Image as _PILImage, ImageDraw as _PILImageDraw, ImageTk as _PILImageTk
+except ImportError:
+    _PILImage = _PILImageDraw = _PILImageTk = None
+
 
 class OptionTile(tk.Frame):
     """A clickable tile card for species/class/background selection.
 
-    Shows an optional image on top, the name, a one-line description,
-    and up to 3 trait bullet points.
+    Displays the image filling the entire tile with a gradient overlay
+    at the bottom where name and trait text are rendered — matching the
+    Archive card style from the home screen.
     """
 
-    TILE_WIDTH = 280
+    TILE_WIDTH = 310
+    TILE_HEIGHT = 380
+    OVERLAY_HEIGHT = 120
 
     def __init__(
         self,
@@ -1855,105 +1863,234 @@ class OptionTile(tk.Frame):
         on_click=None,
         **kwargs,
     ):
+        tw = tile_width or self.TILE_WIDTH
         super().__init__(
             parent,
             bg=COLORS["tile_bg"],
             highlightbackground=COLORS["tile_border"],
             highlightthickness=1,
             cursor="hand2",
+            width=tw,
+            height=self.TILE_HEIGHT,
             **kwargs,
         )
+        self.pack_propagate(False)
+        self.grid_propagate(False)
+
         self._name = name
         self._on_click = on_click
-        self._photo = None  # prevent GC
-        self._tile_width = tile_width or self.TILE_WIDTH
+        self._traits = traits or []
+        self._image_path = image_path
+        self._tile_width = tw
+        self._tile_height = self.TILE_HEIGHT
+        self._photo_normal = None  # cached normal-state PhotoImage
+        self._photo_hover = None   # cached hover-state PhotoImage
+        self._last_render_size: tuple[int, int] = (0, 0)
 
-        # Image section
-        if image_path and os.path.isfile(image_path):
-            try:
-                from PIL import Image as PILImage, ImageTk
-                img = PILImage.open(image_path)
-                img = img.resize((self._tile_width, 150), PILImage.LANCZOS)
-                self._photo = ImageTk.PhotoImage(img)
-            except Exception:
-                # Fallback to native PhotoImage (PNG only)
-                try:
-                    self._photo = tk.PhotoImage(file=image_path)
-                except Exception:
-                    self._photo = None
-
-            if self._photo:
-                img_label = tk.Label(self, image=self._photo, bg=COLORS["tile_bg"])
-                img_label.pack(fill=tk.X)
-                img_label.bind("<Button-1>", self._handle_click)
-
-        # Text section
-        text_frame = tk.Frame(self, bg=COLORS["tile_bg"])
-        text_frame.pack(fill=tk.BOTH, expand=True, padx=SPACING["tile_pad"], pady=SPACING["tile_pad"])
-
-        name_label = tk.Label(
-            text_frame,
-            text=name,
-            font=FONTS["tile_name"],
-            fg=COLORS["fg"],
+        self._canvas = tk.Canvas(
+            self,
             bg=COLORS["tile_bg"],
-            anchor="w",
+            highlightthickness=0,
+            cursor="hand2",
         )
-        name_label.pack(fill=tk.X)
+        self._canvas.place(x=0, y=0, relwidth=1.0, relheight=1.0)
 
-        if description:
-            desc_label = tk.Label(
-                text_frame,
-                text=description,
-                font=FONTS["tile_desc"],
-                fg=COLORS["fg_dim"],
-                bg=COLORS["tile_bg"],
-                anchor="w",
-                justify=tk.LEFT,
-                wraplength=self._tile_width - 2 * SPACING["tile_pad"],
+        self._canvas.bind("<Button-1>", self._handle_click)
+        self._canvas.bind("<Enter>", self._on_enter)
+        self._canvas.bind("<Leave>", self._on_leave)
+        self._canvas.bind("<Configure>", self._on_configure)
+
+        # Render after the widget is mapped so dimensions are available
+        self.after_idle(lambda: self._render(hovered=False))
+
+    # ------------------------------------------------------------------
+    # Rendering
+    # ------------------------------------------------------------------
+
+    def _render(self, hovered: bool = False):
+        """Composite the tile image with gradient overlay and draw text."""
+        w = self._canvas.winfo_width()
+        h = self._canvas.winfo_height()
+        if w < 2 or h < 2:
+            w, h = self._tile_width, self._tile_height
+
+        # Use cached image if size hasn't changed
+        if (w, h) == self._last_render_size:
+            photo = self._photo_hover if hovered else self._photo_normal
+            if photo is not None:
+                self._canvas.delete("all")
+                self._canvas.create_image(w // 2, h // 2, image=photo)
+                self._draw_text(w, h)
+                return
+
+        # Size changed — invalidate caches
+        if (w, h) != self._last_render_size:
+            self._photo_normal = None
+            self._photo_hover = None
+            self._last_render_size = (w, h)
+
+        if _PILImage is not None:
+            self._render_pil(w, h, hovered)
+        else:
+            self._render_fallback(w, h, hovered)
+
+    def _render_pil(self, w: int, h: int, hovered: bool):
+        """PIL-based rendering: composited image + gradient overlay."""
+        base = self._build_tile_image(w, h)
+        if base is None:
+            base = _PILImage.new("RGBA", (w, h), _hex_to_rgb(COLORS["bg_high"]) + (255,))
+
+        # Build both states for caching
+        img_normal = self._apply_overlay(base, w, h, hovered=False)
+        img_hover = self._apply_overlay(base, w, h, hovered=True)
+        self._photo_normal = _PILImageTk.PhotoImage(img_normal)
+        self._photo_hover = _PILImageTk.PhotoImage(img_hover)
+
+        photo = self._photo_hover if hovered else self._photo_normal
+        self._canvas.delete("all")
+        self._canvas.create_image(w // 2, h // 2, image=photo)
+        self._draw_text(w, h)
+
+    def _render_fallback(self, w: int, h: int, hovered: bool):
+        """Tk-only fallback when PIL is unavailable."""
+        self._canvas.delete("all")
+        bg = COLORS["tile_hover"] if hovered else COLORS["tile_bg"]
+        self._canvas.create_rectangle(0, 0, w, h, fill=bg, outline="")
+        panel_top = h - self.OVERLAY_HEIGHT
+        self._canvas.create_rectangle(
+            0, panel_top, w, h,
+            fill=COLORS["bg_surface"], outline=COLORS["outline_dim"], width=1,
+        )
+        self._draw_text(w, h)
+
+    def _build_tile_image(self, width: int, height: int):
+        """Load, crop, and resize the source image to fill the tile."""
+        if not self._image_path or not os.path.isfile(self._image_path):
+            return None
+        try:
+            source = _PILImage.open(self._image_path).convert("RGB")
+        except Exception:
+            return None
+
+        src_w, src_h = source.size
+        if src_w <= 0 or src_h <= 0:
+            return None
+
+        target_ratio = width / float(height)
+        source_ratio = src_w / float(src_h)
+        if source_ratio > target_ratio:
+            # Source wider — center crop horizontally
+            crop_w = int(src_h * target_ratio)
+            left = max((src_w - crop_w) // 2, 0)
+            box = (left, 0, left + crop_w, src_h)
+        else:
+            # Source taller — top crop (preserve top, trim bottom)
+            crop_h = int(src_w / target_ratio)
+            box = (0, 0, src_w, crop_h)
+
+        try:
+            cropped = source.crop(box).resize((width, height), _PILImage.LANCZOS)
+        except Exception:
+            return None
+        return cropped.convert("RGBA")
+
+    def _apply_overlay(self, base, width: int, height: int, hovered: bool = False):
+        """Apply scrim gradient + bottom panel overlay (Archive card style)."""
+        overlay = _PILImage.new("RGBA", (width, height), (0, 0, 0, 0))
+        draw = _PILImageDraw.Draw(overlay)
+
+        # Scrim gradient from 34% down
+        scrim_rgb = _hex_to_rgb(COLORS["bg_deepest"])
+        scrim_top = int(height * 0.34)
+        scrim_bottom_alpha = 188 if hovered else 164
+        scrim_span = max(height - scrim_top - 1, 1)
+        for y in range(scrim_top, height):
+            ratio = (y - scrim_top) / float(scrim_span)
+            alpha = int(scrim_bottom_alpha * ratio)
+            draw.line((0, y, width, y), fill=scrim_rgb + (alpha,))
+
+        # Bottom panel gradient
+        panel_height = min(self.OVERLAY_HEIGHT, height)
+        panel = _PILImage.new("RGBA", (width, panel_height), (0, 0, 0, 0))
+        pdraw = _PILImageDraw.Draw(panel)
+        panel_rgb = _hex_to_rgb(COLORS["bg_surface"])
+        top_alpha = 224 if hovered else 202
+        bottom_alpha = 252 if hovered else 244
+        gradient_span = max(panel_height - 1, 1)
+        for y in range(panel_height):
+            ratio = y / float(gradient_span)
+            a = int(top_alpha + (bottom_alpha - top_alpha) * ratio)
+            pdraw.line((0, y, width, y), fill=panel_rgb + (a,))
+        # Thin top line
+        top_line_alpha = 115 if hovered else 90
+        pdraw.line(
+            (0, 0, width, 0),
+            fill=_hex_to_rgb(COLORS["outline_dim"]) + (top_line_alpha,),
+            width=1,
+        )
+        overlay.paste(panel, (0, height - panel_height), panel)
+
+        return _PILImage.alpha_composite(base.convert("RGBA"), overlay)
+
+    def _draw_text(self, width: int, height: int):
+        """Render name and traits on the canvas over the gradient overlay."""
+        panel_height = min(self.OVERLAY_HEIGHT, height)
+        pad_x = 16
+        pad_top = 24
+        panel_top = height - panel_height + pad_top
+        text_width = max(width - pad_x * 2, 80)
+
+        # Name with shadow
+        self._canvas.create_text(
+            pad_x + 1, panel_top + 1,
+            text=self._name, font=FONTS["tile_name"],
+            fill=COLORS["bg_deepest"], anchor="nw", width=text_width,
+        )
+        title_id = self._canvas.create_text(
+            pad_x, panel_top,
+            text=self._name, font=FONTS["tile_name"],
+            fill=COLORS["fg"], anchor="nw", width=text_width,
+        )
+
+        # Traits below name
+        if self._traits:
+            title_bbox = self._canvas.bbox(title_id)
+            traits_y = (title_bbox[3] if title_bbox else panel_top + 20) + 6
+            traits_text = "  ·  ".join(self._traits[:3])
+            self._canvas.create_text(
+                pad_x + 1, traits_y + 1,
+                text=traits_text, font=FONTS["tile_trait"],
+                fill=COLORS["bg_deepest"], anchor="nw", width=text_width,
             )
-            desc_label.pack(fill=tk.X, pady=(4, 0))
+            self._canvas.create_text(
+                pad_x, traits_y,
+                text=traits_text, font=FONTS["tile_trait"],
+                fill=COLORS["gold"], anchor="nw", width=text_width,
+            )
 
-        if traits:
-            traits_frame = tk.Frame(text_frame, bg=COLORS["tile_bg"])
-            traits_frame.pack(fill=tk.X, pady=(6, 0))
-            for trait in traits[:3]:
-                trait_label = tk.Label(
-                    traits_frame,
-                    text=f"•  {trait}",
-                    font=FONTS["tile_trait"],
-                    fg=COLORS["gold"],
-                    bg=COLORS["tile_bg"],
-                    anchor="w",
-                )
-                trait_label.pack(fill=tk.X)
-                trait_label.bind("<Button-1>", self._handle_click)
-
-        # Bind click and hover to all widgets recursively
-        self._bind_recursive(self)
-
-    def _bind_recursive(self, widget):
-        widget.bind("<Button-1>", self._handle_click)
-        widget.bind("<Enter>", self._on_enter)
-        widget.bind("<Leave>", self._on_leave)
-        for child in widget.winfo_children():
-            self._bind_recursive(child)
+    # ------------------------------------------------------------------
+    # Interaction
+    # ------------------------------------------------------------------
 
     def _handle_click(self, _event=None):
         if self._on_click:
             self._on_click(self._name)
 
     def _on_enter(self, _event=None):
-        self._set_bg_all(COLORS["tile_hover"])
         self.configure(highlightbackground=COLORS["accent_text"])
+        self._render(hovered=True)
 
     def _on_leave(self, _event=None):
-        self._set_bg_all(COLORS["tile_bg"])
         self.configure(highlightbackground=COLORS["tile_border"])
+        self._render(hovered=False)
 
-    def _set_bg_all(self, bg):
-        for child in self.winfo_children():
-            NavButton._set_bg_recursive(child, bg)
+    def _on_configure(self, _event=None):
+        w = self._canvas.winfo_width()
+        h = self._canvas.winfo_height()
+        if (w, h) != self._last_render_size and w > 1 and h > 1:
+            self._photo_normal = None
+            self._photo_hover = None
+            self._render(hovered=False)
 
 
 class TileGrid(tk.Frame):
@@ -1962,7 +2099,7 @@ class TileGrid(tk.Frame):
     Automatically recalculates column count on resize.
     """
 
-    def __init__(self, parent, on_select=None, tile_width: int = 280, **kwargs):
+    def __init__(self, parent, on_select=None, tile_width: int = OptionTile.TILE_WIDTH, **kwargs):
         super().__init__(parent, bg=COLORS["bg"], **kwargs)
         self._on_select = on_select
         self._tile_width = tile_width
