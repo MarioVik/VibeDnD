@@ -23,6 +23,7 @@ from models.standard_actions import (
     get_selected_weapon_counts,
 )
 from gui.widgets import AlertDialog, WrappingLabel, FormattedDescription, Chip
+from gui.species_trait_utils import get_species_trait_cards
 from models.language_utils import all_languages
 from models.inventory_service import (
     base_wealth_cp,
@@ -384,7 +385,7 @@ def build_character_sheet(
     if _show("species_traits") and c.species and c.species.get("traits"):
         traits_frame = ttk.LabelFrame(parent, text=f"{c.species_name} Traits")
         traits_frame.pack(fill=tk.X, pady=section_pady)
-        for trait in c.species["traits"]:
+        for trait in get_species_trait_cards(c.species):
             ttk.Label(
                 traits_frame,
                 text=f"  {trait['name']}",
@@ -397,6 +398,19 @@ def build_character_sheet(
                     text=trait["description"],
                     foreground=COLORS["fg_dim"],
                 ).pack(fill=tk.X, anchor="w", padx=16, pady=(0, 4))
+            for subtrait in trait.get("subtraits", []):
+                ttk.Label(
+                    traits_frame,
+                    text=f"    {subtrait['name']}",
+                    foreground=COLORS["fg_bright"],
+                    font=FONTS["body"],
+                ).pack(anchor="w", padx=8, pady=(2, 0))
+                if subtrait.get("description"):
+                    FormattedDescription(
+                        traits_frame,
+                        text=subtrait["description"],
+                        foreground=COLORS["fg_dim"],
+                    ).pack(fill=tk.X, anchor="w", padx=24, pady=(0, 4))
 
     # ── Class Features ──────────────────────────────────────────
     if _show("class_features") and c.character_class:

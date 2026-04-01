@@ -11,6 +11,12 @@ _TRAIT_GROUPS: dict[str, dict[str, list[str]]] = {
             "Necrotic Shroud",
         ],
     },
+    "Dhampir": {
+        "Vampiric Bite": [
+            "Drain",
+            "Strengthen",
+        ],
+    },
 }
 
 

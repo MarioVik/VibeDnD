@@ -70,6 +70,7 @@ class SpeciesStep(WizardStep):
         self._edit_initialized = False
         self._requires_sub_choice = False
         self._current_substep = 0
+        self._selected_species_name = ""
 
         # Two containers: grid view (substep 0) and detail view (substep 1)
         self._grid_frame = tk.Frame(self.frame, bg=COLORS["bg"])
@@ -297,6 +298,7 @@ class SpeciesStep(WizardStep):
             return
 
         self.character.species = sp
+        self._selected_species_name = sp.get("name", "")
         self._requires_sub_choice = False
         self.character.species_sub_choice = None
         self.character.species_origin_feat = None
@@ -305,15 +307,6 @@ class SpeciesStep(WizardStep):
         self.detail_source.configure(text=f"Source: {sp.get('source', 'Unknown')}")
         self.detail_desc.configure(text=sp.get("description", ""))
 
-        # Stats card
-        for w in self.stats_frame.winfo_children():
-            w.destroy()
-
-        stats_card = CardFrame(self.stats_frame, pad=SPACING["md"])
-        stats_card.pack(fill=tk.X)
-
-        stats_text = f"Type: {sp.get('creature_type', 'Humanoid')}  |  Speed: {sp.get('speed', 30)} ft"
-
         # Size choice
         for w in self.size_frame.winfo_children():
             w.destroy()
@@ -321,17 +314,9 @@ class SpeciesStep(WizardStep):
 
         size_data = sp.get("size", {})
         size_options = size_data.get("options", ["Medium"])
-        if len(size_options) <= 1:
-            self.character.size_choice = size_options[0]
-            stats_text += f"  |  Size: {size_options[0]}"
+        self.character.size_choice = size_options[0]
 
-        tk.Label(
-            stats_card.inner,
-            text=stats_text,
-            font=FONTS["body_bold"],
-            fg=COLORS["fg"],
-            bg=COLORS["bg_surface"],
-        ).pack(anchor="w")
+        self._build_species_stats_card(sp)
 
         if len(size_options) > 1:
             self.size_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
@@ -509,8 +494,86 @@ class SpeciesStep(WizardStep):
 
     def _on_size_change(self, *args):
         self.character.size_choice = self.size_var.get()
+        species = self.character.species
+        if species and species.get("name", "") == self._selected_species_name:
+            self._build_species_stats_card(species)
         self.notify_change()
 
     def _on_sub_change(self, *args):
         self.character.species_sub_choice = self.sub_var.get()
         self.notify_change()
+
+    def _build_species_stats_card(self, species: dict):
+        """Render the stitched stat strip for the selected species."""
+        for w in self.stats_frame.winfo_children():
+            w.destroy()
+
+        strip = tk.Frame(self.stats_frame, bg=COLORS["bg"])
+        strip.pack(fill=tk.X)
+
+        tk.Frame(
+            strip,
+            bg=COLORS["border_subtle_bg"],
+            height=1,
+        ).pack(fill=tk.X, padx=SPACING["sm"])
+
+        stat_row = tk.Frame(strip, bg=COLORS["bg"])
+        stat_row.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["xl"], SPACING["xl"]))
+
+        stat_row.columnconfigure(0, weight=1, uniform="species_stats")
+        stat_row.columnconfigure(2, weight=1, uniform="species_stats")
+        stat_row.columnconfigure(4, weight=1, uniform="species_stats")
+
+        stats = [
+            ("Type", species.get("creature_type", "Humanoid"), COLORS["fg"]),
+            ("Speed", f"{species.get('speed', 30)} ft", COLORS["fg"]),
+            ("Size", self._species_size_value(species), COLORS["fg"]),
+        ]
+
+        for index, (label, value, value_color) in enumerate(stats):
+            column = index * 2
+            stat_cell = tk.Frame(stat_row, bg=COLORS["bg"])
+            stat_cell.grid(row=0, column=column, sticky="nsew")
+
+            tk.Label(
+                stat_cell,
+                text=label.upper(),
+                font=FONTS["label_upper"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg"],
+            ).pack(anchor="w")
+
+            tk.Label(
+                stat_cell,
+                text=value,
+                font=FONTS["archive_title"],
+                fg=value_color,
+                bg=COLORS["bg"],
+            ).pack(anchor="w", pady=(SPACING["sm"], 0))
+
+            if index < len(stats) - 1:
+                divider = tk.Frame(
+                    stat_row,
+                    bg=COLORS["border_medium_bg"],
+                    width=1,
+                    height=72,
+                )
+                divider.grid(row=0, column=column + 1, padx=SPACING["xl"], sticky="ns")
+                divider.grid_propagate(False)
+
+        tk.Frame(
+            strip,
+            bg=COLORS["border_subtle_bg"],
+            height=1,
+        ).pack(fill=tk.X, padx=SPACING["sm"])
+
+    def _species_size_value(self, species: dict) -> str:
+        """Return the currently displayed size label for the selected species."""
+        size_options = (species.get("size", {}) or {}).get("options", ["Medium"])
+        if len(size_options) <= 1:
+            return size_options[0]
+
+        selected_size = (self.character.size_choice or "").strip()
+        if selected_size in size_options:
+            return selected_size
+        return size_options[0]
