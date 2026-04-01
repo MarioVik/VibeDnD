@@ -273,7 +273,7 @@ class SpeciesStep(WizardStep):
 
         # Traits
         self.traits_frame = tk.Frame(self.detail, bg=COLORS["bg"])
-        self.traits_frame.pack(fill=tk.X, pady=(SPACING["sm"], 0))
+        self.traits_frame.pack(fill=tk.X, pady=(SPACING["xl"], 0))
 
     def on_enter(self):
         """Pre-select species when editing an existing character."""
@@ -508,6 +508,9 @@ class SpeciesStep(WizardStep):
         for w in self.stats_frame.winfo_children():
             w.destroy()
 
+        label_font = FONTS["label_tiny"]
+        value_font = (FONTS["archive_title"][0], 18)
+
         strip = tk.Frame(self.stats_frame, bg=COLORS["bg"])
         strip.pack(fill=tk.X)
 
@@ -518,14 +521,14 @@ class SpeciesStep(WizardStep):
         ).pack(fill=tk.X, padx=SPACING["sm"])
 
         stat_row = tk.Frame(strip, bg=COLORS["bg"])
-        stat_row.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["xl"], SPACING["xl"]))
+        stat_row.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["md"], SPACING["md"]))
 
         stat_row.columnconfigure(0, weight=1, uniform="species_stats")
         stat_row.columnconfigure(2, weight=1, uniform="species_stats")
         stat_row.columnconfigure(4, weight=1, uniform="species_stats")
 
         stats = [
-            ("Type", species.get("creature_type", "Humanoid"), COLORS["fg"]),
+            ("Creature Type", species.get("creature_type", "Humanoid"), COLORS["fg"]),
             ("Speed", f"{species.get('speed', 30)} ft", COLORS["fg"]),
             ("Size", self._species_size_value(species), COLORS["fg"]),
         ]
@@ -538,7 +541,7 @@ class SpeciesStep(WizardStep):
             tk.Label(
                 stat_cell,
                 text=label.upper(),
-                font=FONTS["label_upper"],
+                font=label_font,
                 fg=COLORS["fg_dim"],
                 bg=COLORS["bg"],
             ).pack(anchor="w")
@@ -546,17 +549,17 @@ class SpeciesStep(WizardStep):
             tk.Label(
                 stat_cell,
                 text=value,
-                font=FONTS["archive_title"],
+                font=value_font,
                 fg=value_color,
                 bg=COLORS["bg"],
-            ).pack(anchor="w", pady=(SPACING["sm"], 0))
+            ).pack(anchor="w", pady=(2, 0))
 
             if index < len(stats) - 1:
                 divider = tk.Frame(
                     stat_row,
                     bg=COLORS["border_medium_bg"],
                     width=1,
-                    height=72,
+                    height=52,
                 )
                 divider.grid(row=0, column=column + 1, padx=SPACING["xl"], sticky="ns")
                 divider.grid_propagate(False)
