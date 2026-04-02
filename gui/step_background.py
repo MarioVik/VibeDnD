@@ -120,8 +120,10 @@ class BackgroundStep(WizardStep):
             on_select=self._on_tile_click,
             tile_width=220,
             tile_height=252,
-            preferred_cols=4,
+            preferred_cols=5,
             min_tile_width=180,
+            expand_tiles_to_fill=True,
+            expand_gap_with_tile=True,
             responsive_tile_height=True,
             content_side_padding=SPACING["xl"],
         )
