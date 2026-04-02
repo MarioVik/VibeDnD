@@ -115,6 +115,7 @@ class BackgroundStep(WizardStep):
             self._grid_frame,
             on_select=self._on_tile_click,
             tile_width=220,
+            tile_height=252,
             preferred_cols=4,
             min_tile_width=180,
             responsive_tile_height=True,
@@ -185,6 +186,7 @@ class BackgroundStep(WizardStep):
                     "description": _first_sentence(bg.get("description", "")),
                     "traits": traits,
                     "image_path": None,  # No images for backgrounds
+                    "variant": "lore",
                 })
             if cat_tiles:
                 sections.append((cat, cat_tiles))

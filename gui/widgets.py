@@ -3,6 +3,7 @@
 import os
 import sys
 import tkinter as tk
+import tkinter.font as tkfont
 from tkinter import ttk
 from gui.theme import COLORS, FONTS
 
@@ -2095,7 +2096,8 @@ class OptionTile(tk.Frame):
 
     Displays the image filling the entire tile with a gradient overlay
     at the bottom where name and trait text are rendered — matching the
-    Archive card style from the home screen.
+    Archive card style from the home screen. Background tiles can opt into
+    a text-led lore-card variant that does not require artwork.
     """
 
     TILE_WIDTH = 310
@@ -2109,6 +2111,7 @@ class OptionTile(tk.Frame):
         description: str = "",
         traits: list[str] | None = None,
         image_path: str | None = None,
+        variant: str | None = None,
         tile_width: int | None = None,
         tile_height: int | None = None,
         on_click=None,
@@ -2116,10 +2119,13 @@ class OptionTile(tk.Frame):
     ):
         tw = tile_width or self.TILE_WIDTH
         th = tile_height or self.TILE_HEIGHT
+        self._variant = variant or "default"
+        base_bg = COLORS["bg_surface"] if self._variant == "lore" else COLORS["tile_bg"]
+        base_border = COLORS["border_medium"] if self._variant == "lore" else COLORS["tile_border"]
         super().__init__(
             parent,
-            bg=COLORS["tile_bg"],
-            highlightbackground=COLORS["tile_border"],
+            bg=base_bg,
+            highlightbackground=base_border,
             highlightthickness=1,
             cursor="hand2",
             width=tw,
@@ -2130,30 +2136,44 @@ class OptionTile(tk.Frame):
         self.grid_propagate(False)
 
         self._name = name
+        self._description = " ".join((description or "").split())
         self._on_click = on_click
         self._traits = traits or []
         self._image_path = image_path
         self._tile_width = tw
         self._tile_height = th
+        self._hovered = False
         self._photo_normal = None  # cached normal-state PhotoImage
         self._photo_hover = None   # cached hover-state PhotoImage
         self._last_render_size: tuple[int, int] = (0, 0)
+        self._canvas = None
+        self._lore_content_pad_x = 18
+        self._lore_feat_text = ""
+        self._lore_feat = None
+        self._lore_feat_label = None
+        self._lore_feat_value = None
+        self._lore_meta_rows: list[dict] = []
 
-        self._canvas = tk.Canvas(
-            self,
-            bg=COLORS["tile_bg"],
-            highlightthickness=0,
-            cursor="hand2",
-        )
-        self._canvas.place(x=0, y=0, relwidth=1.0, relheight=1.0)
+        if self._variant == "lore":
+            self._build_lore_tile()
+            self.bind("<Configure>", self._on_configure)
+            self.after_idle(self._update_lore_layout)
+        else:
+            self._canvas = tk.Canvas(
+                self,
+                bg=COLORS["tile_bg"],
+                highlightthickness=0,
+                cursor="hand2",
+            )
+            self._canvas.place(x=0, y=0, relwidth=1.0, relheight=1.0)
 
-        self._canvas.bind("<Button-1>", self._handle_click)
-        self._canvas.bind("<Enter>", self._on_enter)
-        self._canvas.bind("<Leave>", self._on_leave)
-        self._canvas.bind("<Configure>", self._on_configure)
+            self._canvas.bind("<Button-1>", self._handle_click)
+            self._canvas.bind("<Enter>", self._on_enter)
+            self._canvas.bind("<Leave>", self._on_leave)
+            self._canvas.bind("<Configure>", self._on_configure)
 
-        # Render after the widget is mapped so dimensions are available
-        self.after_idle(lambda: self._render(hovered=False))
+            # Render after the widget is mapped so dimensions are available
+            self.after_idle(lambda: self._render(hovered=False))
 
     def set_tile_size(self, width: int, height: int):
         width = max(1, int(width))
@@ -2164,10 +2184,344 @@ class OptionTile(tk.Frame):
         self._tile_width = width
         self._tile_height = height
         self.configure(width=width, height=height)
-        self._photo_normal = None
-        self._photo_hover = None
-        self._last_render_size = (0, 0)
-        self._render(hovered=False)
+        if self._variant == "lore":
+            self._update_lore_layout()
+        else:
+            self._photo_normal = None
+            self._photo_hover = None
+            self._last_render_size = (0, 0)
+            self._render(hovered=False)
+
+    def _build_lore_tile(self):
+        surface = COLORS["bg_surface"]
+        self._lore_shell = tk.Frame(self, bg=surface)
+        self._lore_shell.pack(fill=tk.BOTH, expand=True)
+
+        self._lore_top_band = tk.Frame(self._lore_shell, bg=COLORS["accent"], height=4)
+        self._lore_top_band.pack(fill=tk.X)
+        self._lore_top_band.pack_propagate(False)
+
+        self._lore_content = tk.Frame(
+            self._lore_shell,
+            bg=surface,
+            padx=self._lore_content_pad_x,
+            pady=16,
+        )
+        self._lore_content.pack(fill=tk.BOTH, expand=True)
+
+        self._lore_rule_row = tk.Frame(self._lore_content, bg=surface)
+        self._lore_rule_row.pack(fill=tk.X, pady=(0, 10))
+
+        self._lore_rule_short = tk.Frame(
+            self._lore_rule_row,
+            bg=COLORS["gold_dark"],
+            width=34,
+            height=2,
+        )
+        self._lore_rule_short.pack(side=tk.LEFT)
+        self._lore_rule_short.pack_propagate(False)
+
+        self._lore_rule_long = tk.Frame(
+            self._lore_rule_row,
+            bg=COLORS["border_subtle"],
+            height=1,
+        )
+        self._lore_rule_long.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(8, 0), pady=(1, 0))
+        self._lore_rule_long.pack_propagate(False)
+
+        self._lore_eyebrow = tk.Label(
+            self._lore_content,
+            text="BACKGROUND",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["accent_text"],
+            bg=surface,
+            anchor="w",
+        )
+        self._lore_eyebrow.pack(fill=tk.X)
+
+        self._lore_title = tk.Label(
+            self._lore_content,
+            text=self._name,
+            font=FONTS["card_title_lg"],
+            fg=COLORS["fg"],
+            bg=surface,
+            justify=tk.LEFT,
+            anchor="w",
+        )
+        self._lore_title.pack(fill=tk.X, pady=(4, 0))
+
+        self._lore_desc = tk.Label(
+            self._lore_content,
+            text=self._description,
+            font=FONTS["tile_desc"],
+            fg=COLORS["fg_dim"],
+            bg=surface,
+            justify=tk.LEFT,
+            anchor="w",
+        )
+        if self._description:
+            self._lore_desc.pack(fill=tk.X, pady=(8, 0))
+
+        feat_text, meta_rows = self._split_lore_traits()
+        self._lore_feat_text = feat_text
+        if feat_text:
+            self._lore_feat = tk.Frame(
+                self._lore_content,
+                bg=COLORS["bg_highest"],
+                highlightbackground=COLORS["gold_dark"],
+                highlightthickness=1,
+                padx=10,
+                pady=8,
+            )
+            self._lore_feat.pack(fill=tk.X, pady=(12, 0))
+
+            self._lore_feat_label = tk.Label(
+                self._lore_feat,
+                text="FEAT",
+                font=FONTS["label_tiny"],
+                fg=COLORS["gold"],
+                bg=COLORS["bg_highest"],
+                anchor="w",
+            )
+            self._lore_feat_label.pack(anchor="w")
+
+            self._lore_feat_value = tk.Label(
+                self._lore_feat,
+                text=feat_text,
+                font=FONTS["body_bold"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_highest"],
+                justify=tk.LEFT,
+                anchor="w",
+            )
+            self._lore_feat_value.pack(fill=tk.X, pady=(4, 0))
+
+        self._lore_meta = tk.Frame(self._lore_content, bg=surface)
+        if meta_rows:
+            self._lore_meta.pack(fill=tk.X, pady=(12, 0))
+
+        for index, (label_text, value_text) in enumerate(meta_rows[:2]):
+            row = tk.Frame(self._lore_meta, bg=surface)
+            row.pack(fill=tk.X, pady=(0, 6 if index < len(meta_rows[:2]) - 1 else 0))
+
+            tag = tk.Label(
+                row,
+                text=label_text.upper(),
+                font=FONTS["label_tiny"],
+                fg=COLORS["accent_text"],
+                bg=COLORS["badge_glass"],
+                padx=8,
+                pady=3,
+                anchor="center",
+            )
+            tag.pack(side=tk.LEFT, anchor="n", padx=(0, 8))
+
+            value = tk.Label(
+                row,
+                text=value_text,
+                font=FONTS["body_small"],
+                fg=COLORS["fg_dim"],
+                bg=surface,
+                justify=tk.LEFT,
+                anchor="w",
+            )
+            value.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            self._lore_meta_rows.append({
+                "frame": row,
+                "tag": tag,
+                "value": value,
+                "text": value_text,
+            })
+
+        self._lore_bottom_bar = tk.Frame(self._lore_shell, bg=COLORS["gold_dark"], height=3)
+        self._lore_bottom_bar.pack(side=tk.BOTTOM, fill=tk.X)
+        self._lore_bottom_bar.pack_propagate(False)
+
+        self._apply_lore_state(False)
+        self._bind_lore_interaction(self)
+
+    def _bind_lore_interaction(self, widget):
+        try:
+            widget.configure(cursor="hand2")
+        except tk.TclError:
+            pass
+
+        widget.bind("<Button-1>", self._handle_click, add="+")
+        widget.bind("<Enter>", self._sync_lore_hover, add="+")
+        widget.bind("<Leave>", self._sync_lore_hover, add="+")
+        widget.bind("<Motion>", self._sync_lore_hover, add="+")
+
+        for child in widget.winfo_children():
+            self._bind_lore_interaction(child)
+
+    def _split_lore_traits(self) -> tuple[str, list[tuple[str, str]]]:
+        feat_text = ""
+        meta_rows: list[tuple[str, str]] = []
+
+        for raw_trait in self._traits:
+            trait = " ".join(str(raw_trait).split())
+            if not trait:
+                continue
+
+            label, separator, value = trait.partition(":")
+            if separator:
+                label = label.strip()
+                value = value.strip()
+            else:
+                label = ""
+                value = trait
+
+            if label.lower() == "feat" and value and not feat_text:
+                feat_text = value
+                continue
+
+            meta_rows.append(((label or "Detail").upper(), value or trait))
+
+        return feat_text, meta_rows
+
+    def _apply_lore_state(self, hovered: bool):
+        surface = COLORS["bg_container"] if hovered else COLORS["bg_surface"]
+        border = COLORS["outline"] if hovered else COLORS["border_medium"]
+        feat_bg = COLORS["bg_high"] if hovered else COLORS["bg_highest"]
+        tag_bg = COLORS["bg_highest"] if hovered else COLORS["badge_glass"]
+
+        self.configure(bg=surface, highlightbackground=border)
+        self._lore_shell.configure(bg=surface)
+        self._lore_content.configure(bg=surface)
+        self._lore_rule_row.configure(bg=surface)
+        self._lore_top_band.configure(bg=COLORS["accent_text"] if hovered else COLORS["accent"])
+        self._lore_rule_short.configure(bg=COLORS["gold"] if hovered else COLORS["gold_dark"])
+        self._lore_rule_long.configure(bg=COLORS["outline_dim"] if hovered else COLORS["border_subtle"])
+        self._lore_eyebrow.configure(bg=surface)
+        self._lore_title.configure(bg=surface)
+        self._lore_desc.configure(bg=surface, fg=COLORS["fg"] if hovered else COLORS["fg_dim"])
+
+        if self._lore_feat is not None:
+            self._lore_feat.configure(
+                bg=feat_bg,
+                highlightbackground=COLORS["gold"] if hovered else COLORS["gold_dark"],
+            )
+            self._lore_feat_label.configure(bg=feat_bg)
+            self._lore_feat_value.configure(bg=feat_bg)
+
+        self._lore_meta.configure(bg=surface)
+        for row in self._lore_meta_rows:
+            row["frame"].configure(bg=surface)
+            row["tag"].configure(bg=tag_bg)
+            row["value"].configure(bg=surface, fg=COLORS["fg"] if hovered else COLORS["fg_dim"])
+
+        self._lore_bottom_bar.configure(bg=COLORS["gold"] if hovered else COLORS["gold_dark"])
+
+    def _sync_lore_hover(self, _event=None):
+        if self._variant != "lore":
+            return
+
+        try:
+            pointer_x = self.winfo_pointerx() - self.winfo_rootx()
+            pointer_y = self.winfo_pointery() - self.winfo_rooty()
+            inside = (
+                0 <= pointer_x < max(self.winfo_width(), 1)
+                and 0 <= pointer_y < max(self.winfo_height(), 1)
+            )
+        except tk.TclError:
+            inside = False
+
+        if inside != self._hovered:
+            self._hovered = inside
+            self._apply_lore_state(inside)
+
+    def _wrap_text_lines(self, text: str, font_spec, width: int) -> list[str]:
+        normalized = " ".join((text or "").split())
+        if not normalized:
+            return []
+
+        width = max(int(width), 1)
+        font = tkfont.Font(font=font_spec)
+        lines: list[str] = []
+        current = ""
+
+        for word in normalized.split():
+            candidate = word if not current else f"{current} {word}"
+            if current and font.measure(candidate) > width:
+                lines.append(current)
+                current = word
+            else:
+                current = candidate
+
+        if current:
+            lines.append(current)
+
+        return lines
+
+    def _truncate_wrapped_text(
+        self,
+        text: str,
+        font_spec,
+        width: int,
+        max_lines: int,
+    ) -> str:
+        lines = self._wrap_text_lines(text, font_spec, width)
+        if len(lines) <= max_lines:
+            return "\n".join(lines)
+
+        font = tkfont.Font(font=font_spec)
+        visible = lines[:max_lines]
+        last = visible[-1].rstrip()
+        ellipsis = "..."
+        while last and font.measure(f"{last}{ellipsis}") > width:
+            if " " in last:
+                last = last.rsplit(" ", 1)[0].rstrip()
+            else:
+                last = last[:-1].rstrip()
+
+        visible[-1] = f"{last}{ellipsis}" if last else ellipsis
+        return "\n".join(visible)
+
+    def _update_lore_layout(self):
+        if self._variant != "lore":
+            return
+
+        width = self.winfo_width()
+        if width < 2:
+            width = self._tile_width
+
+        content_width = max(width - (self._lore_content_pad_x * 2), 80)
+        title_text = self._truncate_wrapped_text(
+            self._name,
+            FONTS["card_title_lg"],
+            content_width,
+            max_lines=2,
+        )
+        self._lore_title.configure(text=title_text, wraplength=content_width)
+
+        if self._description:
+            desc_text = self._truncate_wrapped_text(
+                self._description,
+                FONTS["tile_desc"],
+                content_width,
+                max_lines=2,
+            )
+            self._lore_desc.configure(text=desc_text, wraplength=content_width)
+
+        if self._lore_feat_value is not None:
+            feat_width = max(content_width - 20, 80)
+            feat_text = self._truncate_wrapped_text(
+                self._lore_feat_text,
+                FONTS["body_bold"],
+                feat_width,
+                max_lines=2,
+            )
+            self._lore_feat_value.configure(text=feat_text, wraplength=feat_width)
+
+        meta_value_width = max(content_width - 84, 56)
+        for row in self._lore_meta_rows:
+            value_text = self._truncate_wrapped_text(
+                row["text"],
+                FONTS["body_small"],
+                meta_value_width,
+                max_lines=2,
+            )
+            row["value"].configure(text=value_text, wraplength=meta_value_width)
 
     # ------------------------------------------------------------------
     # Rendering
@@ -2351,14 +2705,26 @@ class OptionTile(tk.Frame):
             self._on_click(self._name)
 
     def _on_enter(self, _event=None):
+        if self._variant == "lore":
+            self._hovered = True
+            self._apply_lore_state(True)
+            return
         self.configure(highlightbackground=COLORS["accent_text"])
         self._render(hovered=True)
 
     def _on_leave(self, _event=None):
+        if self._variant == "lore":
+            self._hovered = False
+            self._apply_lore_state(False)
+            return
         self.configure(highlightbackground=COLORS["tile_border"])
         self._render(hovered=False)
 
     def _on_configure(self, _event=None):
+        if self._variant == "lore":
+            self._update_lore_layout()
+            return
+
         w = self._canvas.winfo_width()
         h = self._canvas.winfo_height()
         if (w, h) != self._last_render_size and w > 1 and h > 1:
@@ -2427,6 +2793,7 @@ class TileGrid(tk.Frame):
             description=tile_data.get("description", ""),
             traits=tile_data.get("traits"),
             image_path=tile_data.get("image_path"),
+            variant=tile_data.get("variant"),
             tile_width=self._tile_width,
             tile_height=self._tile_height,
             on_click=self._handle_select,
