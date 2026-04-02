@@ -6,6 +6,10 @@ from gui.base_step import WizardStep
 from gui.widgets import GradientHeader, SectionHeader, CardFrame, ScrollableFrame
 from gui.theme import COLORS, FONTS, SPACING
 from models.ability_scores import STANDARD_ARRAY, POINT_BUY_COSTS, POINT_BUY_BUDGET, POINT_BUY_MIN, POINT_BUY_MAX
+from models.ability_bonus_utils import (
+    apply_background_ability_bonuses,
+    get_background_bonus_abilities,
+)
 
 ABILITIES = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
 ABILITY_SHORT = {"Strength": "STR", "Dexterity": "DEX", "Constitution": "CON",
@@ -35,6 +39,10 @@ class AbilityScoresStep(WizardStep):
         scroll = ScrollableFrame(self.frame)
         scroll.grid(row=1, column=0, sticky="nsew")
         inner = scroll.inner
+
+        # Background / origin bonuses
+        self._bonus_outer = tk.Frame(inner, bg=COLORS["bg"])
+        self._bonus_outer.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
 
         # Method toggle
         SectionHeader(inner, text="Method").pack(
@@ -86,7 +94,11 @@ class AbilityScoresStep(WizardStep):
 
         # Score widgets
         self.score_widgets = {}
+        self.bonus_combos = {}
+        self.bonus_widgets = {}
+        self._current_bonus_abilities: list[str] = []
         self._build_assignment_ui()
+        self._build_background_bonus_section()
 
         # Restore loaded scores to character model (_build_assignment_ui set defaults)
         if self._has_loaded_data:
@@ -95,6 +107,7 @@ class AbilityScoresStep(WizardStep):
 
     def on_enter(self):
         """Refresh when entering this tab. Pre-populate scores in edit mode."""
+        self._build_background_bonus_section()
         if not self._edit_initialized and self._has_loaded_data:
             self._edit_initialized = True
             method = self.method_var.get()
@@ -115,6 +128,237 @@ class AbilityScoresStep(WizardStep):
                         self.score_widgets[ab]["var"].set(val)
         self._update_display()
         self._build_hp_override()
+
+    def _build_background_bonus_section(self):
+        for w in self._bonus_outer.winfo_children():
+            w.destroy()
+
+        background = self.character.background or {}
+        self._current_bonus_abilities = get_background_bonus_abilities(self.character)
+        if not background or not self._current_bonus_abilities:
+            self.bonus_combos.clear()
+            self.bonus_widgets.clear()
+            if self._bonus_outer.winfo_manager():
+                self._bonus_outer.pack_forget()
+            return
+
+        if not self._bonus_outer.winfo_manager():
+            siblings = [
+                child for child in self._bonus_outer.master.winfo_children()
+                if child is not self._bonus_outer
+            ]
+            pack_kwargs = {
+                "fill": tk.X,
+                "padx": SPACING["lg"],
+                "pady": (SPACING["sm"], 0),
+            }
+            if siblings:
+                pack_kwargs["before"] = siblings[0]
+            self._bonus_outer.pack(**pack_kwargs)
+
+        apply_background_ability_bonuses(self.character)
+
+        SectionHeader(self._bonus_outer, text="Ability Score Increases").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
+
+        bonus_card = CardFrame(self._bonus_outer, pad=SPACING["lg"])
+        bonus_card.pack(fill=tk.X)
+        bonus_inner = bonus_card.inner
+        _bg = COLORS["bg_surface"]
+
+        tk.Label(
+            bonus_inner,
+            text=f"From Background: {background.get('name', 'Unknown')}",
+            font=FONTS["body_bold"],
+            fg=COLORS["fg"],
+            bg=_bg,
+        ).pack(anchor="w")
+
+        tk.Label(
+            bonus_inner,
+            text=(
+                "These bonuses come from your background and are added on top "
+                "of the base scores you assign below."
+            ),
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=_bg,
+            wraplength=780,
+            justify=tk.LEFT,
+        ).pack(anchor="w", pady=(SPACING["xs"], SPACING["xs"]))
+
+        tk.Label(
+            bonus_inner,
+            text=f"Choose from: {', '.join(self._current_bonus_abilities)}",
+            font=FONTS["body"],
+            fg=COLORS["accent_text"],
+            bg=_bg,
+        ).pack(anchor="w", pady=(0, SPACING["xs"]))
+
+        mode_frame = tk.Frame(bonus_inner, bg=_bg)
+        mode_frame.pack(fill=tk.X)
+
+        self.bonus_mode = tk.StringVar(value=self.character.ability_bonus_mode)
+        ttk.Radiobutton(
+            mode_frame,
+            text="+2 / +1",
+            variable=self.bonus_mode,
+            value="2/1",
+            command=self._update_bonus_ui,
+        ).pack(side=tk.LEFT, padx=(0, SPACING["sm"]))
+        ttk.Radiobutton(
+            mode_frame,
+            text="+1 / +1 / +1",
+            variable=self.bonus_mode,
+            value="1/1/1",
+            command=self._update_bonus_ui,
+        ).pack(side=tk.LEFT, padx=(0, SPACING["sm"]))
+
+        self.assign_bonus_frame = tk.Frame(bonus_inner, bg=_bg)
+        self.assign_bonus_frame.pack(fill=tk.X, pady=(SPACING["xs"], 0))
+
+        self._update_bonus_ui()
+
+    def _update_bonus_ui(self):
+        if not hasattr(self, "assign_bonus_frame"):
+            return
+
+        for w in self.assign_bonus_frame.winfo_children():
+            w.destroy()
+
+        self.bonus_combos.clear()
+        self.bonus_widgets.clear()
+        self.character.ability_bonus_mode = self.bonus_mode.get()
+        apply_background_ability_bonuses(self.character)
+
+        abilities = list(self._current_bonus_abilities)
+        _bg = COLORS["bg_surface"]
+
+        if self.character.ability_bonus_mode == "2/1":
+            assignments = dict(self.character.ability_bonus_assignments)
+            plus2_value = assignments.get("+2", abilities[0] if abilities else "")
+            plus1_choices = [ability for ability in abilities if ability != plus2_value]
+            plus1_value = assignments.get("+1", plus1_choices[0] if plus1_choices else "")
+
+            row1 = tk.Frame(self.assign_bonus_frame, bg=_bg)
+            row1.pack(fill=tk.X, pady=2)
+            tk.Label(
+                row1,
+                text="+2 to:",
+                font=FONTS["body_bold"],
+                fg=COLORS["fg"],
+                bg=_bg,
+                width=8,
+            ).pack(side=tk.LEFT)
+            plus2_var = tk.StringVar(value=plus2_value)
+            plus2_combo = ttk.Combobox(
+                row1,
+                textvariable=plus2_var,
+                values=abilities,
+                state="readonly",
+                width=15,
+            )
+            plus2_combo.pack(side=tk.LEFT, padx=4)
+            self.bonus_combos["+2"] = plus2_var
+            self.bonus_widgets["+2"] = plus2_combo
+
+            row2 = tk.Frame(self.assign_bonus_frame, bg=_bg)
+            row2.pack(fill=tk.X, pady=2)
+            tk.Label(
+                row2,
+                text="+1 to:",
+                font=FONTS["body_bold"],
+                fg=COLORS["fg"],
+                bg=_bg,
+                width=8,
+            ).pack(side=tk.LEFT)
+            plus1_var = tk.StringVar(value=plus1_value)
+            plus1_combo = ttk.Combobox(
+                row2,
+                textvariable=plus1_var,
+                values=plus1_choices,
+                state="readonly",
+                width=15,
+            )
+            plus1_combo.pack(side=tk.LEFT, padx=4)
+            self.bonus_combos["+1"] = plus1_var
+            self.bonus_widgets["+1"] = plus1_combo
+
+            plus2_var.trace_add("write", self._on_bonus_change)
+            plus1_var.trace_add("write", self._on_bonus_change)
+        else:
+            for ability in abilities:
+                row = tk.Frame(self.assign_bonus_frame, bg=_bg)
+                row.pack(fill=tk.X, pady=2)
+                tk.Label(
+                    row,
+                    text="+1 to:",
+                    font=FONTS["body_bold"],
+                    fg=COLORS["fg"],
+                    bg=_bg,
+                    width=8,
+                ).pack(side=tk.LEFT)
+                tk.Label(
+                    row,
+                    text=ability,
+                    font=FONTS["body"],
+                    fg=COLORS["accent_text"],
+                    bg=_bg,
+                ).pack(side=tk.LEFT, padx=4)
+
+        self._on_bonus_change()
+
+    def _on_bonus_change(self, *_args):
+        if not self._current_bonus_abilities:
+            return
+
+        mode = self.bonus_mode.get()
+        self.character.ability_bonus_mode = mode
+
+        if mode == "2/1":
+            plus2_var = self.bonus_combos.get("+2")
+            plus1_var = self.bonus_combos.get("+1")
+            plus2_value = plus2_var.get() if plus2_var else ""
+            plus1_value = plus1_var.get() if plus1_var else ""
+
+            plus2_widget = self.bonus_widgets.get("+2")
+            plus1_widget = self.bonus_widgets.get("+1")
+
+            if plus1_widget and plus2_value:
+                plus1_choices = [
+                    ability
+                    for ability in self._current_bonus_abilities
+                    if ability != plus2_value
+                ]
+                plus1_widget["values"] = plus1_choices
+                if plus1_value == plus2_value and plus1_choices:
+                    plus1_var.set(plus1_choices[0])
+                    return
+            elif plus1_widget:
+                plus1_widget["values"] = self._current_bonus_abilities
+
+            if plus2_widget and plus1_value:
+                plus2_widget["values"] = [
+                    ability
+                    for ability in self._current_bonus_abilities
+                    if ability != plus1_value
+                ]
+            elif plus2_widget:
+                plus2_widget["values"] = self._current_bonus_abilities
+
+            self.character.ability_bonus_assignments = {}
+            if plus2_value:
+                self.character.ability_bonus_assignments["+2"] = plus2_value
+            if plus1_value and plus1_value != plus2_value:
+                self.character.ability_bonus_assignments["+1"] = plus1_value
+        else:
+            self.character.ability_bonus_assignments = {
+                ability: 1 for ability in self._current_bonus_abilities
+            }
+
+        apply_background_ability_bonuses(self.character)
+        self._update_display()
 
     def _build_assignment_ui(self):
         for w in self.assign_frame.winfo_children():
