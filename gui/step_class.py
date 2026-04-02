@@ -4,6 +4,13 @@ import os
 import re
 import tkinter as tk
 from tkinter import ttk
+
+try:
+    from PIL import Image, ImageTk
+except ImportError:  # pragma: no cover
+    Image = None
+    ImageTk = None
+
 from gui.base_step import WizardStep
 from gui.widgets import (
     ScrollableFrame,
@@ -43,6 +50,12 @@ def _slug(name: str) -> str:
     return name.lower().replace(" ", "_").replace("'", "")
 
 
+def _class_image_path(class_name: str) -> str | None:
+    """Return the image asset path for a class if one exists."""
+    img_path = os.path.join(images_dir(), "classes", f"{_slug(class_name)}.png")
+    return img_path if os.path.isfile(img_path) else None
+
+
 class ClassStep(WizardStep):
     tab_title = "Class"
     CLASS_OVERVIEW_LABEL = "Class Overview"
@@ -50,6 +63,11 @@ class ClassStep(WizardStep):
     def build_ui(self):
         self._edit_initialized = False
         self._current_substep = 0
+        self._selected_class_name = ""
+        self._class_portrait_path: str | None = None
+        self._class_portrait_source = None
+        self._class_portrait_photo = None
+        self._class_portrait_pending = False
 
         # Two containers: grid view (substep 0) and detail view (substep 1)
         self._grid_frame = tk.Frame(self.frame, bg=COLORS["bg"])
@@ -240,9 +258,47 @@ class ClassStep(WizardStep):
         self.detail = right.inner
         self._subclass_lookup_by_class: dict[str, dict[str, dict]] = {}
 
+        self._detail_top = tk.Frame(self.detail, bg=COLORS["bg"])
+        self._detail_top.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        self._detail_top.columnconfigure(0, weight=7, uniform="class_detail_top")
+        self._detail_top.columnconfigure(1, weight=3, uniform="class_detail_top")
+        self._detail_top.rowconfigure(0, weight=1)
+
+        self._detail_text = tk.Frame(self._detail_top, bg=COLORS["bg"])
+        self._detail_text.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+            padx=(0, SPACING["lg"]),
+        )
+
+        self._detail_portrait = tk.Frame(self._detail_top, bg=COLORS["bg"])
+        self._detail_portrait.grid(row=0, column=1, sticky="nsew")
+        self._detail_portrait.rowconfigure(0, weight=1)
+        self._detail_portrait.columnconfigure(0, weight=1)
+
+        self._portrait_shell = tk.Frame(
+            self._detail_portrait,
+            bg=COLORS["bg_surface"],
+            highlightbackground=COLORS["border_subtle_bg"],
+            highlightthickness=1,
+        )
+        self._portrait_shell.grid(row=0, column=0, sticky="nsew")
+        self._portrait_shell.rowconfigure(0, weight=1)
+        self._portrait_shell.columnconfigure(0, weight=1)
+
+        self._portrait_canvas = tk.Canvas(
+            self._portrait_shell,
+            bg=COLORS["bg_surface"],
+            highlightthickness=0,
+            bd=0,
+        )
+        self._portrait_canvas.grid(row=0, column=0, sticky="nsew")
+        self._portrait_canvas.bind("<Configure>", self._on_class_portrait_configure)
+
         # Hero header for selected class
-        self._hero = GradientHeader(self.detail, min_height=60)
-        self._hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        self._hero = GradientHeader(self._detail_text, min_height=60)
+        self._hero.pack(fill=tk.X, pady=(0, SPACING["sm"]))
 
         self.detail_name = tk.Label(
             self._hero.inner,
@@ -263,7 +319,7 @@ class ClassStep(WizardStep):
         self.detail_source.pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xs"], SPACING["xl"]))
 
         self.detail_desc = WrappingLabel(
-            self.detail, text="", foreground=COLORS["fg_dim"]
+            self._detail_text, text="", foreground=COLORS["fg_dim"]
         )
         self.detail_desc.pack(fill=tk.X, anchor="w", padx=SPACING["lg"], pady=(0, SPACING["sm"]))
 
@@ -397,6 +453,134 @@ class ClassStep(WizardStep):
             w.destroy()
         if self.subclass_detail_frame.winfo_manager():
             self.subclass_detail_frame.pack_forget()
+
+    def _set_class_portrait(self, class_name: str):
+        """Load the selected class portrait and schedule a redraw."""
+        self._selected_class_name = class_name
+        self._class_portrait_path = _class_image_path(class_name)
+        self._class_portrait_source = None
+        self._class_portrait_photo = None
+
+        if self._class_portrait_path and Image is not None:
+            try:
+                self._class_portrait_source = Image.open(
+                    self._class_portrait_path
+                ).convert("RGBA")
+            except Exception:
+                self._class_portrait_source = None
+
+        self._schedule_class_portrait_render()
+
+    def _on_class_portrait_configure(self, _event=None):
+        """Redraw portrait when its container size changes."""
+        self._schedule_class_portrait_render()
+
+    def _schedule_class_portrait_render(self):
+        """Throttle portrait redraws to the next idle cycle."""
+        if self._class_portrait_pending:
+            return
+        widget = getattr(self, "_portrait_canvas", None)
+        if widget is None:
+            return
+        self._class_portrait_pending = True
+        try:
+            widget.after_idle(self._render_class_portrait)
+        except tk.TclError:
+            self._class_portrait_pending = False
+
+    def _render_class_portrait(self):
+        """Render the portrait using cover-style cropping when available."""
+        self._class_portrait_pending = False
+
+        if not hasattr(self, "_portrait_canvas"):
+            return
+
+        canvas = self._portrait_canvas
+        width = canvas.winfo_width()
+        height = canvas.winfo_height()
+        if width < 2 or height < 2:
+            return
+
+        canvas.delete("all")
+        canvas.create_rectangle(
+            0,
+            0,
+            width,
+            height,
+            fill=COLORS["bg_surface"],
+            outline="",
+        )
+
+        if self._class_portrait_source is not None and ImageTk is not None:
+            image = self._cover_crop_class_portrait(width, height)
+            if image is not None:
+                self._class_portrait_photo = ImageTk.PhotoImage(image)
+                canvas.create_image(
+                    width // 2,
+                    height // 2,
+                    image=self._class_portrait_photo,
+                )
+                return
+
+        if self._class_portrait_path:
+            try:
+                self._class_portrait_photo = tk.PhotoImage(
+                    file=self._class_portrait_path
+                )
+                canvas.create_image(
+                    width // 2,
+                    height // 2,
+                    image=self._class_portrait_photo,
+                )
+                return
+            except tk.TclError:
+                pass
+
+        canvas.create_text(
+            width // 2,
+            height // 2,
+            text=self._selected_class_name or "Class",
+            font=FONTS["heading_serif_sm"],
+            fill=COLORS["fg_dim"],
+        )
+
+    def _cover_crop_class_portrait(self, width: int, height: int):
+        """Resize the portrait to fill the target area with top-biased cropping."""
+        source = self._class_portrait_source
+        if source is None:
+            return None
+
+        src_w, src_h = source.size
+        if src_w <= 0 or src_h <= 0:
+            return None
+
+        target_ratio = width / float(height)
+        source_ratio = src_w / float(src_h)
+
+        if source_ratio > target_ratio:
+            crop_w = int(src_h * target_ratio)
+            left = max((src_w - crop_w) // 2, 0)
+            box = (left, 0, left + crop_w, src_h)
+        else:
+            crop_h = int(src_w / target_ratio)
+            box = (0, 0, src_w, min(crop_h, src_h))
+
+        try:
+            cropped = source.crop(box).resize((width, height), Image.LANCZOS)
+        except Exception:
+            return None
+
+        background = Image.new(
+            "RGBA",
+            (width, height),
+            self._hex_to_rgb(COLORS["bg_surface"]) + (255,),
+        )
+        return Image.alpha_composite(background, cropped)
+
+    def _hex_to_rgb(self, color: str) -> tuple[int, int, int]:
+        """Convert a hex color string into an RGB tuple."""
+        value = color.lstrip("#")
+        return tuple(int(value[i:i + 2], 16) for i in (0, 2, 4))
 
     def _on_sub_select(self, class_name: str, sub_label: str):
         subclass = self._subclass_lookup_by_class.get(class_name, {}).get(sub_label)
@@ -536,6 +720,7 @@ class ClassStep(WizardStep):
         self.detail_name.configure(text=cls["name"])
         self.detail_source.configure(text=f"Source: {cls.get('source', 'Unknown')}")
         self.detail_desc.configure(text=cls.get("description", ""))
+        self._set_class_portrait(cls.get("name", ""))
         self._clear_subclass_detail_frame()
 
         self._clear_detail_frames()
