@@ -6,7 +6,7 @@ from tkinter import ttk, filedialog
 from gui.theme import apply_theme, COLORS, FONTS, SPACING
 from gui.data_loader import GameData
 from gui.sidebar import WizardSidebar
-from gui.widgets import AlertDialog, HPBar
+from gui.widgets import AlertDialog, ConfirmDialog, HPBar
 
 from gui.step_species import SpeciesStep
 from gui.step_class import ClassStep
@@ -168,11 +168,6 @@ class CharacterCreatorApp:
         left_frame = tk.Frame(nav_inner, bg=COLORS["bg_surface"])
         left_frame.pack(side=tk.LEFT)
 
-        if save_path:
-            cancel_cmd = lambda: self.show_viewer(character, save_path)
-        else:
-            cancel_cmd = self.show_home
-
         self._back_btn = ttk.Button(
             left_frame,
             text="\u25c0  Back",
@@ -270,7 +265,7 @@ class CharacterCreatorApp:
             nav_items=nav_items,
             on_navigate=self._on_sidebar_nav,
             header_title="The Forge",
-            on_back=cancel_cmd,
+            on_back=self._cancel_wizard,
             width=224,
         )
         self._wizard_sidebar.pack(side=tk.LEFT, fill=tk.Y)
@@ -465,6 +460,47 @@ class CharacterCreatorApp:
 
         self._update_sidebar_state()
         self._update_nav_buttons()
+
+    def _confirm_cancel_wizard(self) -> bool:
+        """Confirm leaving the wizard and discarding unsaved progress."""
+        title = "Cancel Character Creation"
+        message = (
+            "Cancel character creation and leave The Forge?\n\n"
+            "All unsaved progress will be lost."
+        )
+        if self.current_save_path:
+            title = "Cancel Character Editing"
+            message = (
+                "Cancel your changes and leave The Forge?\n\n"
+                "All unsaved progress will be lost."
+            )
+
+        dlg = ConfirmDialog(self.root, title, message)
+        return dlg.result
+
+    def _cancel_wizard(self):
+        """Leave the wizard after confirming any unsaved progress loss."""
+        if not self._confirm_cancel_wizard():
+            return
+
+        if self.current_save_path:
+            from models.character_store import load_character
+
+            try:
+                character = load_character(self.current_save_path, self.data)
+            except Exception as exc:
+                AlertDialog(
+                    self.root,
+                    "Cancel Failed",
+                    "The saved character could not be reloaded, so your current "
+                    f"changes were kept open.\n\n{exc}",
+                )
+                return
+
+            self.show_viewer(character, self.current_save_path)
+            return
+
+        self.show_home()
 
     def _wizard_next(self):
         curr = self._current_step_idx
