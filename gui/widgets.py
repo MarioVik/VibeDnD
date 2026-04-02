@@ -2549,6 +2549,23 @@ class OptionTile(tk.Frame):
         """Keep the text panel at a stable share of the tile height."""
         return max(1, min(height, int(round(height * self.OVERLAY_HEIGHT_RATIO))))
 
+    def _tile_scale(self, width: int, height: int) -> float:
+        """Scale tile typography gently with tile growth/shrink."""
+        base_scale = min(
+            width / float(max(self.TILE_WIDTH, 1)),
+            height / float(max(self.TILE_HEIGHT, 1)),
+        )
+        return max(0.9, min(1.35, base_scale))
+
+    def _scaled_font(self, font_spec, scale: float):
+        if not isinstance(font_spec, tuple) or len(font_spec) < 2:
+            return font_spec
+        size = font_spec[1]
+        if not isinstance(size, int):
+            return font_spec
+        scaled_size = max(8, int(round(size * scale)))
+        return (font_spec[0], scaled_size, *font_spec[2:])
+
     def _queue_render(self):
         if self._variant == "lore":
             return
@@ -2821,26 +2838,29 @@ class OptionTile(tk.Frame):
 
     def _draw_text(self, width: int, height: int):
         """Render name and traits on the canvas over the gradient overlay."""
+        scale = self._tile_scale(width, height)
+        title_font = self._scaled_font(FONTS["tile_name"], scale)
         panel_height = self._overlay_height(height)
-        pad_x = 16
+        pad_x = max(16, int(round(16 * scale)))
         pad_top = max(16, int(round(panel_height * 0.2)))
         panel_top = height - panel_height + pad_top
         text_width = max(width - pad_x * 2, 80)
+        shadow_offset = max(1, int(round(scale)))
 
         # Name with shadow
         self._canvas.create_text(
-            pad_x + 1, panel_top + 1,
-            text=self._name, font=FONTS["tile_name"],
+            pad_x + shadow_offset, panel_top + shadow_offset,
+            text=self._name, font=title_font,
             fill=COLORS["bg_deepest"], anchor="nw", width=text_width,
         )
         title_id = self._canvas.create_text(
             pad_x, panel_top,
-            text=self._name, font=FONTS["tile_name"],
+            text=self._name, font=title_font,
             fill=COLORS["fg"], anchor="nw", width=text_width,
         )
 
         # Traits below name
-        if self._traits:
+        if False and self._traits:
             title_bbox = self._canvas.bbox(title_id)
             traits_y = (title_bbox[3] if title_bbox else panel_top + 20) + max(
                 6, int(round(panel_height * 0.05))
@@ -2856,6 +2876,94 @@ class OptionTile(tk.Frame):
                 text=traits_text, font=FONTS["tile_trait"],
                 fill=COLORS["gold"], anchor="nw", width=text_width,
             )
+
+        if self._traits:
+            title_bbox = self._canvas.bbox(title_id)
+            name_badge_gap = max(16, int(round(panel_height * 0.14)))
+            traits_y = (title_bbox[3] if title_bbox else panel_top + 20) + name_badge_gap
+            self._draw_trait_chips(
+                x=pad_x,
+                y=traits_y,
+                max_width=text_width,
+                traits=self._traits[:3],
+                scale=scale,
+            )
+
+    def _truncate_chip_text(self, text: str, font: tkfont.Font, max_width: int) -> str:
+        label = " ".join(str(text).split()).upper()
+        if not label:
+            return ""
+
+        if font.measure(label) <= max_width:
+            return label
+
+        ellipsis = "..."
+        trimmed = label
+        while trimmed and font.measure(trimmed + ellipsis) > max_width:
+            if " " in trimmed:
+                trimmed = trimmed.rsplit(" ", 1)[0].rstrip()
+            else:
+                trimmed = trimmed[:-1].rstrip()
+        return (trimmed + ellipsis) if trimmed else ellipsis
+
+    def _draw_trait_chips(
+        self,
+        x: int,
+        y: int,
+        max_width: int,
+        traits: list[str],
+        scale: float = 1.0,
+    ):
+        font_spec = self._scaled_font(FONTS["label_tiny"], scale)
+        font = tkfont.Font(font=font_spec)
+        chip_bg = COLORS["bg_highest"]
+        chip_fg = COLORS["fg_dim"]
+        chip_pad_x = max(8, int(round(10 * scale)))
+        chip_pad_y = max(3, int(round(3 * scale)))
+        gap_x = max(4, int(round(6 * scale)))
+        gap_y = max(4, int(round(6 * scale)))
+        line_height = font.metrics("linespace") + chip_pad_y * 2
+        cursor_x = x
+        cursor_y = y
+        row = 0
+        max_rows = 2
+        max_text_width = max(24, max_width - chip_pad_x * 2)
+
+        for trait in traits:
+            label = self._truncate_chip_text(trait, font, max_text_width)
+            if not label:
+                continue
+
+            chip_width = font.measure(label) + chip_pad_x * 2
+            if cursor_x > x and cursor_x + chip_width > x + max_width:
+                row += 1
+                if row >= max_rows:
+                    break
+                cursor_x = x
+                cursor_y += line_height + gap_y
+
+            x1 = cursor_x
+            y1 = cursor_y
+            x2 = cursor_x + min(chip_width, max_width)
+            y2 = cursor_y + line_height
+
+            self._canvas.create_rectangle(
+                x1,
+                y1,
+                x2,
+                y2,
+                fill=chip_bg,
+                outline="",
+            )
+            self._canvas.create_text(
+                x1 + chip_pad_x,
+                y1 + chip_pad_y,
+                text=label,
+                font=font_spec,
+                fill=chip_fg,
+                anchor="nw",
+            )
+            cursor_x = x2 + gap_x
 
     # ------------------------------------------------------------------
     # Interaction
@@ -2911,6 +3019,7 @@ class TileGrid(tk.Frame):
         preferred_cols: int | None = None,
         min_tile_width: int | None = None,
         expand_tiles_to_fill: bool = False,
+        expand_gap_with_tile: bool = False,
         responsive_tile_height: bool = False,
         content_side_padding: int = 0,
         **kwargs,
@@ -2924,6 +3033,7 @@ class TileGrid(tk.Frame):
         self._preferred_cols = preferred_cols
         self._min_tile_width = min_tile_width
         self._expand_tiles_to_fill = expand_tiles_to_fill
+        self._expand_gap_with_tile = expand_gap_with_tile
         self._responsive_tile_height = responsive_tile_height
         self._content_side_padding = max(0, int(content_side_padding))
         self._tile_ratio = tile_height / float(max(tile_width, 1))
@@ -2932,6 +3042,7 @@ class TileGrid(tk.Frame):
         self._tile_data: list[dict] = []
         self._visible_names: set[str] | None = None
         self._cols = 3
+        self._gap = SPACING["tile_gap"]
         self._max_cols_seen = self._cols
         self._relayout_job = None
 
@@ -3007,32 +3118,56 @@ class TileGrid(tk.Frame):
                 pass
         self._relayout_job = self.after(50, lambda: self._recalc_layout(event.width))
 
+    def _scaled_gap(self, tile_width: int) -> int:
+        base_gap = SPACING["tile_gap"]
+        if not self._expand_gap_with_tile:
+            return base_gap
+        scale = tile_width / float(max(self._base_tile_width, 1))
+        return max(base_gap, min(int(round(base_gap * scale)), base_gap * 2))
+
     def _recalc_layout(self, width: int):
         self._relayout_job = None
-        gap = SPACING["tile_gap"]
+        base_gap = SPACING["tile_gap"]
+        gap = base_gap
         available_width = max(1, width - (self._content_side_padding * 2))
         new_cols = max(1, (available_width + gap) // (self._base_tile_width + gap))
         new_tile_width = self._base_tile_width
 
         if self._preferred_cols is not None:
+            preferred_gap = self._scaled_gap(self._base_tile_width)
             preferred_width = max(
                 1,
                 (
-                    available_width - gap * max(self._preferred_cols - 1, 0)
+                    available_width - preferred_gap * max(self._preferred_cols - 1, 0)
+                ) // self._preferred_cols,
+            )
+            preferred_gap = self._scaled_gap(preferred_width)
+            preferred_width = max(
+                1,
+                (
+                    available_width - preferred_gap * max(self._preferred_cols - 1, 0)
                 ) // self._preferred_cols,
             )
             min_width = self._min_tile_width or 1
 
             if preferred_width >= min_width:
                 new_cols = self._preferred_cols
+                gap = preferred_gap
                 if self._expand_tiles_to_fill:
                     new_tile_width = preferred_width
                 else:
                     new_tile_width = min(self._base_tile_width, preferred_width)
             else:
                 fit_width = min_width
-                new_cols = max(1, (available_width + gap) // (fit_width + gap))
+                new_cols = max(1, (available_width + base_gap) // (fit_width + base_gap))
                 if new_cols > 0:
+                    computed_width = max(
+                        1,
+                        (
+                            available_width - base_gap * max(new_cols - 1, 0)
+                        ) // new_cols,
+                    )
+                    gap = self._scaled_gap(computed_width)
                     computed_width = max(
                         1,
                         (
@@ -3051,18 +3186,21 @@ class TileGrid(tk.Frame):
         size_changed = (
             new_tile_width != self._tile_width or new_tile_height != self._tile_height
         )
+        gap_changed = gap != self._gap
         if size_changed:
             self._tile_width = new_tile_width
             self._tile_height = new_tile_height
             for tile in self._tiles:
                 tile.set_tile_size(self._tile_width, self._tile_height)
+        if gap_changed:
+            self._gap = gap
 
-        if new_cols != self._cols or size_changed:
+        if new_cols != self._cols or size_changed or gap_changed:
             self._cols = new_cols
             self._layout_tiles()
 
     def _layout_tiles(self):
-        gap = SPACING["tile_gap"]
+        gap = self._gap
 
         # Configure columns
         self._max_cols_seen = max(self._max_cols_seen, self._cols)

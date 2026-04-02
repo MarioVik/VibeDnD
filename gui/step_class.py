@@ -127,6 +127,7 @@ class ClassStep(WizardStep):
             preferred_cols=4,
             min_tile_width=180,
             expand_tiles_to_fill=True,
+            expand_gap_with_tile=True,
             responsive_tile_height=True,
             content_side_padding=SPACING["xl"],
         )
