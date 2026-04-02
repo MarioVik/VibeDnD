@@ -1,5 +1,6 @@
 """Reusable custom widgets for the character creator."""
 
+import math
 import os
 import sys
 import tkinter as tk
@@ -2090,6 +2091,9 @@ try:
 except ImportError:
     _PILImage = _PILImageDraw = _PILImageTk = None
 
+_TILE_BASE_IMAGE_CACHE: dict[tuple[str, int, int], object | None] = {}
+_TILE_RENDER_CACHE: dict[tuple[str | None, int, int, str], tuple[object | None, object | None]] = {}
+
 
 class OptionTile(tk.Frame):
     """A clickable tile card for species/class/background selection.
@@ -2146,6 +2150,7 @@ class OptionTile(tk.Frame):
         self._photo_normal = None  # cached normal-state PhotoImage
         self._photo_hover = None   # cached hover-state PhotoImage
         self._last_render_size: tuple[int, int] = (0, 0)
+        self._render_job = None
         self._canvas = None
         self._lore_content_pad_x = 18
         self._lore_feat_text = ""
@@ -2172,9 +2177,6 @@ class OptionTile(tk.Frame):
             self._canvas.bind("<Leave>", self._on_leave)
             self._canvas.bind("<Configure>", self._on_configure)
 
-            # Render after the widget is mapped so dimensions are available
-            self.after_idle(lambda: self._render(hovered=False))
-
     def set_tile_size(self, width: int, height: int):
         width = max(1, int(width))
         height = max(1, int(height))
@@ -2190,7 +2192,7 @@ class OptionTile(tk.Frame):
             self._photo_normal = None
             self._photo_hover = None
             self._last_render_size = (0, 0)
-            self._render(hovered=False)
+            self._queue_render()
 
     def _build_lore_tile(self):
         surface = COLORS["bg_surface"]
@@ -2527,6 +2529,19 @@ class OptionTile(tk.Frame):
     # Rendering
     # ------------------------------------------------------------------
 
+    def _queue_render(self):
+        if self._variant == "lore":
+            return
+        if self._render_job is not None:
+            return
+        self._render_job = self.after_idle(self._perform_queued_render)
+
+    def _perform_queued_render(self):
+        self._render_job = None
+        if self._variant == "lore" or self._canvas is None:
+            return
+        self._render(hovered=self._hovered)
+
     def _render(self, hovered: bool = False):
         """Composite the tile image with gradient overlay and draw text."""
         w = self._canvas.winfo_width()
@@ -2556,15 +2571,37 @@ class OptionTile(tk.Frame):
 
     def _render_pil(self, w: int, h: int, hovered: bool):
         """PIL-based rendering: composited image + gradient overlay."""
-        base = self._build_tile_image(w, h)
-        if base is None:
-            base = _PILImage.new("RGBA", (w, h), _hex_to_rgb(COLORS["bg_high"]) + (255,))
+        cache_key = (self._image_path, w, h, "pil")
+        cached = _TILE_RENDER_CACHE.get(cache_key)
+        if cached is None:
+            base = self._build_tile_image(w, h)
+            if base is not None:
+                img_normal = self._apply_overlay(base, w, h, hovered=False)
+                img_hover = self._apply_overlay(base, w, h, hovered=True)
+                cached = (
+                    _PILImageTk.PhotoImage(img_normal),
+                    _PILImageTk.PhotoImage(img_hover),
+                )
+            else:
+                # Some source PNGs load in Tk but fail PIL decoding.
+                fallback_photo = self._build_tk_tile_image(w, h)
+                if fallback_photo is not None:
+                    cached = (fallback_photo, fallback_photo)
+                else:
+                    base = _PILImage.new(
+                        "RGBA",
+                        (w, h),
+                        _hex_to_rgb(COLORS["bg_high"]) + (255,),
+                    )
+                    img_normal = self._apply_overlay(base, w, h, hovered=False)
+                    img_hover = self._apply_overlay(base, w, h, hovered=True)
+                    cached = (
+                        _PILImageTk.PhotoImage(img_normal),
+                        _PILImageTk.PhotoImage(img_hover),
+                    )
+            _TILE_RENDER_CACHE[cache_key] = cached
 
-        # Build both states for caching
-        img_normal = self._apply_overlay(base, w, h, hovered=False)
-        img_hover = self._apply_overlay(base, w, h, hovered=True)
-        self._photo_normal = _PILImageTk.PhotoImage(img_normal)
-        self._photo_hover = _PILImageTk.PhotoImage(img_hover)
+        self._photo_normal, self._photo_hover = cached
 
         photo = self._photo_hover if hovered else self._photo_normal
         self._canvas.delete("all")
@@ -2573,9 +2610,32 @@ class OptionTile(tk.Frame):
 
     def _render_fallback(self, w: int, h: int, hovered: bool):
         """Tk-only fallback when PIL is unavailable."""
+        cache_key = (self._image_path, w, h, "tk")
+        cached = _TILE_RENDER_CACHE.get(cache_key)
+        if cached is None:
+            photo = self._build_tk_tile_image(w, h)
+            cached = (photo, photo)
+            _TILE_RENDER_CACHE[cache_key] = cached
+        self._photo_normal, self._photo_hover = cached
+
         self._canvas.delete("all")
         bg = COLORS["tile_hover"] if hovered else COLORS["tile_bg"]
         self._canvas.create_rectangle(0, 0, w, h, fill=bg, outline="")
+
+        photo = self._photo_hover if hovered else self._photo_normal
+        if photo is not None:
+            self._canvas.create_image(w // 2, h // 2, image=photo)
+            if hovered:
+                self._canvas.create_rectangle(
+                    0,
+                    0,
+                    w,
+                    h,
+                    fill=COLORS["bg_deepest"],
+                    outline="",
+                    stipple="gray50",
+                )
+
         panel_top = h - self.OVERLAY_HEIGHT
         self._canvas.create_rectangle(
             0, panel_top, w, h,
@@ -2583,17 +2643,44 @@ class OptionTile(tk.Frame):
         )
         self._draw_text(w, h)
 
+    def _build_tk_tile_image(self, width: int, height: int) -> tk.PhotoImage | None:
+        """Load a PNG with Tk directly when Pillow/ImageTk is unavailable."""
+        if not self._image_path or not os.path.isfile(self._image_path):
+            return None
+
+        try:
+            source = tk.PhotoImage(file=self._image_path)
+        except tk.TclError:
+            return None
+
+        src_w = max(source.width(), 1)
+        src_h = max(source.height(), 1)
+        scale = max(1, math.ceil(max(src_w / max(width, 1), src_h / max(height, 1))))
+        if scale > 1:
+            try:
+                source = source.subsample(scale, scale)
+            except tk.TclError:
+                pass
+
+        return source
+
     def _build_tile_image(self, width: int, height: int):
         """Load, crop, and resize the source image to fill the tile."""
         if not self._image_path or not os.path.isfile(self._image_path):
             return None
+        cache_key = (self._image_path, width, height)
+        cached = _TILE_BASE_IMAGE_CACHE.get(cache_key, ...)
+        if cached is not ...:
+            return cached
         try:
             source = _PILImage.open(self._image_path).convert("RGBA")
         except Exception:
+            _TILE_BASE_IMAGE_CACHE[cache_key] = None
             return None
 
         src_w, src_h = source.size
         if src_w <= 0 or src_h <= 0:
+            _TILE_BASE_IMAGE_CACHE[cache_key] = None
             return None
 
         target_ratio = width / float(height)
@@ -2611,6 +2698,7 @@ class OptionTile(tk.Frame):
         try:
             cropped = source.crop(box).resize((width, height), _PILImage.LANCZOS)
         except Exception:
+            _TILE_BASE_IMAGE_CACHE[cache_key] = None
             return None
 
         # Matte transparent artwork onto the tile background so soft alpha
@@ -2620,7 +2708,9 @@ class OptionTile(tk.Frame):
             (width, height),
             _hex_to_rgb(COLORS["tile_bg"]) + (255,),
         )
-        return _PILImage.alpha_composite(background, cropped)
+        composited = _PILImage.alpha_composite(background, cropped)
+        _TILE_BASE_IMAGE_CACHE[cache_key] = composited
+        return composited
 
     def _apply_overlay(self, base, width: int, height: int, hovered: bool = False):
         """Apply scrim gradient + bottom panel overlay (Archive card style)."""
@@ -2709,6 +2799,7 @@ class OptionTile(tk.Frame):
             self._hovered = True
             self._apply_lore_state(True)
             return
+        self._hovered = True
         self.configure(highlightbackground=COLORS["accent_text"])
         self._render(hovered=True)
 
@@ -2717,6 +2808,7 @@ class OptionTile(tk.Frame):
             self._hovered = False
             self._apply_lore_state(False)
             return
+        self._hovered = False
         self.configure(highlightbackground=COLORS["tile_border"])
         self._render(hovered=False)
 
@@ -2730,7 +2822,7 @@ class OptionTile(tk.Frame):
         if (w, h) != self._last_render_size and w > 1 and h > 1:
             self._photo_normal = None
             self._photo_hover = None
-            self._render(hovered=False)
+            self._queue_render()
 
 
 class TileGrid(tk.Frame):

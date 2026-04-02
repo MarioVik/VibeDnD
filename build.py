@@ -62,6 +62,7 @@ COLLECT_ALL = [
     "models",
     "export",
     "fpdf",
+    "PIL",
 ]
 
 # Third-party packages that PyInstaller's import analysis may miss because
