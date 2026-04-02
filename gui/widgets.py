@@ -2885,7 +2885,8 @@ class OptionTile(tk.Frame):
                 x=pad_x,
                 y=traits_y,
                 max_width=text_width,
-                traits=self._traits[:3],
+                max_height=max(0, height - traits_y - max(10, int(round(panel_height * 0.08)))),
+                traits=self._traits,
                 scale=scale,
             )
 
@@ -2911,6 +2912,7 @@ class OptionTile(tk.Frame):
         x: int,
         y: int,
         max_width: int,
+        max_height: int,
         traits: list[str],
         scale: float = 1.0,
     ):
@@ -2926,7 +2928,7 @@ class OptionTile(tk.Frame):
         cursor_x = x
         cursor_y = y
         row = 0
-        max_rows = 2
+        max_rows = max(1, (max_height + gap_y) // max(line_height + gap_y, 1))
         max_text_width = max(24, max_width - chip_pad_x * 2)
 
         for trait in traits:

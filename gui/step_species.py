@@ -217,7 +217,7 @@ class SpeciesStep(WizardStep):
         for cat, items in grouped:
             cat_tiles = []
             for sp in items:
-                traits = [t["name"] for t in sp.get("traits", [])[:3]]
+                traits = [t["name"] for t in sp.get("traits", [])]
                 cat_tiles.append({
                     "name": sp["name"],
                     "description": _first_sentence(sp.get("description", "")),
