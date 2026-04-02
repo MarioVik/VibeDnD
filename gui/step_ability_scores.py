@@ -40,6 +40,10 @@ class AbilityScoresStep(WizardStep):
         scroll.grid(row=1, column=0, sticky="nsew")
         inner = scroll.inner
 
+        # HP override container (populated in on_enter once class is known)
+        self._hp_outer = tk.Frame(inner, bg=COLORS["bg"])
+        self._hp_outer.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
+
         # Background / origin bonuses
         self._bonus_outer = tk.Frame(inner, bg=COLORS["bg"])
         self._bonus_outer.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
@@ -80,9 +84,8 @@ class AbilityScoresStep(WizardStep):
                                           value=0, length=200)
         self.budget_bar.pack(side=tk.LEFT, padx=SPACING["sm"])
 
-        # HP override container (populated in on_enter once class is known)
-        self._hp_outer = tk.Frame(inner, bg=COLORS["bg"])
-        self._hp_outer.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["lg"]))
+        self._bottom_spacer = tk.Frame(inner, bg=COLORS["bg"], height=1)
+        self._bottom_spacer.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["lg"]))
 
         # Snapshot loaded scores before defaults overwrite them (edit mode)
         self._loaded_scores = dict(self.character.ability_scores.scores)
@@ -143,18 +146,12 @@ class AbilityScoresStep(WizardStep):
             return
 
         if not self._bonus_outer.winfo_manager():
-            siblings = [
-                child for child in self._bonus_outer.master.winfo_children()
-                if child is not self._bonus_outer
-            ]
-            pack_kwargs = {
-                "fill": tk.X,
-                "padx": SPACING["lg"],
-                "pady": (SPACING["sm"], 0),
-            }
-            if siblings:
-                pack_kwargs["before"] = siblings[0]
-            self._bonus_outer.pack(**pack_kwargs)
+            self._bonus_outer.pack(
+                fill=tk.X,
+                padx=SPACING["lg"],
+                pady=(SPACING["sm"], 0),
+                after=self._hp_outer,
+            )
 
         apply_background_ability_bonuses(self.character)
 
