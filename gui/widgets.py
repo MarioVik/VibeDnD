@@ -2091,8 +2091,23 @@ try:
 except ImportError:
     _PILImage = _PILImageDraw = _PILImageTk = None
 
-_TILE_BASE_IMAGE_CACHE: dict[tuple[str, int, int], object | None] = {}
-_TILE_RENDER_CACHE: dict[tuple[str | None, int, int, str], tuple[object | None, object | None]] = {}
+
+def _tile_image_identity(image_path: str | None) -> tuple[str | None, int, int]:
+    """Return a cache identity that changes when the file on disk changes."""
+    if not image_path:
+        return (None, 0, 0)
+    try:
+        stat = os.stat(image_path)
+    except OSError:
+        return (image_path, 0, 0)
+    return (image_path, stat.st_mtime_ns, stat.st_size)
+
+
+_TILE_BASE_IMAGE_CACHE: dict[tuple[str | None, int, int, int, int], object | None] = {}
+_TILE_RENDER_CACHE: dict[
+    tuple[str | None, int, int, int, int, str],
+    tuple[object | None, object | None],
+] = {}
 
 
 class OptionTile(tk.Frame):
@@ -2151,6 +2166,7 @@ class OptionTile(tk.Frame):
         self._photo_hover = None   # cached hover-state PhotoImage
         self._last_render_size: tuple[int, int] = (0, 0)
         self._render_job = None
+        self._use_canvas_overlay = False
         self._canvas = None
         self._lore_content_pad_x = 18
         self._lore_feat_text = ""
@@ -2555,6 +2571,8 @@ class OptionTile(tk.Frame):
             if photo is not None:
                 self._canvas.delete("all")
                 self._canvas.create_image(w // 2, h // 2, image=photo)
+                if self._use_canvas_overlay:
+                    self._draw_canvas_overlay(w, h, hovered=hovered)
                 self._draw_text(w, h)
                 return
 
@@ -2571,8 +2589,16 @@ class OptionTile(tk.Frame):
 
     def _render_pil(self, w: int, h: int, hovered: bool):
         """PIL-based rendering: composited image + gradient overlay."""
-        cache_key = (self._image_path, w, h, "pil")
+        image_key = _tile_image_identity(self._image_path)
+        cache_key = image_key + (w, h, "pil")
         cached = _TILE_RENDER_CACHE.get(cache_key)
+        use_canvas_overlay = False
+        if cached is None:
+            tk_cache_key = image_key + (w, h, "tk_overlay")
+            cached = _TILE_RENDER_CACHE.get(tk_cache_key)
+            if cached is not None:
+                use_canvas_overlay = True
+
         if cached is None:
             base = self._build_tile_image(w, h)
             if base is not None:
@@ -2586,7 +2612,9 @@ class OptionTile(tk.Frame):
                 # Some source PNGs load in Tk but fail PIL decoding.
                 fallback_photo = self._build_tk_tile_image(w, h)
                 if fallback_photo is not None:
+                    cache_key = image_key + (w, h, "tk_overlay")
                     cached = (fallback_photo, fallback_photo)
+                    use_canvas_overlay = True
                 else:
                     base = _PILImage.new(
                         "RGBA",
@@ -2602,21 +2630,26 @@ class OptionTile(tk.Frame):
             _TILE_RENDER_CACHE[cache_key] = cached
 
         self._photo_normal, self._photo_hover = cached
+        self._use_canvas_overlay = use_canvas_overlay
 
         photo = self._photo_hover if hovered else self._photo_normal
         self._canvas.delete("all")
         self._canvas.create_image(w // 2, h // 2, image=photo)
+        if use_canvas_overlay:
+            self._draw_canvas_overlay(w, h, hovered=hovered)
         self._draw_text(w, h)
 
     def _render_fallback(self, w: int, h: int, hovered: bool):
         """Tk-only fallback when PIL is unavailable."""
-        cache_key = (self._image_path, w, h, "tk")
+        image_key = _tile_image_identity(self._image_path)
+        cache_key = image_key + (w, h, "tk_overlay")
         cached = _TILE_RENDER_CACHE.get(cache_key)
         if cached is None:
             photo = self._build_tk_tile_image(w, h)
             cached = (photo, photo)
             _TILE_RENDER_CACHE[cache_key] = cached
         self._photo_normal, self._photo_hover = cached
+        self._use_canvas_overlay = True
 
         self._canvas.delete("all")
         bg = COLORS["tile_hover"] if hovered else COLORS["tile_bg"]
@@ -2625,22 +2658,7 @@ class OptionTile(tk.Frame):
         photo = self._photo_hover if hovered else self._photo_normal
         if photo is not None:
             self._canvas.create_image(w // 2, h // 2, image=photo)
-            if hovered:
-                self._canvas.create_rectangle(
-                    0,
-                    0,
-                    w,
-                    h,
-                    fill=COLORS["bg_deepest"],
-                    outline="",
-                    stipple="gray50",
-                )
-
-        panel_top = h - self.OVERLAY_HEIGHT
-        self._canvas.create_rectangle(
-            0, panel_top, w, h,
-            fill=COLORS["bg_surface"], outline=COLORS["outline_dim"], width=1,
-        )
+        self._draw_canvas_overlay(w, h, hovered=hovered)
         self._draw_text(w, h)
 
     def _build_tk_tile_image(self, width: int, height: int) -> tk.PhotoImage | None:
@@ -2668,7 +2686,7 @@ class OptionTile(tk.Frame):
         """Load, crop, and resize the source image to fill the tile."""
         if not self._image_path or not os.path.isfile(self._image_path):
             return None
-        cache_key = (self._image_path, width, height)
+        cache_key = _tile_image_identity(self._image_path) + (width, height)
         cached = _TILE_BASE_IMAGE_CACHE.get(cache_key, ...)
         if cached is not ...:
             return cached
@@ -2711,6 +2729,53 @@ class OptionTile(tk.Frame):
         composited = _PILImage.alpha_composite(background, cropped)
         _TILE_BASE_IMAGE_CACHE[cache_key] = composited
         return composited
+
+    def _draw_canvas_overlay(self, width: int, height: int, hovered: bool = False):
+        """Approximate the baked overlay without Tk stipple artifacts."""
+        scrim_top = int(height * 0.34)
+        scrim_bands = [
+            (scrim_top, int(height * 0.52), COLORS["bg_container"]),
+            (int(height * 0.52), int(height * 0.68), COLORS["bg_surface"]),
+            (int(height * 0.68), height, COLORS["bg_deepest"] if hovered else COLORS["bg_surface"]),
+        ]
+        for top, bottom, fill in scrim_bands:
+            if bottom > top:
+                self._canvas.create_rectangle(
+                    0,
+                    top,
+                    width,
+                    bottom,
+                    fill=fill,
+                    outline="",
+                )
+
+        panel_height = min(self.OVERLAY_HEIGHT, height)
+        panel_top = height - panel_height
+        panel_fill = COLORS["bg_container"] if hovered else COLORS["bg_surface"]
+        self._canvas.create_rectangle(
+            0,
+            panel_top,
+            width,
+            height,
+            fill=panel_fill,
+            outline="",
+        )
+        self._canvas.create_rectangle(
+            0,
+            panel_top + int(panel_height * 0.35),
+            width,
+            height,
+            fill=COLORS["bg_deepest"] if hovered else COLORS["bg_container"],
+            outline="",
+        )
+        self._canvas.create_line(
+            0,
+            panel_top,
+            width,
+            panel_top,
+            fill=COLORS["outline_dim"],
+            width=1,
+        )
 
     def _apply_overlay(self, base, width: int, height: int, hovered: bool = False):
         """Apply scrim gradient + bottom panel overlay (Archive card style)."""
