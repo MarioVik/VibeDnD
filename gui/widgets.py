@@ -2121,7 +2121,7 @@ class OptionTile(tk.Frame):
 
     TILE_WIDTH = 310
     TILE_HEIGHT = 380
-    OVERLAY_HEIGHT = 120
+    OVERLAY_HEIGHT_RATIO = 0.30
 
     def __init__(
         self,
@@ -2545,6 +2545,10 @@ class OptionTile(tk.Frame):
     # Rendering
     # ------------------------------------------------------------------
 
+    def _overlay_height(self, height: int) -> int:
+        """Keep the text panel at a stable share of the tile height."""
+        return max(1, min(height, int(round(height * self.OVERLAY_HEIGHT_RATIO))))
+
     def _queue_render(self):
         if self._variant == "lore":
             return
@@ -2749,7 +2753,7 @@ class OptionTile(tk.Frame):
                     outline="",
                 )
 
-        panel_height = min(self.OVERLAY_HEIGHT, height)
+        panel_height = self._overlay_height(height)
         panel_top = height - panel_height
         panel_fill = COLORS["bg_container"] if hovered else COLORS["bg_surface"]
         self._canvas.create_rectangle(
@@ -2793,7 +2797,7 @@ class OptionTile(tk.Frame):
             draw.line((0, y, width, y), fill=scrim_rgb + (alpha,))
 
         # Bottom panel gradient
-        panel_height = min(self.OVERLAY_HEIGHT, height)
+        panel_height = self._overlay_height(height)
         panel = _PILImage.new("RGBA", (width, panel_height), (0, 0, 0, 0))
         pdraw = _PILImageDraw.Draw(panel)
         panel_rgb = _hex_to_rgb(COLORS["bg_surface"])
@@ -2817,9 +2821,9 @@ class OptionTile(tk.Frame):
 
     def _draw_text(self, width: int, height: int):
         """Render name and traits on the canvas over the gradient overlay."""
-        panel_height = min(self.OVERLAY_HEIGHT, height)
+        panel_height = self._overlay_height(height)
         pad_x = 16
-        pad_top = 24
+        pad_top = max(16, int(round(panel_height * 0.2)))
         panel_top = height - panel_height + pad_top
         text_width = max(width - pad_x * 2, 80)
 
@@ -2838,7 +2842,9 @@ class OptionTile(tk.Frame):
         # Traits below name
         if self._traits:
             title_bbox = self._canvas.bbox(title_id)
-            traits_y = (title_bbox[3] if title_bbox else panel_top + 20) + 6
+            traits_y = (title_bbox[3] if title_bbox else panel_top + 20) + max(
+                6, int(round(panel_height * 0.05))
+            )
             traits_text = "  ·  ".join(self._traits[:3])
             self._canvas.create_text(
                 pad_x + 1, traits_y + 1,
@@ -2904,6 +2910,7 @@ class TileGrid(tk.Frame):
         tile_height: int = OptionTile.TILE_HEIGHT,
         preferred_cols: int | None = None,
         min_tile_width: int | None = None,
+        expand_tiles_to_fill: bool = False,
         responsive_tile_height: bool = False,
         content_side_padding: int = 0,
         **kwargs,
@@ -2916,6 +2923,7 @@ class TileGrid(tk.Frame):
         self._tile_height = tile_height
         self._preferred_cols = preferred_cols
         self._min_tile_width = min_tile_width
+        self._expand_tiles_to_fill = expand_tiles_to_fill
         self._responsive_tile_height = responsive_tile_height
         self._content_side_padding = max(0, int(content_side_padding))
         self._tile_ratio = tile_height / float(max(tile_width, 1))
@@ -3017,20 +3025,24 @@ class TileGrid(tk.Frame):
 
             if preferred_width >= min_width:
                 new_cols = self._preferred_cols
-                new_tile_width = min(self._base_tile_width, preferred_width)
+                if self._expand_tiles_to_fill:
+                    new_tile_width = preferred_width
+                else:
+                    new_tile_width = min(self._base_tile_width, preferred_width)
             else:
                 fit_width = min_width
                 new_cols = max(1, (available_width + gap) // (fit_width + gap))
                 if new_cols > 0:
-                    new_tile_width = min(
-                        self._base_tile_width,
-                        max(
-                            1,
-                            (
-                                available_width - gap * max(new_cols - 1, 0)
-                            ) // new_cols,
-                        ),
+                    computed_width = max(
+                        1,
+                        (
+                            available_width - gap * max(new_cols - 1, 0)
+                        ) // new_cols,
                     )
+                    if self._expand_tiles_to_fill:
+                        new_tile_width = computed_width
+                    else:
+                        new_tile_width = min(self._base_tile_width, computed_width)
 
         new_tile_height = self._tile_height
         if self._responsive_tile_height:
