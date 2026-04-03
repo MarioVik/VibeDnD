@@ -2173,7 +2173,13 @@ class OptionTile(tk.Frame):
         self._lore_feat = None
         self._lore_feat_label = None
         self._lore_feat_value = None
-        self._lore_meta_rows: list[dict] = []
+        self._lore_middle = None
+        self._lore_meta_top_spacer = None
+        self._lore_meta_bottom_spacer = None
+        self._lore_meta_items: list[dict[str, str]] = []
+        self._lore_meta_rows: list[tk.Frame] = []
+        self._lore_meta_badges: list[dict[str, object]] = []
+        self._lore_meta_row_gap = 6
         self._lore_layout_updating = False
         self._lore_layout_job = None
         self._lore_measure_job = None
@@ -2263,16 +2269,6 @@ class OptionTile(tk.Frame):
         self._lore_rule_long.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(8, 0), pady=(1, 0))
         self._lore_rule_long.pack_propagate(False)
 
-        self._lore_eyebrow = tk.Label(
-            self._lore_content,
-            text="BACKGROUND",
-            font=FONTS["label_upper_bold"],
-            fg=COLORS["accent_text"],
-            bg=surface,
-            anchor="w",
-        )
-        self._lore_eyebrow.pack(fill=tk.X)
-
         self._lore_title = tk.Label(
             self._lore_content,
             text=self._name,
@@ -2293,11 +2289,23 @@ class OptionTile(tk.Frame):
             justify=tk.LEFT,
             anchor="w",
         )
-        if self._description:
-            self._lore_desc.pack(fill=tk.X, pady=(desc_top_pad, 0))
 
-        feat_text, meta_rows = self._split_lore_traits()
+        feat_text, meta_items = self._split_lore_traits()
         self._lore_feat_text = feat_text
+        self._lore_middle = tk.Frame(self._lore_content, bg=surface)
+        self._lore_middle.pack(fill=tk.BOTH, expand=True)
+
+        self._lore_meta = tk.Frame(self._lore_middle, bg=surface)
+        self._lore_meta_items = list(meta_items)
+        self._lore_meta_row_gap = meta_row_gap
+        if self._lore_meta_items:
+            self._lore_meta_top_spacer = tk.Frame(self._lore_middle, bg=surface)
+            self._lore_meta_top_spacer.pack(fill=tk.BOTH, expand=True)
+            self._lore_meta.pack(fill=tk.X, pady=(meta_outer_pad, 0))
+        if self._lore_meta_items:
+            self._lore_meta_bottom_spacer = tk.Frame(self._lore_middle, bg=surface)
+            self._lore_meta_bottom_spacer.pack(fill=tk.BOTH, expand=True)
+
         if feat_text:
             self._lore_feat = tk.Frame(
                 self._lore_content,
@@ -2330,39 +2338,6 @@ class OptionTile(tk.Frame):
             )
             self._lore_feat_value.pack(fill=tk.X, pady=(4, 0))
 
-        self._lore_meta = tk.Frame(self._lore_content, bg=surface)
-        if meta_rows:
-            self._lore_meta.pack(fill=tk.X, pady=(meta_outer_pad, 0))
-
-        for index, row_data in enumerate(meta_rows[:2]):
-            row = tk.Frame(self._lore_meta, bg=surface)
-            row.pack(
-                fill=tk.X,
-                pady=(0, meta_row_gap if index < len(meta_rows[:2]) - 1 else 0),
-            )
-
-            badge_bg, badge_fg = self._lore_badge_colors(
-                row_data["kind"], hovered=False
-            )
-            badge = tk.Label(
-                row,
-                text=row_data["text"],
-                font=FONTS["body_small"],
-                fg=badge_fg,
-                bg=badge_bg,
-                padx=10,
-                pady=4,
-                justify=tk.LEFT,
-                anchor="w",
-            )
-            badge.pack(anchor="w")
-            self._lore_meta_rows.append({
-                "frame": row,
-                "badge": badge,
-                "text": row_data["text"],
-                "kind": row_data["kind"],
-            })
-
         self._lore_bottom_bar = tk.Frame(self._lore_shell, bg=COLORS["gold_dark"], height=3)
         self._lore_bottom_bar.pack(side=tk.BOTTOM, fill=tk.X)
         self._lore_bottom_bar.pack_propagate(False)
@@ -2384,10 +2359,13 @@ class OptionTile(tk.Frame):
         for child in widget.winfo_children():
             self._bind_lore_interaction(child)
 
+    def _split_lore_meta_values(self, value: str) -> list[str]:
+        return [part.strip() for part in value.split(",") if part.strip()]
+
     def _split_lore_traits(self) -> tuple[str, list[dict[str, str]]]:
         feat_text = ""
-        meta_rows: list[dict[str, str]] = []
-        grouped_rows: dict[str, dict[str, str]] = {}
+        ability_items: list[str] = []
+        skill_items: list[str] = []
 
         for raw_trait in self._traits:
             trait = " ".join(str(raw_trait).split())
@@ -2408,21 +2386,19 @@ class OptionTile(tk.Frame):
 
             label_key = label.lower()
             if label_key == "ability scores" and value:
-                grouped_rows["ability scores"] = {
-                    "kind": "ability",
-                    "text": value,
-                }
+                for item in self._split_lore_meta_values(value):
+                    if item not in ability_items:
+                        ability_items.append(item)
             elif label_key == "skills" and value:
-                grouped_rows["skills"] = {
-                    "kind": "skills",
-                    "text": value,
-                }
+                for item in self._split_lore_meta_values(value):
+                    if item not in skill_items:
+                        skill_items.append(item)
 
-        for key in ("ability scores", "skills"):
-            row = grouped_rows.get(key)
-            if row is not None:
-                meta_rows.append(row)
-        return feat_text, meta_rows
+        meta_items = (
+            [{"kind": "ability", "text": item} for item in ability_items]
+            + [{"kind": "skills", "text": item} for item in skill_items]
+        )
+        return feat_text, meta_items
 
     def _lore_badge_colors(self, kind: str, hovered: bool) -> tuple[str, str]:
         if kind == "ability":
@@ -2437,11 +2413,11 @@ class OptionTile(tk.Frame):
 
     def _lore_line_limits(self) -> tuple[int, int, int]:
         """Return (description, feat, meta) line budgets for compact lore cards."""
-        if self._tile_height <= 236:
-            return (1, 1, 1)
         if self._tile_height <= 252:
-            return (1, 1, 2)
-        return (2, 2, 2)
+            return (2, 2, 3)
+        if self._tile_height <= 284:
+            return (2, 2, 3)
+        return (3, 2, 4)
 
     def _apply_lore_state(self, hovered: bool):
         surface = COLORS["bg_container"] if hovered else COLORS["bg_surface"]
@@ -2455,9 +2431,14 @@ class OptionTile(tk.Frame):
         self._lore_top_band.configure(bg=COLORS["accent_text"] if hovered else COLORS["accent"])
         self._lore_rule_short.configure(bg=COLORS["gold"] if hovered else COLORS["gold_dark"])
         self._lore_rule_long.configure(bg=COLORS["outline_dim"] if hovered else COLORS["border_subtle"])
-        self._lore_eyebrow.configure(bg=surface)
         self._lore_title.configure(bg=surface)
         self._lore_desc.configure(bg=surface, fg=COLORS["fg"] if hovered else COLORS["fg_dim"])
+        if self._lore_middle is not None:
+            self._lore_middle.configure(bg=surface)
+        if self._lore_meta_top_spacer is not None:
+            self._lore_meta_top_spacer.configure(bg=surface)
+        if self._lore_meta_bottom_spacer is not None:
+            self._lore_meta_bottom_spacer.configure(bg=surface)
 
         if self._lore_feat is not None:
             self._lore_feat.configure(
@@ -2469,9 +2450,10 @@ class OptionTile(tk.Frame):
 
         self._lore_meta.configure(bg=surface)
         for row in self._lore_meta_rows:
-            row["frame"].configure(bg=surface)
-            badge_bg, badge_fg = self._lore_badge_colors(row["kind"], hovered)
-            row["badge"].configure(bg=badge_bg, fg=badge_fg)
+            row.configure(bg=surface)
+        for badge_data in self._lore_meta_badges:
+            badge_bg, badge_fg = self._lore_badge_colors(badge_data["kind"], hovered)
+            badge_data["widget"].configure(bg=badge_bg, fg=badge_fg)
 
         self._lore_bottom_bar.configure(bg=COLORS["gold"] if hovered else COLORS["gold_dark"])
 
@@ -2544,6 +2526,70 @@ class OptionTile(tk.Frame):
         """Wrap text to the available width without dropping content."""
         return "\n".join(self._wrap_text_lines(text, font_spec, width))
 
+    def _layout_lore_meta_badges(self, max_width: int):
+        max_width = max(int(max_width), 80)
+        gap_x = 6
+        font = tkfont.Font(font=FONTS["body_small"])
+        max_rows = self._lore_line_limits()[2]
+
+        for row in self._lore_meta_rows:
+            row.destroy()
+        self._lore_meta_rows.clear()
+        self._lore_meta_badges.clear()
+
+        row_items: list[dict[str, str]] = []
+        row_width = 0
+        rows: list[list[dict[str, str]]] = []
+
+        for item in self._lore_meta_items:
+            badge_width = min(font.measure(item["text"]) + 20, max_width)
+            projected_width = (
+                badge_width if not row_items else row_width + gap_x + badge_width
+            )
+            if row_items and projected_width > max_width:
+                rows.append(row_items)
+                if len(rows) >= max_rows:
+                    row_items = []
+                    break
+                row_items = [item]
+                row_width = badge_width
+            else:
+                row_items.append(item)
+                row_width = projected_width
+
+        if row_items and len(rows) < max_rows:
+            rows.append(row_items)
+
+        for row_index, items in enumerate(rows):
+            row = tk.Frame(self._lore_meta, bg=self._lore_meta.cget("bg"))
+            row.pack(
+                anchor="center",
+                pady=(
+                    0,
+                    self._lore_meta_row_gap if row_index < len(rows) - 1 else 0,
+                ),
+            )
+            self._lore_meta_rows.append(row)
+
+            for item_index, item in enumerate(items):
+                badge_bg, badge_fg = self._lore_badge_colors(item["kind"], self._hovered)
+                badge = tk.Label(
+                    row,
+                    text=item["text"],
+                    font=FONTS["body_small"],
+                    fg=badge_fg,
+                    bg=badge_bg,
+                    padx=10,
+                    pady=4,
+                    justify=tk.LEFT,
+                    anchor="w",
+                )
+                badge.pack(
+                    side=tk.LEFT,
+                    padx=(0, gap_x if item_index < len(items) - 1 else 0),
+                )
+                self._lore_meta_badges.append({"widget": badge, "kind": item["kind"]})
+
     def _schedule_lore_layout(self):
         if self._variant != "lore":
             return
@@ -2575,53 +2621,34 @@ class OptionTile(tk.Frame):
             )
             self._lore_title.configure(text=title_text, wraplength=content_width)
 
+            desc_lines, feat_lines, _meta_rows = self._lore_line_limits()
+
             if self._description:
-                desc_text = self._wrap_text_for_label(
+                desc_text = self._truncate_wrapped_text(
                     self._description,
                     FONTS["tile_desc"],
                     content_width,
+                    desc_lines,
                 )
                 self._lore_desc.configure(text=desc_text, wraplength=content_width)
 
             if self._lore_feat_value is not None:
                 feat_width = max(content_width - 20, 80)
-                feat_text = self._wrap_text_for_label(
+                feat_text = self._truncate_wrapped_text(
                     self._lore_feat_text,
                     FONTS["body_bold"],
                     feat_width,
+                    feat_lines,
                 )
                 self._lore_feat_value.configure(text=feat_text, wraplength=feat_width)
 
-            for row in self._lore_meta_rows:
-                badge_width = max(content_width, 80)
-                badge_text = self._wrap_text_for_label(
-                    row["text"],
-                    FONTS["body_small"],
-                    max(badge_width - 20, 56),
-                )
-                row["badge"].configure(text=badge_text, wraplength=badge_width)
+            self._layout_lore_meta_badges(content_width)
         finally:
             self._lore_layout_updating = False
 
-        if self._lore_measure_job is None:
-            try:
-                self._lore_measure_job = self.after_idle(self._measure_lore_height)
-            except tk.TclError:
-                self._lore_measure_job = None
-
     def _measure_lore_height(self):
         self._lore_measure_job = None
-        if self._variant != "lore" or not hasattr(self, "_lore_shell"):
-            return
-
-        highlight = int(self.cget("highlightthickness")) * 2
-        required_height = max(
-            self._lore_min_height,
-            self._lore_shell.winfo_reqheight() + highlight,
-        )
-        if required_height != self._tile_height:
-            self._tile_height = required_height
-            self.configure(height=required_height)
+        return
 
     # ------------------------------------------------------------------
     # Rendering
@@ -3325,7 +3352,7 @@ class TileGrid(tk.Frame):
                         column=col,
                         padx=gap // 2,
                         pady=gap // 2,
-                        sticky="new" if tile._variant == "lore" else "nsew",
+                        sticky="nsew",
                     )
                     col += 1
                     if col >= self._cols:
@@ -3348,7 +3375,7 @@ class TileGrid(tk.Frame):
                 column=col,
                 padx=gap // 2,
                 pady=gap // 2,
-                sticky="new" if tile._variant == "lore" else "nsew",
+                sticky="nsew",
             )
             col += 1
             if col >= self._cols:
