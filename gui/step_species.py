@@ -217,7 +217,18 @@ class SpeciesStep(WizardStep):
         for cat, items in grouped:
             cat_tiles = []
             for sp in items:
-                traits = [t["name"] for t in sp.get("traits", [])]
+                trait_choice = self.TRAIT_OPTION_CHOICES.get(sp.get("name", ""))
+                excluded_traits = set()
+                if trait_choice and not sp.get("sub_choices"):
+                    excluded_traits = set(trait_choice.get("options", []))
+
+                traits = [
+                    trait["name"]
+                    for trait in get_species_trait_cards(
+                        sp,
+                        excluded_names=excluded_traits,
+                    )
+                ]
                 cat_tiles.append({
                     "name": sp["name"],
                     "description": _first_sentence(sp.get("description", "")),

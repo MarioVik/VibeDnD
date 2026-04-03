@@ -2659,9 +2659,105 @@ class OptionTile(tk.Frame):
     # Rendering
     # ------------------------------------------------------------------
 
-    def _overlay_height(self, height: int) -> int:
-        """Keep the text panel at a stable share of the tile height."""
-        return max(1, min(height, int(round(height * self.OVERLAY_HEIGHT_RATIO))))
+    def _panel_pad_x(self, scale: float) -> int:
+        return max(16, int(round(16 * scale)))
+
+    def _panel_top_padding(self, scale: float) -> int:
+        return max(10, int(round(10 * scale)))
+
+    def _panel_bottom_padding(self, scale: float) -> int:
+        return max(10, int(round(10 * scale)))
+
+    def _title_rule_metrics(self, scale: float) -> tuple[int, int, int, int]:
+        return (
+            max(24, int(round(self.TITLE_RULE_WIDTH * scale))),
+            max(2, int(round(self.TITLE_RULE_HEIGHT * scale))),
+            max(6, int(round(self.TITLE_RULE_GAP * scale))),
+            max(4, int(round(4 * scale))),
+        )
+
+    def _traits_offset(self, scale: float) -> int:
+        return max(6, int(round(6 * scale)))
+
+    def _trait_chip_metrics(self, scale: float) -> dict[str, int | object]:
+        font_spec = self._scaled_font(FONTS["label_tiny"], scale)
+        font = tkfont.Font(font=font_spec)
+        chip_pad_x = max(6, int(round(8 * scale)))
+        chip_pad_y = max(2, int(round(2 * scale)))
+        gap_x = max(4, int(round(5 * scale)))
+        gap_y = max(3, int(round(4 * scale)))
+        line_height = font.metrics("linespace") + chip_pad_y * 2
+        return {
+            "font_spec": font_spec,
+            "font": font,
+            "chip_pad_x": chip_pad_x,
+            "chip_pad_y": chip_pad_y,
+            "gap_x": gap_x,
+            "gap_y": gap_y,
+            "line_height": line_height,
+        }
+
+    def _estimate_trait_chip_rows(
+        self,
+        max_width: int,
+        traits: list[str],
+        scale: float,
+    ) -> int:
+        if not traits:
+            return 0
+
+        metrics = self._trait_chip_metrics(scale)
+        font = metrics["font"]
+        chip_pad_x = int(metrics["chip_pad_x"])
+        gap_x = int(metrics["gap_x"])
+        max_text_width = max(24, int(max_width) - chip_pad_x * 2)
+
+        rows = 0
+        cursor_x = 0
+        for trait in traits:
+            label = self._truncate_chip_text(str(trait), font, max_text_width)
+            if not label:
+                continue
+
+            chip_width = min(font.measure(label) + chip_pad_x * 2, int(max_width))
+            if cursor_x > 0 and cursor_x + chip_width > int(max_width):
+                cursor_x = 0
+
+            if cursor_x == 0:
+                rows += 1
+
+            cursor_x += chip_width + gap_x
+
+        return rows
+
+    def _overlay_height(self, width: int, height: int) -> int:
+        """Keep the text panel large enough for the title and visible badges."""
+        base_height = max(1, min(height, int(round(height * self.OVERLAY_HEIGHT_RATIO))))
+        scale = self._tile_scale(width, height)
+        pad_x = self._panel_pad_x(scale)
+        text_width = max(width - pad_x * 2, 80)
+        title_font_spec = self._scaled_font(FONTS["tile_name"], scale)
+        title_font = tkfont.Font(font=title_font_spec)
+        title_lines = self._wrap_text_lines(self._name, title_font_spec, text_width)
+        title_height = title_font.metrics("linespace") * max(1, len(title_lines))
+        _rule_width, rule_height, _rule_gap, rule_offset = self._title_rule_metrics(scale)
+        required_height = (
+            self._panel_top_padding(scale)
+            + title_height
+            + rule_offset
+            + rule_height
+            + self._panel_bottom_padding(scale)
+        )
+
+        if self._traits:
+            chip_rows = self._estimate_trait_chip_rows(text_width, self._traits, scale)
+            chip_metrics = self._trait_chip_metrics(scale)
+            required_height += self._traits_offset(scale)
+            required_height += chip_rows * int(chip_metrics["line_height"])
+            required_height += max(0, chip_rows - 1) * int(chip_metrics["gap_y"])
+
+        max_panel_height = max(1, height - max(8, self.BOTTOM_BAR_HEIGHT))
+        return max(base_height, min(max_panel_height, required_height))
 
     def _tile_scale(self, width: int, height: int) -> float:
         """Scale tile typography gently with tile growth/shrink."""
@@ -2884,7 +2980,7 @@ class OptionTile(tk.Frame):
                     outline="",
                 )
 
-        panel_height = self._overlay_height(height)
+        panel_height = self._overlay_height(width, height)
         panel_top = height - panel_height
         panel_fill = COLORS["bg_container"] if hovered else COLORS["bg_surface"]
         self._canvas.create_rectangle(
@@ -2928,7 +3024,7 @@ class OptionTile(tk.Frame):
             draw.line((0, y, width, y), fill=scrim_rgb + (alpha,))
 
         # Bottom panel gradient
-        panel_height = self._overlay_height(height)
+        panel_height = self._overlay_height(width, height)
         panel = _PILImage.new("RGBA", (width, panel_height), (0, 0, 0, 0))
         pdraw = _PILImageDraw.Draw(panel)
         panel_rgb = _hex_to_rgb(COLORS["bg_surface"])
@@ -2955,19 +3051,17 @@ class OptionTile(tk.Frame):
         hovered = self._hovered
         scale = self._tile_scale(width, height)
         title_font = self._scaled_font(FONTS["tile_name"], scale)
-        panel_height = self._overlay_height(height)
-        pad_x = max(16, int(round(16 * scale)))
-        pad_top = max(16, int(round(panel_height * 0.2)))
+        panel_height = self._overlay_height(width, height)
+        pad_x = self._panel_pad_x(scale)
+        pad_top = self._panel_top_padding(scale)
+        pad_bottom = self._panel_bottom_padding(scale)
         panel_top = height - panel_height + pad_top
         text_width = max(width - pad_x * 2, 80)
         shadow_offset = max(1, int(round(scale)))
         top_band_height = max(3, int(round(self.TOP_BAND_HEIGHT * scale)))
         bottom_bar_height = max(2, int(round(self.BOTTOM_BAR_HEIGHT * scale)))
-        title_rule_width = max(24, int(round(self.TITLE_RULE_WIDTH * scale)))
-        title_rule_height = max(2, int(round(self.TITLE_RULE_HEIGHT * scale)))
-        title_rule_gap = max(6, int(round(self.TITLE_RULE_GAP * scale)))
-        title_rule_offset = max(8, int(round(panel_height * 0.08)))
-        traits_offset = max(12, int(round(panel_height * 0.1)))
+        title_rule_width, title_rule_height, title_rule_gap, title_rule_offset = self._title_rule_metrics(scale)
+        traits_offset = self._traits_offset(scale)
         accent = COLORS["accent_text"] if hovered else COLORS["accent"]
         gold = COLORS["gold"] if hovered else COLORS["gold_dark"]
         rule_fill = COLORS["outline_dim"] if hovered else COLORS["border_subtle"]
@@ -3045,7 +3139,7 @@ class OptionTile(tk.Frame):
                 x=pad_x,
                 y=traits_y,
                 max_width=text_width,
-                max_height=max(0, height - traits_y - max(10, int(round(panel_height * 0.08)))),
+                max_height=max(0, height - bottom_bar_height - pad_bottom - traits_y),
                 traits=self._traits,
                 scale=scale,
             )
@@ -3076,15 +3170,16 @@ class OptionTile(tk.Frame):
         traits: list[str],
         scale: float = 1.0,
     ):
-        font_spec = self._scaled_font(FONTS["label_tiny"], scale)
-        font = tkfont.Font(font=font_spec)
+        metrics = self._trait_chip_metrics(scale)
+        font_spec = metrics["font_spec"]
+        font = metrics["font"]
         chip_bg = COLORS["bg_highest"]
         chip_fg = COLORS["fg_dim"]
-        chip_pad_x = max(8, int(round(10 * scale)))
-        chip_pad_y = max(3, int(round(3 * scale)))
-        gap_x = max(4, int(round(6 * scale)))
-        gap_y = max(4, int(round(6 * scale)))
-        line_height = font.metrics("linespace") + chip_pad_y * 2
+        chip_pad_x = int(metrics["chip_pad_x"])
+        chip_pad_y = int(metrics["chip_pad_y"])
+        gap_x = int(metrics["gap_x"])
+        gap_y = int(metrics["gap_y"])
+        line_height = int(metrics["line_height"])
         cursor_x = x
         cursor_y = y
         row = 0
