@@ -3115,6 +3115,547 @@ class OptionTile(tk.Frame):
             self._queue_render()
 
 
+class LoreOptionTile(tk.Frame):
+    """Canvas-only lore card optimized for dense background grids."""
+
+    TOP_BAND_HEIGHT = 4
+    BOTTOM_BAR_HEIGHT = 3
+    CONTENT_PAD_X = 18
+    RULE_SHORT_WIDTH = 34
+    RULE_SHORT_HEIGHT = 2
+    RULE_LONG_GAP = 8
+    BADGE_PAD_X = 10
+    BADGE_PAD_Y = 4
+    BADGE_GAP_X = 6
+
+    def __init__(
+        self,
+        parent,
+        name: str,
+        description: str = "",
+        traits: list[str] | None = None,
+        image_path: str | None = None,
+        variant: str | None = None,
+        tile_width: int | None = None,
+        tile_height: int | None = None,
+        on_click=None,
+        **kwargs,
+    ):
+        del image_path, variant
+        tw = tile_width or OptionTile.TILE_WIDTH
+        th = tile_height or OptionTile.TILE_HEIGHT
+        super().__init__(
+            parent,
+            bg=COLORS["bg_surface"],
+            highlightbackground=COLORS["border_medium"],
+            highlightthickness=1,
+            cursor="hand2",
+            width=tw,
+            height=th,
+            **kwargs,
+        )
+        self.pack_propagate(False)
+        self.grid_propagate(False)
+
+        self._name = name
+        self._description = " ".join((description or "").split())
+        self._traits = traits or []
+        self._on_click = on_click
+        self._tile_width = tw
+        self._tile_height = th
+        self._hovered = False
+        self._render_job = None
+        self._font_cache: dict[object, tkfont.Font] = {}
+        self._layout_cache: dict[tuple[int, int], dict[str, object]] = {}
+        self._badge_layout_cache: dict[
+            tuple[int, int], list[list[dict[str, object]]]
+        ] = {}
+        self._feat_text, self._meta_items = self._split_lore_traits()
+
+        self._canvas = tk.Canvas(
+            self,
+            bg=COLORS["bg_surface"],
+            highlightthickness=0,
+            borderwidth=0,
+            cursor="hand2",
+        )
+        self._canvas.place(x=0, y=0, relwidth=1.0, relheight=1.0)
+        self._canvas.bind("<Button-1>", self._handle_click)
+        self._canvas.bind("<Enter>", self._on_enter)
+        self._canvas.bind("<Leave>", self._on_leave)
+        self._canvas.bind("<Configure>", self._on_configure)
+
+        self.after_idle(self._schedule_redraw)
+
+    def set_tile_size(self, width: int, height: int):
+        width = max(1, int(width))
+        height = max(1, int(height))
+        if width == self._tile_width and height == self._tile_height:
+            return
+        self._tile_width = width
+        self._tile_height = height
+        self.configure(width=width, height=height)
+        self._schedule_redraw()
+
+    def _handle_click(self, _event=None):
+        if self._on_click:
+            self._on_click(self._name)
+
+    def _on_enter(self, _event=None):
+        if self._hovered:
+            return
+        self._hovered = True
+        self._schedule_redraw()
+
+    def _on_leave(self, _event=None):
+        if not self._hovered:
+            return
+        self._hovered = False
+        self._schedule_redraw()
+
+    def _on_configure(self, _event=None):
+        self._schedule_redraw()
+
+    def _schedule_redraw(self):
+        if self._render_job is not None:
+            return
+        try:
+            self._render_job = self.after_idle(self._redraw)
+        except tk.TclError:
+            self._render_job = None
+
+    def _redraw(self):
+        self._render_job = None
+        if not self._canvas.winfo_exists():
+            return
+
+        width = self._canvas.winfo_width()
+        height = self._canvas.winfo_height()
+        if width < 2 or height < 2:
+            width = self._tile_width
+            height = self._tile_height
+
+        layout = self._layout_for_size(width, height)
+        hovered = self._hovered
+        surface = COLORS["bg_container"] if hovered else COLORS["bg_surface"]
+        border = COLORS["outline"] if hovered else COLORS["border_medium"]
+        feat_bg = COLORS["bg_high"] if hovered else COLORS["bg_highest"]
+        accent = COLORS["accent_text"] if hovered else COLORS["accent"]
+        gold = COLORS["gold"] if hovered else COLORS["gold_dark"]
+        rule_fill = COLORS["outline_dim"] if hovered else COLORS["border_subtle"]
+
+        self.configure(bg=surface, highlightbackground=border)
+        self._canvas.configure(bg=surface)
+        self._canvas.delete("all")
+
+        self._canvas.create_rectangle(
+            0,
+            0,
+            width,
+            self.TOP_BAND_HEIGHT,
+            fill=accent,
+            outline="",
+        )
+
+        rule_y = layout["rule_y"]
+        self._canvas.create_rectangle(
+            self.CONTENT_PAD_X,
+            rule_y,
+            self.CONTENT_PAD_X + self.RULE_SHORT_WIDTH,
+            rule_y + self.RULE_SHORT_HEIGHT,
+            fill=gold,
+            outline="",
+        )
+        self._canvas.create_rectangle(
+            self.CONTENT_PAD_X + self.RULE_SHORT_WIDTH + self.RULE_LONG_GAP,
+            rule_y,
+            width - self.CONTENT_PAD_X,
+            rule_y + 1,
+            fill=rule_fill,
+            outline="",
+        )
+
+        self._canvas.create_text(
+            self.CONTENT_PAD_X,
+            layout["title_y"],
+            text=layout["title_text"],
+            font=FONTS["card_title_lg"],
+            fill=COLORS["fg"],
+            anchor="nw",
+            width=layout["content_width"],
+        )
+
+        if layout["badge_rows"]:
+            badge_font = self._font(FONTS["body_small"])
+            badge_height = badge_font.metrics("linespace") + (self.BADGE_PAD_Y * 2)
+            row_y = layout["badge_top"]
+            for row in layout["badge_rows"]:
+                row_width = sum(item["width"] for item in row)
+                if len(row) > 1:
+                    row_width += self.BADGE_GAP_X * (len(row) - 1)
+                row_x = max((width - row_width) // 2, self.CONTENT_PAD_X)
+                for item in row:
+                    badge_bg, badge_fg = self._lore_badge_colors(
+                        str(item["kind"]),
+                        hovered,
+                    )
+                    self._canvas.create_rectangle(
+                        row_x,
+                        row_y,
+                        row_x + int(item["width"]),
+                        row_y + badge_height,
+                        fill=badge_bg,
+                        outline="",
+                    )
+                    self._canvas.create_text(
+                        row_x + self.BADGE_PAD_X,
+                        row_y + self.BADGE_PAD_Y,
+                        text=str(item["text"]),
+                        font=FONTS["body_small"],
+                        fill=badge_fg,
+                        anchor="nw",
+                    )
+                    row_x += int(item["width"]) + self.BADGE_GAP_X
+                row_y += badge_height + layout["meta_row_gap"]
+
+        feat_layout = layout["feat"]
+        if feat_layout is not None:
+            x1 = self.CONTENT_PAD_X
+            y1 = int(feat_layout["y"])
+            x2 = width - self.CONTENT_PAD_X
+            y2 = y1 + int(feat_layout["height"])
+            self._canvas.create_rectangle(
+                x1,
+                y1,
+                x2,
+                y2,
+                fill=feat_bg,
+                outline=gold,
+            )
+            label_y = y1 + int(feat_layout["inner_pad_y"])
+            self._canvas.create_text(
+                x1 + 10,
+                label_y,
+                text="FEAT",
+                font=FONTS["label_tiny"],
+                fill=COLORS["gold"],
+                anchor="nw",
+            )
+            self._canvas.create_text(
+                x1 + 10,
+                label_y + int(feat_layout["label_height"]) + 4,
+                text=str(feat_layout["text"]),
+                font=FONTS["body_bold"],
+                fill=COLORS["fg"],
+                anchor="nw",
+                width=int(feat_layout["text_width"]),
+            )
+
+        self._canvas.create_rectangle(
+            0,
+            height - self.BOTTOM_BAR_HEIGHT,
+            width,
+            height,
+            fill=gold,
+            outline="",
+        )
+
+    def _font(self, font_spec) -> tkfont.Font:
+        key = font_spec if isinstance(font_spec, tuple) else str(font_spec)
+        cached = self._font_cache.get(key)
+        if cached is None:
+            cached = tkfont.Font(font=font_spec)
+            self._font_cache[key] = cached
+        return cached
+
+    def _split_lore_meta_values(self, value: str) -> list[str]:
+        return [part.strip() for part in value.split(",") if part.strip()]
+
+    def _split_lore_traits(self) -> tuple[str, list[dict[str, str]]]:
+        feat_text = ""
+        ability_items: list[str] = []
+        skill_items: list[str] = []
+
+        for raw_trait in self._traits:
+            trait = " ".join(str(raw_trait).split())
+            if not trait:
+                continue
+
+            label, separator, value = trait.partition(":")
+            if separator:
+                label = label.strip()
+                value = value.strip()
+            else:
+                label = ""
+                value = trait
+
+            if label.lower() == "feat" and value and not feat_text:
+                feat_text = value
+                continue
+
+            label_key = label.lower()
+            if label_key == "ability scores" and value:
+                for item in self._split_lore_meta_values(value):
+                    if item not in ability_items:
+                        ability_items.append(item)
+            elif label_key == "skills" and value:
+                for item in self._split_lore_meta_values(value):
+                    if item not in skill_items:
+                        skill_items.append(item)
+
+        meta_items = (
+            [{"kind": "ability", "text": item} for item in ability_items]
+            + [{"kind": "skills", "text": item} for item in skill_items]
+        )
+        return feat_text, meta_items
+
+    def _lore_badge_colors(self, kind: str, hovered: bool) -> tuple[str, str]:
+        if kind == "ability":
+            if hovered:
+                return COLORS["gold"], COLORS["bg_deepest"]
+            return COLORS["gold_dark"], COLORS["gold_on_dark"]
+        if kind == "skills":
+            if hovered:
+                return COLORS["accent"], COLORS["accent_text"]
+            return COLORS["accent_on"], COLORS["accent_text"]
+        return COLORS["badge_glass"], COLORS["fg_dim"]
+
+    def _lore_line_limits(self, height: int) -> tuple[int, int, int]:
+        if height <= 252:
+            return (2, 2, 3)
+        if height <= 284:
+            return (2, 2, 3)
+        return (3, 2, 4)
+
+    def _wrap_text_lines(self, text: str, font_spec, width: int) -> list[str]:
+        normalized = " ".join((text or "").split())
+        if not normalized:
+            return []
+
+        width = max(int(width), 1)
+        font = self._font(font_spec)
+        lines: list[str] = []
+        current = ""
+
+        for word in normalized.split():
+            candidate = word if not current else f"{current} {word}"
+            if current and font.measure(candidate) > width:
+                lines.append(current)
+                current = word
+            else:
+                current = candidate
+
+        if current:
+            lines.append(current)
+        return lines
+
+    def _truncate_wrapped_text(
+        self,
+        text: str,
+        font_spec,
+        width: int,
+        max_lines: int,
+    ) -> str:
+        if max_lines <= 0:
+            return ""
+
+        lines = self._wrap_text_lines(text, font_spec, width)
+        if len(lines) <= max_lines:
+            return "\n".join(lines)
+
+        font = self._font(font_spec)
+        visible = lines[:max_lines]
+        last = visible[-1].rstrip()
+        ellipsis = "..."
+        while last and font.measure(f"{last}{ellipsis}") > width:
+            if " " in last:
+                last = last.rsplit(" ", 1)[0].rstrip()
+            else:
+                last = last[:-1].rstrip()
+
+        visible[-1] = f"{last}{ellipsis}" if last else ellipsis
+        return "\n".join(visible)
+
+    def _truncate_single_line_text(
+        self,
+        text: str,
+        font: tkfont.Font,
+        max_width: int,
+    ) -> str:
+        label = " ".join(str(text).split())
+        if not label:
+            return ""
+        if font.measure(label) <= max_width:
+            return label
+
+        ellipsis = "..."
+        trimmed = label
+        while trimmed and font.measure(f"{trimmed}{ellipsis}") > max_width:
+            if " " in trimmed:
+                trimmed = trimmed.rsplit(" ", 1)[0].rstrip()
+            else:
+                trimmed = trimmed[:-1].rstrip()
+        return f"{trimmed}{ellipsis}" if trimmed else ellipsis
+
+    def _measure_multiline_height(self, font_spec, text: str) -> int:
+        if not text:
+            return 0
+        line_count = text.count("\n") + 1
+        return self._font(font_spec).metrics("linespace") * line_count
+
+    def _badge_rows(
+        self,
+        max_width: int,
+        max_rows: int,
+    ) -> list[list[dict[str, object]]]:
+        key = (max(int(max_width), 1), max_rows)
+        cached = self._badge_layout_cache.get(key)
+        if cached is not None:
+            return cached
+
+        font = self._font(FONTS["body_small"])
+        text_width = max(12, key[0] - (self.BADGE_PAD_X * 2))
+        rows: list[list[dict[str, object]]] = []
+        row_items: list[dict[str, object]] = []
+        row_width = 0
+
+        for item in self._meta_items:
+            badge_text = self._truncate_single_line_text(
+                str(item["text"]),
+                font,
+                text_width,
+            )
+            if not badge_text:
+                continue
+            badge_width = min(font.measure(badge_text) + (self.BADGE_PAD_X * 2), key[0])
+            badge_item = {
+                "kind": item["kind"],
+                "text": badge_text,
+                "width": badge_width,
+            }
+            projected_width = (
+                badge_width
+                if not row_items
+                else row_width + self.BADGE_GAP_X + badge_width
+            )
+            if row_items and projected_width > key[0]:
+                rows.append(row_items)
+                if len(rows) >= max_rows:
+                    row_items = []
+                    break
+                row_items = [badge_item]
+                row_width = badge_width
+            else:
+                row_items.append(badge_item)
+                row_width = projected_width
+
+        if row_items and len(rows) < max_rows:
+            rows.append(row_items)
+
+        self._badge_layout_cache[key] = rows
+        return rows
+
+    def _layout_for_size(self, width: int, height: int) -> dict[str, object]:
+        key = (max(int(width), 1), max(int(height), 1))
+        cached = self._layout_cache.get(key)
+        if cached is not None:
+            return cached
+
+        compact = key[1] <= 264
+        content_pad_y = 12 if compact else 16
+        rule_bottom_pad = 8 if compact else 10
+        title_top_pad = 2 if compact else 4
+        feat_outer_pad = 8 if compact else 12
+        feat_inner_pad_y = 6 if compact else 8
+        meta_outer_pad = 8 if compact else 12
+        meta_row_gap = 4 if compact else 6
+
+        content_width = max(key[0] - (self.CONTENT_PAD_X * 2), 80)
+        content_top = self.TOP_BAND_HEIGHT + content_pad_y
+        content_bottom = key[1] - self.BOTTOM_BAR_HEIGHT - content_pad_y
+        rule_y = content_top
+        title_y = rule_y + self.RULE_SHORT_HEIGHT + rule_bottom_pad + title_top_pad
+        title_text = "\n".join(
+            self._wrap_text_lines(
+                self._name,
+                FONTS["card_title_lg"],
+                content_width,
+            )
+        )
+        title_height = self._measure_multiline_height(FONTS["card_title_lg"], title_text)
+        title_bottom = title_y + title_height
+
+        _desc_lines, feat_lines, meta_rows_max = self._lore_line_limits(key[1])
+        feat_layout = None
+        middle_bottom = content_bottom
+        if self._feat_text:
+            feat_text_width = max(content_width - 20, 80)
+            feat_text = self._truncate_wrapped_text(
+                self._feat_text,
+                FONTS["body_bold"],
+                feat_text_width,
+                feat_lines,
+            )
+            feat_value_height = self._measure_multiline_height(
+                FONTS["body_bold"],
+                feat_text,
+            )
+            feat_label_height = self._font(FONTS["label_tiny"]).metrics("linespace")
+            feat_height = (
+                (feat_inner_pad_y * 2)
+                + feat_label_height
+                + 4
+                + feat_value_height
+            )
+            feat_y = content_bottom - feat_height
+            feat_layout = {
+                "y": feat_y,
+                "height": feat_height,
+                "inner_pad_y": feat_inner_pad_y,
+                "label_height": feat_label_height,
+                "text": feat_text,
+                "text_width": feat_text_width,
+            }
+            middle_bottom = feat_y - feat_outer_pad
+
+        badge_rows = self._badge_rows(content_width, meta_rows_max)
+        badge_height = self._font(FONTS["body_small"]).metrics("linespace") + (
+            self.BADGE_PAD_Y * 2
+        )
+        badge_block_height = 0
+        if badge_rows:
+            badge_block_height = (len(badge_rows) * badge_height) + (
+                max(len(badge_rows) - 1, 0) * meta_row_gap
+            )
+
+        middle_top = title_bottom
+        if badge_rows:
+            available = max(middle_bottom - middle_top, 0)
+            centered_top = middle_top + max(
+                meta_outer_pad,
+                (available - badge_block_height) // 2,
+            )
+            badge_top = min(
+                centered_top,
+                max(middle_top, middle_bottom - badge_block_height),
+            )
+        else:
+            badge_top = middle_top
+
+        layout = {
+            "content_width": content_width,
+            "rule_y": rule_y,
+            "title_y": title_y,
+            "title_text": title_text,
+            "badge_rows": badge_rows,
+            "badge_top": badge_top,
+            "meta_row_gap": meta_row_gap,
+            "feat": feat_layout,
+        }
+        self._layout_cache[key] = layout
+        return layout
+
+
 class TileGrid(tk.Frame):
     """Responsive grid of OptionTile widgets inside a ScrollableFrame.
 
@@ -3174,7 +3715,8 @@ class TileGrid(tk.Frame):
         self._tile_data.clear()
 
     def _create_tile(self, tile_data: dict) -> OptionTile:
-        return OptionTile(
+        tile_cls = LoreOptionTile if tile_data.get("variant") == "lore" else OptionTile
+        return tile_cls(
             self._grid_frame,
             name=tile_data["name"],
             description=tile_data.get("description", ""),
