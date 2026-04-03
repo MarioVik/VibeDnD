@@ -550,11 +550,25 @@ class CharacterCreatorApp:
             chosen = len(self.character.selected_skills)
             needed = sources["choose_count"]
             skill_word = "skill" if needed == 1 else "skills"
+            expertise_needed = sources["expertise_choose_count"]
+            expertise_chosen = sources["expertise_chosen_count"]
+            expertise_word = "selection" if expertise_needed == 1 else "selections"
+            parts = []
+            if needed:
+                parts.append(
+                    f"Choose {needed} class {skill_word} before moving on. "
+                    f"({chosen}/{needed} selected)"
+                )
+            if expertise_needed:
+                parts.append(
+                    f"Choose {expertise_needed} Expertise {expertise_word} as well. "
+                    f"({expertise_chosen}/{expertise_needed} selected)"
+                )
+            message = "\n\n".join(parts) if parts else "Complete your skill selections before moving on."
             AlertDialog(
                 self.root,
                 "Skill Selection Required",
-                f"Choose {needed} class {skill_word} before moving on. "
-                f"({chosen}/{needed} selected)",
+                message,
             )
         elif isinstance(step, SpeciesStep):
             species_name = (
@@ -666,7 +680,7 @@ class CharacterCreatorApp:
         self.current_save_path = path
 
         if self.current_save_path:
-            self.show_viewer(self.character, self.current_save_path)
+            self.show_archive()
         else:
             self.show_home()
 

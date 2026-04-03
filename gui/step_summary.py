@@ -234,6 +234,7 @@ class SummaryStep(WizardStep):
         skills_frame.columnconfigure(1, weight=1)
 
         all_profs = c.all_skill_proficiencies
+        all_expertise = c.all_skill_expertise
 
         half = (len(ALL_SKILLS) + 1) // 2
         for idx, skill_enum in enumerate(ALL_SKILLS):
@@ -246,7 +247,8 @@ class SummaryStep(WizardStep):
             skill_row.grid(row=row_idx, column=col, sticky="ew", padx=4, pady=3)
 
             is_prof = skill_display in all_profs
-            indicator = "\u25cf" if is_prof else "\u25cb"
+            is_expert = skill_display in all_expertise
+            indicator = "\u25c9" if is_expert else ("\u25cf" if is_prof else "\u25cb")
             fg_color = COLORS["accent_text"] if is_prof else COLORS["fg_dim"]
 
             tk.Label(
@@ -289,16 +291,10 @@ class SummaryStep(WizardStep):
         senses_card = CardFrame(senses_col, pad=SPACING["lg"])
         senses_card.pack(fill=tk.BOTH, expand=True)
 
-        wis_mod = c.ability_scores.modifier("Wisdom")
-        int_mod = c.ability_scores.modifier("Intelligence")
-        perception_prof = "Perception" in all_profs
-        insight_prof = "Insight" in all_profs
-        investigation_prof = "Investigation" in all_profs
-
         senses = [
-            ("Passive Perception", 10 + wis_mod + (c.proficiency_bonus if perception_prof else 0)),
-            ("Passive Insight", 10 + wis_mod + (c.proficiency_bonus if insight_prof else 0)),
-            ("Passive Investigation", 10 + int_mod + (c.proficiency_bonus if investigation_prof else 0)),
+            ("Passive Perception", 10 + c.skill_modifier("Perception")),
+            ("Passive Insight", 10 + c.skill_modifier("Insight")),
+            ("Passive Investigation", 10 + c.skill_modifier("Investigation")),
         ]
 
         for label, value in senses:

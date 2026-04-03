@@ -11,6 +11,12 @@ from tkinter import ttk
 from gui.theme import COLORS, FONTS
 from gui.widgets import ScrollableFrame, AlertDialog, configure_modal_dialog
 from gui.spell_swap_panel import SpellSwapPanel, MultiSpellSwapPanel
+from models.skill_utils import (
+    ZHENTARIM_TACTICS,
+    get_feat_expertise_skill,
+    get_selectable_expertise_grants,
+    set_feat_expertise_skill,
+)
 
 # Load class choices data (same file as level_up_wizard)
 _CHOICES_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "class_choices.json")
@@ -34,6 +40,7 @@ _REST_SPELL_SWAP: dict[str, dict] = {
 
 # Kept for backwards compat in helper functions
 _PREPARED_CASTER_CLASSES = set(_REST_SPELL_SWAP.keys())
+CARD_CHECK_STYLE = "Card.TCheckbutton"
 
 
 def _get_all_known_choices(character, key: str) -> list[str]:
@@ -166,6 +173,7 @@ class RestDialog(tk.Toplevel):
         self._current_step = 1
         self._total_steps = 1
         self._step_frames: list[ttk.Frame] = []  # ordered list of step frames
+        self._step_ids: list[str] = []
         self._next_btn: ttk.Button | None = None
         self._back_btn: ttk.Button | None = None
         self._finish_btn: ttk.Button | None = None
@@ -177,6 +185,8 @@ class RestDialog(tk.Toplevel):
         self._hd_manual_hint: ttk.Label | None = None
         self._hd_summary_label: ttk.Label | None = None
         self._has_hit_dice: bool = False
+        self._zhentarim_expertise_vars: dict[str, tk.BooleanVar] = {}
+        self._zhentarim_expertise_options: list[str] = []
 
         if rest_type == "short":
             self._build_short_rest_ui(title)
@@ -205,6 +215,22 @@ class RestDialog(tk.Toplevel):
     # Long Rest UI (unchanged logic, refactored slightly)
     # ══════════════════════════════════════════════════════════════════
 
+    def _append_rest_step(self, step_id: str, frame: ttk.Frame):
+        self._step_ids.append(step_id)
+        self._step_frames.append(frame)
+
+    def _current_step_id(self) -> str:
+        idx = self._current_step - 1
+        if 0 <= idx < len(self._step_ids):
+            return self._step_ids[idx]
+        return ""
+
+    def _get_zhentarim_rest_grant(self) -> dict | None:
+        for grant in get_selectable_expertise_grants(self.character):
+            if grant.get("kind") == "feat" and grant.get("feat_name") == ZHENTARIM_TACTICS:
+                return grant
+        return None
+
     def _build_long_rest_ui(self, title: str):
         self.columnconfigure(0, weight=1)
 
@@ -216,6 +242,7 @@ class RestDialog(tk.Toplevel):
         ).pack(anchor="w")
 
         feature_keys = _get_feature_keys(self.character, "long")
+        zhentarim_grant = self._get_zhentarim_rest_grant()
 
         # Determine sections
         has_cantrip_swap = _can_swap_cantrips_on_rest(self.character)
@@ -234,8 +261,9 @@ class RestDialog(tk.Toplevel):
             feature_keys=feature_keys,
             has_cantrip_swap=has_cantrip_swap,
             has_spells=has_spells,
+            has_zhentarim_refresh=zhentarim_grant is not None,
         )
-        self._step_frames.append(info_frame)
+        self._append_rest_step("info", info_frame)
 
         # Build swap steps
         if has_any_swap:
@@ -254,7 +282,7 @@ class RestDialog(tk.Toplevel):
                 cf = ttk.Frame(cantrip_step)
                 cf.grid(row=s_row, column=0, sticky="nsew", padx=8, pady=2)
                 self._build_cantrip_section(cf)
-                self._step_frames.append(cantrip_step)
+                self._append_rest_step("swap_cantrips", cantrip_step)
 
                 # Step 3: spell swap
                 spell_step = ttk.Frame(self)
@@ -263,7 +291,7 @@ class RestDialog(tk.Toplevel):
                 sf = ttk.Frame(spell_step)
                 sf.grid(row=0, column=0, sticky="nsew", padx=8, pady=2)
                 self._build_spell_section(sf)
-                self._step_frames.append(spell_step)
+                self._append_rest_step("swap_spells", spell_step)
             else:
                 # Step 2: all swap sections on one page
                 swap_frame = ttk.Frame(self)
@@ -286,13 +314,26 @@ class RestDialog(tk.Toplevel):
                     sf.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
                     self._build_spell_section(sf)
                     sf_row += 1
-                self._step_frames.append(swap_frame)
+                self._append_rest_step("swap_all", swap_frame)
+
+        if zhentarim_grant:
+            zhentarim_frame = ttk.Frame(self)
+            self._build_zhentarim_expertise_step(zhentarim_frame, zhentarim_grant)
+            self._append_rest_step("zhentarim_expertise", zhentarim_frame)
 
         self._total_steps = len(self._step_frames)
         self._build_footer()
         self._show_rest_step(1)
 
-    def _build_long_rest_info_step(self, parent, *, feature_keys, has_cantrip_swap, has_spells):
+    def _build_long_rest_info_step(
+        self,
+        parent,
+        *,
+        feature_keys,
+        has_cantrip_swap,
+        has_spells,
+        has_zhentarim_refresh,
+    ):
         """Build the long rest info summary."""
         parent.columnconfigure(0, weight=1)
         parent.rowconfigure(0, weight=1)
@@ -351,11 +392,105 @@ class RestDialog(tk.Toplevel):
             else:
                 effects.append("You may swap one prepared spell")
 
+        if has_zhentarim_refresh:
+            effects.append("You must choose your Zhentarim Tactics Expertise again")
+
         for i, text in enumerate(effects):
             ttk.Label(
                 inner, text=f"\u2022  {text}",
                 foreground=COLORS["fg"], wraplength=500,
             ).grid(row=i + 1, column=0, sticky="w", padx=(12, 0), pady=2)
+
+    def _build_zhentarim_expertise_step(self, parent, grant: dict):
+        """Build the Zhentarim Tactics Expertise reselection step."""
+        parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(0, weight=1)
+
+        inner = ttk.Frame(parent)
+        inner.grid(row=0, column=0, sticky="nsew", padx=24, pady=12)
+        inner.columnconfigure(1, weight=1)
+
+        ttk.Label(
+            inner,
+            text="Zhentarim Expertise",
+            font=FONTS["heading"],
+            foreground=COLORS["accent"],
+        ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 6))
+        ttk.Label(
+            inner,
+            text=(
+                "Zhentarim Tactics lets you choose one proficient skill to gain "
+                "Expertise in until your next Long Rest."
+            ),
+            foreground=COLORS["fg_dim"],
+            wraplength=560,
+        ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(0, 10))
+
+        previous = get_feat_expertise_skill(self.character, ZHENTARIM_TACTICS)
+        if previous:
+            ttk.Label(
+                inner,
+                text=f"Previous selection: {previous}",
+                foreground=COLORS["fg_dim"],
+            ).grid(row=2, column=0, columnspan=2, sticky="w", pady=(0, 8))
+
+        slot = grant["slots"][0] if grant.get("slots") else {"options": [], "current": ""}
+        self._zhentarim_expertise_options = list(slot["options"])
+        self._zhentarim_expertise_vars = {}
+
+        ttk.Label(
+            inner,
+            text="New Expertise Skill",
+            foreground=COLORS["fg"],
+        ).grid(row=3, column=0, sticky="w", padx=(0, 12))
+
+        if not self._zhentarim_expertise_options:
+            ttk.Label(
+                inner,
+                text="No eligible proficient skills are currently available.",
+                foreground=COLORS["fg_dim"],
+                wraplength=520,
+            ).grid(row=4, column=0, columnspan=2, sticky="w", pady=(8, 0))
+        else:
+            options_frame = ttk.Frame(inner)
+            options_frame.grid(row=3, column=1, sticky="w")
+
+            for idx, skill_name in enumerate(self._zhentarim_expertise_options):
+                var = tk.BooleanVar(value=False)
+                self._zhentarim_expertise_vars[skill_name] = var
+                cb = ttk.Checkbutton(
+                    options_frame,
+                    text=skill_name,
+                    variable=var,
+                    style=CARD_CHECK_STYLE,
+                    command=lambda s=skill_name, v=var: self._on_zhentarim_expertise_toggle(
+                        s, v
+                    ),
+                )
+                col = idx % 3
+                row = idx // 3
+                cb.grid(row=row, column=col, sticky="w", padx=8, pady=1)
+
+            ttk.Label(
+                inner,
+                text="Choose one skill to continue. You may keep the same one or pick a new one.",
+                foreground=COLORS["fg_dim"],
+                wraplength=520,
+            ).grid(row=4, column=0, columnspan=2, sticky="w", pady=(8, 0))
+
+    def _selected_zhentarim_expertise(self) -> str:
+        for skill_name, var in self._zhentarim_expertise_vars.items():
+            if var.get():
+                return skill_name
+        return ""
+
+    def _on_zhentarim_expertise_toggle(self, skill_name: str, var: tk.BooleanVar):
+        if not var.get():
+            return
+
+        for other_skill, other_var in self._zhentarim_expertise_vars.items():
+            if other_skill != skill_name and other_var.get():
+                other_var.set(False)
 
     # ══════════════════════════════════════════════════════════════════
     # Short Rest UI
@@ -381,13 +516,13 @@ class RestDialog(tk.Toplevel):
         # Step 1: Info summary
         info_frame = ttk.Frame(self)
         self._build_short_rest_info_step(info_frame, feature_keys=feature_keys)
-        self._step_frames.append(info_frame)
+        self._append_rest_step("info", info_frame)
 
         # Step 2: Hit dice spending (if any remaining)
         if self._has_hit_dice:
             hd_frame = ttk.Frame(self)
             self._build_hit_dice_step(hd_frame)
-            self._step_frames.append(hd_frame)
+            self._append_rest_step("hit_dice", hd_frame)
 
         # Step 3 (or 2): Feature swaps (if any)
         if has_features:
@@ -398,7 +533,7 @@ class RestDialog(tk.Toplevel):
             swap_frame.rowconfigure(0, weight=1)
             for key, config, known in feature_keys:
                 self._build_feature_section(scroll.inner, key, config, known)
-            self._step_frames.append(swap_frame)
+            self._append_rest_step("swap_features", swap_frame)
 
         self._total_steps = len(self._step_frames)
         self._build_footer()
@@ -652,7 +787,34 @@ class RestDialog(tk.Toplevel):
         else:
             self._finish_btn.pack(side=tk.RIGHT, padx=(4, 0))
 
+    def _validate_current_step(self) -> bool:
+        step_id = self._current_step_id()
+        if step_id != "zhentarim_expertise":
+            return True
+
+        if not self._zhentarim_expertise_options:
+            AlertDialog(
+                self,
+                "No Eligible Skill",
+                "Zhentarim Tactics needs a proficient skill without existing Expertise, "
+                "but none are currently available.",
+            )
+            return False
+
+        selected = self._selected_zhentarim_expertise().strip()
+        if selected not in set(self._zhentarim_expertise_options):
+            AlertDialog(
+                self,
+                "Expertise Selection Required",
+                "Choose a skill for Zhentarim Tactics before continuing.",
+            )
+            return False
+
+        return True
+
     def _go_next(self):
+        if not self._validate_current_step():
+            return
         if self._current_step < self._total_steps:
             self._show_rest_step(self._current_step + 1)
 
@@ -896,6 +1058,9 @@ class RestDialog(tk.Toplevel):
     # ══════════════════════════════════════════════════════════════════
 
     def _on_confirm(self):
+        if not self._validate_current_step():
+            return
+
         changed = False
 
         # ── Long Rest: HP restoration + hit dice restoration ──────
@@ -1072,6 +1237,20 @@ class RestDialog(tk.Toplevel):
                     self.character.selected_spells.remove(remove_spell)
                 self.character.selected_spells.append(add_spell)
                 changed = True
+
+        if (
+            self.rest_type == "long"
+            and self._zhentarim_expertise_vars
+            and self._zhentarim_expertise_options
+        ):
+            selected = self._selected_zhentarim_expertise().strip()
+            if selected in set(self._zhentarim_expertise_options):
+                current = get_feat_expertise_skill(self.character, ZHENTARIM_TACTICS)
+                if current != selected:
+                    set_feat_expertise_skill(
+                        self.character, ZHENTARIM_TACTICS, selected
+                    )
+                    changed = True
 
         if changed and self.on_changed:
             self.on_changed()

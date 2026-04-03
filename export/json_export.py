@@ -43,6 +43,7 @@ def character_to_dict(character: Character) -> dict:
         skills[skill.display_name] = {
             "modifier": c.skill_modifier(skill.display_name),
             "proficient": skill.display_name in c.all_skill_proficiencies,
+            "expertise": skill.display_name in c.all_skill_expertise,
             "ability": skill.ability.value,
         }
 
@@ -63,6 +64,7 @@ def character_to_dict(character: Character) -> dict:
         "saving_throws": saves,
         "skills": skills,
         "skill_proficiencies": sorted(list(c.all_skill_proficiencies)),
+        "skill_expertise": sorted(list(c.all_skill_expertise)),
         "background_feat": c.background.get("feat") if c.background else None,
         "species_origin_feat": c.species_origin_feat.get("name")
         if c.species_origin_feat

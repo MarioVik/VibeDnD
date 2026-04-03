@@ -355,11 +355,13 @@ def build_character_sheet(
         col_right.pack(side=tk.LEFT, fill=tk.Y)
 
         profs = c.all_skill_proficiencies
+        expertise = c.all_skill_expertise
         for i, skill in enumerate(ALL_SKILLS):
             target = col_left if i < 9 else col_right
             is_prof = skill.display_name in profs
+            is_expert = skill.display_name in expertise
             mod_str = c.skill_modifier_str(skill.display_name)
-            marker = "\u25c6" if is_prof else " "
+            marker = "\u25c9" if is_expert else ("\u25c6" if is_prof else " ")
             color = COLORS["accent"] if is_prof else COLORS["fg_dim"]
 
             row = ttk.Frame(target)

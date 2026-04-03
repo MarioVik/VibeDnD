@@ -22,5 +22,5 @@ class ClassLevel:
     new_choices: list[str] = field(default_factory=list)   # Class choices made at this level (maneuvers, invocations, plans, etc.)
     replaced_choice: str | None = None                     # Existing choice swapped out at this level
     asi_increases: dict[str, int] = field(default_factory=dict)  # e.g. {"Strength": 2} or {"Dexterity": 1, "Wisdom": 1}
-    new_proficiencies: list[str] = field(default_factory=list)  # Skill proficiencies gained from subclass
-    new_expertise: list[str] = field(default_factory=list)       # Skill expertise gained from subclass
+    new_proficiencies: list[str] = field(default_factory=list)  # Skill proficiencies gained at this level
+    new_expertise: list[str] = field(default_factory=list)       # Skill expertise choices gained at this level

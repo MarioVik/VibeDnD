@@ -4,6 +4,10 @@ from dataclasses import dataclass, field
 from models.ability_scores import AbilityScores
 from models.class_level import ClassLevel
 from models.enums import Ability, Skill, SKILL_BY_NAME
+from models.skill_utils import (
+    get_all_skill_expertise_names,
+    get_all_skill_proficiency_names,
+)
 
 
 # D&D 2024 multiclass prerequisites: 13+ in the class's primary ability
@@ -220,28 +224,12 @@ class Character:
     @property
     def all_skill_proficiencies(self) -> set[str]:
         """All skills the character is proficient in."""
-        profs = set()
-
-        # From class
-        profs.update(self.selected_skills)
-
-        # From background
-        if self.background:
-            profs.update(self.background.get("skill_proficiencies", []))
-
-        # From subclass grants (level-up)
-        for cl in self.class_levels:
-            profs.update(cl.new_proficiencies)
-
-        return profs
+        return get_all_skill_proficiency_names(self)
 
     @property
     def all_skill_expertise(self) -> set[str]:
         """All skills the character has expertise in."""
-        exp = set()
-        for cl in self.class_levels:
-            exp.update(cl.new_expertise)
-        return exp
+        return get_all_skill_expertise_names(self)
 
     def skill_modifier(self, skill_display_name: str) -> int:
         """Calculate modifier for a skill."""
@@ -249,6 +237,8 @@ class Character:
         if not skill:
             return 0
         base_mod = self.ability_scores.modifier(skill.ability.value)
+        if skill_display_name in self.all_skill_expertise:
+            return base_mod + (self.proficiency_bonus * 2)
         if skill_display_name in self.all_skill_proficiencies:
             return base_mod + self.proficiency_bonus
         return base_mod

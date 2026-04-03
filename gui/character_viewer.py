@@ -660,16 +660,10 @@ class CharacterViewer(ttk.Frame):
         senses_card.pack(fill=tk.BOTH, expand=True)
         senses_frame = senses_card.inner
 
-        wis_mod = c.ability_scores.modifier("Wisdom")
-        int_mod = c.ability_scores.modifier("Intelligence")
-        perception_prof = "Perception" in all_profs
-        insight_prof = "Insight" in all_profs
-        investigation_prof = "Investigation" in all_profs
-
         senses = [
-            ("Passive Perception", 10 + wis_mod + (c.proficiency_bonus if perception_prof else 0)),
-            ("Passive Insight", 10 + wis_mod + (c.proficiency_bonus if insight_prof else 0)),
-            ("Passive Investigation", 10 + int_mod + (c.proficiency_bonus if investigation_prof else 0)),
+            ("Passive Perception", 10 + c.skill_modifier("Perception")),
+            ("Passive Insight", 10 + c.skill_modifier("Insight")),
+            ("Passive Investigation", 10 + c.skill_modifier("Investigation")),
         ]
 
         for label, value in senses:
