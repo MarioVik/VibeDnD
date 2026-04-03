@@ -119,12 +119,11 @@ class BackgroundStep(WizardStep):
             self._grid_frame,
             on_select=self._on_tile_click,
             tile_width=220,
-            tile_height=252,
+            tile_height=264,
             preferred_cols=5,
             min_tile_width=180,
             expand_tiles_to_fill=True,
             expand_gap_with_tile=True,
-            responsive_tile_height=True,
             content_side_padding=SPACING["xl"],
         )
         self._tile_grid.pack(fill=tk.BOTH, expand=True, padx=SPACING["sm"], pady=SPACING["sm"])
@@ -177,6 +176,9 @@ class BackgroundStep(WizardStep):
             cat_tiles = []
             for bg in items:
                 traits = []
+                abilities = bg.get("ability_scores", [])
+                if abilities:
+                    traits.append(f"Ability Scores: {', '.join(abilities)}")
                 feat = bg.get("feat", "")
                 if feat:
                     traits.append(f"Feat: {feat}")

@@ -2174,11 +2174,15 @@ class OptionTile(tk.Frame):
         self._lore_feat_label = None
         self._lore_feat_value = None
         self._lore_meta_rows: list[dict] = []
+        self._lore_layout_updating = False
+        self._lore_layout_job = None
+        self._lore_measure_job = None
+        self._lore_min_height = th
 
         if self._variant == "lore":
             self._build_lore_tile()
             self.bind("<Configure>", self._on_configure)
-            self.after_idle(self._update_lore_layout)
+            self.after_idle(self._schedule_lore_layout)
         else:
             self._canvas = tk.Canvas(
                 self,
@@ -2201,9 +2205,11 @@ class OptionTile(tk.Frame):
 
         self._tile_width = width
         self._tile_height = height
+        if self._variant == "lore":
+            self._lore_min_height = height
         self.configure(width=width, height=height)
         if self._variant == "lore":
-            self._update_lore_layout()
+            self._schedule_lore_layout()
         else:
             self._photo_normal = None
             self._photo_hover = None
@@ -2212,6 +2218,16 @@ class OptionTile(tk.Frame):
 
     def _build_lore_tile(self):
         surface = COLORS["bg_surface"]
+        compact = self._tile_height <= 264
+        content_pad_y = 12 if compact else 16
+        rule_bottom_pad = 8 if compact else 10
+        title_top_pad = 2 if compact else 4
+        desc_top_pad = 6 if compact else 8
+        feat_outer_pad = 8 if compact else 12
+        feat_inner_pad_y = 6 if compact else 8
+        meta_outer_pad = 8 if compact else 12
+        meta_row_gap = 4 if compact else 6
+
         self._lore_shell = tk.Frame(self, bg=surface)
         self._lore_shell.pack(fill=tk.BOTH, expand=True)
 
@@ -2223,12 +2239,12 @@ class OptionTile(tk.Frame):
             self._lore_shell,
             bg=surface,
             padx=self._lore_content_pad_x,
-            pady=16,
+            pady=content_pad_y,
         )
         self._lore_content.pack(fill=tk.BOTH, expand=True)
 
         self._lore_rule_row = tk.Frame(self._lore_content, bg=surface)
-        self._lore_rule_row.pack(fill=tk.X, pady=(0, 10))
+        self._lore_rule_row.pack(fill=tk.X, pady=(0, rule_bottom_pad))
 
         self._lore_rule_short = tk.Frame(
             self._lore_rule_row,
@@ -2266,7 +2282,7 @@ class OptionTile(tk.Frame):
             justify=tk.LEFT,
             anchor="w",
         )
-        self._lore_title.pack(fill=tk.X, pady=(4, 0))
+        self._lore_title.pack(fill=tk.X, pady=(title_top_pad, 0))
 
         self._lore_desc = tk.Label(
             self._lore_content,
@@ -2278,7 +2294,7 @@ class OptionTile(tk.Frame):
             anchor="w",
         )
         if self._description:
-            self._lore_desc.pack(fill=tk.X, pady=(8, 0))
+            self._lore_desc.pack(fill=tk.X, pady=(desc_top_pad, 0))
 
         feat_text, meta_rows = self._split_lore_traits()
         self._lore_feat_text = feat_text
@@ -2289,9 +2305,9 @@ class OptionTile(tk.Frame):
                 highlightbackground=COLORS["gold_dark"],
                 highlightthickness=1,
                 padx=10,
-                pady=8,
+                pady=feat_inner_pad_y,
             )
-            self._lore_feat.pack(fill=tk.X, pady=(12, 0))
+            self._lore_feat.pack(fill=tk.X, pady=(feat_outer_pad, 0))
 
             self._lore_feat_label = tk.Label(
                 self._lore_feat,
@@ -2316,11 +2332,14 @@ class OptionTile(tk.Frame):
 
         self._lore_meta = tk.Frame(self._lore_content, bg=surface)
         if meta_rows:
-            self._lore_meta.pack(fill=tk.X, pady=(12, 0))
+            self._lore_meta.pack(fill=tk.X, pady=(meta_outer_pad, 0))
 
         for index, (label_text, value_text) in enumerate(meta_rows[:2]):
             row = tk.Frame(self._lore_meta, bg=surface)
-            row.pack(fill=tk.X, pady=(0, 6 if index < len(meta_rows[:2]) - 1 else 0))
+            row.pack(
+                fill=tk.X,
+                pady=(0, meta_row_gap if index < len(meta_rows[:2]) - 1 else 0),
+            )
 
             tag = tk.Label(
                 row,
@@ -2375,6 +2394,11 @@ class OptionTile(tk.Frame):
     def _split_lore_traits(self) -> tuple[str, list[tuple[str, str]]]:
         feat_text = ""
         meta_rows: list[tuple[str, str]] = []
+        priority = {
+            "ability scores": 0,
+            "skills": 1,
+            "tool": 2,
+        }
 
         for raw_trait in self._traits:
             trait = " ".join(str(raw_trait).split())
@@ -2395,7 +2419,16 @@ class OptionTile(tk.Frame):
 
             meta_rows.append(((label or "Detail").upper(), value or trait))
 
+        meta_rows.sort(key=lambda item: (priority.get(item[0].lower(), 99), item[0]))
         return feat_text, meta_rows
+
+    def _lore_line_limits(self) -> tuple[int, int, int]:
+        """Return (description, feat, meta) line budgets for compact lore cards."""
+        if self._tile_height <= 236:
+            return (1, 1, 1)
+        if self._tile_height <= 252:
+            return (1, 1, 2)
+        return (2, 2, 2)
 
     def _apply_lore_state(self, hovered: bool):
         surface = COLORS["bg_container"] if hovered else COLORS["bg_surface"]
@@ -2495,51 +2528,88 @@ class OptionTile(tk.Frame):
         visible[-1] = f"{last}{ellipsis}" if last else ellipsis
         return "\n".join(visible)
 
+    def _wrap_text_for_label(self, text: str, font_spec, width: int) -> str:
+        """Wrap text to the available width without dropping content."""
+        return "\n".join(self._wrap_text_lines(text, font_spec, width))
+
+    def _schedule_lore_layout(self):
+        if self._variant != "lore":
+            return
+        if self._lore_layout_job is not None:
+            return
+        try:
+            self._lore_layout_job = self.after_idle(self._update_lore_layout)
+        except tk.TclError:
+            self._lore_layout_job = None
+
     def _update_lore_layout(self):
         if self._variant != "lore":
             return
+        if self._lore_layout_updating:
+            return
+        self._lore_layout_job = None
 
-        width = self.winfo_width()
-        if width < 2:
-            width = self._tile_width
+        self._lore_layout_updating = True
+        try:
+            width = self.winfo_width()
+            if width < 2:
+                width = self._tile_width
 
-        content_width = max(width - (self._lore_content_pad_x * 2), 80)
-        title_text = self._truncate_wrapped_text(
-            self._name,
-            FONTS["card_title_lg"],
-            content_width,
-            max_lines=2,
-        )
-        self._lore_title.configure(text=title_text, wraplength=content_width)
-
-        if self._description:
-            desc_text = self._truncate_wrapped_text(
-                self._description,
-                FONTS["tile_desc"],
+            content_width = max(width - (self._lore_content_pad_x * 2), 80)
+            title_text = self._wrap_text_for_label(
+                self._name,
+                FONTS["card_title_lg"],
                 content_width,
-                max_lines=2,
             )
-            self._lore_desc.configure(text=desc_text, wraplength=content_width)
+            self._lore_title.configure(text=title_text, wraplength=content_width)
 
-        if self._lore_feat_value is not None:
-            feat_width = max(content_width - 20, 80)
-            feat_text = self._truncate_wrapped_text(
-                self._lore_feat_text,
-                FONTS["body_bold"],
-                feat_width,
-                max_lines=2,
-            )
-            self._lore_feat_value.configure(text=feat_text, wraplength=feat_width)
+            if self._description:
+                desc_text = self._wrap_text_for_label(
+                    self._description,
+                    FONTS["tile_desc"],
+                    content_width,
+                )
+                self._lore_desc.configure(text=desc_text, wraplength=content_width)
 
-        meta_value_width = max(content_width - 84, 56)
-        for row in self._lore_meta_rows:
-            value_text = self._truncate_wrapped_text(
-                row["text"],
-                FONTS["body_small"],
-                meta_value_width,
-                max_lines=2,
-            )
-            row["value"].configure(text=value_text, wraplength=meta_value_width)
+            if self._lore_feat_value is not None:
+                feat_width = max(content_width - 20, 80)
+                feat_text = self._wrap_text_for_label(
+                    self._lore_feat_text,
+                    FONTS["body_bold"],
+                    feat_width,
+                )
+                self._lore_feat_value.configure(text=feat_text, wraplength=feat_width)
+
+            meta_value_width = max(content_width - 84, 56)
+            for row in self._lore_meta_rows:
+                value_text = self._wrap_text_for_label(
+                    row["text"],
+                    FONTS["body_small"],
+                    meta_value_width,
+                )
+                row["value"].configure(text=value_text, wraplength=meta_value_width)
+        finally:
+            self._lore_layout_updating = False
+
+        if self._lore_measure_job is None:
+            try:
+                self._lore_measure_job = self.after_idle(self._measure_lore_height)
+            except tk.TclError:
+                self._lore_measure_job = None
+
+    def _measure_lore_height(self):
+        self._lore_measure_job = None
+        if self._variant != "lore" or not hasattr(self, "_lore_shell"):
+            return
+
+        highlight = int(self.cget("highlightthickness")) * 2
+        required_height = max(
+            self._lore_min_height,
+            self._lore_shell.winfo_reqheight() + highlight,
+        )
+        if required_height != self._tile_height:
+            self._tile_height = required_height
+            self.configure(height=required_height)
 
     # ------------------------------------------------------------------
     # Rendering
@@ -2995,7 +3065,7 @@ class OptionTile(tk.Frame):
 
     def _on_configure(self, _event=None):
         if self._variant == "lore":
-            self._update_lore_layout()
+            self._schedule_lore_layout()
             return
 
         w = self._canvas.winfo_width()
@@ -3243,7 +3313,7 @@ class TileGrid(tk.Frame):
                         column=col,
                         padx=gap // 2,
                         pady=gap // 2,
-                        sticky="nsew",
+                        sticky="new" if tile._variant == "lore" else "nsew",
                     )
                     col += 1
                     if col >= self._cols:
@@ -3266,7 +3336,7 @@ class TileGrid(tk.Frame):
                 column=col,
                 padx=gap // 2,
                 pady=gap // 2,
-                sticky="nsew",
+                sticky="new" if tile._variant == "lore" else "nsew",
             )
             col += 1
             if col >= self._cols:
