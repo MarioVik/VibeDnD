@@ -12,6 +12,8 @@ from models.language_utils import (
     compute_language_sources,
 )
 
+CARD_CHECK_STYLE = "Card.TCheckbutton"
+
 
 class LanguagesStep(WizardStep):
     tab_title = "Languages"
@@ -205,6 +207,7 @@ class LanguagesStep(WizardStep):
                 text=lang,
                 variable=var,
                 state=state,
+                style=CARD_CHECK_STYLE,
                 command=lambda l=lang, v=var: self._on_toggle(l, v, free_count),
             )
             cb.pack(anchor="w", pady=1)

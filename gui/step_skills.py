@@ -8,6 +8,8 @@ from gui.widgets import ScrollableFrame, WrappingLabel, Chip, GradientHeader, Se
 from gui.theme import COLORS, FONTS, SPACING
 from models.skill_utils import compute_skill_sources
 
+CARD_CHECK_STYLE = "Card.TCheckbutton"
+
 
 class SkillsStep(WizardStep):
     tab_title = "Skills"
@@ -179,6 +181,7 @@ class SkillsStep(WizardStep):
                 self.options_frame,
                 text=skill_name,
                 variable=var,
+                style=CARD_CHECK_STYLE,
                 command=lambda s=skill_name, v=var: self._on_toggle(s, v),
             )
             col = idx % 3

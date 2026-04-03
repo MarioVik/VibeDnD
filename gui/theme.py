@@ -565,10 +565,28 @@ def apply_theme(root: tk.Tk):
         foreground=COLORS["fg"],
         font=FONTS["body"],
     )
+    style.map(
+        "TRadiobutton",
+        background=[
+            ("active", COLORS["bg"]),
+            ("selected", COLORS["bg"]),
+            ("disabled", COLORS["bg"]),
+        ],
+        foreground=[("disabled", COLORS["fg_dim"])],
+    )
     style.configure(
         "Card.TRadiobutton",
         background=COLORS["bg_surface"],
         foreground=COLORS["fg"],
+    )
+    style.map(
+        "Card.TRadiobutton",
+        background=[
+            ("active", COLORS["bg_surface"]),
+            ("selected", COLORS["bg_surface"]),
+            ("disabled", COLORS["bg_surface"]),
+        ],
+        foreground=[("disabled", COLORS["fg_dim"])],
     )
     style.configure(
         "TCheckbutton",
@@ -576,10 +594,28 @@ def apply_theme(root: tk.Tk):
         foreground=COLORS["fg"],
         font=FONTS["body"],
     )
+    style.map(
+        "TCheckbutton",
+        background=[
+            ("active", COLORS["bg"]),
+            ("selected", COLORS["bg"]),
+            ("disabled", COLORS["bg"]),
+        ],
+        foreground=[("disabled", COLORS["fg_dim"])],
+    )
     style.configure(
         "Card.TCheckbutton",
         background=COLORS["bg_surface"],
         foreground=COLORS["fg"],
+    )
+    style.map(
+        "Card.TCheckbutton",
+        background=[
+            ("active", COLORS["bg_surface"]),
+            ("selected", COLORS["bg_surface"]),
+            ("disabled", COLORS["bg_surface"]),
+        ],
+        foreground=[("disabled", COLORS["fg_dim"])],
     )
 
     # ------------------------------------------------------------------

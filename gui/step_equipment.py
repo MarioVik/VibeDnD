@@ -8,6 +8,8 @@ from gui.widgets import GradientHeader, SectionHeader, CardFrame, ScrollableFram
 from gui.theme import COLORS, FONTS, SPACING
 from gui.equipment_utils import extract_gp, gp_to_coins, strip_wealth
 
+CARD_RADIO_STYLE = "Card.TRadiobutton"
+
 
 class EquipmentStep(WizardStep):
     tab_title = "Equipment"
@@ -139,6 +141,7 @@ class EquipmentStep(WizardStep):
                 text=f"({opt['option']}) {opt['items']}",
                 variable=self.class_equip_var,
                 value=opt["option"],
+                style=CARD_RADIO_STYLE,
             ).pack(anchor="w", padx=SPACING["lg"], pady=2)
 
         if equip_options:
@@ -188,6 +191,7 @@ class EquipmentStep(WizardStep):
                 text=f"({opt['option']}) {opt['items']}",
                 variable=self.bg_equip_var,
                 value=opt["option"],
+                style=CARD_RADIO_STYLE,
             ).pack(anchor="w", padx=SPACING["lg"], pady=2)
 
         if equip_options:

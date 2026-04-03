@@ -14,6 +14,7 @@ from models.ability_bonus_utils import (
 ABILITIES = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
 ABILITY_SHORT = {"Strength": "STR", "Dexterity": "DEX", "Constitution": "CON",
                  "Intelligence": "INT", "Wisdom": "WIS", "Charisma": "CHA"}
+CARD_RADIO_STYLE = "Card.TRadiobutton"
 
 
 class AbilityScoresStep(WizardStep):
@@ -60,10 +61,12 @@ class AbilityScoresStep(WizardStep):
         self.method_var = tk.StringVar(value="standard_array")
         ttk.Radiobutton(method_frame, text="Standard Array (15, 14, 13, 12, 10, 8)",
                         variable=self.method_var, value="standard_array",
-                        command=self._on_method_change).pack(side=tk.LEFT, padx=(0, SPACING["lg"]))
+                        command=self._on_method_change,
+                        style=CARD_RADIO_STYLE).pack(side=tk.LEFT, padx=(0, SPACING["lg"]))
         ttk.Radiobutton(method_frame, text="Point Buy (27 points)",
                         variable=self.method_var, value="point_buy",
-                        command=self._on_method_change).pack(side=tk.LEFT)
+                        command=self._on_method_change,
+                        style=CARD_RADIO_STYLE).pack(side=tk.LEFT)
 
         # Main assignment area
         SectionHeader(inner, text="Scores").pack(
@@ -203,6 +206,7 @@ class AbilityScoresStep(WizardStep):
             variable=self.bonus_mode,
             value="2/1",
             command=self._update_bonus_ui,
+            style=CARD_RADIO_STYLE,
         ).pack(side=tk.LEFT, padx=(0, SPACING["sm"]))
         ttk.Radiobutton(
             mode_frame,
@@ -210,6 +214,7 @@ class AbilityScoresStep(WizardStep):
             variable=self.bonus_mode,
             value="1/1/1",
             command=self._update_bonus_ui,
+            style=CARD_RADIO_STYLE,
         ).pack(side=tk.LEFT, padx=(0, SPACING["sm"]))
 
         self.assign_bonus_frame = tk.Frame(bonus_inner, bg=_bg)
@@ -474,6 +479,7 @@ class AbilityScoresStep(WizardStep):
             text=f"Max ({hit_die} + {con_mod} CON = {hit_die + con_mod} HP)",
             variable=self._hp_mode,
             value="max",
+            style=CARD_RADIO_STYLE,
         ).pack(side=tk.LEFT, padx=(0, SPACING["md"]))
 
         ttk.Radiobutton(
@@ -481,6 +487,7 @@ class AbilityScoresStep(WizardStep):
             text=f"Average ({average} + {con_mod} CON = {average + con_mod} HP)",
             variable=self._hp_mode,
             value="average",
+            style=CARD_RADIO_STYLE,
         ).pack(side=tk.LEFT, padx=(0, SPACING["md"]))
 
         ttk.Radiobutton(
@@ -488,6 +495,7 @@ class AbilityScoresStep(WizardStep):
             text="Manual:",
             variable=self._hp_mode,
             value="manual",
+            style=CARD_RADIO_STYLE,
         ).pack(side=tk.LEFT)
 
         manual_entry = ttk.Entry(radio_row, textvariable=self._hp_manual_var, width=5)
