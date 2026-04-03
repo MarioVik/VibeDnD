@@ -2122,6 +2122,11 @@ class OptionTile(tk.Frame):
     TILE_WIDTH = 310
     TILE_HEIGHT = 380
     OVERLAY_HEIGHT_RATIO = 0.30
+    TOP_BAND_HEIGHT = 4
+    BOTTOM_BAR_HEIGHT = 3
+    TITLE_RULE_WIDTH = 34
+    TITLE_RULE_HEIGHT = 2
+    TITLE_RULE_GAP = 8
 
     def __init__(
         self,
@@ -2947,6 +2952,7 @@ class OptionTile(tk.Frame):
 
     def _draw_text(self, width: int, height: int):
         """Render name and traits on the canvas over the gradient overlay."""
+        hovered = self._hovered
         scale = self._tile_scale(width, height)
         title_font = self._scaled_font(FONTS["tile_name"], scale)
         panel_height = self._overlay_height(height)
@@ -2955,6 +2961,33 @@ class OptionTile(tk.Frame):
         panel_top = height - panel_height + pad_top
         text_width = max(width - pad_x * 2, 80)
         shadow_offset = max(1, int(round(scale)))
+        top_band_height = max(3, int(round(self.TOP_BAND_HEIGHT * scale)))
+        bottom_bar_height = max(2, int(round(self.BOTTOM_BAR_HEIGHT * scale)))
+        title_rule_width = max(24, int(round(self.TITLE_RULE_WIDTH * scale)))
+        title_rule_height = max(2, int(round(self.TITLE_RULE_HEIGHT * scale)))
+        title_rule_gap = max(6, int(round(self.TITLE_RULE_GAP * scale)))
+        title_rule_offset = max(8, int(round(panel_height * 0.08)))
+        traits_offset = max(12, int(round(panel_height * 0.1)))
+        accent = COLORS["accent_text"] if hovered else COLORS["accent"]
+        gold = COLORS["gold"] if hovered else COLORS["gold_dark"]
+        rule_fill = COLORS["outline_dim"] if hovered else COLORS["border_subtle"]
+
+        self._canvas.create_rectangle(
+            0,
+            0,
+            width,
+            top_band_height,
+            fill=accent,
+            outline="",
+        )
+        self._canvas.create_rectangle(
+            0,
+            height - bottom_bar_height,
+            width,
+            height,
+            fill=gold,
+            outline="",
+        )
 
         # Name with shadow
         self._canvas.create_text(
@@ -2968,9 +3001,29 @@ class OptionTile(tk.Frame):
             fill=COLORS["fg"], anchor="nw", width=text_width,
         )
 
+        title_bbox = self._canvas.bbox(title_id)
+        title_rule_y = (title_bbox[3] if title_bbox else panel_top + 20) + title_rule_offset
+        title_rule_end = min(width - pad_x, pad_x + text_width)
+        self._canvas.create_rectangle(
+            pad_x,
+            title_rule_y,
+            pad_x + title_rule_width,
+            title_rule_y + title_rule_height,
+            fill=gold,
+            outline="",
+        )
+        if title_rule_end > pad_x + title_rule_width + title_rule_gap:
+            self._canvas.create_line(
+                pad_x + title_rule_width + title_rule_gap,
+                title_rule_y + (title_rule_height / 2.0),
+                title_rule_end,
+                title_rule_y + (title_rule_height / 2.0),
+                fill=rule_fill,
+                width=1,
+            )
+
         # Traits below name
         if False and self._traits:
-            title_bbox = self._canvas.bbox(title_id)
             traits_y = (title_bbox[3] if title_bbox else panel_top + 20) + max(
                 6, int(round(panel_height * 0.05))
             )
@@ -2987,9 +3040,7 @@ class OptionTile(tk.Frame):
             )
 
         if self._traits:
-            title_bbox = self._canvas.bbox(title_id)
-            name_badge_gap = max(16, int(round(panel_height * 0.14)))
-            traits_y = (title_bbox[3] if title_bbox else panel_top + 20) + name_badge_gap
+            traits_y = title_rule_y + title_rule_height + traits_offset
             self._draw_trait_chips(
                 x=pad_x,
                 y=traits_y,
