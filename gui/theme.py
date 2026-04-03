@@ -59,9 +59,11 @@ COLORS = {
     # Foreground / text
     "fg": "#e5e2e1",
     "fg_dim": "#e0bfbf",
+    "fg_disabled": "#7d7777",
     # Borders
     "outline": "#a78a8a",
     "outline_dim": "#584141",
+    "control_disabled": "#4d4949",
     # Semantic
     "positive": "#6aaa64",
     "negative": "#ffb4ab",
@@ -601,7 +603,8 @@ def apply_theme(root: tk.Tk):
             ("selected", COLORS["bg"]),
             ("disabled", COLORS["bg"]),
         ],
-        foreground=[("disabled", COLORS["fg_dim"])],
+        foreground=[("disabled", COLORS["fg_disabled"])],
+        indicatorcolor=[("disabled", COLORS["control_disabled"])],
     )
     style.configure(
         "Card.TCheckbutton",
@@ -615,7 +618,8 @@ def apply_theme(root: tk.Tk):
             ("selected", COLORS["bg_surface"]),
             ("disabled", COLORS["bg_surface"]),
         ],
-        foreground=[("disabled", COLORS["fg_dim"])],
+        foreground=[("disabled", COLORS["fg_disabled"])],
+        indicatorcolor=[("disabled", COLORS["control_disabled"])],
     )
 
     # ------------------------------------------------------------------
@@ -733,3 +737,4 @@ def apply_theme(root: tk.Tk):
     root.option_add("*Scrollbar.highlightBackground", COLORS["bg"])
     root.option_add("*Scrollbar.highlightColor", COLORS["bg"])
     root.option_add("*Scrollbar.borderWidth", 0)
+    root.option_add("*Checkbutton.disabledForeground", COLORS["fg_disabled"])
