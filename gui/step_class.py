@@ -201,16 +201,34 @@ class ClassStep(WizardStep):
             self._refresh_subclass_preview_options(class_name)
 
     def _get_class_level1_features(self, cls: dict) -> list[str]:
-        """Get up to 3 level 1 feature names from progression data."""
+        """Get all unique level 1 feature names for class tiles."""
         prog = self.data.get_progression(cls.get("slug", ""))
         if prog and prog.get("levels"):
             lvl1 = prog["levels"][0]
+            names: list[str] = []
+            seen: set[str] = set()
             details = lvl1.get("feature_details", [])
             if details:
-                return [f["name"] for f in details[:3]]
-            return lvl1.get("features", [])[:3]
+                for feature in details:
+                    name = feature.get("name", "")
+                    if name and name not in seen:
+                        names.append(name)
+                        seen.add(name)
+            for name in lvl1.get("features", []):
+                if name and name not in seen:
+                    names.append(name)
+                    seen.add(name)
+            if names:
+                return names
         # Fallback to level_1_features
-        return [f["name"] for f in cls.get("level_1_features", [])[:3]]
+        names: list[str] = []
+        seen: set[str] = set()
+        for feature in cls.get("level_1_features", []):
+            name = feature.get("name", "")
+            if name and name not in seen:
+                names.append(name)
+                seen.add(name)
+        return names
 
     def _populate_tiles(self):
         img_base = os.path.join(images_dir(), "classes")
