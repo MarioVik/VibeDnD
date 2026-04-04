@@ -240,6 +240,17 @@ class ClassFeaturesStep(WizardStep):
         )
 
         for idx in range(count):
+            current_value = current[idx] if idx < len(current) else ""
+            blocked = {
+                value
+                for other_idx, value in enumerate(current)
+                if other_idx != idx and value
+            }
+            slot_options = [
+                option
+                for option in options
+                if option == current_value or option not in blocked
+            ]
             row = tk.Frame(card.inner, bg=COLORS["bg_surface"])
             row.pack(fill=tk.X, pady=(0, SPACING["xs"]))
             tk.Label(
@@ -251,11 +262,11 @@ class ClassFeaturesStep(WizardStep):
                 width=16,
                 anchor="w",
             ).pack(side=tk.LEFT)
-            var = tk.StringVar(value=current[idx] if idx < len(current) else "")
+            var = tk.StringVar(value=current_value)
             combo = ttk.Combobox(
                 row,
                 textvariable=var,
-                values=options,
+                values=slot_options,
                 state="readonly",
                 width=36,
             )
@@ -510,31 +521,6 @@ class ClassFeaturesStep(WizardStep):
             return
 
         slug = str(self.character.character_class.get("slug", "") or "")
-        class_name = self.character.character_class.get("name", "This class")
-
-        intro = tk.Frame(self._content, bg=COLORS["bg"])
-        intro.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"]))
-        tk.Label(
-            intro,
-            text=f"{class_name} Level 1 Choices",
-            font=FONTS["subheading"],
-            fg=COLORS["fg"],
-            bg=COLORS["bg"],
-        ).pack(anchor="w")
-
-        blockers = get_unmet_level1_class_requirements(
-            self.character,
-            self.data,
-            step_key="class_features",
-        )
-        if blockers:
-            tk.Label(
-                intro,
-                text="Selections still required before completion.",
-                font=FONTS["body_small"],
-                fg=COLORS["accent"],
-                bg=COLORS["bg"],
-            ).pack(anchor="w", pady=(SPACING["xs"], 0))
 
         if slug in {"cleric", "druid"}:
             key = "divine_order" if slug == "cleric" else "primal_order"

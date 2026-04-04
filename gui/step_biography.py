@@ -204,6 +204,9 @@ class BiographyStep(WizardStep):
         widget.delete("1.0", tk.END)
         widget.insert("1.0", value)
 
+    def _normalized_name(self) -> str:
+        return str(self.name_var.get() or "").strip()
+
     # ── data sync ────────────────────────────────────────────────
 
     def on_enter(self):
@@ -231,6 +234,10 @@ class BiographyStep(WizardStep):
     def _on_name_change(self, *args):
         self.character.name = self.name_var.get()
         self.notify_change()
+
+    def is_valid(self) -> bool:
+        name = self._normalized_name()
+        return bool(name) and name != self._DEFAULT_NAME
 
     def _save_text_fields(self, _event=None):
         self.character.biography_backstory = self._text_value(self._backstory)

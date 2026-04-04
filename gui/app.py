@@ -440,15 +440,7 @@ class CharacterCreatorApp:
             return self.wizard_steps[self._step_keys.index(key)].is_valid()
 
         if key == "biography":
-            return any(
-                [
-                    self.character.name and self.character.name != "New Character",
-                    self.character.biography_backstory,
-                    self.character.biography_personality,
-                    self.character.biography_description,
-                    self.character.biography_image_data,
-                ]
-            )
+            return self.wizard_steps[self._step_keys.index(key)].is_valid()
 
         if key == "summary":
             return self._current_step_idx == self._step_keys.index("summary")
@@ -696,6 +688,12 @@ class CharacterCreatorApp:
             )
             body = blockers[0]["message"] if blockers else "Choose your starting equipment before moving on."
             AlertDialog(self.root, "Equipment Selection Required", body)
+        elif isinstance(step, BiographyStep):
+            AlertDialog(
+                self.root,
+                "Character Name Required",
+                "Enter a character name before moving on.",
+            )
 
     def _first_invalid_visible_step_index(self) -> int | None:
         summary_idx = self._step_keys.index("summary")

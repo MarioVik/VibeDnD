@@ -466,7 +466,8 @@ class AbilityScoresStep(WizardStep):
         elif cl0.hp_roll == hit_die:
             self._hp_mode.set("max")
         elif cl0.hp_roll == average:
-            self._hp_mode.set("average")
+            self._hp_mode.set("manual")
+            self._hp_manual_var.set(str(cl0.hp_roll))
         else:
             self._hp_mode.set("manual")
             self._hp_manual_var.set(str(cl0.hp_roll))
@@ -479,14 +480,6 @@ class AbilityScoresStep(WizardStep):
             text=f"Max ({hit_die} + {con_mod} CON = {hit_die + con_mod} HP)",
             variable=self._hp_mode,
             value="max",
-            style=CARD_RADIO_STYLE,
-        ).pack(side=tk.LEFT, padx=(0, SPACING["md"]))
-
-        ttk.Radiobutton(
-            radio_row,
-            text=f"Average ({average} + {con_mod} CON = {average + con_mod} HP)",
-            variable=self._hp_mode,
-            value="average",
             style=CARD_RADIO_STYLE,
         ).pack(side=tk.LEFT, padx=(0, SPACING["md"]))
 
@@ -516,7 +509,7 @@ class AbilityScoresStep(WizardStep):
             else:
                 manual_entry.config(state="disabled")
             _update_hint()
-            self._apply_hp_override(hit_die, con_mod, average)
+            self._apply_hp_override(hit_die, con_mod)
 
         def _update_hint(*_):
             if self._hp_mode.get() != "manual":
@@ -532,12 +525,12 @@ class AbilityScoresStep(WizardStep):
                 self._hp_hint_label.config(text=f"+ {con_mod} CON = ? HP")
 
         self._hp_mode.trace_add("write", _update_state)
-        self._hp_manual_var.trace_add("write", lambda *_: (_update_hint(), self._apply_hp_override(hit_die, con_mod, average)))
+        self._hp_manual_var.trace_add("write", lambda *_: (_update_hint(), self._apply_hp_override(hit_die, con_mod)))
 
         if self._hp_mode.get() != "manual":
             manual_entry.config(state="disabled")
 
-    def _apply_hp_override(self, hit_die, con_mod, average):
+    def _apply_hp_override(self, hit_die, con_mod):
         """Write the chosen HP value into character.class_levels[0].hp_roll."""
         if not self.character.class_levels:
             return
@@ -545,8 +538,6 @@ class AbilityScoresStep(WizardStep):
         mode = self._hp_mode.get()
         if mode == "max":
             cl0.hp_roll = None
-        elif mode == "average":
-            cl0.hp_roll = average
         elif mode == "manual":
             val = self._hp_manual_var.get().strip()
             try:

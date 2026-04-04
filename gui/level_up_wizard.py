@@ -104,7 +104,7 @@ class LevelUpWizard(tk.Toplevel):
 
         # Choices to collect
         self.hp_choice = tk.IntVar(value=0)
-        self.hp_mode = tk.StringVar(value="average")  # "average" | "max" | "manual"
+        self.hp_mode = tk.StringVar(value="average")  # "average" | "manual"
         self.hp_manual_var = tk.StringVar(value="")
         self.subclass_var = tk.StringVar()
         self.feat_var = tk.StringVar()
@@ -1203,13 +1203,6 @@ class LevelUpWizard(tk.Toplevel):
             text=f"Take average ({average} + {con_mod} CON = {average + con_mod} HP)",
             variable=self.hp_mode,
             value="average",
-        ).pack(anchor="w", pady=2)
-
-        ttk.Radiobutton(
-            hp_frame,
-            text=f"Take max ({hit_die} + {con_mod} CON = {hit_die + con_mod} HP)",
-            variable=self.hp_mode,
-            value="max",
         ).pack(anchor="w", pady=2)
 
         # Manual entry row
@@ -2445,8 +2438,6 @@ class LevelUpWizard(tk.Toplevel):
                     "Please enter a valid number (≥ 1) for your hit points.",
                 )
                 return
-        elif mode == "max":
-            hp_roll = hit_die
         else:
             hp_roll = average
 
