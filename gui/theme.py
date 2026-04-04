@@ -373,6 +373,7 @@ def apply_theme(root: tk.Tk):
     button_styles = (
         "TButton",
         "Accent.TButton",
+        "WizardAccent.TButton",
         "Gold.TButton",
         "Compact.TButton",
         "HomeLoad.TButton",
@@ -443,6 +444,36 @@ def apply_theme(root: tk.Tk):
         bordercolor=[("active", COLORS["accent_on"])],
         lightcolor=[("active", COLORS["accent_on"])],
         darkcolor=[("active", COLORS["accent_on"])],
+    )
+
+    style.configure(
+        "WizardAccent.TButton",
+        background=COLORS["accent"],
+        foreground=COLORS["fg"],
+        font=FONTS["body_bold"],
+        bordercolor=COLORS["accent_on"],
+        lightcolor=COLORS["accent"],
+        darkcolor=COLORS["accent_on"],
+    )
+    style.map(
+        "WizardAccent.TButton",
+        background=[
+            ("active", COLORS["accent_on"]),
+            ("disabled", COLORS["control_disabled"]),
+        ],
+        foreground=[("disabled", COLORS["fg_disabled"])],
+        bordercolor=[
+            ("active", COLORS["accent_on"]),
+            ("disabled", COLORS["outline_dim"]),
+        ],
+        lightcolor=[
+            ("active", COLORS["accent_on"]),
+            ("disabled", COLORS["control_disabled"]),
+        ],
+        darkcolor=[
+            ("active", COLORS["accent_on"]),
+            ("disabled", COLORS["control_disabled"]),
+        ],
     )
 
     style.configure(

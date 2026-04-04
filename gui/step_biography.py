@@ -26,10 +26,12 @@ class BiographyStep(WizardStep):
     """Optional biography details: name, backstory, personality, description, portrait."""
 
     tab_title = "Biography"
+    _DEFAULT_NAME = "New Character"
 
     def build_ui(self):
         self.frame.columnconfigure(0, weight=1)
         self.frame.rowconfigure(1, weight=1)
+        self._name_placeholder_armed = False
 
         # ── Hero header ─────────────────────────────────────────
         hero = GradientHeader(self.frame, min_height=60)
@@ -66,10 +68,12 @@ class BiographyStep(WizardStep):
         name_card = CardFrame(name_section, pad=SPACING["lg"])
         name_card.pack(fill=tk.X)
 
-        self.name_var = tk.StringVar(value=self.character.name or "New Character")
+        initial_name = self.character.name or self._DEFAULT_NAME
+        self.name_var = tk.StringVar(value=initial_name)
         self.name_var.trace_add("write", self._on_name_change)
+        self._name_placeholder_armed = initial_name == self._DEFAULT_NAME
 
-        name_entry = tk.Entry(
+        self.name_entry = tk.Entry(
             name_card.inner,
             textvariable=self.name_var,
             font=FONTS["heading_serif"],
@@ -81,7 +85,8 @@ class BiographyStep(WizardStep):
             highlightbackground=COLORS["border_subtle"],
             highlightcolor=COLORS["accent"],
         )
-        name_entry.pack(fill=tk.X, ipady=6)
+        self.name_entry.pack(fill=tk.X, ipady=6)
+        self.name_entry.bind("<FocusIn>", self._on_name_focus_in, add="+")
 
         # ── Row 1: Portrait (left) ─────────────────────────────
         portrait_section = tk.Frame(inner, bg=COLORS["bg"])
@@ -204,12 +209,24 @@ class BiographyStep(WizardStep):
     def on_enter(self):
         if self.character.name and self.character.name != self.name_var.get():
             self.name_var.set(self.character.name)
+            self._name_placeholder_armed = self.character.name == self._DEFAULT_NAME
         elif not self.character.name:
             self.character.name = self.name_var.get()
+            self._name_placeholder_armed = self.name_var.get() == self._DEFAULT_NAME
         self._set_text(self._backstory, self.character.biography_backstory or "")
         self._set_text(self._personality, self.character.biography_personality or "")
         self._set_text(self._description, self.character.biography_description or "")
         self._refresh_image()
+
+    def _on_name_focus_in(self, _event=None):
+        if not self._name_placeholder_armed:
+            return
+        if self.name_var.get() != self._DEFAULT_NAME:
+            self._name_placeholder_armed = False
+            return
+        self._name_placeholder_armed = False
+        self.name_var.set("")
+        self.name_entry.icursor(tk.END)
 
     def _on_name_change(self, *args):
         self.character.name = self.name_var.get()

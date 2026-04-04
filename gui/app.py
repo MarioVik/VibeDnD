@@ -220,7 +220,7 @@ class CharacterCreatorApp:
         self._next_btn = ttk.Button(
             right_frame,
             text="Next  \u25b6",
-            style="Accent.TButton",
+            style="WizardAccent.TButton",
             command=self._wizard_next,
         )
         self._next_btn.pack(side=tk.RIGHT)

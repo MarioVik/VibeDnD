@@ -429,6 +429,7 @@ class SkillsStep(WizardStep):
                 side=tk.LEFT, padx=(0, 4), pady=2
             )
 
+        show_grant_counters = len(grants) > 1
         for grant in grants:
             block = tk.Frame(self.expertise_frame, bg=background)
             block.pack(fill=tk.X, anchor="w", pady=(0, SPACING["sm"]))
@@ -443,17 +444,18 @@ class SkillsStep(WizardStep):
                 fg=COLORS["fg_dim"],
                 bg=background,
             ).pack(side=tk.LEFT)
-            tk.Label(
-                header,
-                text=f"({chosen_count} / {grant['count']})",
-                font=FONTS["label_upper_bold"],
-                fg=(
-                    COLORS["positive"]
-                    if chosen_count == grant["count"]
-                    else COLORS["fg_dim"]
-                ),
-                bg=background,
-            ).pack(side=tk.RIGHT)
+            if show_grant_counters:
+                tk.Label(
+                    header,
+                    text=f"({chosen_count} / {grant['count']})",
+                    font=FONTS["label_upper_bold"],
+                    fg=(
+                        COLORS["positive"]
+                        if chosen_count == grant["count"]
+                        else COLORS["fg_dim"]
+                    ),
+                    bg=background,
+                ).pack(side=tk.RIGHT)
             if grant.get("temporary"):
                 tk.Label(
                     header,
