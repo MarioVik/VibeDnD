@@ -27,6 +27,7 @@ from gui.widgets import (
     CardFrame,
     GradientHeader,
     PillBadge,
+    HoverTooltip,
     StepperPair,
     configure_modal_dialog,
 )
@@ -98,6 +99,7 @@ class CharacterViewer(ttk.Frame):
         }
         self._inventory_entries_by_name = {}
         self._selected_inventory_name = ""
+        self._hover_tooltips: list[HoverTooltip] = []
 
         self._view_dirty = {
             _DASHBOARD: True,
@@ -195,6 +197,10 @@ class CharacterViewer(ttk.Frame):
     def _on_navigate(self, key: str):
         self._show_view(key)
 
+    def destroy(self):
+        self._dispose_hover_tooltips()
+        super().destroy()
+
     def _show_view(self, key: str):
         self.sidebar.set_active(key)
 
@@ -231,11 +237,25 @@ class CharacterViewer(ttk.Frame):
     def _refresh_view(self, key: str):
         # Destroy children and rebuild
         frame = self._views[key]
+        if key == _DASHBOARD:
+            self._dispose_hover_tooltips()
         for w in frame.winfo_children():
             w.destroy()
         self._view_built[key] = False
         self._build_view(key)
         self._view_built[key] = True
+
+    def _register_hover_tooltip(self, tooltip: HoverTooltip):
+        self._hover_tooltips.append(tooltip)
+        return tooltip
+
+    def _dispose_hover_tooltips(self):
+        for tooltip in self._hover_tooltips:
+            try:
+                tooltip.dispose()
+            except Exception:
+                pass
+        self._hover_tooltips.clear()
 
     def _character_has_spells(self) -> bool:
         return bool(self.character.selected_cantrips or self.character.selected_spells)
@@ -246,6 +266,7 @@ class CharacterViewer(ttk.Frame):
 
     def _build_dashboard(self):
         parent = self._views[_DASHBOARD]
+        self._dispose_hover_tooltips()
         scroll = ScrollableFrame(parent)
         scroll.pack(fill=tk.BOTH, expand=True)
         inner = scroll.inner
@@ -612,39 +633,54 @@ class CharacterViewer(ttk.Frame):
                 indicator = "\u25c9"
             fg_color = COLORS["accent_text"] if is_prof else COLORS["fg_dim"]
 
-            tk.Label(
+            indicator_label = tk.Label(
                 skill_row,
                 text=indicator,
                 font=FONTS["body_small"],
                 fg=fg_color,
                 bg=COLORS["bg_surface"],
-            ).pack(side=tk.LEFT, padx=(0, 4))
+            )
+            indicator_label.pack(side=tk.LEFT, padx=(0, 4))
 
-            tk.Label(
+            name_label = tk.Label(
                 skill_row,
                 text=skill_display.upper(),
                 font=FONTS["label_upper_bold"] if is_prof else FONTS["label_upper"],
                 fg=fg_color,
                 bg=COLORS["bg_surface"],
-            ).pack(side=tk.LEFT)
+            )
+            name_label.pack(side=tk.LEFT)
 
-            tk.Label(
+            ability_label = tk.Label(
                 skill_row,
                 text=f"({ability.value[:3].upper()})",
                 font=FONTS["label_tiny"],
                 fg=COLORS["fg_dim"],
                 bg=COLORS["bg_surface"],
-            ).pack(side=tk.LEFT, padx=(4, 0))
+            )
+            ability_label.pack(side=tk.LEFT, padx=(4, 0))
 
             mod_val = c.skill_modifier(skill_display)
             mod_text = f"+{mod_val}" if mod_val >= 0 else str(mod_val)
-            tk.Label(
+            value_label = tk.Label(
                 skill_row,
                 text=mod_text,
                 font=FONTS["heading_serif_sm"],
                 fg=fg_color,
                 bg=COLORS["bg_surface"],
-            ).pack(side=tk.RIGHT)
+            )
+            value_label.pack(side=tk.RIGHT)
+
+            skill_row._tooltip = self._register_hover_tooltip(HoverTooltip(
+                [
+                    skill_row,
+                    indicator_label,
+                    name_label,
+                    ability_label,
+                    value_label,
+                ],
+                lambda s=skill_display, char=c: char.skill_modifier_breakdown_text(s),
+            ))
 
         # ── Senses & Proficiencies (side-by-side) ──
         senses_prof_row = tk.Frame(inner, bg=COLORS["bg"])

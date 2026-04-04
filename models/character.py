@@ -6,12 +6,15 @@ from models.class_level import ClassLevel
 from models.enums import Ability, Skill, SKILL_BY_NAME
 from models.level1_class_rules import (
     get_effective_armor_proficiencies,
+    get_level1_skill_bonus_details,
     get_effective_weapon_proficiencies,
     get_level1_skill_bonus,
 )
 from models.skill_utils import (
     get_all_skill_expertise_names,
     get_all_skill_proficiency_names,
+    get_skill_expertise_source_labels,
+    get_skill_proficiency_source_labels,
 )
 
 
@@ -260,6 +263,84 @@ class Character:
     def skill_modifier_str(self, skill_display_name: str) -> str:
         mod = self.skill_modifier(skill_display_name)
         return f"+{mod}" if mod >= 0 else str(mod)
+
+    def skill_modifier_breakdown(self, skill_display_name: str) -> dict:
+        """Return a structured breakdown of how a skill modifier is calculated."""
+        skill = SKILL_BY_NAME.get(skill_display_name.lower())
+        if not skill:
+            return {
+                "skill_name": skill_display_name,
+                "ability_name": "",
+                "components": [],
+                "total": 0,
+            }
+
+        ability_name = skill.ability.value
+        components = [
+            {
+                "label": f"{ability_name} modifier",
+                "value": self.ability_scores.modifier(ability_name),
+                "sources": [],
+            }
+        ]
+
+        if skill_display_name in self.all_skill_proficiencies:
+            components.append(
+                {
+                    "label": "Proficiency bonus",
+                    "value": self.proficiency_bonus,
+                    "sources": get_skill_proficiency_source_labels(
+                        self, skill_display_name
+                    ),
+                }
+            )
+
+        if skill_display_name in self.all_skill_expertise:
+            components.append(
+                {
+                    "label": "Expertise bonus",
+                    "value": self.proficiency_bonus,
+                    "sources": get_skill_expertise_source_labels(
+                        self, skill_display_name
+                    ),
+                }
+            )
+
+        for bonus in get_level1_skill_bonus_details(self, skill_display_name):
+            components.append(
+                {
+                    "label": str(bonus.get("label", "") or "Other bonus"),
+                    "value": int(bonus.get("value", 0) or 0),
+                    "sources": [],
+                }
+            )
+
+        return {
+            "skill_name": skill_display_name,
+            "ability_name": ability_name,
+            "components": components,
+            "total": self.skill_modifier(skill_display_name),
+        }
+
+    def skill_modifier_breakdown_text(self, skill_display_name: str) -> str:
+        """Return a compact tooltip-friendly breakdown of a skill modifier."""
+        breakdown = self.skill_modifier_breakdown(skill_display_name)
+        components = breakdown.get("components", [])
+        if not components:
+            return skill_display_name
+
+        def _fmt(value: int) -> str:
+            return f"+{value}" if value >= 0 else str(value)
+
+        lines = [str(breakdown.get("skill_name", skill_display_name) or skill_display_name)]
+        for component in components:
+            line = f"{component['label']}: {_fmt(int(component['value']))}"
+            sources = [str(source).strip() for source in component.get("sources", []) if str(source).strip()]
+            if sources:
+                line += f" ({', '.join(sources)})"
+            lines.append(line)
+        lines.append(f"Total: {_fmt(int(breakdown.get('total', 0) or 0))}")
+        return "\n".join(lines)
 
     def saving_throw_modifier(self, ability_name: str) -> int:
         base = self.ability_scores.modifier(ability_name)

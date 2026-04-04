@@ -23,6 +23,12 @@ def _sorted_skill_names(names) -> list[str]:
     return sorted({name for name in names if name}, key=_skill_sort_key)
 
 
+def _append_unique_label(labels: list[str], seen: set[str], label: str):
+    if label and label not in seen:
+        labels.append(label)
+        seen.add(label)
+
+
 def _append_unique_source(
     entries: list[tuple[str, str]],
     seen: set[tuple[str, str]],
@@ -289,6 +295,46 @@ def get_all_skill_expertise_names(character) -> set[str]:
         expertise.add(stored_feat_skill)
 
     return expertise
+
+
+def get_skill_proficiency_source_labels(character, skill_name: str) -> list[str]:
+    """Return human-readable labels for why the character is proficient in a skill."""
+    labels: list[str] = []
+    seen: set[str] = set()
+
+    if skill_name in (getattr(character, "selected_skills", []) or []):
+        _append_unique_label(labels, seen, "Class skill selection")
+
+    for granted_skill, source in get_skill_proficiency_sources(character):
+        if granted_skill == skill_name:
+            _append_unique_label(labels, seen, source)
+
+    return labels
+
+
+def get_skill_expertise_source_labels(character, skill_name: str) -> list[str]:
+    """Return human-readable labels for why the character has expertise in a skill."""
+    labels: list[str] = []
+    seen: set[str] = set()
+
+    for granted_skill, source in get_auto_skill_expertise_sources(character):
+        if granted_skill == skill_name:
+            _append_unique_label(labels, seen, source)
+
+    for cl in getattr(character, "class_levels", []) or []:
+        if skill_name not in getattr(cl, "new_expertise", []):
+            continue
+        if cl.class_slug == "rogue" and cl.class_level == 1:
+            label = "Rogue Expertise"
+        else:
+            label = f"Level {cl.class_level} Expertise"
+        _append_unique_label(labels, seen, label)
+
+    for feat_slot, feat_name in _iter_character_feats(character):
+        if get_feat_expertise_skill(character, feat_name) == skill_name:
+            _append_unique_label(labels, seen, f"{feat_slot} - {feat_name}")
+
+    return labels
 
 
 def compute_skill_sources(character) -> dict:

@@ -523,16 +523,34 @@ def get_effective_armor_proficiencies(character) -> list[str]:
     return _sorted_names(profs)
 
 
-def get_level1_skill_bonus(character, skill_display_name: str) -> int:
+def get_level1_skill_bonus_details(character, skill_display_name: str) -> list[dict]:
+    """Return detailed level-1 class-based skill bonuses for a specific skill."""
     slug = _class_slug(character)
     wisdom_bonus = max(1, character.ability_scores.modifier("Wisdom"))
     if slug == "cleric" and _choice_value(character, "divine_order") == "Thaumaturge":
         if skill_display_name in {"Arcana", "Religion"}:
-            return wisdom_bonus
+            return [
+                {
+                    "label": "Divine Order: Thaumaturge",
+                    "value": wisdom_bonus,
+                }
+            ]
     if slug == "druid" and _choice_value(character, "primal_order") == "Magician":
         if skill_display_name in {"Arcana", "Nature"}:
-            return wisdom_bonus
-    return 0
+            return [
+                {
+                    "label": "Primal Order: Magician",
+                    "value": wisdom_bonus,
+                }
+            ]
+    return []
+
+
+def get_level1_skill_bonus(character, skill_display_name: str) -> int:
+    return sum(
+        int(detail.get("value", 0) or 0)
+        for detail in get_level1_skill_bonus_details(character, skill_display_name)
+    )
 
 
 def scrub_level1_class_choices(character, game_data) -> bool:

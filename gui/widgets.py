@@ -667,6 +667,147 @@ class SearchableListbox(ttk.Frame):
                 break
 
 
+class HoverTooltip:
+    """Small hover tooltip attached to one or more widgets."""
+
+    def __init__(
+        self,
+        widgets,
+        text,
+        *,
+        delay_ms: int = 250,
+        hide_delay_ms: int = 80,
+        wraplength: int = 320,
+    ):
+        if not isinstance(widgets, (list, tuple, set)):
+            widgets = [widgets]
+        self.widgets = [widget for widget in widgets if widget is not None]
+        self.text = text
+        self.delay_ms = delay_ms
+        self.hide_delay_ms = hide_delay_ms
+        self.wraplength = wraplength
+        self._window: tk.Toplevel | None = None
+        self._label: tk.Label | None = None
+        self._show_after_id = None
+        self._hide_after_id = None
+        self._last_event = None
+
+        for widget in self.widgets:
+            widget.bind("<Enter>", self._on_enter, add="+")
+            widget.bind("<Leave>", self._on_leave, add="+")
+            widget.bind("<Motion>", self._on_motion, add="+")
+
+    def _tooltip_text(self) -> str:
+        value = self.text() if callable(self.text) else self.text
+        return str(value or "").strip()
+
+    def _on_enter(self, event):
+        self._last_event = event
+        self._cancel_hide()
+        self._cancel_show()
+        widget = getattr(event, "widget", None)
+        if widget is not None:
+            self._show_after_id = widget.after(self.delay_ms, self._show)
+
+    def _on_leave(self, event):
+        self._last_event = event
+        self._cancel_show()
+        self._cancel_hide()
+        widget = getattr(event, "widget", None)
+        if widget is not None:
+            self._hide_after_id = widget.after(self.hide_delay_ms, self._hide)
+
+    def _on_motion(self, event):
+        self._last_event = event
+        if self._window is not None:
+            self._position_window()
+
+    def _cancel_show(self):
+        if self._show_after_id and self.widgets:
+            try:
+                self.widgets[0].after_cancel(self._show_after_id)
+            except tk.TclError:
+                pass
+        self._show_after_id = None
+
+    def _cancel_hide(self):
+        if self._hide_after_id and self.widgets:
+            try:
+                self.widgets[0].after_cancel(self._hide_after_id)
+            except tk.TclError:
+                pass
+        self._hide_after_id = None
+
+    def _show(self):
+        self._show_after_id = None
+        if not self.widgets:
+            return
+        text = self._tooltip_text()
+        if not text:
+            return
+
+        if self._window is None:
+            owner = self.widgets[0]
+            self._window = tk.Toplevel(owner)
+            self._window.wm_overrideredirect(True)
+            try:
+                self._window.attributes("-topmost", True)
+            except tk.TclError:
+                pass
+
+            frame = tk.Frame(
+                self._window,
+                bg=COLORS["bg_high"],
+                highlightbackground=COLORS["border_medium"],
+                highlightthickness=1,
+                bd=0,
+            )
+            frame.pack(fill=tk.BOTH, expand=True)
+            self._label = tk.Label(
+                frame,
+                text=text,
+                justify=tk.LEFT,
+                anchor="w",
+                bg=COLORS["bg_high"],
+                fg=COLORS["fg"],
+                font=FONTS["body_small"],
+                padx=8,
+                pady=6,
+                wraplength=self.wraplength,
+            )
+            self._label.pack(fill=tk.BOTH, expand=True)
+        elif self._label is not None:
+            self._label.configure(text=text)
+
+        self._position_window()
+
+    def _position_window(self):
+        if self._window is None or self._last_event is None:
+            return
+        try:
+            x = int(getattr(self._last_event, "x_root", 0) or 0) + 14
+            y = int(getattr(self._last_event, "y_root", 0) or 0) + 18
+            self._window.geometry(f"+{x}+{y}")
+        except tk.TclError:
+            pass
+
+    def _hide(self):
+        self._hide_after_id = None
+        if self._window is not None:
+            try:
+                self._window.destroy()
+            except tk.TclError:
+                pass
+        self._window = None
+        self._label = None
+
+    def dispose(self):
+        """Dispose any scheduled work and visible tooltip window."""
+        self._cancel_show()
+        self._cancel_hide()
+        self._hide()
+
+
 class SectionedListbox(ttk.Frame):
     """A listbox with search, grouped by sections with non-selectable headers.
 
