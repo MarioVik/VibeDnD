@@ -591,6 +591,20 @@ def apply_theme(root: tk.Tk):
         foreground=[("disabled", COLORS["fg_dim"])],
     )
     style.configure(
+        "Container.TRadiobutton",
+        background=COLORS["bg_container"],
+        foreground=COLORS["fg"],
+    )
+    style.map(
+        "Container.TRadiobutton",
+        background=[
+            ("active", COLORS["bg_container"]),
+            ("selected", COLORS["bg_container"]),
+            ("disabled", COLORS["bg_container"]),
+        ],
+        foreground=[("disabled", COLORS["fg_dim"])],
+    )
+    style.configure(
         "TCheckbutton",
         background=COLORS["bg"],
         foreground=COLORS["fg"],

@@ -31,6 +31,9 @@ from gui.source_config import (
 )
 from paths import images_dir
 
+CARD_RADIO_STYLE = "Card.TRadiobutton"
+CONTAINER_RADIO_STYLE = "Container.TRadiobutton"
+
 
 def _first_sentence(text: str) -> str:
     """Return the first sentence of a description."""
@@ -393,7 +396,11 @@ class SpeciesStep(WizardStep):
             size_card.pack(fill=tk.X)
             for opt in size_options:
                 ttk.Radiobutton(
-                    size_card.inner, text=opt, variable=self.size_var, value=opt
+                    size_card.inner,
+                    text=opt,
+                    variable=self.size_var,
+                    value=opt,
+                    style=CARD_RADIO_STYLE,
                 ).pack(anchor="w", padx=SPACING["sm"])
             self.size_var.set(size_options[0])
 
@@ -425,6 +432,7 @@ class SpeciesStep(WizardStep):
                         text=cname,
                         variable=self.sub_var,
                         value=cname,
+                        style=CONTAINER_RADIO_STYLE,
                     ).pack(anchor="w")
 
                     if desc:
@@ -468,6 +476,7 @@ class SpeciesStep(WizardStep):
                             text=opt_name,
                             variable=self.sub_var,
                             value=opt_name,
+                            style=CONTAINER_RADIO_STYLE,
                         ).pack(anchor="w")
 
                         opt_desc = trait_descs.get(opt_name, "")
