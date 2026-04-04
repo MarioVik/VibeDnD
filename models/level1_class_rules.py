@@ -44,6 +44,14 @@ WARLOCK_CANTRIP_BINDING_INVOCATIONS = {
     "Repelling Blast",
 }
 
+WARLOCK_CLASS_FEATURE_FOLLOWUP_INVOCATIONS = {
+    "Agonizing Blast": "binding",
+    "Eldritch Spear": "binding",
+    "Repelling Blast": "binding",
+    "Pact of the Tome": "tome",
+    "Lessons of the First Ones": "feat",
+}
+
 SIMPLE_WEAPONS = {
     "Club",
     "Dagger",
@@ -484,6 +492,12 @@ def get_available_warlock_invocations() -> list[dict]:
             continue
         options.append(option)
     return options
+
+
+def get_warlock_invocation_followup_kind(invocation_name: str) -> str | None:
+    return WARLOCK_CLASS_FEATURE_FOLLOWUP_INVOCATIONS.get(
+        str(invocation_name or "").strip()
+    )
 
 
 def get_available_origin_feats(game_data) -> list[dict]:
@@ -931,7 +945,7 @@ def get_unmet_level1_class_requirements(character, game_data, step_key: str | No
                     _requirement(
                         "warlock-invocation-cantrip",
                         invocation,
-                        "spells",
+                        "class_features",
                         f"Choose a damage-dealing Warlock cantrip for {invocation}.",
                     )
                 )
@@ -972,6 +986,47 @@ def get_unmet_level1_class_requirements(character, game_data, step_key: str | No
     if step_key is None:
         return requirements
     return [req for req in requirements if req["step_key"] == step_key]
+
+
+def get_unmet_level1_class_feature_phase_requirements(
+    character,
+    game_data,
+    phase_index: int,
+) -> list[dict]:
+    """Return unresolved Class Features requirements for a specific internal phase."""
+    requirements = get_unmet_level1_class_requirements(
+        character,
+        game_data,
+        step_key="class_features",
+    )
+    slug = _class_slug(character)
+
+    if phase_index <= 0:
+        if slug == "fighter":
+            relevant_ids = {"fighting-style"}
+        elif slug == "warlock":
+            relevant_ids = {"warlock-invocation"}
+        else:
+            return requirements
+        return [req for req in requirements if req["id"] in relevant_ids]
+
+    if slug == "fighter":
+        return [req for req in requirements if req["id"] == "weapon-mastery"]
+
+    if slug == "warlock":
+        invocation = str(_choice_value(character, "warlock_invocation", "") or "").strip()
+        followup_kind = get_warlock_invocation_followup_kind(invocation)
+        if followup_kind == "binding":
+            relevant_ids = {"warlock-invocation-cantrip"}
+        elif followup_kind == "tome":
+            relevant_ids = {"warlock-tome-cantrips", "warlock-tome-rituals"}
+        elif followup_kind == "feat":
+            relevant_ids = {"warlock-lessons-feat"}
+        else:
+            return []
+        return [req for req in requirements if req["id"] in relevant_ids]
+
+    return requirements
 
 
 def get_level1_feature_catalog(game_data) -> list[dict]:

@@ -168,6 +168,11 @@ class SkillsStep(WizardStep):
             return "Confirm Expertise"
         return "Confirm Skills"
 
+    def get_sidebar_title(self) -> str | None:
+        if not self.has_substeps():
+            return None
+        return f"Skills ({min(self._current_substep, 1) + 1}/2)"
+
     def _install_inline_counter(self, header: SectionHeader) -> tk.Label:
         counter = tk.Label(
             header,

@@ -91,6 +91,10 @@ class WizardStep(ABC):
         """Return a contextual label for the primary action, or None for default."""
         return None
 
+    def get_sidebar_title(self) -> str | None:
+        """Return a dynamic sidebar title for the active step, or None for default."""
+        return None
+
     def notify_substep_change(self):
         """Notify that the substep changed (update nav bar etc)."""
         for cb in self.on_substep_change_callbacks:

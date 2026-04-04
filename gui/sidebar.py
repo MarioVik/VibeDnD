@@ -196,16 +196,33 @@ class Sidebar(tk.Frame):
 
     # ---- Step states ----
 
-    def update_step_states(self, current_idx: int, reached_idx: int):
+    def update_step_states(
+        self,
+        visible_keys: list[str],
+        current_key: str,
+        reached_keys: set[str],
+    ):
         """Update all nav buttons to reflect current, completed, and locked states."""
-        for i, key in enumerate(self._nav_keys):
+        visible_positions = {key: idx for idx, key in enumerate(visible_keys)}
+        current_pos = visible_positions.get(current_key, -1)
+        furthest_reached = current_pos
+        for key in reached_keys:
+            pos = visible_positions.get(key)
+            if pos is not None:
+                furthest_reached = max(furthest_reached, pos)
+
+        for key in self._nav_keys:
             btn = self._nav_buttons.get(key)
             if not btn:
                 continue
 
-            if i == current_idx:
+            pos = visible_positions.get(key)
+            if pos is None:
+                btn.set_status(locked=True)
+                btn.set_subtitle("")
+            elif key == current_key:
                 btn.set_status(active=True)
-            elif i <= reached_idx:
+            elif pos <= furthest_reached:
                 btn.set_status(completed=True)
             else:
                 btn.set_status(locked=True)

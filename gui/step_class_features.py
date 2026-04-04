@@ -17,11 +17,14 @@ from models.level1_class_rules import (
     get_available_fighting_styles,
     get_available_order_options,
     get_available_origin_feats,
-    get_selected_weapon_mastery_details,
     get_available_warlock_invocations,
+    get_selected_weapon_mastery_details,
     get_tome_cantrip_options,
     get_tome_ritual_options,
+    get_unmet_level1_class_feature_phase_requirements,
     get_unmet_level1_class_requirements,
+    get_warlock_invocation_binding_options,
+    get_warlock_invocation_followup_kind,
     get_weapon_mastery_count,
     get_weapon_mastery_options,
     requires_level1_class_features_step,
@@ -33,6 +36,9 @@ class ClassFeaturesStep(WizardStep):
     tab_title = "Class Features"
 
     def __init__(self, parent_notebook, character, game_data):
+        self._binding_var = tk.StringVar(value="")
+        self._current_substep = 0
+        self._rendered_split_active = False
         self._invocation_vars: dict[str, dict] = {}
         self._invocation_checkbuttons: dict[str, ttk.Checkbutton] = {}
         self._invocation_detail_text: tk.Text | None = None
@@ -72,9 +78,63 @@ class ClassFeaturesStep(WizardStep):
         scroll.grid(row=1, column=0, sticky="nsew")
         self._content = scroll.inner
 
+    def has_substeps(self) -> bool:
+        return self.get_substep_count() > 1
+
+    def get_current_substep(self) -> int:
+        return self._current_substep
+
+    def get_substep_count(self) -> int:
+        slug = self._class_slug()
+        if slug == "fighter":
+            return 2
+        if slug == "warlock" and self._warlock_followup_kind() is not None:
+            return 2
+        return 1
+
+    def go_to_substep(self, index: int):
+        max_index = max(0, self.get_substep_count() - 1)
+        next_index = max(0, min(index, max_index))
+        if next_index == self._current_substep:
+            return
+
+        self._current_substep = next_index
+        self._rebuild()
+        self.notify_substep_change()
+
+    def is_primary_action_visible(self) -> bool:
+        return True
+
+    def is_primary_action_enabled(self) -> bool:
+        return self.is_current_substep_valid()
+
+    def is_current_substep_valid(self) -> bool:
+        return not self.get_current_substep_requirements()
+
+    def get_sidebar_title(self) -> str | None:
+        if not self.has_substeps():
+            return None
+        return f"Class Features ({min(self._current_substep, 1) + 1}/2)"
+
+    def get_current_substep_requirements(self) -> list[dict]:
+        if not self.has_substeps():
+            return get_unmet_level1_class_requirements(
+                self.character,
+                self.data,
+                step_key="class_features",
+            )
+        return get_unmet_level1_class_feature_phase_requirements(
+            self.character,
+            self.data,
+            self._current_substep,
+        )
+
     def on_enter(self):
         scrub_level1_class_choices(self.character, self.data)
         self._rebuild()
+
+    def _class_slug(self) -> str:
+        return str((self.character.character_class or {}).get("slug", "") or "")
 
     def _choice_map(self) -> dict:
         choices = getattr(self.character, "level1_class_choices", {})
@@ -82,6 +142,12 @@ class ClassFeaturesStep(WizardStep):
 
     def _choice_value(self, key: str, default=None):
         return self._choice_map().get(key, default)
+
+    def _warlock_followup_kind(self) -> str | None:
+        if self._class_slug() != "warlock":
+            return None
+        invocation = str(self._choice_value("warlock_invocation", "") or "").strip()
+        return get_warlock_invocation_followup_kind(invocation)
 
     def _set_choice(self, key: str, value):
         if not isinstance(self.character.level1_class_choices, dict):
@@ -106,11 +172,35 @@ class ClassFeaturesStep(WizardStep):
         for widget in self._content.winfo_children():
             widget.destroy()
 
-    def _card(self, title: str, description: str = "") -> CardFrame:
-        SectionHeader(self._content, text=title).pack(
+    def _sync_substep_state(self) -> bool:
+        split_active = self.get_substep_count() > 1
+        substep_changed = False
+        if split_active != self._rendered_split_active:
+            self._rendered_split_active = split_active
+            substep_changed = True
+        if not split_active and self._current_substep != 0:
+            self._current_substep = 0
+            substep_changed = True
+        max_index = max(0, self.get_substep_count() - 1)
+        if self._current_substep > max_index:
+            self._current_substep = max_index
+            substep_changed = True
+        return substep_changed
+
+    def _card(
+        self,
+        title: str,
+        description: str = "",
+        *,
+        parent=None,
+        header_parent=None,
+    ) -> CardFrame:
+        content_parent = parent or self._content
+        section_parent = header_parent or content_parent
+        SectionHeader(section_parent, text=title).pack(
             fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
         )
-        card = CardFrame(self._content, pad=SPACING["lg"])
+        card = CardFrame(content_parent, pad=SPACING["lg"])
         card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
         if description:
             WrappingLabel(
@@ -183,7 +273,12 @@ class ClassFeaturesStep(WizardStep):
                     text=desc,
                     background=COLORS["bg_surface"],
                     foreground=COLORS["fg_dim"],
-                ).pack(fill=tk.X, anchor="w", padx=(SPACING["lg"], 0), pady=(0, SPACING["xs"]))
+                ).pack(
+                    fill=tk.X,
+                    anchor="w",
+                    padx=(SPACING["lg"], 0),
+                    pady=(0, SPACING["xs"]),
+                )
 
     def _build_combo_slots(
         self,
@@ -220,7 +315,9 @@ class ClassFeaturesStep(WizardStep):
             combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
             combo.bind(
                 "<<ComboboxSelected>>",
-                lambda _event, i=idx, v=var: self._set_slotted_choice(key, i, count, v.get()),
+                lambda _event, i=idx, v=var: self._set_slotted_choice(
+                    key, i, count, v.get()
+                ),
             )
 
     def _build_weapon_mastery_section(self):
@@ -342,14 +439,13 @@ class ClassFeaturesStep(WizardStep):
             lambda _event, v=var: self._set_choice(key, v.get()),
         )
 
-    def _build_warlock_sections(self):
+    def _build_warlock_invocation_selector(self):
         self._invocation_vars.clear()
         self._invocation_checkbuttons.clear()
 
         invocation_options = get_available_warlock_invocations()
         current_invocation = str(self._choice_value("warlock_invocation", "") or "")
 
-        # ── Section header ────────────────────────────────────────
         SectionHeader(self._content, text="Eldritch Invocation").pack(
             fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
         )
@@ -357,44 +453,43 @@ class ClassFeaturesStep(WizardStep):
         container = tk.Frame(self._content, bg=COLORS["bg"])
         container.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
 
-        # ── Two-column layout ─────────────────────────────────────
         top_row = tk.Frame(container, bg=COLORS["bg"])
         top_row.pack(fill=tk.X)
         top_row.columnconfigure(0, weight=1)
         top_row.columnconfigure(1, weight=1)
 
-        # --- LEFT: invocation list ---
         left = tk.Frame(top_row, bg=COLORS["bg"])
         left.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["xs"]))
 
         selected_count = 1 if current_invocation else 0
-        self._invocation_count_label = tk.Label(
+        tk.Label(
             left,
             text=f"{selected_count} / 1 invocation selected",
             font=FONTS["label_upper_bold"],
             fg=COLORS["fg_dim"],
             bg=COLORS["bg"],
-        )
-        self._invocation_count_label.pack(anchor="w", padx=4, pady=(0, 1))
+        ).pack(anchor="w", padx=4, pady=(0, 1))
 
         list_outer = tk.Frame(left, bg=COLORS["bg"], height=300)
         list_outer.pack(fill=tk.BOTH, expand=True, pady=(2, 0))
         list_outer.pack_propagate(False)
-        canvas, inner = self._make_scrollable_list(list_outer)
+        _canvas, inner = self._make_scrollable_list(list_outer)
 
-        for option in sorted(invocation_options, key=lambda o: o["name"]):
+        selected_option = None
+        for option in sorted(invocation_options, key=lambda item: item["name"]):
             name = option["name"]
+            if name == current_invocation:
+                selected_option = option
             var = tk.BooleanVar(value=(name == current_invocation))
-            var.trace_add("write", lambda *a, o=option: self._on_invocation_toggle(o))
+            var.trace_add("write", lambda *_args, o=option: self._on_invocation_toggle(o))
             self._invocation_vars[name] = {"var": var, "invocation": option}
             cb = ttk.Checkbutton(inner, text=name, variable=var)
             cb.pack(anchor="w", pady=1, padx=(8, 0))
-            cb.bind("<Enter>", lambda e, o=option: self._show_invocation_detail(o))
+            cb.bind("<Enter>", lambda _event, o=option: self._show_invocation_detail(o))
             self._invocation_checkbuttons[name] = cb
 
         self._update_invocation_states()
 
-        # --- RIGHT: detail panel ---
         right = tk.Frame(top_row, bg=COLORS["bg"])
         right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0))
 
@@ -418,11 +513,52 @@ class ClassFeaturesStep(WizardStep):
         )
         self._invocation_detail_text.pack(fill=tk.BOTH, expand=True)
 
-        # ── Sub-selections (below two-column area) ────────────────
-        if not current_invocation:
+        if selected_option is not None:
+            self._show_invocation_detail(selected_option)
+
+    def _build_warlock_binding_section(self, invocation: str):
+        card = self._card(
+            "Invocation Binding",
+            f"Bind {invocation} to one of your damage-dealing Warlock cantrips.",
+        )
+        options = get_warlock_invocation_binding_options(self.character, self.data)
+        if not options:
+            WrappingLabel(
+                card.inner,
+                text=(
+                    "Go back to the Spells step and choose a damage-dealing Warlock "
+                    "cantrip first. This invocation cannot be completed without one."
+                ),
+                background=COLORS["bg_surface"],
+                foreground=COLORS["fg_dim"],
+            ).pack(fill=tk.X, anchor="w")
             return
 
-        if current_invocation == "Pact of the Tome":
+        row = tk.Frame(card.inner, bg=COLORS["bg_surface"])
+        row.pack(fill=tk.X)
+        self._binding_var.set(str(self._choice_value("warlock_invocation_cantrip", "") or ""))
+        combo = ttk.Combobox(
+            row,
+            textvariable=self._binding_var,
+            values=options,
+            state="readonly",
+            width=42,
+        )
+        combo.pack(fill=tk.X, expand=True)
+        combo.bind(
+            "<<ComboboxSelected>>",
+            lambda _event: self._set_choice(
+                "warlock_invocation_cantrip",
+                self._binding_var.get().strip(),
+            ),
+        )
+
+    def _build_warlock_followup_section(self):
+        invocation = str(self._choice_value("warlock_invocation", "") or "").strip()
+        followup_kind = self._warlock_followup_kind()
+        if followup_kind == "binding":
+            self._build_warlock_binding_section(invocation)
+        elif followup_kind == "tome":
             self._build_combo_slots(
                 "warlock_tome_cantrips",
                 "Pact Of The Tome Cantrips",
@@ -439,31 +575,30 @@ class ClassFeaturesStep(WizardStep):
                 "Ritual",
                 "Choose two level-1 ritual spells from any class list.",
             )
-        elif current_invocation == "Lessons of the First Ones":
+        elif followup_kind == "feat":
             self._build_single_combo(
                 "warlock_lessons_feat",
                 "Lessons Of The First Ones Feat",
                 [feat["name"] for feat in get_available_origin_feats(self.data)],
                 "Choose the Origin feat granted by this invocation.",
             )
-        elif current_invocation in {
-            "Agonizing Blast",
-            "Eldritch Spear",
-            "Repelling Blast",
-        }:
-            card = self._card("Invocation Binding")
-            tk.Label(
-                card.inner,
-                text=(
-                    "Finish choosing your Warlock cantrips on the Spells step, then "
-                    "bind this invocation to one of your damage-dealing cantrips."
-                ),
-                font=FONTS["body"],
-                fg=COLORS["fg_dim"],
-                bg=COLORS["bg_surface"],
-                justify=tk.LEFT,
-                wraplength=720,
-            ).pack(anchor="w")
+
+    def _build_fighter_step_one(self):
+        self._build_radio_group(
+            "fighting_style",
+            "Fighting Style",
+            [
+                {
+                    "name": feat["name"],
+                    "description": " ".join(
+                        str(benefit.get("description", "") or "").strip()
+                        for benefit in feat.get("benefits", [])
+                        if str(benefit.get("description", "") or "").strip()
+                    ),
+                }
+                for feat in get_available_fighting_styles(self.data)
+            ],
+        )
 
     def _on_invocation_toggle(self, invocation: dict):
         if self._updating_invocations:
@@ -471,11 +606,13 @@ class ClassFeaturesStep(WizardStep):
         self._updating_invocations = True
         try:
             name = invocation["name"]
-            selected = [n for n, d in self._invocation_vars.items() if d["var"].get()]
+            selected = [n for n, data in self._invocation_vars.items() if data["var"].get()]
 
             if len(selected) > 1:
                 self._invocation_vars[name]["var"].set(False)
-                selected = [n for n, d in self._invocation_vars.items() if d["var"].get()]
+                selected = [
+                    n for n, data in self._invocation_vars.items() if data["var"].get()
+                ]
 
             chosen = selected[0] if selected else ""
             self._set_choice("warlock_invocation", chosen)
@@ -498,7 +635,7 @@ class ClassFeaturesStep(WizardStep):
         self._invocation_detail_text.configure(state=tk.DISABLED)
 
     def _update_invocation_states(self):
-        selected = [n for n, d in self._invocation_vars.items() if d["var"].get()]
+        selected = [n for n, data in self._invocation_vars.items() if data["var"].get()]
         at_max = len(selected) >= 1
 
         for name, cb in self._invocation_checkbuttons.items():
@@ -507,49 +644,53 @@ class ClassFeaturesStep(WizardStep):
             else:
                 cb.configure(state=tk.NORMAL)
 
+    def _build_current_content(self):
+        slug = self._class_slug()
+        if slug in {"cleric", "druid"}:
+            key = "divine_order" if slug == "cleric" else "primal_order"
+            title = "Divine Order" if slug == "cleric" else "Primal Order"
+            self._build_radio_group(key, title, get_available_order_options(self.character))
+            return
+
+        if slug == "fighter":
+            if self._current_substep == 0:
+                self._build_fighter_step_one()
+            else:
+                self._build_weapon_mastery_section()
+            return
+
+        if slug == "warlock":
+            if self._current_substep == 0 or not self.has_substeps():
+                self._build_warlock_invocation_selector()
+            else:
+                self._build_warlock_followup_section()
+            return
+
+        mastery_count = get_weapon_mastery_count(self.character)
+        if mastery_count:
+            self._build_weapon_mastery_section()
+
     def _rebuild(self):
+        substep_changed = self._sync_substep_state()
         self._clear_content()
 
         if not self.character.character_class:
             self._build_empty_state("Choose a class first.")
+            if substep_changed:
+                self.notify_substep_change()
             return
 
         if not requires_level1_class_features_step(self.character, self.data):
             self._build_empty_state(
                 "This class has no extra level-1 class feature choices beyond the other wizard steps."
             )
+            if substep_changed:
+                self.notify_substep_change()
             return
 
-        slug = str(self.character.character_class.get("slug", "") or "")
-
-        if slug in {"cleric", "druid"}:
-            key = "divine_order" if slug == "cleric" else "primal_order"
-            title = "Divine Order" if slug == "cleric" else "Primal Order"
-            self._build_radio_group(key, title, get_available_order_options(self.character))
-
-        if slug == "fighter":
-            self._build_radio_group(
-                "fighting_style",
-                "Fighting Style",
-                [
-                    {
-                        "name": feat["name"],
-                        "description": " ".join(
-                            str(benefit.get("description", "") or "").strip()
-                            for benefit in feat.get("benefits", [])
-                            if str(benefit.get("description", "") or "").strip()
-                        ),
-                    }
-                    for feat in get_available_fighting_styles(self.data)
-                ],
-            )
-
-        mastery_count = get_weapon_mastery_count(self.character)
-        if mastery_count:
-            self._build_weapon_mastery_section()
-
-        if slug == "warlock":
-            self._build_warlock_sections()
+        self._build_current_content()
+        if substep_changed:
+            self.notify_substep_change()
 
     def is_valid(self) -> bool:
         return not get_unmet_level1_class_requirements(

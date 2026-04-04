@@ -49,10 +49,6 @@ _WIZARD_STEPS = [
 ]
 _WIZARD_STEP_LABELS = {key: label for key, label, _, _ in _WIZARD_STEPS}
 
-FEAT_INDEX = 3  # index of feat step in _WIZARD_STEPS
-CLASS_FEATURES_INDEX = 6  # index of class feature step in _WIZARD_STEPS
-SPELLS_INDEX = 8  # index of spells step in _WIZARD_STEPS
-
 # Labels for the wizard's primary confirm action
 _CONFIRM_STEP_LABELS = {
     "species": "Confirm Species Choice",
@@ -246,7 +242,7 @@ class CharacterCreatorApp:
         self.wizard_steps = []
         self._step_keys = []
         self._current_step_idx = 0
-        self._reached_step = 0 if not save_path else len(_WIZARD_STEPS) - 1
+        self._reached_step_keys = set()
 
         for key, label, icon, StepClass in _WIZARD_STEPS:
             if StepClass is SummaryStep:
@@ -258,6 +254,11 @@ class CharacterCreatorApp:
                 step = StepClass(self._step_container, character, self.data)
             self.wizard_steps.append(step)
             self._step_keys.append(key)
+
+        if save_path:
+            self._reached_step_keys = set(self._step_keys)
+        else:
+            self._reached_step_keys = {self._step_keys[0]}
 
         # Register callbacks
         self.wizard_steps[0].on_change_callbacks.append(self._update_optional_step_visibility)
@@ -291,23 +292,22 @@ class CharacterCreatorApp:
 
         # Initial state
         self._update_optional_step_visibility()
-        self._show_step(0)
+        self._show_step(self._step_index(self._visible_step_keys()[0]))
 
         return frame
 
     def _on_sidebar_nav(self, key: str):
         """Handle sidebar click — only allow navigating to reached steps."""
-        try:
-            idx = self._step_keys.index(key)
-        except ValueError:
+        if key not in self._step_keys:
             return
 
-        # Don't allow jumping ahead of reached steps
-        if idx > self._reached_step:
+        if key not in self._reached_step_keys:
             return
 
-        if not self._is_step_visible(idx):
+        if not self._is_step_visible_key(key):
             return
+
+        idx = self._step_index(key)
 
         # If navigating to a step with substeps that has a selection, show detail
         step = self.wizard_steps[idx]
@@ -323,22 +323,27 @@ class CharacterCreatorApp:
         """Return the deepest currently-available substep index for a step."""
         return max(0, step.get_substep_count() - 1)
 
+    def _step_index(self, key: str) -> int:
+        return self._step_keys.index(key)
+
+    def _ordered_step_keys(self) -> list[str]:
+        """Return the current wizard order before visibility filtering."""
+        keys = list(self._step_keys)
+        slug = str((self.character.character_class or {}).get("slug", "") or "")
+        if slug == "warlock" and "class_features" in keys and "spells" in keys:
+            keys.remove("class_features")
+            keys.insert(keys.index("spells") + 1, "class_features")
+        return keys
+
     def _get_sidebar_step_title(self, key: str) -> str:
         """Return the current sidebar title text for a wizard step."""
         base_label = _WIZARD_STEP_LABELS.get(key, key.title())
-        if key != "skills":
+        current_key = self._step_keys[self._current_step_idx]
+        if current_key != key:
             return base_label
 
-        if self._step_keys[self._current_step_idx] != key:
-            return base_label
-
-        sources = compute_skill_sources(self.character)
-        if int(sources.get("expertise_choose_count", 0) or 0) <= 0:
-            return base_label
-
-        step = self.wizard_steps[self._step_keys.index(key)]
-        substep = min(step.get_current_substep(), 1) + 1
-        return f"{base_label} ({substep}/2)"
+        step = self.wizard_steps[self._step_index(key)]
+        return step.get_sidebar_title() or base_label
 
     def _update_sidebar_titles(self):
         """Refresh dynamic sidebar titles such as Skills substep counters."""
@@ -357,6 +362,7 @@ class CharacterCreatorApp:
             self.wizard_steps[self._current_step_idx].frame.pack_forget()
 
         self._current_step_idx = idx
+        self._reached_step_keys.add(self._step_keys[idx])
         step = self.wizard_steps[idx]
         step.frame.pack(fill=tk.BOTH, expand=True)
         step.on_enter()
@@ -371,18 +377,26 @@ class CharacterCreatorApp:
 
         self._update_sidebar_titles()
         idx = self._current_step_idx
-        self._wizard_sidebar.update_step_states(idx, self._reached_step)
+        visible_keys = self._visible_step_keys()
+        current_key = self._step_keys[idx]
+        self._wizard_sidebar.update_step_states(
+            visible_keys,
+            current_key,
+            self._reached_step_keys,
+        )
         deferred_choice_steps = {"species", "class", "background"}
         if self._feat_selection_required():
             deferred_choice_steps.add("feat")
 
-        for step_idx, step_key in enumerate(self._step_keys):
-            if step_idx > self._reached_step:
+        visible_key_set = set(visible_keys)
+        for step_key in self._step_keys:
+            if step_key not in visible_key_set or step_key not in self._reached_step_keys:
+                self._wizard_sidebar.set_selection(step_key, "")
                 continue
             value = self._get_sidebar_selection_text(step_key)
-            if step_idx == idx and step_key in deferred_choice_steps:
+            if step_key == current_key and step_key in deferred_choice_steps:
                 value = "Currently Editing"
-            elif step_idx == idx and not value:
+            elif step_key == current_key and not value:
                 value = "Currently Editing"
             elif not value:
                 value = "Selection Required"
@@ -458,33 +472,53 @@ class CharacterCreatorApp:
                 return True
         return False
 
-    def _is_step_visible(self, idx: int) -> bool:
+    def _is_step_visible_key(self, key: str) -> bool:
         """Return whether a wizard step should currently be visible."""
-        if idx == FEAT_INDEX:
+        if key == "feat":
             return self._feat_selection_required()
-        if idx == CLASS_FEATURES_INDEX:
+        if key == "class_features":
             return requires_level1_class_features_step(self.character, self.data)
-        if idx == SPELLS_INDEX:
+        if key == "spells":
             return self.character.is_caster
         return True
 
+    def _is_step_visible(self, idx: int) -> bool:
+        """Return whether a wizard step should currently be visible."""
+        return self._is_step_visible_key(self._step_keys[idx])
+
     def _next_visible_step_index(self, idx: int) -> int | None:
         """Return the next visible step index after idx."""
-        for next_idx in range(idx + 1, len(self.wizard_steps)):
-            if self._is_step_visible(next_idx):
-                return next_idx
-        return None
+        current_key = self._step_keys[idx]
+        visible_keys = self._visible_step_keys()
+        if current_key not in visible_keys:
+            return None
+        next_pos = visible_keys.index(current_key) + 1
+        if next_pos >= len(visible_keys):
+            return None
+        return self._step_index(visible_keys[next_pos])
 
     def _previous_visible_step_index(self, idx: int) -> int | None:
         """Return the previous visible step index before idx."""
-        for prev_idx in range(idx - 1, -1, -1):
-            if self._is_step_visible(prev_idx):
-                return prev_idx
-        return None
+        current_key = self._step_keys[idx]
+        visible_keys = self._visible_step_keys()
+        if current_key not in visible_keys:
+            return None
+        prev_pos = visible_keys.index(current_key) - 1
+        if prev_pos < 0:
+            return None
+        return self._step_index(visible_keys[prev_pos])
 
     def _visible_step_indices(self) -> list[int]:
         """Return the list of currently visible wizard step indices."""
-        return [idx for idx in range(len(self.wizard_steps)) if self._is_step_visible(idx)]
+        return [self._step_index(key) for key in self._visible_step_keys()]
+
+    def _visible_step_keys(self) -> list[str]:
+        """Return the list of currently visible wizard step keys in active order."""
+        return [
+            key
+            for key in self._ordered_step_keys()
+            if self._is_step_visible_key(key)
+        ]
 
     def _update_optional_step_visibility(self):
         """Hide or show optional wizard steps such as feat and spells."""
@@ -492,12 +526,14 @@ class CharacterCreatorApp:
             return
 
         self._update_sidebar_titles()
-        for idx, (key, _, _, _) in enumerate(_WIZARD_STEPS):
+        for key in self._step_keys:
             btn = self._wizard_sidebar._nav_buttons.get(key)
             if not btn:
                 continue
             btn.pack_forget()
-            if self._is_step_visible(idx):
+        for key in self._visible_step_keys():
+            btn = self._wizard_sidebar._nav_buttons.get(key)
+            if btn:
                 btn.pack(fill=tk.X, pady=1)
 
         if not self._is_step_visible(self._current_step_idx):
@@ -572,8 +608,7 @@ class CharacterCreatorApp:
         next_idx = self._next_visible_step_index(curr)
 
         if next_idx is not None:
-            if next_idx > self._reached_step:
-                self._reached_step = next_idx
+            self._reached_step_keys.add(self._step_keys[next_idx])
             self._show_step(next_idx)
 
     def _wizard_back(self):
@@ -665,20 +700,13 @@ class CharacterCreatorApp:
                 parts.append(f"{cantrip_count}/{cantrip_max} cantrips")
             if spell_max > 0 and spell_count < spell_max:
                 parts.append(f"{spell_count}/{spell_max} spells")
-            for blocker in blockers:
-                if blocker["id"] == "warlock-invocation-cantrip":
-                    parts.append("invocation binding")
             AlertDialog(
                 self.root,
                 "Spell Selection Required",
                 f"Select all your spells before moving on. ({', '.join(parts)} selected)",
             )
         elif isinstance(step, ClassFeaturesStep):
-            blockers = get_unmet_level1_class_requirements(
-                self.character,
-                self.data,
-                step_key="class_features",
-            )
+            blockers = step.get_current_substep_requirements()
             body = "\n\n".join(blocker["message"] for blocker in blockers) or (
                 "Resolve the required level-1 class feature choices before moving on."
             )
@@ -715,9 +743,14 @@ class CharacterCreatorApp:
         step = self.wizard_steps[curr]
         key = self._step_keys[curr]
         self._update_sidebar_titles()
+        visible_indices = self._visible_step_indices()
+        is_last_visible_step = bool(visible_indices) and curr == visible_indices[-1]
 
         # Back button: hide it when there's nowhere to go back to
-        can_go_back = curr > 0 or (step.has_substeps() and step.get_current_substep() > 0)
+        can_go_back = (
+            self._previous_visible_step_index(curr) is not None
+            or (step.has_substeps() and step.get_current_substep() > 0)
+        )
         if can_go_back:
             self._back_btn.configure(state=tk.NORMAL)
             if not self._back_btn.winfo_manager():
@@ -725,14 +758,14 @@ class CharacterCreatorApp:
         elif self._back_btn.winfo_manager():
             self._back_btn.pack_forget()
 
-        show_primary_action = curr == len(self.wizard_steps) - 1 or step.is_primary_action_visible()
+        show_primary_action = is_last_visible_step or step.is_primary_action_visible()
         if show_primary_action:
             if not self._next_btn.winfo_manager():
                 self._next_btn.pack(side=tk.RIGHT)
         elif self._next_btn.winfo_manager():
             self._next_btn.pack_forget()
 
-        if curr == len(self.wizard_steps) - 1:
+        if is_last_visible_step:
             is_valid = self._all_visible_steps_valid()
             self._next_btn.configure(
                 text="Finish \u2713",
@@ -752,7 +785,6 @@ class CharacterCreatorApp:
             )
 
         # Update step counter and progress bar
-        visible_indices = self._visible_step_indices()
         visible_count = len(visible_indices)
         visible_idx = visible_indices.index(curr) if curr in visible_indices else 0
         self._step_label.configure(text=f"Step {visible_idx + 1} of {visible_count}")

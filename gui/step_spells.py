@@ -9,7 +9,6 @@ from models.level1_class_rules import (
     get_effective_cantrips_known,
     get_effective_prepared_spells,
     get_unmet_level1_class_requirements,
-    get_warlock_invocation_binding_options,
     scrub_level1_class_choices,
 )
 
@@ -24,8 +23,6 @@ class SpellsStep(WizardStep):
         self.spell_checkbuttons = {}
         self.cantrip_vars = {}
         self.spell_vars = {}
-        self._binding_var = tk.StringVar(value="")
-        self._binding_section = None
         super().__init__(parent_notebook, character, game_data)
 
     def build_ui(self):
@@ -196,7 +193,6 @@ class SpellsStep(WizardStep):
 
         self._update_cantrip_states()
         self._update_spell_states()
-        self._build_invocation_binding_section(left)
 
         # --- RIGHT: spell detail panel ---
         right = tk.Frame(self.content_frame, bg=COLORS["bg"])
@@ -273,7 +269,6 @@ class SpellsStep(WizardStep):
                 text=f"{len(selected)} / {cantrip_max} cantrips selected"
             )
             self._update_cantrip_states()
-            self._refresh_invocation_binding_section()
             self.notify_change()
         finally:
             self._updating_cantrips = False
@@ -332,65 +327,6 @@ class SpellsStep(WizardStep):
             self.data,
             step_key="spells",
         )
-
-    def _build_invocation_binding_section(self, parent):
-        if self._binding_section is not None:
-            self._binding_section.destroy()
-            self._binding_section = None
-
-        choices = getattr(self.character, "level1_class_choices", {}) or {}
-        invocation = str(choices.get("warlock_invocation", "") or "").strip()
-        if invocation not in {"Agonizing Blast", "Eldritch Spear", "Repelling Blast"}:
-            return
-
-        self._binding_section = CardFrame(parent, pad=SPACING["lg"])
-        self._binding_section.pack(fill=tk.X, pady=(SPACING["sm"], 0))
-        tk.Label(
-            self._binding_section.inner,
-            text="Invocation Binding",
-            font=FONTS["label_upper_bold"],
-            fg=COLORS["fg_dim"],
-            bg=COLORS["bg_surface"],
-        ).pack(anchor="w", pady=(0, SPACING["xs"]))
-
-        options = get_warlock_invocation_binding_options(self.character, self.data)
-        if not options:
-            tk.Label(
-                self._binding_section.inner,
-                text="Choose a damage-dealing Warlock cantrip first, then bind the invocation here.",
-                font=FONTS["body"],
-                fg=COLORS["fg_dim"],
-                bg=COLORS["bg_surface"],
-                wraplength=340,
-                justify=tk.LEFT,
-            ).pack(anchor="w")
-            return
-
-        self._binding_var.set(str(choices.get("warlock_invocation_cantrip", "") or ""))
-        combo = ttk.Combobox(
-            self._binding_section.inner,
-            textvariable=self._binding_var,
-            values=options,
-            state="readonly",
-            width=36,
-        )
-        combo.pack(fill=tk.X)
-        combo.bind("<<ComboboxSelected>>", self._on_binding_selected)
-
-    def _refresh_invocation_binding_section(self):
-        if self._binding_section is None:
-            return
-        parent = self._binding_section.master
-        self._build_invocation_binding_section(parent)
-
-    def _on_binding_selected(self, _event=None):
-        if not isinstance(self.character.level1_class_choices, dict):
-            self.character.level1_class_choices = {}
-        self.character.level1_class_choices["warlock_invocation_cantrip"] = (
-            self._binding_var.get().strip()
-        )
-        scrub_level1_class_choices(self.character, self.data)
-        self.notify_change()
 
     # ── spell detail hover ───────────────────────────────────────
 
