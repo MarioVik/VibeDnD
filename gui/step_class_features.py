@@ -11,6 +11,7 @@ from gui.widgets import (
     ScrollableFrame,
     SectionHeader,
     WrappingLabel,
+    register_mousewheel_target,
 )
 from models.level1_class_rules import (
     get_available_fighting_styles,
@@ -30,6 +31,13 @@ from models.level1_class_rules import (
 
 class ClassFeaturesStep(WizardStep):
     tab_title = "Class Features"
+
+    def __init__(self, parent_notebook, character, game_data):
+        self._invocation_vars: dict[str, dict] = {}
+        self._invocation_checkbuttons: dict[str, ttk.Checkbutton] = {}
+        self._invocation_detail_text: tk.Text | None = None
+        self._updating_invocations = False
+        super().__init__(parent_notebook, character, game_data)
 
     def build_ui(self):
         self.frame.columnconfigure(0, weight=1)
@@ -122,6 +130,35 @@ class ClassFeaturesStep(WizardStep):
             fg=COLORS["fg_dim"],
             bg=COLORS["bg_surface"],
         ).pack(anchor="w")
+
+    def _make_scrollable_list(self, parent_frame):
+        canvas = tk.Canvas(
+            parent_frame, bg=COLORS["bg"], highlightthickness=0, borderwidth=0
+        )
+        scrollbar = ttk.Scrollbar(
+            parent_frame, orient=tk.VERTICAL, command=canvas.yview
+        )
+        inner = tk.Frame(canvas, bg=COLORS["bg"])
+
+        inner.bind(
+            "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        canvas_window = canvas.create_window((0, 0), window=inner, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.bind(
+            "<Configure>",
+            lambda e, cw=canvas_window: canvas.itemconfig(cw, width=e.width),
+        )
+
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        register_mousewheel_target(parent_frame, canvas)
+        register_mousewheel_target(canvas, canvas)
+        register_mousewheel_target(inner, canvas)
+
+        return canvas, inner
 
     def _build_radio_group(self, key: str, title: str, options: list[dict]):
         current = str(self._choice_value(key, "") or "")
@@ -295,32 +332,84 @@ class ClassFeaturesStep(WizardStep):
         )
 
     def _build_warlock_sections(self):
+        self._invocation_vars.clear()
+        self._invocation_checkbuttons.clear()
+
         invocation_options = get_available_warlock_invocations()
-        option_names = [option["name"] for option in invocation_options]
-        self._build_single_combo(
-            "warlock_invocation",
-            "Eldritch Invocation",
-            option_names,
-            "Choose one level-1 invocation. Additional invocation-specific choices appear below when needed.",
+        current_invocation = str(self._choice_value("warlock_invocation", "") or "")
+
+        # ── Section header ────────────────────────────────────────
+        SectionHeader(self._content, text="Eldritch Invocation").pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
         )
 
-        current_invocation = str(self._choice_value("warlock_invocation", "") or "")
+        container = tk.Frame(self._content, bg=COLORS["bg"])
+        container.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
+
+        # ── Two-column layout ─────────────────────────────────────
+        top_row = tk.Frame(container, bg=COLORS["bg"])
+        top_row.pack(fill=tk.X)
+        top_row.columnconfigure(0, weight=1)
+        top_row.columnconfigure(1, weight=1)
+
+        # --- LEFT: invocation list ---
+        left = tk.Frame(top_row, bg=COLORS["bg"])
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["xs"]))
+
+        selected_count = 1 if current_invocation else 0
+        self._invocation_count_label = tk.Label(
+            left,
+            text=f"{selected_count} / 1 invocation selected",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg"],
+        )
+        self._invocation_count_label.pack(anchor="w", padx=4, pady=(0, 1))
+
+        list_outer = tk.Frame(left, bg=COLORS["bg"], height=300)
+        list_outer.pack(fill=tk.BOTH, expand=True, pady=(2, 0))
+        list_outer.pack_propagate(False)
+        canvas, inner = self._make_scrollable_list(list_outer)
+
+        for option in sorted(invocation_options, key=lambda o: o["name"]):
+            name = option["name"]
+            var = tk.BooleanVar(value=(name == current_invocation))
+            var.trace_add("write", lambda *a, o=option: self._on_invocation_toggle(o))
+            self._invocation_vars[name] = {"var": var, "invocation": option}
+            cb = ttk.Checkbutton(inner, text=name, variable=var)
+            cb.pack(anchor="w", pady=1, padx=(8, 0))
+            cb.bind("<Enter>", lambda e, o=option: self._show_invocation_detail(o))
+            self._invocation_checkbuttons[name] = cb
+
+        self._update_invocation_states()
+
+        # --- RIGHT: detail panel ---
+        right = tk.Frame(top_row, bg=COLORS["bg"])
+        right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0))
+
+        SectionHeader(right, text="Invocation Details").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
+
+        detail_card = CardFrame(right, pad=SPACING["lg"])
+        detail_card.pack(fill=tk.BOTH, expand=True)
+
+        self._invocation_detail_text = tk.Text(
+            detail_card.inner,
+            wrap=tk.WORD,
+            bg=COLORS["bg_surface"],
+            fg=COLORS["fg"],
+            font=FONTS["body"],
+            borderwidth=0,
+            highlightthickness=0,
+            relief=tk.FLAT,
+            state=tk.DISABLED,
+        )
+        self._invocation_detail_text.pack(fill=tk.BOTH, expand=True)
+
+        # ── Sub-selections (below two-column area) ────────────────
         if not current_invocation:
             return
-
-        invocation_lookup = {
-            option["name"]: str(option.get("description", "") or "").strip()
-            for option in invocation_options
-        }
-        desc = invocation_lookup.get(current_invocation, "")
-        if desc:
-            card = self._card(current_invocation)
-            WrappingLabel(
-                card.inner,
-                text=desc,
-                background=COLORS["bg_surface"],
-                foreground=COLORS["fg_dim"],
-            ).pack(fill=tk.X, anchor="w")
 
         if current_invocation == "Pact of the Tome":
             self._build_combo_slots(
@@ -364,6 +453,48 @@ class ClassFeaturesStep(WizardStep):
                 justify=tk.LEFT,
                 wraplength=720,
             ).pack(anchor="w")
+
+    def _on_invocation_toggle(self, invocation: dict):
+        if self._updating_invocations:
+            return
+        self._updating_invocations = True
+        try:
+            name = invocation["name"]
+            selected = [n for n, d in self._invocation_vars.items() if d["var"].get()]
+
+            if len(selected) > 1:
+                self._invocation_vars[name]["var"].set(False)
+                selected = [n for n, d in self._invocation_vars.items() if d["var"].get()]
+
+            chosen = selected[0] if selected else ""
+            self._set_choice("warlock_invocation", chosen)
+        finally:
+            self._updating_invocations = False
+
+    def _show_invocation_detail(self, invocation: dict):
+        if self._invocation_detail_text is None:
+            return
+        self._invocation_detail_text.configure(state=tk.NORMAL)
+        self._invocation_detail_text.delete("1.0", tk.END)
+
+        name = invocation.get("name", "")
+        desc = str(invocation.get("description", "") or "").strip()
+        lines = [name, ""]
+        if desc:
+            lines.append(desc)
+
+        self._invocation_detail_text.insert("1.0", "\n".join(lines))
+        self._invocation_detail_text.configure(state=tk.DISABLED)
+
+    def _update_invocation_states(self):
+        selected = [n for n, d in self._invocation_vars.items() if d["var"].get()]
+        at_max = len(selected) >= 1
+
+        for name, cb in self._invocation_checkbuttons.items():
+            if at_max and name not in selected:
+                cb.configure(state=tk.DISABLED)
+            else:
+                cb.configure(state=tk.NORMAL)
 
     def _rebuild(self):
         self._clear_content()
