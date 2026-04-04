@@ -329,6 +329,9 @@ class CharacterCreatorApp:
         if key != "skills":
             return base_label
 
+        if self._step_keys[self._current_step_idx] != key:
+            return base_label
+
         sources = compute_skill_sources(self.character)
         if int(sources.get("expertise_choose_count", 0) or 0) <= 0:
             return base_label
