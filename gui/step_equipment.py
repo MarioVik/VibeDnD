@@ -53,7 +53,7 @@ class EquipmentStep(WizardStep):
         self.class_equip_card = CardFrame(inner, pad=SPACING["lg"])
         self.class_equip_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
         self.class_equip_frame = self.class_equip_card.inner
-        self.class_equip_var = tk.StringVar(value="A")
+        self.class_equip_var = tk.StringVar(value="")
         self.class_equip_var.trace_add("write", self._on_change)
 
         # Background equipment
@@ -93,6 +93,8 @@ class EquipmentStep(WizardStep):
         self._populate_bg_equipment()
         if saved_class:
             self.class_equip_var.set(saved_class)
+        else:
+            self.class_equip_var.set("")
         if saved_bg:
             self.bg_equip_var.set(saved_bg)
         self._update_summary()
@@ -143,9 +145,6 @@ class EquipmentStep(WizardStep):
                 value=opt["option"],
                 style=CARD_RADIO_STYLE,
             ).pack(anchor="w", padx=SPACING["lg"], pady=2)
-
-        if equip_options:
-            self.class_equip_var.set(equip_options[0]["option"])
 
     def _populate_bg_equipment(self):
         for w in self.bg_equip_frame.winfo_children():
@@ -244,3 +243,14 @@ class EquipmentStep(WizardStep):
             "1.0", "\n".join(lines) if lines else "No equipment selected"
         )
         self.summary_text.configure(state=tk.DISABLED)
+
+    def is_valid(self) -> bool:
+        cls = self.character.character_class or {}
+        options = {
+            str(opt.get("option", "")).strip()
+            for opt in cls.get("starting_equipment", [])
+            if str(opt.get("option", "")).strip()
+        }
+        if options:
+            return str(self.character.equipment_choice_class or "").strip() in options
+        return True

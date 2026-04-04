@@ -9,6 +9,10 @@ from fpdf.enums import RenderStyle, Corner
 from models.character import Character
 from models.enums import ALL_SKILLS
 from models.language_utils import all_languages
+from models.level1_class_rules import (
+    augment_level1_feature_description,
+    get_level1_creation_choice_lines,
+)
 from models.standard_actions import build_standard_actions
 from models.inventory_service import cp_to_coins, current_wealth_cp
 
@@ -901,6 +905,16 @@ class CharacterSheetPDF(FPDF):
 
         prog_by_slug = {p["slug"]: p for p in progressions}
         features = []
+        creation_choice_lines = get_level1_creation_choice_lines(c)
+        if creation_choice_lines:
+            features.append(
+                {
+                    "name": "Level 1 Creation Choices",
+                    "description": "\n".join(
+                        f"- {line}" for line in creation_choice_lines
+                    ),
+                }
+            )
         for cl in c.class_levels:
             prog = prog_by_slug.get(cl.class_slug)
             if not prog:
@@ -910,11 +924,29 @@ class CharacterSheetPDF(FPDF):
                     continue
                 for f in level_data.get("feature_details", []):
                     if isinstance(f, dict) and f.get("name") not in ("-", "Ability Score Improvement"):
-                        features.append(f)
+                        features.append(
+                            {
+                                "name": f.get("name", ""),
+                                "description": augment_level1_feature_description(
+                                    f.get("name", ""),
+                                    f.get("description", ""),
+                                    c,
+                                ),
+                            }
+                        )
                 if not level_data.get("feature_details"):
                     for name in level_data.get("features", []):
                         if name not in ("-", "Ability Score Improvement"):
-                            features.append({"name": name, "description": ""})
+                            features.append(
+                                {
+                                    "name": name,
+                                    "description": augment_level1_feature_description(
+                                        name,
+                                        "",
+                                        c,
+                                    ),
+                                }
+                            )
                 break
         return features
 
@@ -1236,10 +1268,7 @@ class CharacterSheetPDF(FPDF):
         ty = y + 6 + 2
 
         # Armor
-        armor_types = []
-        if c.character_class:
-            for at in c.character_class.get("armor_proficiencies", []):
-                armor_types.append(at)
+        armor_types = list(getattr(c, "effective_armor_proficiencies", []))
 
         self._sans("B", 5.5)
         self.set_text_color(*C_ACCENT)
@@ -1259,10 +1288,7 @@ class CharacterSheetPDF(FPDF):
         ty += 5
 
         # Weapons
-        weapon_profs = []
-        if c.character_class:
-            for wp in c.character_class.get("weapon_proficiencies", []):
-                weapon_profs.append(wp)
+        weapon_profs = list(getattr(c, "effective_weapon_proficiencies", []))
         weapon_text = ", ".join(weapon_profs) if weapon_profs else "None"
 
         self._sans("B", 5.5)

@@ -18,6 +18,7 @@ No Python or technical setup required.
 ## Features
 
 - **Step-by-Step Character Creation**: Species, Class, Background, Ability Scores (Standard Array or Point Buy), Feats, Spells, and Equipment
+- **Strict Level 1 Class Requirements**: Character creation now blocks completion until every class-granted level 1 choice has been explicitly resolved, including skills, spell picks, weapon masteries, orders, fighting styles, invocations, and class equipment
 - **Skill Expertise Support**: Choose creation-time Expertise on the Skills step for Rogue and supported feats, with automatic modifier updates and Zhentarim long-rest reselection
 - **Leveling & Multiclass**: Level up to 20 with multiclass support, subclass selection, HP rolling, ASI/Feat choices, and spell swapping
 - **Inventory Management**: Browse the full D&D 2024 item database, filter by category and cost, and track your wealth
@@ -25,6 +26,7 @@ No Python or technical setup required.
 - **Cinematic Home & Archive**: Start from a dedicated landing screen, then browse, import, load, and delete characters from a separate archive view
 - **Biography Tab**: Add backstory, personality, and description notes, plus an embedded portrait image
 - **Export**: PDF character sheets and JSON (for backup/sharing)
+- **BDD Character-Creation Spec**: Level 1 class behavior is documented in Markdown and backed by executable `pytest-bdd` feature tests
 
 ---
 

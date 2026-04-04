@@ -13,12 +13,19 @@ from gui.step_class import ClassStep
 from gui.step_background import BackgroundStep
 from gui.step_languages import LanguagesStep
 from gui.step_skills import SkillsStep
+from gui.step_class_features import ClassFeaturesStep
 from gui.step_ability_scores import AbilityScoresStep
 from gui.step_feat import FeatStep
 from gui.step_spells import SpellsStep
 from gui.step_equipment import EquipmentStep
 from gui.step_biography import BiographyStep
 from gui.step_summary import SummaryStep
+from models.level1_class_rules import (
+    get_effective_cantrips_known,
+    get_effective_prepared_spells,
+    get_unmet_level1_class_requirements,
+    requires_level1_class_features_step,
+)
 from models.language_utils import compute_language_sources
 from models.skill_utils import compute_skill_sources
 
@@ -33,6 +40,7 @@ _WIZARD_STEPS = [
     ("feat", "Feat", "", FeatStep),
     ("abilities", "Ability Scores", "", AbilityScoresStep),
     ("skills", "Skills", "", SkillsStep),
+    ("class_features", "Class Features", "", ClassFeaturesStep),
     ("equipment", "Equipment", "", EquipmentStep),
     ("spells", "Spells", "", SpellsStep),
     ("languages", "Languages", "", LanguagesStep),
@@ -41,7 +49,8 @@ _WIZARD_STEPS = [
 ]
 
 FEAT_INDEX = 3  # index of feat step in _WIZARD_STEPS
-SPELLS_INDEX = 7  # index of spells step in _WIZARD_STEPS
+CLASS_FEATURES_INDEX = 6  # index of class feature step in _WIZARD_STEPS
+SPELLS_INDEX = 8  # index of spells step in _WIZARD_STEPS
 
 # Labels for the wizard's primary confirm action
 _CONFIRM_STEP_LABELS = {
@@ -51,6 +60,7 @@ _CONFIRM_STEP_LABELS = {
     "feat": "Confirm Feat Choice",
     "abilities": "Confirm Ability Scores",
     "skills": "Confirm Skills",
+    "class_features": "Confirm Class Features",
     "equipment": "Confirm Equipment",
     "spells": "Confirm Spells",
     "languages": "Confirm Languages",
@@ -378,8 +388,14 @@ class CharacterCreatorApp:
         if key == "skills":
             return self.wizard_steps[self._step_keys.index(key)].is_valid()
 
+        if key == "class_features":
+            return (
+                not requires_level1_class_features_step(self.character, self.data)
+                or self.wizard_steps[self._step_keys.index(key)].is_valid()
+            )
+
         if key == "equipment":
-            return bool(self.character.character_class or self.character.background)
+            return self.wizard_steps[self._step_keys.index(key)].is_valid()
 
         if key == "spells":
             return self.wizard_steps[self._step_keys.index(key)].is_valid()
@@ -415,6 +431,8 @@ class CharacterCreatorApp:
         """Return whether a wizard step should currently be visible."""
         if idx == FEAT_INDEX:
             return self._feat_selection_required()
+        if idx == CLASS_FEATURES_INDEX:
+            return requires_level1_class_features_step(self.character, self.data)
         if idx == SPELLS_INDEX:
             return self.character.is_caster
         return True
@@ -594,9 +612,13 @@ class CharacterCreatorApp:
                 f"({chosen}/{needed} selected)",
             )
         elif isinstance(step, SpellsStep):
-            cls = self.character.character_class or {}
-            cantrip_max = cls.get("cantrips_known", 0) or 0
-            spell_max = cls.get("spells_prepared", 0) or 0
+            blockers = get_unmet_level1_class_requirements(
+                self.character,
+                self.data,
+                step_key="spells",
+            )
+            cantrip_max = get_effective_cantrips_known(self.character)
+            spell_max = get_effective_prepared_spells(self.character)
             cantrip_count = len(self.character.selected_cantrips)
             spell_count = len(self.character.selected_spells)
             parts = []
@@ -604,11 +626,44 @@ class CharacterCreatorApp:
                 parts.append(f"{cantrip_count}/{cantrip_max} cantrips")
             if spell_max > 0 and spell_count < spell_max:
                 parts.append(f"{spell_count}/{spell_max} spells")
+            for blocker in blockers:
+                if blocker["id"] == "warlock-invocation-cantrip":
+                    parts.append("invocation binding")
             AlertDialog(
                 self.root,
                 "Spell Selection Required",
                 f"Select all your spells before moving on. ({', '.join(parts)} selected)",
             )
+        elif isinstance(step, ClassFeaturesStep):
+            blockers = get_unmet_level1_class_requirements(
+                self.character,
+                self.data,
+                step_key="class_features",
+            )
+            body = "\n\n".join(blocker["message"] for blocker in blockers) or (
+                "Resolve the required level-1 class feature choices before moving on."
+            )
+            AlertDialog(self.root, "Class Feature Selection Required", body)
+        elif isinstance(step, EquipmentStep):
+            blockers = get_unmet_level1_class_requirements(
+                self.character,
+                self.data,
+                step_key="equipment",
+            )
+            body = blockers[0]["message"] if blockers else "Choose your starting equipment before moving on."
+            AlertDialog(self.root, "Equipment Selection Required", body)
+
+    def _first_invalid_visible_step_index(self) -> int | None:
+        summary_idx = self._step_keys.index("summary")
+        for idx in self._visible_step_indices():
+            if idx == summary_idx:
+                continue
+            if not self.wizard_steps[idx].is_valid():
+                return idx
+        return None
+
+    def _all_visible_steps_valid(self) -> bool:
+        return self._first_invalid_visible_step_index() is None
 
     def _update_nav_buttons(self):
         curr = self._current_step_idx
@@ -638,6 +693,7 @@ class CharacterCreatorApp:
             self._next_btn.pack(side=tk.RIGHT)
 
         if curr == len(self.wizard_steps) - 1:
+            is_valid = self._all_visible_steps_valid()
             self._next_btn.configure(
                 text="Finish \u2713",
                 command=self._save_and_finish,
@@ -661,6 +717,12 @@ class CharacterCreatorApp:
     # ── Save & Export ──────────────────────────────────────────
 
     def _save_and_finish(self):
+        invalid_idx = self._first_invalid_visible_step_index()
+        if invalid_idx is not None:
+            self._show_step(invalid_idx)
+            self._show_validation_error(self.wizard_steps[invalid_idx])
+            return
+
         if (
             not self.character
             or not self.character.name

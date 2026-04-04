@@ -46,6 +46,10 @@ from models.inventory_service import (
 )
 from models.enums import ALL_SKILLS
 from models.language_utils import all_languages
+from models.level1_class_rules import (
+    augment_level1_feature_description,
+    get_level1_creation_choice_lines,
+)
 from models.standard_actions import (
     WEAPON_DATA,
     build_standard_actions,
@@ -696,9 +700,8 @@ class CharacterViewer(ttk.Frame):
         prof_card.pack(fill=tk.BOTH, expand=True)
         prof_frame = prof_card.inner
 
-        cls = c.character_class or {}
-        weapon_profs = cls.get("weapon_proficiencies", [])
-        armor_profs = cls.get("armor_proficiencies", [])
+        weapon_profs = list(getattr(c, "effective_weapon_proficiencies", []))
+        armor_profs = list(getattr(c, "effective_armor_proficiencies", []))
 
         if weapon_profs or armor_profs:
             chip_frame = tk.Frame(prof_frame, bg=COLORS["bg_surface"])
@@ -1739,6 +1742,38 @@ class CharacterViewer(ttk.Frame):
             SectionHeader(inner, text=feat_title).pack(
                 fill=tk.X, pady=(0, SPACING["sm"])
             )
+            creation_choice_lines = get_level1_creation_choice_lines(c)
+            if creation_choice_lines:
+                creation_card = CardFrame(
+                    inner,
+                    bg=COLORS["bg_container"],
+                    border_color=COLORS["border_subtle"],
+                    pad=SPACING["lg"],
+                )
+                creation_card.pack(fill=tk.X, pady=(0, SPACING["sm"]))
+                header = tk.Frame(creation_card.inner, bg=COLORS["bg_container"])
+                header.pack(fill=tk.X)
+                tk.Label(
+                    header,
+                    text="Level 1 Creation Choices",
+                    font=FONTS["heading_serif_sm"],
+                    fg=COLORS["fg"],
+                    bg=COLORS["bg_container"],
+                ).pack(side=tk.LEFT)
+                PillBadge(
+                    header,
+                    text="LEVEL 1",
+                    bg_color=COLORS["badge_glass_dim"],
+                    fg_color=COLORS["gold"],
+                ).pack(side=tk.RIGHT)
+                for line in creation_choice_lines:
+                    WrappingLabel(
+                        creation_card.inner,
+                        text=line,
+                        font=FONTS["body_bold"],
+                        foreground=COLORS["fg"],
+                        background=COLORS["bg_container"],
+                    ).pack(fill=tk.X, pady=(6, 0))
             features_grid = tk.Frame(inner, bg=COLORS["bg"])
             features_grid.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
             features_grid.columnconfigure(0, weight=1)
@@ -1770,6 +1805,12 @@ class CharacterViewer(ttk.Frame):
                 prefix = f"{cl.class_slug.title()} " if c.is_multiclass else ""
                 level_label = f"{prefix}Level {cl.class_level}"
                 for feat in all_items:
+                    feat_name = feat.get("name", "")
+                    feat_desc = augment_level1_feature_description(
+                        feat_name,
+                        feat.get("description", ""),
+                        c,
+                    )
                     card = CardFrame(features_grid, bg=COLORS["bg_container"],
                                      border_color=COLORS["border_subtle"], pad=SPACING["lg"])
                     card.grid(row=card_idx // 2, column=card_idx % 2, padx=4, pady=4, sticky="nsew")
@@ -1777,7 +1818,7 @@ class CharacterViewer(ttk.Frame):
                     header.pack(fill=tk.X)
                     tk.Label(
                         header,
-                        text=feat.get("name", ""),
+                        text=feat_name,
                         font=FONTS["heading_serif_sm"],
                         fg=COLORS["fg"],
                         bg=COLORS["bg_container"],
@@ -1788,10 +1829,10 @@ class CharacterViewer(ttk.Frame):
                         bg_color=COLORS["badge_glass_dim"],
                         fg_color=COLORS["gold"],
                     ).pack(side=tk.RIGHT)
-                    if feat.get("description"):
+                    if feat_desc:
                         FormattedDescription(
                             card.inner,
-                            text=feat["description"],
+                            text=feat_desc,
                             font=FONTS["body_small"],
                             foreground=COLORS["fg_dim"],
                             background=COLORS["bg_container"],
@@ -2473,7 +2514,7 @@ class CharacterViewer(ttk.Frame):
 
     def _armor_profs(self) -> set[str]:
         out: set[str] = set()
-        for p in (self.character.character_class or {}).get("armor_proficiencies", []):
+        for p in self.character.effective_armor_proficiencies:
             t = str(p).lower()
             for k in ("shield", "heavy", "medium", "light"):
                 if k in t:
@@ -2488,8 +2529,7 @@ class CharacterViewer(ttk.Frame):
         return False, f"{self.character.class_name} is not proficient with {label}."
 
     def _has_weapon_proficiency(self, weapon_key: str) -> bool:
-        cls = self.character.character_class or {}
-        profs = [str(p).lower() for p in cls.get("weapon_proficiencies", [])]
+        profs = [str(p).lower() for p in self.character.effective_weapon_proficiencies]
         if any(weapon_key in p for p in profs):
             return True
         meta = WEAPON_DATA.get(weapon_key, {})

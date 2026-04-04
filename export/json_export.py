@@ -69,6 +69,7 @@ def character_to_dict(character: Character) -> dict:
         "species_origin_feat": c.species_origin_feat.get("name")
         if c.species_origin_feat
         else None,
+        "level1_class_choices": dict(getattr(c, "level1_class_choices", {}) or {}),
         "cantrips": c.selected_cantrips,
         "spells": c.selected_spells,
         "biography_backstory": getattr(c, "biography_backstory", ""),

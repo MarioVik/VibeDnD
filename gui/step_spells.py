@@ -5,6 +5,13 @@ from tkinter import ttk
 from gui.base_step import WizardStep
 from gui.theme import COLORS, FONTS, SPACING
 from gui.widgets import register_mousewheel_target, GradientHeader, SectionHeader, CardFrame
+from models.level1_class_rules import (
+    get_effective_cantrips_known,
+    get_effective_prepared_spells,
+    get_unmet_level1_class_requirements,
+    get_warlock_invocation_binding_options,
+    scrub_level1_class_choices,
+)
 
 
 class SpellsStep(WizardStep):
@@ -17,6 +24,8 @@ class SpellsStep(WizardStep):
         self.spell_checkbuttons = {}
         self.cantrip_vars = {}
         self.spell_vars = {}
+        self._binding_var = tk.StringVar(value="")
+        self._binding_section = None
         super().__init__(parent_notebook, character, game_data)
 
     def build_ui(self):
@@ -64,6 +73,7 @@ class SpellsStep(WizardStep):
 
     def on_enter(self):
         """Refresh spell lists based on current class."""
+        scrub_level1_class_choices(self.character, self.data)
         cls = self.character.character_class
         if not cls or not cls.get("caster_type"):
             self._show_no_spells()
@@ -88,8 +98,8 @@ class SpellsStep(WizardStep):
 
         cls = self.character.character_class
         class_name = cls["name"]
-        cantrip_max = (cls.get("cantrips_known", 0) or 0) if cls else 0
-        spell_max = (cls.get("spells_prepared", 0) or 0) if cls else 0
+        cantrip_max = get_effective_cantrips_known(self.character)
+        spell_max = get_effective_prepared_spells(self.character)
 
         self.info_label.configure(
             text=f"{class_name}: {cantrip_max} cantrips, {spell_max} prepared spells"
@@ -186,6 +196,7 @@ class SpellsStep(WizardStep):
 
         self._update_cantrip_states()
         self._update_spell_states()
+        self._build_invocation_binding_section(left)
 
         # --- RIGHT: spell detail panel ---
         right = tk.Frame(self.content_frame, bg=COLORS["bg"])
@@ -247,8 +258,7 @@ class SpellsStep(WizardStep):
             return
         self._updating_cantrips = True
         try:
-            cls = self.character.character_class
-            cantrip_max = (cls.get("cantrips_known", 0) or 0) if cls else 0
+            cantrip_max = get_effective_cantrips_known(self.character)
 
             selected = [name for name, d in self.cantrip_vars.items() if d["var"].get()]
             if len(selected) > cantrip_max:
@@ -258,10 +268,12 @@ class SpellsStep(WizardStep):
                 ]
 
             self.character.selected_cantrips = selected
+            scrub_level1_class_choices(self.character, self.data)
             self.cantrip_count_label.configure(
                 text=f"{len(selected)} / {cantrip_max} cantrips selected"
             )
             self._update_cantrip_states()
+            self._refresh_invocation_binding_section()
             self.notify_change()
         finally:
             self._updating_cantrips = False
@@ -271,8 +283,7 @@ class SpellsStep(WizardStep):
             return
         self._updating_spells = True
         try:
-            cls = self.character.character_class
-            spell_max = (cls.get("spells_prepared", 0) or 0) if cls else 0
+            spell_max = get_effective_prepared_spells(self.character)
 
             selected = [name for name, d in self.spell_vars.items() if d["var"].get()]
             if len(selected) > spell_max:
@@ -291,8 +302,7 @@ class SpellsStep(WizardStep):
             self._updating_spells = False
 
     def _update_cantrip_states(self):
-        cls = self.character.character_class
-        cantrip_max = (cls.get("cantrips_known", 0) or 0) if cls else 0
+        cantrip_max = get_effective_cantrips_known(self.character)
         selected = [name for name, d in self.cantrip_vars.items() if d["var"].get()]
         at_max = len(selected) >= cantrip_max
 
@@ -303,8 +313,7 @@ class SpellsStep(WizardStep):
                 cb.configure(state=tk.NORMAL)
 
     def _update_spell_states(self):
-        cls = self.character.character_class
-        spell_max = (cls.get("spells_prepared", 0) or 0) if cls else 0
+        spell_max = get_effective_prepared_spells(self.character)
         selected = [name for name, d in self.spell_vars.items() if d["var"].get()]
         at_max = len(selected) >= spell_max
 
@@ -318,13 +327,70 @@ class SpellsStep(WizardStep):
         cls = self.character.character_class
         if not cls or not cls.get("caster_type"):
             return True
-        cantrip_max = cls.get("cantrips_known", 0) or 0
-        spell_max = cls.get("spells_prepared", 0) or 0
-        if cantrip_max > 0 and len(self.character.selected_cantrips) < cantrip_max:
-            return False
-        if spell_max > 0 and len(self.character.selected_spells) < spell_max:
-            return False
-        return True
+        return not get_unmet_level1_class_requirements(
+            self.character,
+            self.data,
+            step_key="spells",
+        )
+
+    def _build_invocation_binding_section(self, parent):
+        if self._binding_section is not None:
+            self._binding_section.destroy()
+            self._binding_section = None
+
+        choices = getattr(self.character, "level1_class_choices", {}) or {}
+        invocation = str(choices.get("warlock_invocation", "") or "").strip()
+        if invocation not in {"Agonizing Blast", "Eldritch Spear", "Repelling Blast"}:
+            return
+
+        self._binding_section = CardFrame(parent, pad=SPACING["lg"])
+        self._binding_section.pack(fill=tk.X, pady=(SPACING["sm"], 0))
+        tk.Label(
+            self._binding_section.inner,
+            text="Invocation Binding",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", pady=(0, SPACING["xs"]))
+
+        options = get_warlock_invocation_binding_options(self.character, self.data)
+        if not options:
+            tk.Label(
+                self._binding_section.inner,
+                text="Choose a damage-dealing Warlock cantrip first, then bind the invocation here.",
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+                wraplength=340,
+                justify=tk.LEFT,
+            ).pack(anchor="w")
+            return
+
+        self._binding_var.set(str(choices.get("warlock_invocation_cantrip", "") or ""))
+        combo = ttk.Combobox(
+            self._binding_section.inner,
+            textvariable=self._binding_var,
+            values=options,
+            state="readonly",
+            width=36,
+        )
+        combo.pack(fill=tk.X)
+        combo.bind("<<ComboboxSelected>>", self._on_binding_selected)
+
+    def _refresh_invocation_binding_section(self):
+        if self._binding_section is None:
+            return
+        parent = self._binding_section.master
+        self._build_invocation_binding_section(parent)
+
+    def _on_binding_selected(self, _event=None):
+        if not isinstance(self.character.level1_class_choices, dict):
+            self.character.level1_class_choices = {}
+        self.character.level1_class_choices["warlock_invocation_cantrip"] = (
+            self._binding_var.get().strip()
+        )
+        scrub_level1_class_choices(self.character, self.data)
+        self.notify_change()
 
     # ── spell detail hover ───────────────────────────────────────
 

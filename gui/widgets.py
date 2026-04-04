@@ -464,6 +464,7 @@ class FormattedDescription(tk.Text):
             else base_font
         )
         self.tag_configure("subheading", font=bold_font, foreground=fg)
+        self.tag_configure("choice_line", font=bold_font, foreground=fg)
         self.tag_configure("two_col_bullets", tabs=(260,))
 
         if text:
@@ -483,6 +484,21 @@ class FormattedDescription(tk.Text):
             and len(line.split()) <= 4
             and not line.startswith("See ")
         )
+
+    @staticmethod
+    def _is_choice_line(line: str) -> bool:
+        prefixes = (
+            "Selected Order:",
+            "Selected Fighting Style:",
+            "Selected Weapons:",
+            "Selected Skills:",
+            "Selected Invocation:",
+            "Invocation Cantrip:",
+            "Tome Cantrips:",
+            "Tome Rituals:",
+            "Granted Origin Feat:",
+        )
+        return any(line.startswith(prefix) for prefix in prefixes)
 
     @staticmethod
     def _maybe_two_column_bullets(paragraph: str) -> str:
@@ -538,7 +554,14 @@ class FormattedDescription(tk.Text):
                 if "\t" in formatted:
                     self.insert("end", formatted, "two_col_bullets")
                 else:
-                    self.insert("end", formatted)
+                    lines = formatted.split("\n")
+                    for idx, line in enumerate(lines):
+                        if self._is_choice_line(line):
+                            self.insert("end", line, "choice_line")
+                        else:
+                            self.insert("end", line)
+                        if idx < len(lines) - 1:
+                            self.insert("end", "\n")
         self.configure(state="disabled")
 
     def _on_configure(self, event):

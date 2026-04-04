@@ -47,6 +47,7 @@ def character_to_save_dict(character: Character) -> dict:
             c.species_origin_feat.get("name") if c.species_origin_feat else None
         ),
         "feat_sub_choices": dict(c.feat_sub_choices),
+        "level1_class_choices": dict(c.level1_class_choices),
         "selected_cantrips": list(c.selected_cantrips),
         "selected_spells": list(c.selected_spells),
         "biography_backstory": str(getattr(c, "biography_backstory", "") or ""),
@@ -144,6 +145,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
         c.species_origin_feat = game_data.find_feat(origin_feat_name)
 
     c.feat_sub_choices = data.get("feat_sub_choices", {})
+    c.level1_class_choices = data.get("level1_class_choices", {})
     c.selected_cantrips = data.get("selected_cantrips", [])
     c.selected_spells = data.get("selected_spells", [])
     c.biography_backstory = str(data.get("biography_backstory", "") or "")
@@ -296,6 +298,7 @@ def import_character_from_export(filepath: str, game_data) -> Character:
     # Feats
     save["feat_name"] = data.get("background_feat")
     save["species_origin_feat_name"] = data.get("species_origin_feat")
+    save["level1_class_choices"] = data.get("level1_class_choices", {})
 
     # Spells
     save["selected_cantrips"] = data.get("cantrips", [])

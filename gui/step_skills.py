@@ -111,9 +111,9 @@ class SkillsStep(WizardStep):
         self.expertise_counter_label = self._install_inline_counter(
             self.expertise_section_header
         )
-        expertise_card = CardFrame(inner, pad=SPACING["lg"])
-        expertise_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["lg"]))
-        self.expertise_frame = tk.Frame(expertise_card.inner, bg=COLORS["bg_surface"])
+        self.expertise_card = CardFrame(inner, pad=SPACING["lg"])
+        self.expertise_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["lg"]))
+        self.expertise_frame = tk.Frame(self.expertise_card.inner, bg=COLORS["bg_surface"])
         self.expertise_frame.pack(fill=tk.X, anchor="w")
 
     def _install_inline_counter(self, header: SectionHeader) -> tk.Label:
@@ -158,13 +158,39 @@ class SkillsStep(WizardStep):
         self._rebuild_sources_info(sources["auto"])
         self._rebuild_skill_list(sources["class_options"], auto_names)
         self._update_counter()
-        self._update_expertise_counter(sources, enabled=skills_complete)
-        self._update_selected_chips()
-        self._rebuild_expertise_section(
-            sources["expertise_auto"],
-            sources["expertise_selectable"],
-            enabled=skills_complete,
+        has_expertise = bool(
+            sources["expertise_auto"]
+            or sources["expertise_selectable"]
+            or sources["expertise_choose_count"]
         )
+        self._set_expertise_visibility(has_expertise)
+        if has_expertise:
+            self._update_expertise_counter(sources, enabled=skills_complete)
+            self._rebuild_expertise_section(
+                sources["expertise_auto"],
+                sources["expertise_selectable"],
+                enabled=skills_complete,
+            )
+        self._update_selected_chips()
+
+    def _set_expertise_visibility(self, visible: bool):
+        if visible:
+            if not self.expertise_section_header.winfo_manager():
+                self.expertise_section_header.pack(
+                    fill=tk.X,
+                    padx=SPACING["lg"],
+                    pady=(SPACING["sm"], SPACING["sm"]),
+                )
+            if not self.expertise_card.winfo_manager():
+                self.expertise_card.pack(
+                    fill=tk.X,
+                    padx=SPACING["lg"],
+                    pady=(0, SPACING["lg"]),
+                )
+            return
+
+        self.expertise_section_header.pack_forget()
+        self.expertise_card.pack_forget()
 
     def _rebuild_auto_chips(self, auto: list[tuple[str, str]]):
         for widget in self.auto_chips_frame.winfo_children():
@@ -329,16 +355,6 @@ class SkillsStep(WizardStep):
     ):
         for widget in self.expertise_frame.winfo_children():
             widget.destroy()
-
-        if not auto_expertise and not grants:
-            tk.Label(
-                self.expertise_frame,
-                text="No Expertise choices available yet.",
-                font=FONTS["body"],
-                fg=COLORS["fg_dim"],
-                bg=COLORS["bg_surface"],
-            ).pack(anchor="w")
-            return
 
         background = COLORS["bg_surface"]
         if not enabled:

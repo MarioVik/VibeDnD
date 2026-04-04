@@ -16,6 +16,7 @@ from gui.widgets import (
 )
 from models.enums import ALL_SKILLS
 from models.language_utils import all_languages
+from models.level1_class_rules import summarize_level1_class_choices
 
 
 class SummaryStep(WizardStep):
@@ -319,9 +320,8 @@ class SummaryStep(WizardStep):
         prof_card = CardFrame(prof_col, pad=SPACING["lg"])
         prof_card.pack(fill=tk.BOTH, expand=True)
 
-        cls_data = c.character_class or {}
-        weapon_profs = cls_data.get("weapon_proficiencies", [])
-        armor_profs = cls_data.get("armor_proficiencies", [])
+        weapon_profs = list(getattr(c, "effective_weapon_proficiencies", []))
+        armor_profs = list(getattr(c, "effective_armor_proficiencies", []))
 
         if weapon_profs or armor_profs:
             chip_frame = tk.Frame(prof_card.inner, bg=COLORS["bg_surface"])
@@ -345,6 +345,24 @@ class SummaryStep(WizardStep):
                 Chip(lang_frame, text=lang, style="default").pack(
                     side=tk.LEFT, padx=(0, 4), pady=2
                 )
+
+        class_choice_lines = summarize_level1_class_choices(c)
+        if class_choice_lines:
+            SectionHeader(inner, text="Class Choices").pack(
+                fill=tk.X, pady=(0, SPACING["sm"])
+            )
+            class_choices_card = CardFrame(inner, pad=SPACING["lg"])
+            class_choices_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+            for line in class_choice_lines:
+                tk.Label(
+                    class_choices_card.inner,
+                    text=line,
+                    font=FONTS["body"],
+                    fg=COLORS["fg"],
+                    bg=COLORS["bg_surface"],
+                    anchor="w",
+                    justify=tk.LEFT,
+                ).pack(fill=tk.X, pady=2)
 
         # ── Spells (if caster) ──────────────────────────────────
         if c.is_caster:

@@ -720,6 +720,10 @@ class ClassStep(WizardStep):
         self.character.character_class = cls
         if not same_class:
             self.character.selected_skills = []
+            self.character.selected_cantrips = []
+            self.character.selected_spells = []
+            self.character.level1_class_choices = {}
+            self.character.equipment_choice_class = ""
 
         # Initialize class_levels with level 1 entry
         from models.class_level import ClassLevel

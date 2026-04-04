@@ -25,6 +25,10 @@ from models.standard_actions import (
 from gui.widgets import AlertDialog, WrappingLabel, FormattedDescription, Chip
 from gui.species_trait_utils import get_species_trait_cards
 from models.language_utils import all_languages
+from models.level1_class_rules import (
+    augment_level1_feature_description,
+    get_level1_creation_choice_lines,
+)
 from models.inventory_service import (
     base_wealth_cp,
     cp_to_coins,
@@ -131,6 +135,22 @@ def _parse_item_qty(text: str) -> tuple[str, int]:
 
 def _show_level_features(parent: tk.Widget, character, game_data=None):
     """Show features from all class levels with full descriptions."""
+    creation_choice_lines = get_level1_creation_choice_lines(character)
+    if creation_choice_lines:
+        ttk.Label(
+            parent,
+            text="  Level 1 Creation Choices",
+            foreground=COLORS["accent"],
+            font=FONTS["subheading"],
+        ).pack(anchor="w", padx=8, pady=(6, 2))
+        for line in creation_choice_lines:
+            WrappingLabel(
+                parent,
+                text=f"- {line}",
+                font=FONTS["body_bold"],
+                foreground=COLORS["fg_dim"],
+            ).pack(fill=tk.X, anchor="w", padx=16, pady=(0, 2))
+
     for cl in character.class_levels:
         level_data = None
         if game_data:
@@ -178,7 +198,11 @@ def _show_level_features(parent: tk.Widget, character, game_data=None):
 
         for feat in all_items:
             feat_name = feat.get("name", "")
-            feat_desc = feat.get("description", "")
+            feat_desc = augment_level1_feature_description(
+                feat_name,
+                feat.get("description", ""),
+                character,
+            )
             ttk.Label(
                 parent,
                 text=f"    • {feat_name}",
@@ -588,7 +612,7 @@ def build_character_sheet(
 
     def _normalized_armor_profs() -> set[str]:
         out: set[str] = set()
-        for p in (c.character_class or {}).get("armor_proficiencies", []):
+        for p in getattr(c, "effective_armor_proficiencies", []):
             t = str(p).lower()
             if "shield" in t:
                 out.add("shield")
@@ -630,8 +654,7 @@ def build_character_sheet(
         )
 
     def _has_weapon_proficiency_local(weapon_key: str) -> bool:
-        cls = c.character_class or {}
-        profs = [str(p).lower() for p in cls.get("weapon_proficiencies", [])]
+        profs = [str(p).lower() for p in c.effective_weapon_proficiencies]
         if any(weapon_key in p for p in profs):
             return True
         meta = WEAPON_DATA.get(weapon_key, {})

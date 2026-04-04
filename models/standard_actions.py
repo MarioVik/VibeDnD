@@ -283,10 +283,7 @@ def _weapon_counts_from_texts(texts: list[str]) -> dict[str, int]:
 def _has_weapon_proficiency(character, weapon_name: str, weapon_meta: dict) -> bool:
     if not character.character_class:
         return False
-    profs = [
-        str(p).lower()
-        for p in character.character_class.get("weapon_proficiencies", [])
-    ]
+    profs = [str(p).lower() for p in character.effective_weapon_proficiencies]
 
     # Specific weapon mention
     if any(weapon_name in p for p in profs):

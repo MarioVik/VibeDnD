@@ -4,6 +4,11 @@ from dataclasses import dataclass, field
 from models.ability_scores import AbilityScores
 from models.class_level import ClassLevel
 from models.enums import Ability, Skill, SKILL_BY_NAME
+from models.level1_class_rules import (
+    get_effective_armor_proficiencies,
+    get_effective_weapon_proficiencies,
+    get_level1_skill_bonus,
+)
 from models.skill_utils import (
     get_all_skill_expertise_names,
     get_all_skill_proficiency_names,
@@ -72,6 +77,7 @@ class Character:
     feat: dict | None = None  # Background feat
     species_origin_feat: dict | None = None  # Species origin feat (Human Versatile)
     feat_sub_choices: dict = field(default_factory=dict)
+    level1_class_choices: dict = field(default_factory=dict)
 
     selected_cantrips: list[str] = field(default_factory=list)
     selected_spells: list[str] = field(default_factory=list)
@@ -238,10 +244,18 @@ class Character:
             return 0
         base_mod = self.ability_scores.modifier(skill.ability.value)
         if skill_display_name in self.all_skill_expertise:
-            return base_mod + (self.proficiency_bonus * 2)
+            return (
+                base_mod
+                + (self.proficiency_bonus * 2)
+                + get_level1_skill_bonus(self, skill_display_name)
+            )
         if skill_display_name in self.all_skill_proficiencies:
-            return base_mod + self.proficiency_bonus
-        return base_mod
+            return (
+                base_mod
+                + self.proficiency_bonus
+                + get_level1_skill_bonus(self, skill_display_name)
+            )
+        return base_mod + get_level1_skill_bonus(self, skill_display_name)
 
     def skill_modifier_str(self, skill_display_name: str) -> str:
         mod = self.skill_modifier(skill_display_name)
@@ -263,6 +277,16 @@ class Character:
         if not self.character_class:
             return False
         return ability_name in self.character_class.get("saving_throws", [])
+
+    @property
+    def effective_weapon_proficiencies(self) -> list[str]:
+        """Weapon proficiencies after level-1 class choices are applied."""
+        return get_effective_weapon_proficiencies(self)
+
+    @property
+    def effective_armor_proficiencies(self) -> list[str]:
+        """Armor proficiencies after level-1 class choices are applied."""
+        return get_effective_armor_proficiencies(self)
 
     @property
     def class_name(self) -> str:
