@@ -931,6 +931,7 @@ class CharacterSheetPDF(FPDF):
                                     f.get("name", ""),
                                     f.get("description", ""),
                                     c,
+                                    game_data,
                                 ),
                             }
                         )
@@ -944,6 +945,7 @@ class CharacterSheetPDF(FPDF):
                                         name,
                                         "",
                                         c,
+                                        game_data,
                                     ),
                                 }
                             )

@@ -691,17 +691,27 @@ class HoverTooltip:
         self._show_after_id = None
         self._hide_after_id = None
         self._last_event = None
+        self._disposed = False
+        self._bindings: list[tuple[tk.Misc, str, str]] = []
 
         for widget in self.widgets:
-            widget.bind("<Enter>", self._on_enter, add="+")
-            widget.bind("<Leave>", self._on_leave, add="+")
-            widget.bind("<Motion>", self._on_motion, add="+")
+            enter_id = widget.bind("<Enter>", self._on_enter, add="+")
+            leave_id = widget.bind("<Leave>", self._on_leave, add="+")
+            motion_id = widget.bind("<Motion>", self._on_motion, add="+")
+            if enter_id:
+                self._bindings.append((widget, "<Enter>", enter_id))
+            if leave_id:
+                self._bindings.append((widget, "<Leave>", leave_id))
+            if motion_id:
+                self._bindings.append((widget, "<Motion>", motion_id))
 
     def _tooltip_text(self) -> str:
         value = self.text() if callable(self.text) else self.text
         return str(value or "").strip()
 
     def _on_enter(self, event):
+        if self._disposed:
+            return
         self._last_event = event
         self._cancel_hide()
         self._cancel_show()
@@ -710,6 +720,8 @@ class HoverTooltip:
             self._show_after_id = widget.after(self.delay_ms, self._show)
 
     def _on_leave(self, event):
+        if self._disposed:
+            return
         self._last_event = event
         self._cancel_show()
         self._cancel_hide()
@@ -718,6 +730,8 @@ class HoverTooltip:
             self._hide_after_id = widget.after(self.hide_delay_ms, self._hide)
 
     def _on_motion(self, event):
+        if self._disposed:
+            return
         self._last_event = event
         if self._window is not None:
             self._position_window()
@@ -740,7 +754,7 @@ class HoverTooltip:
 
     def _show(self):
         self._show_after_id = None
-        if not self.widgets:
+        if self._disposed or not self.widgets:
             return
         text = self._tooltip_text()
         if not text:
@@ -803,9 +817,20 @@ class HoverTooltip:
 
     def dispose(self):
         """Dispose any scheduled work and visible tooltip window."""
+        if self._disposed:
+            return
+        self._disposed = True
         self._cancel_show()
         self._cancel_hide()
+        for widget, sequence, bind_id in self._bindings:
+            try:
+                widget.unbind(sequence, bind_id)
+            except tk.TclError:
+                pass
+        self._bindings.clear()
         self._hide()
+        self.widgets = []
+        self._last_event = None
 
 
 class SectionedListbox(ttk.Frame):

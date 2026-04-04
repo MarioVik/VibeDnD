@@ -16,6 +16,7 @@ from models.level1_class_rules import (
     get_available_fighting_styles,
     get_available_order_options,
     get_available_origin_feats,
+    get_selected_weapon_mastery_details,
     get_available_warlock_invocations,
     get_tome_cantrip_options,
     get_tome_ritual_options,
@@ -185,6 +186,90 @@ class ClassFeaturesStep(WizardStep):
                 lambda _event, i=idx, v=var: self._set_slotted_choice(key, i, count, v.get()),
             )
 
+    def _build_weapon_mastery_section(self):
+        count = get_weapon_mastery_count(self.character)
+        if not count:
+            return
+
+        current = list(self._choice_value("weapon_mastery", []))
+        options = get_weapon_mastery_options(self.character, self.data)
+        card = self._card(
+            "Weapon Mastery",
+            (
+                "Choose the weapons whose mastery properties you can use at level 1. "
+                "Each mastered weapon gives you its listed mastery effect when you "
+                "attack with it."
+            ),
+        )
+
+        for idx in range(count):
+            row = tk.Frame(card.inner, bg=COLORS["bg_surface"])
+            row.pack(fill=tk.X, pady=(0, SPACING["xs"]))
+            tk.Label(
+                row,
+                text=f"Weapon {idx + 1}",
+                font=FONTS["body_bold"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_surface"],
+                width=16,
+                anchor="w",
+            ).pack(side=tk.LEFT)
+            var = tk.StringVar(value=current[idx] if idx < len(current) else "")
+            combo = ttk.Combobox(
+                row,
+                textvariable=var,
+                values=options,
+                state="readonly",
+                width=36,
+            )
+            combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            combo.bind(
+                "<<ComboboxSelected>>",
+                lambda _event, i=idx, v=var: self._set_slotted_choice(
+                    "weapon_mastery", i, count, v.get()
+                ),
+            )
+
+        details = get_selected_weapon_mastery_details(self.character, self.data)
+        if not details:
+            return
+
+        tk.Frame(card.inner, bg=COLORS["border_subtle"], height=1).pack(
+            fill=tk.X,
+            pady=(SPACING["sm"], SPACING["sm"]),
+        )
+
+        for detail in details:
+            mastery = str(detail.get("mastery", "") or "").strip()
+            description = str(detail.get("description", "") or "").strip()
+            weapon_name = str(detail.get("weapon_name", "") or "").strip()
+            if not weapon_name:
+                continue
+
+            block = tk.Frame(card.inner, bg=COLORS["bg_surface"])
+            block.pack(fill=tk.X, anchor="w", pady=(0, SPACING["sm"]))
+
+            title = weapon_name
+            if mastery:
+                title = f"{weapon_name} - {mastery}"
+            tk.Label(
+                block,
+                text=title,
+                font=FONTS["body_bold"],
+                fg=COLORS["gold"],
+                bg=COLORS["bg_surface"],
+                anchor="w",
+                justify=tk.LEFT,
+            ).pack(anchor="w")
+
+            if description:
+                WrappingLabel(
+                    block,
+                    text=description,
+                    background=COLORS["bg_surface"],
+                    foreground=COLORS["fg_dim"],
+                ).pack(fill=tk.X, anchor="w", pady=(SPACING["xs"], 0))
+
     def _build_single_combo(
         self,
         key: str,
@@ -344,14 +429,7 @@ class ClassFeaturesStep(WizardStep):
 
         mastery_count = get_weapon_mastery_count(self.character)
         if mastery_count:
-            self._build_combo_slots(
-                "weapon_mastery",
-                "Weapon Mastery",
-                get_weapon_mastery_options(self.character, self.data),
-                mastery_count,
-                "Weapon",
-                "Choose the weapons whose mastery properties you can use at level 1.",
-            )
+            self._build_weapon_mastery_section()
 
         if slug == "warlock":
             self._build_warlock_sections()

@@ -581,7 +581,11 @@ class CharacterViewer(ttk.Frame):
             card.grid(row=0, column=i, padx=3, sticky="nsew")
 
         # ── Skills ──
-        SectionHeader(inner, text="Skills").pack(
+        SectionHeader(
+            inner,
+            text="Skills",
+            right_text="● = proficiency   ◉ = expertise",
+        ).pack(
             fill=tk.X, pady=(0, SPACING["sm"])
         )
 
@@ -1846,6 +1850,7 @@ class CharacterViewer(ttk.Frame):
                         feat_name,
                         feat.get("description", ""),
                         c,
+                        self.data,
                     )
                     card = CardFrame(features_grid, bg=COLORS["bg_container"],
                                      border_color=COLORS["border_subtle"], pad=SPACING["lg"])

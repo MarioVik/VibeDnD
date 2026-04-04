@@ -88,6 +88,38 @@ MARTIAL_WEAPONS = {
     "Whip",
 }
 
+WEAPON_MASTERY_RULES = {
+    "Cleave": (
+        "On a melee hit, you can make one extra melee attack against a second "
+        "creature within 5 feet of the first and within your reach."
+    ),
+    "Graze": (
+        "On a miss, the target still takes damage equal to the ability modifier "
+        "used for the attack."
+    ),
+    "Nick": (
+        "The extra attack from the Light property can be made as part of your "
+        "Attack action instead of as a Bonus Action."
+    ),
+    "Push": "On a hit, you can push a Large or smaller creature up to 10 feet away from you.",
+    "Sap": (
+        "On a hit, the target has disadvantage on its next attack roll before "
+        "the start of your next turn."
+    ),
+    "Slow": (
+        "On a hit that deals damage, reduce the target's speed by 10 feet until "
+        "the start of your next turn."
+    ),
+    "Topple": (
+        "On a hit, you can force a Large or smaller creature to make a "
+        "Constitution save or fall prone."
+    ),
+    "Vex": (
+        "On a hit that deals damage, you have advantage on your next attack roll "
+        "against that target before the end of your next turn."
+    ),
+}
+
 LEVEL1_FEATURE_METADATA = {
     ("artificer", "Spellcasting"): {
         "category": "existing-step choice",
@@ -314,6 +346,14 @@ def _weapon_properties(item: dict) -> set[str]:
     return {part.strip() for part in match.group(1).split(",") if part.strip()}
 
 
+def _weapon_mastery_name(item: dict) -> str:
+    desc = str(item.get("description", "") or "")
+    match = re.search(r"Mastery:\s*([^;]+)", desc, re.IGNORECASE)
+    if not match:
+        return ""
+    return str(match.group(1) or "").strip()
+
+
 def _real_weapon_items(game_data) -> list[dict]:
     real_items: list[dict] = []
     for item in getattr(game_data, "items", []):
@@ -377,6 +417,38 @@ def get_weapon_mastery_count(character) -> int:
         "ranger": 2,
         "rogue": 2,
     }.get(_class_slug(character), 0)
+
+
+def get_weapon_mastery_detail(game_data, weapon_name: str) -> dict:
+    weapon_name = str(weapon_name or "").strip()
+    if not weapon_name:
+        return {}
+    for item in _real_weapon_items(game_data):
+        if str(item.get("name", "")).strip() != weapon_name:
+            continue
+        mastery = _weapon_mastery_name(item)
+        if not mastery:
+            return {"weapon_name": weapon_name}
+        return {
+            "weapon_name": weapon_name,
+            "mastery": mastery,
+            "description": WEAPON_MASTERY_RULES.get(
+                mastery,
+                f"This weapon uses the {mastery} mastery property.",
+            ),
+        }
+    return {"weapon_name": weapon_name}
+
+
+def get_selected_weapon_mastery_details(character, game_data) -> list[dict]:
+    return [
+        detail
+        for detail in (
+            get_weapon_mastery_detail(game_data, weapon_name)
+            for weapon_name in _string_choices(_choice_value(character, "weapon_mastery", []))
+        )
+        if detail
+    ]
 
 
 def get_available_fighting_styles(game_data) -> list[dict]:
@@ -1023,7 +1095,7 @@ def get_level1_creation_choice_lines(character) -> list[str]:
     return lines
 
 
-def get_level1_feature_choice_annotations(character) -> dict[str, list[str]]:
+def get_level1_feature_choice_annotations(character, game_data=None) -> dict[str, list[str]]:
     """Return extra display lines for feature cards based on stored level-1 choices."""
     choices = _choice_map(character)
     annotations: dict[str, list[str]] = {}
@@ -1043,9 +1115,30 @@ def get_level1_feature_choice_annotations(character) -> dict[str, list[str]]:
 
     weapon_mastery = _string_choices(choices.get("weapon_mastery", []))
     if weapon_mastery:
-        annotations["Weapon Mastery"] = [
-            f"Selected Weapons: {', '.join(weapon_mastery)}"
-        ]
+        if game_data is not None:
+            mastery_lines: list[str] = []
+            for detail in get_selected_weapon_mastery_details(character, game_data):
+                weapon_name = str(detail.get("weapon_name", "") or "").strip()
+                mastery = str(detail.get("mastery", "") or "").strip()
+                description = str(detail.get("description", "") or "").strip()
+                if not weapon_name:
+                    continue
+                title = weapon_name
+                if mastery:
+                    title = f"{weapon_name} - {mastery}"
+                mastery_lines.append(title)
+                if description:
+                    mastery_lines.append(description)
+            if mastery_lines:
+                annotations["Weapon Mastery"] = mastery_lines
+            else:
+                annotations["Weapon Mastery"] = [
+                    f"Selected Weapons: {', '.join(weapon_mastery)}"
+                ]
+        else:
+            annotations["Weapon Mastery"] = [
+                f"Selected Weapons: {', '.join(weapon_mastery)}"
+            ]
 
     expertise = _rogue_level1_expertise_choices(character)
     if expertise:
@@ -1077,9 +1170,10 @@ def augment_level1_feature_description(
     feature_name: str,
     description: str,
     character,
+    game_data=None,
 ) -> str:
     """Append selected level-1 choices to a feature description when relevant."""
-    notes = get_level1_feature_choice_annotations(character).get(feature_name, [])
+    notes = get_level1_feature_choice_annotations(character, game_data).get(feature_name, [])
     if not notes:
         return description
 

@@ -202,6 +202,7 @@ def _show_level_features(parent: tk.Widget, character, game_data=None):
                 feat_name,
                 feat.get("description", ""),
                 character,
+                data,
             )
             ttk.Label(
                 parent,
