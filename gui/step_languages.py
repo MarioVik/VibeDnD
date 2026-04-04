@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from gui.base_step import WizardStep
-from gui.widgets import ScrollableFrame, WrappingLabel, Chip, GradientHeader, SectionHeader, CardFrame
+from gui.widgets import ScrollableFrame, Chip, GradientHeader, SectionHeader, CardFrame
 from gui.theme import COLORS, FONTS, SPACING
 from models.language_utils import (
     STANDARD_LANGUAGES,
@@ -13,6 +13,7 @@ from models.language_utils import (
 )
 
 CARD_CHECK_STYLE = "Card.TCheckbutton"
+SOURCE_LABEL_FONT = (FONTS["body_small"][0], FONTS["body_small"][1], "italic")
 
 
 class LanguagesStep(WizardStep):
@@ -63,26 +64,15 @@ class LanguagesStep(WizardStep):
         fixed_card = CardFrame(inner, pad=SPACING["lg"])
         fixed_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
 
-        self.auto_chips_frame = tk.Frame(fixed_card.inner, bg=COLORS["bg_surface"])
-        self.auto_chips_frame.pack(fill=tk.X, anchor="w", pady=(0, SPACING["xs"]))
-
         self.sources_frame = tk.Frame(fixed_card.inner, bg=COLORS["bg_surface"])
         self.sources_frame.pack(fill=tk.X, anchor="w")
 
         # Choose section
-        self._choose_header_frame = tk.Frame(inner, bg=COLORS["bg"])
-        self._choose_header_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"]))
-
-        self.choose_section_header = SectionHeader(self._choose_header_frame, text="Choose Languages")
-        self.choose_section_header.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        self.counter_label = tk.Label(
-            self._choose_header_frame,
-            text="(0 / 2)",
-            font=FONTS["label_upper_bold"],
-            fg=COLORS["fg_dim"],
-            bg=COLORS["bg"],
+        self.choose_section_header = SectionHeader(inner, text="Choose Languages")
+        self.choose_section_header.pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
         )
-        self.counter_label.pack(side=tk.RIGHT, padx=(SPACING["sm"], 0))
+        self.counter_label = self._install_inline_counter(self.choose_section_header)
 
         # Standard languages
         std_card = CardFrame(inner, pad=SPACING["lg"])
@@ -122,15 +112,6 @@ class LanguagesStep(WizardStep):
         self.rare_frame = tk.Frame(self.rare_card.inner, bg=COLORS["bg_surface"])
         self.rare_frame.pack(fill=tk.X, anchor="w")
 
-        # Selected chips
-        SectionHeader(inner, text="Selected").pack(
-            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
-        )
-        selected_card = CardFrame(inner, pad=SPACING["lg"])
-        selected_card.pack(fill=tk.X, padx=SPACING["lg"])
-        self.selected_frame = tk.Frame(selected_card.inner, bg=COLORS["bg_surface"])
-        self.selected_frame.pack(fill=tk.X, anchor="w")
-
     # ── Lifecycle ────────────────────────────────────────────────
 
     def on_enter(self):
@@ -148,19 +129,22 @@ class LanguagesStep(WizardStep):
             l for l in self.character.chosen_languages if l in available
         ]
 
-        self._rebuild_auto_chips(auto)
         self._rebuild_sources_info(auto)
         self._rebuild_language_list(auto, free_count, can_rare)
         self._update_counter(free_count)
-        self._update_selected_chips()
 
-    def _rebuild_auto_chips(self, auto: list[str]):
-        for w in self.auto_chips_frame.winfo_children():
-            w.destroy()
-        for lang in auto:
-            Chip(self.auto_chips_frame, text=lang, style="default").pack(
-                side=tk.LEFT, padx=(0, 4), pady=2
-            )
+    def _install_inline_counter(self, header: SectionHeader) -> tk.Label:
+        counter = tk.Label(
+            header,
+            text="(0 / 0)",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg"],
+        )
+        header._line.pack_forget()
+        counter.pack(side=tk.LEFT, padx=(0, 12))
+        header._line.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=1)
+        return counter
 
     def _rebuild_sources_info(self, auto: list[str]):
         for w in self.sources_frame.winfo_children():
@@ -180,8 +164,25 @@ class LanguagesStep(WizardStep):
         for lang, source in entries:
             row = tk.Frame(self.sources_frame, bg=_bg)
             row.pack(fill=tk.X, anchor="w", pady=1)
-            tk.Label(row, text=f"\u2022 {lang}:", font=FONTS["body_bold"], fg=COLORS["fg"], bg=_bg).pack(side=tk.LEFT)
-            tk.Label(row, text=f" {source}", font=FONTS["body_small"], fg=COLORS["fg_dim"], bg=_bg).pack(side=tk.LEFT)
+            tk.Label(
+                row,
+                text="\u2022",
+                font=FONTS["body_bold"],
+                fg=COLORS["fg"],
+                bg=_bg,
+            ).pack(side=tk.LEFT, padx=(0, SPACING["sm"]))
+            Chip(row, text=lang, style="default").pack(
+                side=tk.LEFT,
+                padx=(0, SPACING["sm"]),
+                pady=2,
+            )
+            tk.Label(
+                row,
+                text=f"({source})",
+                font=SOURCE_LABEL_FONT,
+                fg=COLORS["fg_dim"],
+                bg=_bg,
+            ).pack(side=tk.LEFT)
 
     def _rebuild_language_list(
         self, auto: list[str], free_count: int, can_rare: bool
@@ -242,7 +243,6 @@ class LanguagesStep(WizardStep):
 
         self._enforce_capacity(free_count)
         self._update_counter(free_count)
-        self._update_selected_chips()
         self.notify_change()
 
     def _enforce_capacity(self, free_count: int):
@@ -273,21 +273,6 @@ class LanguagesStep(WizardStep):
     def _update_counter_from_state(self):
         sources = compute_language_sources(self.character)
         self._update_counter(sources["free_count"])
-
-    def _update_selected_chips(self):
-        for w in self.selected_frame.winfo_children():
-            w.destroy()
-        chosen = self.character.chosen_languages
-        if not chosen:
-            tk.Label(
-                self.selected_frame, text="None chosen yet.",
-                font=FONTS["body"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
-            ).pack(anchor="w")
-        else:
-            for lang in chosen:
-                Chip(self.selected_frame, text=lang, style="accent").pack(
-                    side=tk.LEFT, padx=(0, 4), pady=2
-                )
 
     # ── Validation ───────────────────────────────────────────────
 

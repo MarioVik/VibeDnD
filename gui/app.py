@@ -47,6 +47,7 @@ _WIZARD_STEPS = [
     ("biography", "Biography", "", BiographyStep),
     ("summary", "Summary", "", SummaryStep),
 ]
+_WIZARD_STEP_LABELS = {key: label for key, label, _, _ in _WIZARD_STEPS}
 
 FEAT_INDEX = 3  # index of feat step in _WIZARD_STEPS
 CLASS_FEATURES_INDEX = 6  # index of class feature step in _WIZARD_STEPS
@@ -67,6 +68,7 @@ _CONFIRM_STEP_LABELS = {
     "biography": "Confirm Biography",
     "summary": "Summary",
 }
+_DYNAMIC_PRIMARY_ACTION_LABELS = ["Confirm Expertise"]
 
 
 class CharacterCreatorApp:
@@ -222,7 +224,11 @@ class CharacterCreatorApp:
             command=self._wizard_next,
         )
         self._next_btn.pack(side=tk.RIGHT)
-        candidate_next_labels = ["Finish \u2713"] + list(_CONFIRM_STEP_LABELS.values())
+        candidate_next_labels = (
+            ["Finish \u2713"]
+            + list(_CONFIRM_STEP_LABELS.values())
+            + _DYNAMIC_PRIMARY_ACTION_LABELS
+        )
         original_next_text = self._next_btn.cget("text")
         max_next_width = 0
         for label in candidate_next_labels:
@@ -259,11 +265,11 @@ class CharacterCreatorApp:
         for step in self.wizard_steps:
             step.on_change_callbacks.append(self._update_nav_buttons)
 
-        # Register substep change callbacks for steps with substeps
+        # Register substep change callbacks for every step so dynamic substep
+        # steps can start emitting them later as character choices evolve.
         for step in self.wizard_steps:
-            if step.has_substeps():
-                step.on_substep_change_callbacks.append(self._update_nav_buttons)
-                step.on_substep_change_callbacks.append(self._update_sidebar_state)
+            step.on_substep_change_callbacks.append(self._update_nav_buttons)
+            step.on_substep_change_callbacks.append(self._update_sidebar_state)
 
         # -- Sidebar (left side) --
         nav_items = []
@@ -307,11 +313,40 @@ class CharacterCreatorApp:
         step = self.wizard_steps[idx]
         if step.has_substeps():
             if step.is_valid():
-                step.go_to_substep(1)
+                step.go_to_substep(self._last_available_substep_index(step))
             else:
                 step.go_to_substep(0)
 
         self._show_step(idx)
+
+    def _last_available_substep_index(self, step) -> int:
+        """Return the deepest currently-available substep index for a step."""
+        return max(0, step.get_substep_count() - 1)
+
+    def _get_sidebar_step_title(self, key: str) -> str:
+        """Return the current sidebar title text for a wizard step."""
+        base_label = _WIZARD_STEP_LABELS.get(key, key.title())
+        if key != "skills":
+            return base_label
+
+        sources = compute_skill_sources(self.character)
+        if int(sources.get("expertise_choose_count", 0) or 0) <= 0:
+            return base_label
+
+        step = self.wizard_steps[self._step_keys.index(key)]
+        substep = min(step.get_current_substep(), 1) + 1
+        return f"{base_label} ({substep}/2)"
+
+    def _update_sidebar_titles(self):
+        """Refresh dynamic sidebar titles such as Skills substep counters."""
+        if not hasattr(self, "_wizard_sidebar"):
+            return
+
+        for step_key in self._step_keys:
+            self._wizard_sidebar.set_nav_text(
+                step_key,
+                self._get_sidebar_step_title(step_key),
+            )
 
     def _show_step(self, idx: int):
         """Show the step at the given index, hiding the current one."""
@@ -331,6 +366,7 @@ class CharacterCreatorApp:
         if not hasattr(self, "_wizard_sidebar"):
             return
 
+        self._update_sidebar_titles()
         idx = self._current_step_idx
         self._wizard_sidebar.update_step_states(idx, self._reached_step)
         deferred_choice_steps = {"species", "class", "background"}
@@ -460,6 +496,7 @@ class CharacterCreatorApp:
         if not hasattr(self, "_wizard_sidebar"):
             return
 
+        self._update_sidebar_titles()
         for idx, (key, _, _, _) in enumerate(_WIZARD_STEPS):
             btn = self._wizard_sidebar._nav_buttons.get(key)
             if not btn:
@@ -526,6 +563,9 @@ class CharacterCreatorApp:
 
         # Handle substep advancement (grid -> detail)
         if step.has_substeps() and step.get_current_substep() < step.get_substep_count() - 1:
+            if not step.is_current_substep_valid():
+                self._show_validation_error(step)
+                return
             step.go_to_substep(step.get_current_substep() + 1)
             self._update_nav_buttons()
             return
@@ -558,7 +598,7 @@ class CharacterCreatorApp:
                 # When going back to a step with substeps, show detail if it has a selection
                 prev_step = self.wizard_steps[prev_idx]
                 if prev_step.has_substeps() and prev_step.is_valid():
-                    prev_step.go_to_substep(1)
+                    prev_step.go_to_substep(self._last_available_substep_index(prev_step))
                 self._show_step(prev_idx)
 
     def _show_validation_error(self, step):
@@ -572,12 +612,16 @@ class CharacterCreatorApp:
             expertise_chosen = sources["expertise_chosen_count"]
             expertise_word = "selection" if expertise_needed == 1 else "selections"
             parts = []
-            if needed:
+            current_substep = step.get_current_substep()
+            is_split = step.get_substep_count() > 1
+            show_skills = not is_split or current_substep == 0
+            show_expertise = not is_split or current_substep > 0
+            if needed and show_skills:
                 parts.append(
                     f"Choose {needed} class {skill_word} before moving on. "
                     f"({chosen}/{needed} selected)"
                 )
-            if expertise_needed:
+            if expertise_needed and show_expertise:
                 parts.append(
                     f"Choose {expertise_needed} Expertise {expertise_word} as well. "
                     f"({expertise_chosen}/{expertise_needed} selected)"
@@ -669,6 +713,7 @@ class CharacterCreatorApp:
         curr = self._current_step_idx
         step = self.wizard_steps[curr]
         key = self._step_keys[curr]
+        self._update_sidebar_titles()
 
         # Back button: hide it when there's nowhere to go back to
         can_go_back = curr > 0 or (step.has_substeps() and step.get_current_substep() > 0)
@@ -679,18 +724,12 @@ class CharacterCreatorApp:
         elif self._back_btn.winfo_manager():
             self._back_btn.pack_forget()
 
-        # Species keeps Next clickable; validation handled on click
-        if isinstance(step, SpeciesStep):
-            is_valid = True
-        else:
-            is_valid = step.is_valid()
-
-        is_tile_selection_substep = step.has_substeps() and step.get_current_substep() == 0
-        if is_tile_selection_substep:
-            if self._next_btn.winfo_manager():
-                self._next_btn.pack_forget()
-        elif not self._next_btn.winfo_manager():
-            self._next_btn.pack(side=tk.RIGHT)
+        show_primary_action = curr == len(self.wizard_steps) - 1 or step.is_primary_action_visible()
+        if show_primary_action:
+            if not self._next_btn.winfo_manager():
+                self._next_btn.pack(side=tk.RIGHT)
+        elif self._next_btn.winfo_manager():
+            self._next_btn.pack_forget()
 
         if curr == len(self.wizard_steps) - 1:
             is_valid = self._all_visible_steps_valid()
@@ -699,12 +738,16 @@ class CharacterCreatorApp:
                 command=self._save_and_finish,
                 state=tk.NORMAL if is_valid else tk.DISABLED,
             )
-        elif not is_tile_selection_substep:
-            confirm_label = _CONFIRM_STEP_LABELS.get(key, "Confirm")
+        elif show_primary_action:
+            confirm_label = step.get_primary_action_label() or _CONFIRM_STEP_LABELS.get(
+                key, "Confirm"
+            )
             self._next_btn.configure(
                 text=confirm_label,
                 command=self._wizard_next,
-                state=tk.NORMAL if is_valid else tk.DISABLED,
+                state=(
+                    tk.NORMAL if step.is_primary_action_enabled() else tk.DISABLED
+                ),
             )
 
         # Update step counter and progress bar

@@ -75,6 +75,22 @@ class WizardStep(ABC):
         """Return contextual label for the Next button, or None for default."""
         return None
 
+    def is_primary_action_visible(self) -> bool:
+        """Return whether the primary action should be shown on this substep."""
+        return not (self.has_substeps() and self.get_current_substep() == 0)
+
+    def is_primary_action_enabled(self) -> bool:
+        """Return whether the primary action button should be enabled."""
+        return self.is_valid()
+
+    def is_current_substep_valid(self) -> bool:
+        """Return whether the current substep is complete enough to advance."""
+        return self.is_valid()
+
+    def get_primary_action_label(self) -> str | None:
+        """Return a contextual label for the primary action, or None for default."""
+        return None
+
     def notify_substep_change(self):
         """Notify that the substep changed (update nav bar etc)."""
         for cb in self.on_substep_change_callbacks:

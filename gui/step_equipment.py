@@ -1,6 +1,7 @@
 """Step 9: Equipment selection."""
 
 from decimal import Decimal
+import re
 import tkinter as tk
 from tkinter import ttk
 from gui.base_step import WizardStep
@@ -9,6 +10,7 @@ from gui.theme import COLORS, FONTS, SPACING
 from gui.equipment_utils import extract_gp, gp_to_coins, strip_wealth
 
 CARD_RADIO_STYLE = "Card.TRadiobutton"
+_TRAILING_OR_RE = re.compile(r"\s*;\s*or\s*$", re.IGNORECASE)
 
 
 class EquipmentStep(WizardStep):
@@ -91,13 +93,36 @@ class EquipmentStep(WizardStep):
         saved_bg = self.character.equipment_choice_background
         self._populate_class_equipment()
         self._populate_bg_equipment()
-        if saved_class:
+        if self._is_valid_equipment_choice(
+            saved_class,
+            (self.character.character_class or {}).get("starting_equipment", []),
+        ):
             self.class_equip_var.set(saved_class)
         else:
-            self.class_equip_var.set("")
+            self._set_default_class_equipment_choice()
         if saved_bg:
             self.bg_equip_var.set(saved_bg)
         self._update_summary()
+
+    def _format_option_items(self, text: str) -> str:
+        """Clean display-only suffixes from an equipment option label."""
+        return _TRAILING_OR_RE.sub("", str(text or "")).strip()
+
+    def _is_valid_equipment_choice(self, value: str, options: list[dict]) -> bool:
+        valid = {
+            str(opt.get("option", "")).strip()
+            for opt in options
+            if str(opt.get("option", "")).strip()
+        }
+        return str(value or "").strip() in valid
+
+    def _set_default_class_equipment_choice(self):
+        """Default class equipment to the first available option."""
+        options = (self.character.character_class or {}).get("starting_equipment", [])
+        if options:
+            self.class_equip_var.set(str(options[0].get("option", "")).strip())
+        else:
+            self.class_equip_var.set("")
 
     def _populate_class_equipment(self):
         for w in self.class_equip_frame.winfo_children():
@@ -140,7 +165,7 @@ class EquipmentStep(WizardStep):
 
             ttk.Radiobutton(
                 self.class_equip_frame,
-                text=f"({opt['option']}) {opt['items']}",
+                text=f"({opt['option']}) {self._format_option_items(opt['items'])}",
                 variable=self.class_equip_var,
                 value=opt["option"],
                 style=CARD_RADIO_STYLE,

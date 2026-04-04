@@ -188,6 +188,12 @@ class Sidebar(tk.Frame):
         if self._step_counter is not None:
             self._step_counter.configure(text=f"STEP  {current}  OF  {total}")
 
+    def set_nav_text(self, key: str, text: str):
+        """Update the display text for a navigation item."""
+        btn = self._nav_buttons.get(key)
+        if btn:
+            btn.set_text(text)
+
     # ---- Step states ----
 
     def update_step_states(self, current_idx: int, reached_idx: int):

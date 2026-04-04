@@ -130,6 +130,9 @@ class SpeciesStep(WizardStep):
             return "Next: Choose Class  \u25b6"
         return None
 
+    def is_primary_action_enabled(self) -> bool:
+        return self.get_current_substep() > 0
+
     # ── Grid View (substep 0) ─────────────────────────────────────
 
     def _build_grid_view(self):

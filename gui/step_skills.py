@@ -19,6 +19,7 @@ from models.skill_utils import (
 )
 
 CARD_CHECK_STYLE = "Card.TCheckbutton"
+SOURCE_LABEL_FONT = (FONTS["body_small"][0], FONTS["body_small"][1], "italic")
 
 
 class SkillsStep(WizardStep):
@@ -28,6 +29,9 @@ class SkillsStep(WizardStep):
         self._skill_vars: dict[str, tk.BooleanVar] = {}
         self._skill_cbs: dict[str, ttk.Checkbutton] = {}
         self._choose_count: int = 0
+        self._current_substep: int = 0
+        self._rendered_split_active = False
+        self._has_expertise_section = False
         super().__init__(parent, character, game_data)
 
     def build_ui(self):
@@ -63,26 +67,29 @@ class SkillsStep(WizardStep):
         scroll.grid(row=1, column=0, sticky="nsew")
         inner = scroll.inner
 
-        SectionHeader(inner, text="Fixed Skills").pack(
+        self._skills_substep_frame = tk.Frame(inner, bg=COLORS["bg"])
+        self._expertise_substep_frame = tk.Frame(inner, bg=COLORS["bg"])
+
+        SectionHeader(self._skills_substep_frame, text="Fixed Skills").pack(
             fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
         )
 
-        fixed_card = CardFrame(inner, pad=SPACING["lg"])
+        fixed_card = CardFrame(self._skills_substep_frame, pad=SPACING["lg"])
         fixed_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
-
-        self.auto_chips_frame = tk.Frame(fixed_card.inner, bg=COLORS["bg_surface"])
-        self.auto_chips_frame.pack(fill=tk.X, anchor="w", pady=(0, SPACING["xs"]))
 
         self.sources_frame = tk.Frame(fixed_card.inner, bg=COLORS["bg_surface"])
         self.sources_frame.pack(fill=tk.X, anchor="w")
 
-        self.choose_section_header = SectionHeader(inner, text="Choose Skills")
+        self.choose_section_header = SectionHeader(
+            self._skills_substep_frame,
+            text="Choose Skills",
+        )
         self.choose_section_header.pack(
             fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
         )
         self.counter_label = self._install_inline_counter(self.choose_section_header)
 
-        options_card = CardFrame(inner, pad=SPACING["lg"])
+        options_card = CardFrame(self._skills_substep_frame, pad=SPACING["lg"])
         options_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
 
         tk.Label(
@@ -96,25 +103,70 @@ class SkillsStep(WizardStep):
         self.options_frame = tk.Frame(options_card.inner, bg=COLORS["bg_surface"])
         self.options_frame.pack(fill=tk.X, anchor="w")
 
-        SectionHeader(inner, text="Selected").pack(
-            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
+        self.expertise_section_container = tk.Frame(
+            self._expertise_substep_frame,
+            bg=COLORS["bg"],
         )
-        selected_card = CardFrame(inner, pad=SPACING["lg"])
-        selected_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
-        self.selected_frame = tk.Frame(selected_card.inner, bg=COLORS["bg_surface"])
-        self.selected_frame.pack(fill=tk.X, anchor="w")
-
-        self.expertise_section_header = SectionHeader(inner, text="Choose Expertise")
+        self.expertise_section_header = SectionHeader(
+            self.expertise_section_container,
+            text="Choose Expertise",
+        )
         self.expertise_section_header.pack(
             fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
         )
         self.expertise_counter_label = self._install_inline_counter(
             self.expertise_section_header
         )
-        self.expertise_card = CardFrame(inner, pad=SPACING["lg"])
+        self.expertise_card = CardFrame(self.expertise_section_container, pad=SPACING["lg"])
         self.expertise_card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["lg"]))
         self.expertise_frame = tk.Frame(self.expertise_card.inner, bg=COLORS["bg_surface"])
         self.expertise_frame.pack(fill=tk.X, anchor="w")
+
+        self._sync_substep_layout(split_active=False, has_expertise=False)
+
+    def has_substeps(self) -> bool:
+        return self.get_substep_count() > 1
+
+    def get_current_substep(self) -> int:
+        return self._current_substep
+
+    def get_substep_count(self) -> int:
+        sources = compute_skill_sources(self.character)
+        expertise_choices = int(sources.get("expertise_choose_count", 0) or 0)
+        return 2 if expertise_choices > 0 else 1
+
+    def go_to_substep(self, index: int):
+        max_index = max(0, self.get_substep_count() - 1)
+        next_index = max(0, min(index, max_index))
+        if next_index == self._current_substep:
+            return
+
+        self._current_substep = next_index
+        self._sync_substep_layout(
+            split_active=self.has_substeps(),
+            has_expertise=self._has_expertise_section,
+        )
+        self.notify_substep_change()
+
+    def is_primary_action_visible(self) -> bool:
+        return True
+
+    def is_primary_action_enabled(self) -> bool:
+        return self.is_current_substep_valid()
+
+    def is_current_substep_valid(self) -> bool:
+        sources = compute_skill_sources(self.character)
+        skills_complete = len(self.character.selected_skills) == sources["choose_count"]
+        if not self.has_substeps():
+            return skills_complete and sources["expertise_missing_count"] == 0
+        if self._current_substep == 0:
+            return skills_complete
+        return skills_complete and sources["expertise_missing_count"] == 0
+
+    def get_primary_action_label(self) -> str | None:
+        if self.has_substeps() and self._current_substep > 0:
+            return "Confirm Expertise"
+        return "Confirm Skills"
 
     def _install_inline_counter(self, header: SectionHeader) -> tk.Label:
         counter = tk.Label(
@@ -128,6 +180,25 @@ class SkillsStep(WizardStep):
         counter.pack(side=tk.LEFT, padx=(0, 12))
         header._line.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=1)
         return counter
+
+    def _sync_substep_layout(self, *, split_active: bool, has_expertise: bool):
+        self._skills_substep_frame.pack_forget()
+        self._expertise_substep_frame.pack_forget()
+        self.expertise_section_container.pack_forget()
+
+        if split_active:
+            if self._current_substep == 0:
+                self._skills_substep_frame.pack(fill=tk.X, expand=True)
+            else:
+                self._expertise_substep_frame.pack(fill=tk.X, expand=True)
+                if has_expertise:
+                    self.expertise_section_container.pack(fill=tk.X)
+            return
+
+        self._skills_substep_frame.pack(fill=tk.X, expand=True)
+        if has_expertise:
+            self._expertise_substep_frame.pack(fill=tk.X, expand=True)
+            self.expertise_section_container.pack(fill=tk.X)
 
     def on_enter(self):
         self._refresh_step(scrub_expertise=True)
@@ -154,86 +225,71 @@ class SkillsStep(WizardStep):
         self._choose_count = sources["choose_count"]
         skills_complete = len(self.character.selected_skills) == self._choose_count
 
-        self._rebuild_auto_chips(sources["auto"])
         self._rebuild_sources_info(sources["auto"])
         self._rebuild_skill_list(sources["class_options"], auto_names)
         self._update_counter()
-        has_expertise = bool(
+        self._has_expertise_section = bool(
             sources["expertise_auto"]
             or sources["expertise_selectable"]
             or sources["expertise_choose_count"]
         )
-        self._set_expertise_visibility(has_expertise)
-        if has_expertise:
+        split_active = int(sources.get("expertise_choose_count", 0) or 0) > 0
+        substep_changed = False
+        if split_active != self._rendered_split_active:
+            self._rendered_split_active = split_active
+            substep_changed = True
+        if not split_active and self._current_substep != 0:
+            self._current_substep = 0
+            substep_changed = True
+
+        self._sync_substep_layout(
+            split_active=split_active,
+            has_expertise=self._has_expertise_section,
+        )
+        if self._has_expertise_section:
             self._update_expertise_counter(sources, enabled=skills_complete)
             self._rebuild_expertise_section(
                 sources["expertise_auto"],
                 sources["expertise_selectable"],
                 enabled=skills_complete,
             )
-        self._update_selected_chips()
-
-    def _set_expertise_visibility(self, visible: bool):
-        if visible:
-            if not self.expertise_section_header.winfo_manager():
-                self.expertise_section_header.pack(
-                    fill=tk.X,
-                    padx=SPACING["lg"],
-                    pady=(SPACING["sm"], SPACING["sm"]),
-                )
-            if not self.expertise_card.winfo_manager():
-                self.expertise_card.pack(
-                    fill=tk.X,
-                    padx=SPACING["lg"],
-                    pady=(0, SPACING["lg"]),
-                )
-            return
-
-        self.expertise_section_header.pack_forget()
-        self.expertise_card.pack_forget()
-
-    def _rebuild_auto_chips(self, auto: list[tuple[str, str]]):
-        for widget in self.auto_chips_frame.winfo_children():
-            widget.destroy()
-
-        if not auto:
-            tk.Label(
-                self.auto_chips_frame,
-                text="No fixed skills yet - choose a background first.",
-                font=FONTS["body"],
-                fg=COLORS["fg_dim"],
-                bg=COLORS["bg_surface"],
-            ).pack(anchor="w")
-            return
-
-        seen: set[str] = set()
-        for name, _source in auto:
-            if name in seen:
-                continue
-            seen.add(name)
-            Chip(self.auto_chips_frame, text=name, style="default").pack(
-                side=tk.LEFT, padx=(0, 4), pady=2
-            )
+        if substep_changed:
+            self.notify_substep_change()
 
     def _rebuild_sources_info(self, auto: list[tuple[str, str]]):
         for widget in self.sources_frame.winfo_children():
             widget.destroy()
 
         background = COLORS["bg_surface"]
+        if not auto:
+            tk.Label(
+                self.sources_frame,
+                text="No fixed skills yet - choose a background first.",
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=background,
+            ).pack(anchor="w")
+            return
+
         for name, source in auto:
             row = tk.Frame(self.sources_frame, bg=background)
             row.pack(fill=tk.X, anchor="w", pady=1)
             tk.Label(
                 row,
-                text=f"\u2022 {name}:",
+                text="\u2022",
                 font=FONTS["body_bold"],
                 fg=COLORS["fg"],
                 bg=background,
-            ).pack(side=tk.LEFT)
+            ).pack(side=tk.LEFT, padx=(0, SPACING["sm"]))
+            Chip(row, text=name, style="default").pack(
+                side=tk.LEFT,
+                padx=(0, SPACING["sm"]),
+                pady=2,
+            )
             tk.Label(
                 row,
-                text=f" {source}",
-                font=FONTS["body_small"],
+                text=f"({source})",
+                font=SOURCE_LABEL_FONT,
                 fg=COLORS["fg_dim"],
                 bg=background,
             ).pack(side=tk.LEFT)
@@ -325,26 +381,6 @@ class SkillsStep(WizardStep):
     def _flash_counter(self):
         self.counter_label.configure(fg=COLORS["accent"])
         self.frame.after(600, self._update_counter)
-
-    def _update_selected_chips(self):
-        for widget in self.selected_frame.winfo_children():
-            widget.destroy()
-
-        chosen = self.character.selected_skills
-        if not chosen:
-            tk.Label(
-                self.selected_frame,
-                text="None chosen yet.",
-                font=FONTS["body"],
-                fg=COLORS["fg_dim"],
-                bg=COLORS["bg_surface"],
-            ).pack(anchor="w")
-            return
-
-        for skill in chosen:
-            Chip(self.selected_frame, text=skill, style="accent").pack(
-                side=tk.LEFT, padx=(0, 4), pady=2
-            )
 
     def _rebuild_expertise_section(
         self,

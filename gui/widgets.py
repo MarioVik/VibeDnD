@@ -1379,6 +1379,9 @@ class NavButton(tk.Frame):
         else:
             self._subtitle.pack_forget()
 
+    def set_text(self, text: str):
+        self._label.configure(text=text)
+
     def set_status(self, active: bool = False, completed: bool = False, locked: bool = False):
         """Update visual state: active, completed, or locked."""
         self._active = active
@@ -1541,6 +1544,9 @@ class WizardNavButton(tk.Frame):
             self._subtitle.pack(fill=tk.X, pady=(2, 0))
         else:
             self._subtitle.pack_forget()
+
+    def set_text(self, text: str):
+        self._label.configure(text=text)
 
     def set_status(self, active: bool = False, completed: bool = False, locked: bool = False):
         self._active = active
