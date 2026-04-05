@@ -162,6 +162,17 @@ def _show_level_features(parent: tk.Widget, character, game_data=None):
                     "description": "",
                 }
             )
+        # Show class choices (magic item plans, invocations, maneuvers, etc.)
+        for choice_name in cl.new_choices:
+            sub = cl.choice_sub_selections.get(choice_name, "")
+            if sub and "|" in sub:
+                parts = sub.split("|", 1)
+                display = f"{choice_name} ({parts[0]} \u2014 {parts[1]})"
+            elif sub:
+                display = f"{choice_name} ({sub})"
+            else:
+                display = choice_name
+            extra.append({"name": display, "description": ""})
 
         all_items = feature_details + extra
         if not all_items:
