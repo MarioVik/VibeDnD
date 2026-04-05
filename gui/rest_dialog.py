@@ -54,6 +54,15 @@ def _get_all_known_choices(character, key: str) -> list[str]:
     return result
 
 
+def _get_all_known_sub_selections(character, key: str) -> dict[str, str]:
+    """Aggregate sub-selections for class choices (e.g. 'Weapon +1' -> 'Longsword')."""
+    result: dict[str, str] = {}
+    for cl in character.class_levels:
+        if cl.class_slug == key or cl.subclass_slug == key:
+            result.update(cl.choice_sub_selections)
+    return result
+
+
 def _has_swappable_features(character, rest_type: str) -> bool:
     """Return True if the character has any features swappable on this rest type."""
     all_keys = set()
@@ -848,6 +857,7 @@ class RestDialog(tk.Toplevel):
         remove_var = tk.StringVar(value="")
         replace_var = tk.StringVar(value="")
         self._swaps[key] = {"remove_var": remove_var, "replace_var": replace_var, "config": config}
+        sub_sels = _get_all_known_sub_selections(self.character, key)
 
         # Left: Remove
         remove_lf = ttk.LabelFrame(cols, text="Remove")
@@ -858,8 +868,16 @@ class RestDialog(tk.Toplevel):
         ).pack(anchor="w", padx=8, pady=2)
 
         for name in sorted(known):
+            sub = sub_sels.get(name, "")
+            if sub and "|" in sub:
+                parts = sub.split("|", 1)
+                display = f"{name} ({parts[0]} \u2014 {parts[1]})"
+            elif sub:
+                display = f"{name} ({sub})"
+            else:
+                display = name
             ttk.Radiobutton(
-                remove_lf, text=name, variable=remove_var, value=name,
+                remove_lf, text=display, variable=remove_var, value=name,
             ).pack(anchor="w", padx=(16, 8), pady=1)
 
         # Right: Replace with
@@ -1369,11 +1387,16 @@ def _show_short_rest_result_manual(parent, *, healed, old_hp, new_hp, max_hp):
 # ══════════════════════════════════════════════════════════════════════
 
 
-def _apply_choice_swap(character, key: str, remove_name: str, replace_name: str):
+def _apply_choice_swap(character, key: str, remove_name: str, replace_name: str,
+                       replace_sub_selection: str = ""):
     """Update the character's class_levels to swap one choice for another."""
     for cl in character.class_levels:
         if (cl.class_slug == key or cl.subclass_slug == key) and remove_name in cl.new_choices:
             cl.new_choices.remove(remove_name)
             cl.new_choices.append(replace_name)
             cl.replaced_choice = remove_name
+            # Remove old sub-selection and add new one if provided
+            cl.choice_sub_selections.pop(remove_name, None)
+            if replace_sub_selection:
+                cl.choice_sub_selections[replace_name] = replace_sub_selection
             return

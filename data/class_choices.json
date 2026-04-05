@@ -202,7 +202,8 @@
       {
         "name": "Common magic item (not a Potion, Scroll, or cursed)",
         "description": "Varies. You can select this option multiple times, choosing a different common magic item each time.",
-        "min_level": 2
+        "min_level": 2,
+        "sub_choice": {"type": "magic_item", "filter": "common"}
       },
       {
         "name": "Goggles of Night",
@@ -217,12 +218,14 @@
       {
         "name": "Repeating Shot",
         "description": "Requires attunement. A weapon with the Ammunition property that magically produces one piece of ammunition each time you make a ranged attack.",
-        "min_level": 2
+        "min_level": 2,
+        "sub_choice": {"type": "weapon", "filter": "ammunition"}
       },
       {
         "name": "Returning Weapon",
         "description": "No attunement required. A thrown weapon with the Thrown property that returns to your hand after each throw.",
-        "min_level": 2
+        "min_level": 2,
+        "sub_choice": {"type": "weapon", "filter": "thrown"}
       },
       {
         "name": "Rope of Climbing",
@@ -257,7 +260,8 @@
       {
         "name": "Weapon +1",
         "description": "No attunement required. You have a +1 bonus to attack and damage rolls made with this weapon.",
-        "min_level": 2
+        "min_level": 2,
+        "sub_choice": {"type": "weapon", "filter": "all"}
       },
       {
         "name": "Wraps of Unarmed Power +1",
@@ -267,7 +271,8 @@
       {
         "name": "Armor +1",
         "description": "No attunement required. While wearing this armor, you have a +1 bonus to AC.",
-        "min_level": 6
+        "min_level": 6,
+        "sub_choice": {"type": "armor", "filter": "no_shield"}
       },
       {
         "name": "Boots of Elvenkind",
@@ -292,7 +297,8 @@
       {
         "name": "Dazzling Weapon",
         "description": "Requires attunement. When you score a critical hit, the target is Blinded until the end of your next turn.",
-        "min_level": 6
+        "min_level": 6,
+        "sub_choice": {"type": "weapon", "filter": "all"}
       },
       {
         "name": "Eyes of Charming",
@@ -372,12 +378,14 @@
       {
         "name": "Weapon of Warning",
         "description": "Requires attunement. This magic weapon warns you of danger. While the weapon is on your person, you have Advantage on Initiative rolls.",
-        "min_level": 6
+        "min_level": 6,
+        "sub_choice": {"type": "weapon", "filter": "all"}
       },
       {
         "name": "Armor of Resistance",
         "description": "Requires attunement. While wearing this armor, you have Resistance to one type of damage.",
-        "min_level": 10
+        "min_level": 10,
+        "sub_choice": {"type": "armor_and_damage_type", "filter": "all"}
       },
       {
         "name": "Dagger of Venom",
@@ -412,7 +420,8 @@
       {
         "name": "Uncommon Wondrous Item (not cursed)",
         "description": "Varies. You can select this option multiple times, choosing a different uncommon wondrous item each time.",
-        "min_level": 10
+        "min_level": 10,
+        "sub_choice": {"type": "magic_item", "filter": "uncommon_wondrous"}
       },
       {
         "name": "Wand of the War Mage +2",
@@ -422,7 +431,8 @@
       {
         "name": "Weapon +2",
         "description": "No attunement required. You have a +2 bonus to attack and damage rolls made with this weapon.",
-        "min_level": 10
+        "min_level": 10,
+        "sub_choice": {"type": "weapon", "filter": "all"}
       },
       {
         "name": "Wraps of Unarmed Power +2",
@@ -432,7 +442,8 @@
       {
         "name": "Armor +2",
         "description": "No attunement required. While wearing this armor, you have a +2 bonus to AC.",
-        "min_level": 14
+        "min_level": 14,
+        "sub_choice": {"type": "armor", "filter": "no_shield"}
       },
       {
         "name": "Arrow-Catching Shield",
@@ -442,12 +453,14 @@
       {
         "name": "Flame Tongue",
         "description": "Requires attunement. While the blade is ignited, the sword deals an extra 2d6 Fire damage on a hit and sheds Bright Light in a 40-foot radius.",
-        "min_level": 14
+        "min_level": 14,
+        "sub_choice": {"type": "weapon", "filter": "sword"}
       },
       {
         "name": "Rare Wondrous Item (not cursed)",
         "description": "Varies. You can select this option multiple times, choosing a different rare wondrous item each time.",
-        "min_level": 14
+        "min_level": 14,
+        "sub_choice": {"type": "magic_item", "filter": "rare_wondrous"}
       },
       {
         "name": "Ring of Free Action",

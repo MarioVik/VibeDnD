@@ -128,11 +128,13 @@ class LevelUpWizard(tk.Toplevel):
 
         # Class choices step state (maneuvers, invocations, plans, arcane shots)
         self.selected_new_choices: set[str] = set()
+        self.choice_sub_selections: dict[str, str] = {}  # choice name -> sub-selection
         self.replace_out_var = tk.StringVar(value="")
         self.replace_in_var = tk.StringVar(value="")
         self._updating_choices = False
         self.choice_vars: dict[str, tk.BooleanVar] = {}
         self.choice_checkbuttons: dict[str, ttk.Checkbutton] = {}
+        self._choice_options_by_name: dict[str, dict] = {}  # for sub_choice lookup
 
         # Subclass proficiency/expertise step state
         self.prof_grant_vars: list[
@@ -303,6 +305,71 @@ class LevelUpWizard(tk.Toplevel):
                 continue
             result.append(opt)
         return result
+
+    _DAMAGE_TYPES = [
+        "Acid", "Cold", "Fire", "Force", "Lightning",
+        "Necrotic", "Poison", "Psychic", "Radiant", "Thunder",
+    ]
+    _AMMO_NAMES = {"Arrows", "Bolts", "Bullets, Firearm", "Bullets, Sling", "Needles"}
+    _SWORD_NAMES = {"Greatsword", "Longsword", "Rapier", "Scimitar", "Shortsword"}
+
+    def _get_sub_choice_options(self, sub_choice: dict) -> list[str]:
+        """Return list of valid sub-selection options for a sub_choice config."""
+        sc_type = sub_choice.get("type", "")
+        sc_filter = sub_choice.get("filter", "")
+        if not self.data:
+            return []
+
+        if sc_type == "weapon":
+            weapons = self.data.items_by_category.get("Weapons", [])
+            if sc_filter == "all":
+                return sorted(w["name"] for w in weapons if w["name"] not in self._AMMO_NAMES)
+            elif sc_filter == "ammunition":
+                return sorted(
+                    w["name"] for w in weapons
+                    if w["name"] not in self._AMMO_NAMES
+                    and "ammunition" in w.get("description", "").lower()
+                )
+            elif sc_filter == "thrown":
+                return sorted(
+                    w["name"] for w in weapons
+                    if w["name"] not in self._AMMO_NAMES
+                    and "thrown" in w.get("description", "").lower()
+                )
+            elif sc_filter == "sword":
+                return sorted(self._SWORD_NAMES)
+
+        elif sc_type == "armor":
+            armors = self.data.items_by_category.get("Armor", [])
+            if sc_filter == "no_shield":
+                return sorted(a["name"] for a in armors if a["name"] != "Shield")
+
+        elif sc_type == "armor_and_damage_type":
+            armors = self.data.items_by_category.get("Armor", [])
+            return sorted(a["name"] for a in armors if a["name"] != "Shield")
+
+        elif sc_type == "magic_item":
+            magic = self.data.items_by_category.get("Magic Items", [])
+            if sc_filter == "common":
+                return sorted(
+                    m["name"] for m in magic
+                    if m.get("rarity") == "Common"
+                    and m.get("type") not in ("Potion", "Scroll")
+                )
+            elif sc_filter == "uncommon_wondrous":
+                return sorted(
+                    m["name"] for m in magic
+                    if m.get("rarity") == "Uncommon"
+                    and m.get("type") == "Wondrous Item"
+                )
+            elif sc_filter == "rare_wondrous":
+                return sorted(
+                    m["name"] for m in magic
+                    if m.get("rarity") == "Rare"
+                    and m.get("type") == "Wondrous Item"
+                )
+
+        return []
 
     # ------------------------------------------------------------------
     # Subclass proficiency/expertise grants
@@ -723,6 +790,48 @@ class LevelUpWizard(tk.Toplevel):
                 f"You chose to remove a {config.get('choice_label', 'choice')} but haven't selected a replacement.",
             )
             return False
+        # Validate sub-selections for choices that require them
+        for name in self.selected_new_choices:
+            opt = self._choice_options_by_name.get(name)
+            if not opt or "sub_choice" not in opt:
+                continue
+            sub_sel = self.choice_sub_selections.get(name, "")
+            sc_type = opt["sub_choice"].get("type", "")
+            if not sub_sel:
+                AlertDialog(
+                    self,
+                    "Missing Selection",
+                    f'"{name}" requires you to select a specific item. '
+                    f"Please hover over it and make a selection from the dropdown.",
+                )
+                return False
+            if sc_type == "armor_and_damage_type" and "|" not in sub_sel:
+                AlertDialog(
+                    self,
+                    "Missing Damage Type",
+                    f'"{name}" requires both an armor and a damage type selection.',
+                )
+                return False
+        # Also validate sub-selection for replacement choice
+        if inp:
+            opt = self._choice_options_by_name.get(inp)
+            if opt and "sub_choice" in opt:
+                sub_sel = self.choice_sub_selections.get(inp, "")
+                sc_type = opt["sub_choice"].get("type", "")
+                if not sub_sel:
+                    AlertDialog(
+                        self,
+                        "Missing Selection",
+                        f'Replacement "{inp}" requires you to select a specific item.',
+                    )
+                    return False
+                if sc_type == "armor_and_damage_type" and "|" not in sub_sel:
+                    AlertDialog(
+                        self,
+                        "Missing Damage Type",
+                        f'Replacement "{inp}" requires both an armor and a damage type.',
+                    )
+                    return False
         return True
 
     def _next_step_after(self, current: int) -> tuple[int, str] | None:
@@ -910,6 +1019,8 @@ class LevelUpWizard(tk.Toplevel):
 
         # Reset class choices state whenever content is rebuilt
         self.selected_new_choices.clear()
+        self.choice_sub_selections.clear()
+        self._choice_options_by_name.clear()
         self.replace_out_var.set("")
         self.replace_in_var.set("")
         self.choice_vars.clear()
@@ -1746,6 +1857,8 @@ class LevelUpWizard(tk.Toplevel):
         for w in self.step2b_frame.winfo_children():
             w.destroy()
         self.selected_new_choices.clear()
+        self.choice_sub_selections.clear()
+        self._choice_options_by_name.clear()
         self.replace_out_var.set("")
         self.replace_in_var.set("")
         self.choice_vars.clear()
@@ -1768,6 +1881,9 @@ class LevelUpWizard(tk.Toplevel):
         new_count = config.get("gains_by_level", {}).get(level_str, 0)
         known = self._get_known_choices(choice_key)
         available = self._get_available_options(config)
+        # Index all options by name for sub_choice lookup
+        for opt in config.get("options", []):
+            self._choice_options_by_name[opt["name"]] = opt
 
         # Pool-aware labels (e.g. "Beast Tattoos", "Hunter's Prey")
         active_pool = self._get_active_pool(config)
@@ -1863,14 +1979,27 @@ class LevelUpWizard(tk.Toplevel):
                 variable=self.replace_out_var,
                 value="",
             ).pack(anchor="w", pady=1, padx=4)
+            # Gather sub-selections from existing class_levels
+            existing_sub_sels: dict[str, str] = {}
+            for _cl in self.character.class_levels:
+                if _cl.class_slug == choice_key or _cl.subclass_slug == choice_key:
+                    existing_sub_sels.update(_cl.choice_sub_selections)
             for name in sorted(known):
                 opt_data = next(
                     (o for o in config.get("options", []) if o["name"] == name),
                     {"name": name, "description": ""},
                 )
+                sub = existing_sub_sels.get(name, "")
+                if sub and "|" in sub:
+                    parts = sub.split("|", 1)
+                    display = f"{name} ({parts[0]} \u2014 {parts[1]})"
+                elif sub:
+                    display = f"{name} ({sub})"
+                else:
+                    display = name
                 rb = ttk.Radiobutton(
                     remove_lf,
-                    text=name,
+                    text=display,
                     variable=self.replace_out_var,
                     value=name,
                 )
@@ -1917,6 +2046,105 @@ class LevelUpWizard(tk.Toplevel):
         )
         self.choice_detail_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
+        # Sub-choice selection area (shown/hidden dynamically)
+        self._sub_choice_frame = ttk.Frame(detail_lf)
+        self._sub_choice_frame.pack(fill=tk.X, padx=4, pady=(0, 4))
+        self._sub_choice_var = tk.StringVar(value="")
+        self._sub_choice_var.trace_add("write", lambda *_: self._on_sub_choice_changed())
+        self._sub_choice_label = ttk.Label(
+            self._sub_choice_frame, text="Select item:", foreground=COLORS["fg"],
+        )
+        self._sub_choice_combo = ttk.Combobox(
+            self._sub_choice_frame, textvariable=self._sub_choice_var,
+            state="readonly", width=30,
+        )
+        # Second row for damage type (Armor of Resistance)
+        self._dmg_type_var = tk.StringVar(value="")
+        self._dmg_type_var.trace_add("write", lambda *_: self._on_sub_choice_changed())
+        self._dmg_type_label = ttk.Label(
+            self._sub_choice_frame, text="Damage type:", foreground=COLORS["fg"],
+        )
+        self._dmg_type_combo = ttk.Combobox(
+            self._sub_choice_frame, textvariable=self._dmg_type_var,
+            state="readonly", values=self._DAMAGE_TYPES, width=20,
+        )
+        # Track which choice the sub-choice UI is currently showing for
+        self._sub_choice_for: str | None = None
+        # Start hidden
+        self._hide_sub_choice_ui()
+
+    def _hide_sub_choice_ui(self):
+        """Hide the sub-choice combobox widgets."""
+        self._sub_choice_label.pack_forget()
+        self._sub_choice_combo.pack_forget()
+        self._dmg_type_label.pack_forget()
+        self._dmg_type_combo.pack_forget()
+        self._sub_choice_for = None
+
+    def _show_sub_choice_ui(self, choice_name: str, sub_choice: dict):
+        """Show and populate the sub-choice combobox for a given choice."""
+        self._hide_sub_choice_ui()
+        self._sub_choice_for = choice_name
+        sc_type = sub_choice.get("type", "")
+
+        options = self._get_sub_choice_options(sub_choice)
+        if not options:
+            return
+
+        # Determine label text
+        if sc_type == "weapon":
+            label_text = "Select weapon:"
+        elif sc_type in ("armor", "armor_and_damage_type"):
+            label_text = "Select armor:"
+        elif sc_type == "magic_item":
+            label_text = "Select magic item:"
+        else:
+            label_text = "Select item:"
+
+        self._sub_choice_label.configure(text=label_text)
+        self._sub_choice_combo.configure(values=options)
+        # Restore previous selection if any
+        prev = self.choice_sub_selections.get(choice_name, "")
+        if sc_type == "armor_and_damage_type" and "|" in prev:
+            armor_part, dmg_part = prev.split("|", 1)
+            self._sub_choice_var.set(armor_part)
+            self._dmg_type_var.set(dmg_part)
+        else:
+            self._sub_choice_var.set(prev if prev in options else "")
+            self._dmg_type_var.set("")
+
+        self._sub_choice_label.pack(anchor="w", pady=(4, 0))
+        self._sub_choice_combo.pack(anchor="w", pady=(2, 0), fill=tk.X)
+
+        # Show damage type picker for Armor of Resistance
+        if sc_type == "armor_and_damage_type":
+            self._dmg_type_label.pack(anchor="w", pady=(4, 0))
+            self._dmg_type_combo.pack(anchor="w", pady=(2, 0))
+
+    def _on_sub_choice_changed(self):
+        """Called when sub-choice combobox value changes."""
+        name = self._sub_choice_for
+        if not name:
+            return
+        opt = self._choice_options_by_name.get(name)
+        if not opt or "sub_choice" not in opt:
+            return
+
+        sc_type = opt["sub_choice"].get("type", "")
+        val = self._sub_choice_var.get()
+        if sc_type == "armor_and_damage_type":
+            dmg = self._dmg_type_var.get()
+            if val and dmg:
+                self.choice_sub_selections[name] = f"{val}|{dmg}"
+            elif val:
+                self.choice_sub_selections[name] = val
+            else:
+                self.choice_sub_selections.pop(name, None)
+        elif val:
+            self.choice_sub_selections[name] = val
+        else:
+            self.choice_sub_selections.pop(name, None)
+
     def _on_choice_toggle(self, opt: dict):
         if self._updating_choices:
             return
@@ -1932,10 +2160,17 @@ class LevelUpWizard(tk.Toplevel):
                 self.choice_vars[opt["name"]].set(False)
                 selected = [n for n, v in self.choice_vars.items() if v.get()]
             self.selected_new_choices = set(selected)
+            # Remove sub-selections for unchecked choices
+            for name in list(self.choice_sub_selections):
+                if name not in self.selected_new_choices:
+                    self.choice_sub_selections.pop(name, None)
             self.choice_count_label.configure(
                 text=f"{len(selected)} / {max_count} selected"
             )
             self._update_choice_states(max_count, selected)
+            # Show sub-choice UI if this choice needs it and was just checked
+            if opt["name"] in self.selected_new_choices and opt.get("sub_choice"):
+                self._show_sub_choice_ui(opt["name"], opt["sub_choice"])
         finally:
             self._updating_choices = False
 
@@ -1996,6 +2231,17 @@ class LevelUpWizard(tk.Toplevel):
         lines.append(desc)
         self.choice_detail_text.insert("1.0", "\n".join(lines))
         self.choice_detail_text.configure(state=tk.DISABLED)
+
+        # Show sub-choice combobox if this option requires one and is selected
+        # (either as a new choice or as the replacement-in choice)
+        sub_choice = opt.get("sub_choice")
+        name = opt.get("name", "")
+        is_selected = name in self.selected_new_choices
+        is_replace_in = self.replace_in_var.get() == name
+        if sub_choice and (is_selected or is_replace_in):
+            self._show_sub_choice_ui(name, sub_choice)
+        else:
+            self._hide_sub_choice_ui()
 
     # ------------------------------------------------------------------
     # Step 3 – spell selection
@@ -2508,6 +2754,9 @@ class LevelUpWizard(tk.Toplevel):
         if replace_out and replace_in:
             cl.replaced_choice = replace_out
             cl.new_choices.append(replace_in)
+        # Store sub-selections (e.g. "Weapon +1" -> "Longsword")
+        if self.choice_sub_selections:
+            cl.choice_sub_selections = dict(self.choice_sub_selections)
 
         # Store subclass proficiency/expertise grants
         prof_picks = [v.get() for v in self.prof_grant_vars if v.get()]
