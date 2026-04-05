@@ -1443,15 +1443,18 @@ class LevelUpWizard(tk.Toplevel):
         # Show prerequisites
         prereqs = feat.get("prerequisites")
         if prereqs:
-            parts = []
-            if prereqs.get("level"):
-                parts.append(f"Level {prereqs['level']}+")
-            for ab, val in prereqs.get("abilities", {}).items():
-                parts.append(f"{ab} {val}+")
-            if parts:
+            prereq_text = str(prereqs.get("text", "") or "").strip()
+            if not prereq_text:
+                parts = []
+                if prereqs.get("level"):
+                    parts.append(f"Level {prereqs['level']}+")
+                for ab, val in prereqs.get("abilities", {}).items():
+                    parts.append(f"{ab} {val}+")
+                prereq_text = ", ".join(parts)
+            if prereq_text:
                 ttk.Label(
                     self.asi_detail_frame,
-                    text=f"Prerequisites: {', '.join(parts)}",
+                    text=f"Prerequisites: {prereq_text}",
                     foreground=COLORS["fg_dim"],
                 ).pack(anchor="w")
 

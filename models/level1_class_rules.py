@@ -28,6 +28,8 @@ FIGHTING_STYLE_FEAT_NAMES = [
     "Great Weapon Fighting",
     "Interception",
     "Protection",
+    "Thrown Weapon Fighting",
+    "Two Weapon Fighting",
     "Unarmed Fighting",
 ]
 
@@ -464,8 +466,19 @@ def get_selected_weapon_mastery_details(character, game_data) -> list[dict]:
 
 
 def get_available_fighting_styles(game_data) -> list[dict]:
-    feats = {feat.get("name"): feat for feat in getattr(game_data, "feats", [])}
-    return [feats[name] for name in FIGHTING_STYLE_FEAT_NAMES if name in feats]
+    order = {name: index for index, name in enumerate(FIGHTING_STYLE_FEAT_NAMES)}
+    styles = [
+        feat
+        for feat in getattr(game_data, "feats", [])
+        if str(feat.get("category", "")).strip().lower() == "fighting_style"
+    ]
+    return sorted(
+        styles,
+        key=lambda feat: (
+            order.get(str(feat.get("name", "")).strip(), len(order)),
+            str(feat.get("name", "")).casefold(),
+        ),
+    )
 
 
 def get_available_order_options(character) -> list[dict]:

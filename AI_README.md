@@ -99,6 +99,7 @@ Supporting modules:
   "ability_score_increase": null
 }
 ```
+`category` is one of `origin`, `general`, `fighting_style`, `epic_boon`, `dragonmark`, or `greater_dragonmark`
 
 ### `subclasses.json` (~300KB)
 ```json

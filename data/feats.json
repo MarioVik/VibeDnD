@@ -32,7 +32,7 @@
       },
       {
         "name": "Fast Crafting",
-        "description": "When you finish a Long Rest, you can craft one piece of gear from the Fast Crafting table, provided you have the Artisan's Tools associated with that item and have proficiency with those tools. The item lasts until you finish another Long Rest, at which point the item falls apart. Fast Crafting Artisan's Tools Crafted Gear Carpenter's Tools Ladder, Torch Leatherworker's Tools Case, Pouch Mason's Tools Block and Tackle Potter's Tools Jug, Lamp Smith's Tools Ball Bearings, Bucket, Caltrops, Grappling Hook, Iron Pot Tinker's Tools Bell, Shovel, Tinder Box Weaver's Tools Basket, Rope, Net, Tent Woodcarver's Tools Club, Greatclub, Quarterstaff"
+        "description": "When you finish a Long Rest, you can craft one piece of gear from the Fast Crafting table, provided you have the Artisan's Tools associated with that item and have proficiency with those tools. The item lasts until you finish another Long Rest, at which point the item falls apart.\n\n• Carpenter's Tools — Artisan's Tools: Ladder, Torch, Crafted Gear: Leatherworker's Tools\n• Case, Pouch — Artisan's Tools: Mason's Tools, Crafted Gear: Block and Tackle\n• Potter's Tools — Artisan's Tools: Jug, Lamp, Crafted Gear: Smith's Tools\n\nBall Bearings, Bucket, Caltrops, Grappling Hook, Iron Pot Tinker's Tools Bell, Shovel, Tinder Box Weaver's Tools Basket, Rope, Net, Tent Woodcarver's Tools Club, Greatclub, Quarterstaff"
       }
     ],
     "ability_score_increase": null
@@ -431,6 +431,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -455,6 +456,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Charisma 13+",
       "level": 4,
       "abilities": {
         "Charisma": 13
@@ -481,6 +483,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Strength or Dexterity 13+",
       "level": 4,
       "abilities": {
         "Dexterity": 13
@@ -515,6 +518,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Strength or Dexterity 13+",
       "level": 4,
       "abilities": {
         "Dexterity": 13
@@ -541,6 +545,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -569,6 +574,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Dexterity 13+",
       "level": 4,
       "abilities": {
         "Dexterity": 13
@@ -599,6 +605,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -623,6 +630,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Dexterity 13+",
       "level": 4,
       "abilities": {
         "Dexterity": 13
@@ -645,6 +653,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Strength or Dexterity 13+",
       "level": 4,
       "abilities": {
         "Dexterity": 13
@@ -671,6 +680,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -699,6 +709,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Spellcasting or Pact Magic Feature",
       "level": 4,
       "abilities": {},
       "requires_spellcasting": true
@@ -724,6 +735,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -748,6 +760,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Strength or Dexterity 13+",
       "level": 4,
       "abilities": {
         "Dexterity": 13
@@ -778,6 +791,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Strength 13+",
       "level": 4,
       "abilities": {
         "Strength": 13
@@ -804,6 +818,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Medium Armor Training",
       "level": 4,
       "abilities": {}
     },
@@ -828,6 +843,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Heavy Armor Training",
       "level": 4,
       "abilities": {}
     },
@@ -848,6 +864,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Wisdom or Charisma 13+",
       "level": 4,
       "abilities": {
         "Charisma": 13
@@ -870,6 +887,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Intelligence 13+",
       "level": 4,
       "abilities": {
         "Intelligence": 13
@@ -900,6 +918,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -924,6 +943,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -948,6 +968,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -972,6 +993,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Medium Armor Training",
       "level": 4,
       "abilities": {}
     },
@@ -992,6 +1014,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Light Armor Training",
       "level": 4,
       "abilities": {}
     },
@@ -1016,6 +1039,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -1044,6 +1068,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Intelligence or Wisdom 13+",
       "level": 4,
       "abilities": {
         "Wisdom": 13
@@ -1074,6 +1099,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -1098,6 +1124,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -1122,6 +1149,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Strength or Dexterity 13+",
       "level": 4,
       "abilities": {
         "Dexterity": 13
@@ -1148,6 +1176,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -1168,6 +1197,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Intelligence, Wisdom, or Charisma 13+",
       "level": 4,
       "abilities": {
         "Charisma": 13
@@ -1194,6 +1224,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Strength or Dexterity 13+",
       "level": 4,
       "abilities": {
         "Dexterity": 13
@@ -1220,6 +1251,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -1244,6 +1276,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Dexterity 13+",
       "level": 4,
       "abilities": {
         "Dexterity": 13
@@ -1274,6 +1307,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Shield Training",
       "level": 4,
       "abilities": {}
     },
@@ -1298,6 +1332,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -1326,6 +1361,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Dexterity 13+",
       "level": 4,
       "abilities": {
         "Dexterity": 13
@@ -1360,6 +1396,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -1384,6 +1421,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Dexterity or Constitution 13+",
       "level": 4,
       "abilities": {
         "Constitution": 13
@@ -1418,6 +1456,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Spellcasting or Pact Magic Feature",
       "level": 4,
       "abilities": {},
       "requires_spellcasting": true
@@ -1447,6 +1486,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -1471,6 +1511,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -1495,6 +1536,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+, Spellcasting or Pact Magic Feature",
       "level": 4,
       "abilities": {},
       "requires_spellcasting": true
@@ -1524,6 +1566,7 @@
     "source": "Player's Handbook",
     "category": "general",
     "prerequisites": {
+      "text": "Level 4+",
       "level": 4,
       "abilities": {}
     },
@@ -1542,8 +1585,12 @@
   {
     "name": "Cold Caster",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1563,8 +1610,12 @@
   {
     "name": "Dragonscarred",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1584,8 +1635,12 @@
   {
     "name": "Enclave Magic",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1605,8 +1660,12 @@
   {
     "name": "Fairy Trickster",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1626,8 +1685,12 @@
   {
     "name": "Genie Magic",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1643,8 +1706,12 @@
   {
     "name": "Harper Teamwork",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1664,8 +1731,12 @@
   {
     "name": "Lordly Resolve",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1681,8 +1752,12 @@
   {
     "name": "Mythal Touched",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1698,8 +1773,12 @@
   {
     "name": "Order S Resilience",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1719,8 +1798,12 @@
   {
     "name": "Purple Dragon Commandant",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1740,8 +1823,12 @@
   {
     "name": "Spellfire Adept",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1761,8 +1848,12 @@
   {
     "name": "Street Justice",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1786,8 +1877,12 @@
   {
     "name": "Zhentarim Tactics",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1807,8 +1902,12 @@
   {
     "name": "Bloodlust",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1828,8 +1927,12 @@
   {
     "name": "Bomber",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1849,8 +1952,12 @@
   {
     "name": "Cloying Mists",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1870,8 +1977,12 @@
   {
     "name": "Delicious Pain",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1887,8 +1998,12 @@
   {
     "name": "Light Bringer",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1912,8 +2027,12 @@
   {
     "name": "Love Bites",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1929,8 +2048,12 @@
   {
     "name": "Putrefy",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1946,8 +2069,12 @@
   {
     "name": "Rebuke",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1963,8 +2090,12 @@
   {
     "name": "Treacherous Allure",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -1984,8 +2115,12 @@
   {
     "name": "Vampire Touched",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2001,8 +2136,9 @@
   {
     "name": "Archery",
     "source": "Player's Handbook",
-    "category": "origin",
+    "category": "fighting_style",
     "prerequisites": {
+      "text": "Fighting Style Feature",
       "level": null,
       "abilities": {}
     },
@@ -2017,8 +2153,9 @@
   {
     "name": "Blind Fighting",
     "source": "Player's Handbook",
-    "category": "origin",
+    "category": "fighting_style",
     "prerequisites": {
+      "text": "Fighting Style Feature",
       "level": null,
       "abilities": {}
     },
@@ -2033,8 +2170,9 @@
   {
     "name": "Defense",
     "source": "Player's Handbook",
-    "category": "origin",
+    "category": "fighting_style",
     "prerequisites": {
+      "text": "Fighting Style Feature",
       "level": null,
       "abilities": {}
     },
@@ -2049,8 +2187,9 @@
   {
     "name": "Dueling",
     "source": "Player's Handbook",
-    "category": "origin",
+    "category": "fighting_style",
     "prerequisites": {
+      "text": "Fighting Style Feature",
       "level": null,
       "abilities": {}
     },
@@ -2065,8 +2204,9 @@
   {
     "name": "Great Weapon Fighting",
     "source": "Player's Handbook",
-    "category": "origin",
+    "category": "fighting_style",
     "prerequisites": {
+      "text": "Fighting Style Feature",
       "level": null,
       "abilities": {}
     },
@@ -2081,8 +2221,9 @@
   {
     "name": "Interception",
     "source": "Player's Handbook",
-    "category": "origin",
+    "category": "fighting_style",
     "prerequisites": {
+      "text": "Fighting Style Feature",
       "level": null,
       "abilities": {}
     },
@@ -2097,8 +2238,9 @@
   {
     "name": "Protection",
     "source": "Player's Handbook",
-    "category": "origin",
+    "category": "fighting_style",
     "prerequisites": {
+      "text": "Fighting Style Feature",
       "level": null,
       "abilities": {}
     },
@@ -2113,8 +2255,9 @@
   {
     "name": "Thrown Weapon Fighting",
     "source": "Player's Handbook",
-    "category": "origin",
+    "category": "fighting_style",
     "prerequisites": {
+      "text": "Fighting Style Feature",
       "level": null,
       "abilities": {}
     },
@@ -2129,8 +2272,9 @@
   {
     "name": "Two Weapon Fighting",
     "source": "Player's Handbook",
-    "category": "origin",
+    "category": "fighting_style",
     "prerequisites": {
+      "text": "Fighting Style Feature",
       "level": null,
       "abilities": {}
     },
@@ -2145,8 +2289,9 @@
   {
     "name": "Unarmed Fighting",
     "source": "Player's Handbook",
-    "category": "origin",
+    "category": "fighting_style",
     "prerequisites": {
+      "text": "Fighting Style Feature",
       "level": null,
       "abilities": {}
     },
@@ -2161,8 +2306,9 @@
   {
     "name": "Boon Of Combat Prowess",
     "source": "Player's Handbook",
-    "category": "epic_boon",
+    "category": "general",
     "prerequisites": {
+      "text": "Level 19+",
       "level": 19,
       "abilities": {}
     },
@@ -2181,8 +2327,9 @@
   {
     "name": "Boon Of Dimensional Travel",
     "source": "Player's Handbook",
-    "category": "epic_boon",
+    "category": "general",
     "prerequisites": {
+      "text": "Level 19+",
       "level": 19,
       "abilities": {}
     },
@@ -2201,8 +2348,9 @@
   {
     "name": "Boon Of Energy Resistance",
     "source": "Player's Handbook",
-    "category": "epic_boon",
+    "category": "general",
     "prerequisites": {
+      "text": "Level 19+",
       "level": 19,
       "abilities": {}
     },
@@ -2225,8 +2373,9 @@
   {
     "name": "Boon Of Fate",
     "source": "Player's Handbook",
-    "category": "epic_boon",
+    "category": "general",
     "prerequisites": {
+      "text": "Level 19+",
       "level": 19,
       "abilities": {}
     },
@@ -2245,8 +2394,9 @@
   {
     "name": "Boon Of Fortitude",
     "source": "Player's Handbook",
-    "category": "epic_boon",
+    "category": "general",
     "prerequisites": {
+      "text": "Level 19+",
       "level": 19,
       "abilities": {}
     },
@@ -2265,8 +2415,9 @@
   {
     "name": "Boon Of Irresistible Offense",
     "source": "Player's Handbook",
-    "category": "epic_boon",
+    "category": "general",
     "prerequisites": {
+      "text": "Level 19+",
       "level": 19,
       "abilities": {}
     },
@@ -2289,8 +2440,9 @@
   {
     "name": "Boon Of Recovery",
     "source": "Player's Handbook",
-    "category": "epic_boon",
+    "category": "general",
     "prerequisites": {
+      "text": "Level 19+",
       "level": 19,
       "abilities": {}
     },
@@ -2313,8 +2465,9 @@
   {
     "name": "Boon Of Skill",
     "source": "Player's Handbook",
-    "category": "epic_boon",
+    "category": "general",
     "prerequisites": {
+      "text": "Level 19+",
       "level": 19,
       "abilities": {}
     },
@@ -2341,8 +2494,9 @@
   {
     "name": "Boon Of Speed",
     "source": "Player's Handbook",
-    "category": "epic_boon",
+    "category": "general",
     "prerequisites": {
+      "text": "Level 19+",
       "level": 19,
       "abilities": {}
     },
@@ -2369,8 +2523,9 @@
   {
     "name": "Boon Of Spell Recall",
     "source": "Player's Handbook",
-    "category": "epic_boon",
+    "category": "general",
     "prerequisites": {
+      "text": "Level 19+",
       "level": 19,
       "abilities": {}
     },
@@ -2389,8 +2544,9 @@
   {
     "name": "Boon Of The Night Spirit",
     "source": "Player's Handbook",
-    "category": "epic_boon",
+    "category": "general",
     "prerequisites": {
+      "text": "Level 19+",
       "level": 19,
       "abilities": {}
     },
@@ -2413,8 +2569,9 @@
   {
     "name": "Boon Of Truesight",
     "source": "Player's Handbook",
-    "category": "epic_boon",
+    "category": "general",
     "prerequisites": {
+      "text": "Level 19+",
       "level": 19,
       "abilities": {}
     },
@@ -2437,8 +2594,12 @@
   {
     "name": "Boon Of Siberys",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+, Eberron Campaign",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2446,7 +2607,7 @@
       },
       {
         "name": "Aberrant Magic",
-        "description": "Choose a level 8 or lower spell from the Sorcerer spell list or a spell from the Siberys Dragonmark Spells table (the table includes dragonmark suggestions if you’d like to associate a spell with one of the marks). You always have that spell prepared. You can cast it once without a spell slot or spell components, and you regain the ability to cast it in that way when you finish a Short or Long Rest. You can also cast this spell using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for this spell (choose when you gain this feat). Siberys Dragonmark Spells Spell Suggested Dragonmark Animal Shapes Handling Control Weather Storm Demiplane Making Heroes' Feast Hospitality Maze Warding Mind Blank Sentinel Plane Shift Passage Project Image Shadow Regenerate Healing Symbol Scribing Teleport Finding True Seeing Detection"
+        "description": "Choose a level 8 or lower spell from the Sorcerer spell list or a spell from the Siberys Dragonmark Spells table (the table includes dragonmark suggestions if you’d like to associate a spell with one of the marks). You always have that spell prepared. You can cast it once without a spell slot or spell components, and you regain the ability to cast it in that way when you finish a Short or Long Rest. You can also cast this spell using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for this spell (choose when you gain this feat). Siberys Dragonmark Spells Spell Suggested Dragonmark Animal Shapes Handling\n\nControl Weather\n\n• Heroes' Feast — Demiplane: Hospitality, Making: Maze\n• Warding — Demiplane: Mind Blank, Making: Sentinel\n• Plane Shift — Demiplane: Passage, Making: Project Image\n• Shadow — Demiplane: Regenerate, Making: Healing\n• Symbol — Demiplane: Scribing, Making: Teleport\n• Finding — Demiplane: True Seeing, Making: Detection"
       }
     ],
     "ability_score_increase": "Choice"
@@ -2454,8 +2615,12 @@
   {
     "name": "Boon Of Bloodshed",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2475,8 +2640,12 @@
   {
     "name": "Boon Of Bountiful Health",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2496,8 +2665,12 @@
   {
     "name": "Boon Of Communication",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2525,8 +2698,12 @@
   {
     "name": "Boon Of Desperate Resilience",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2542,8 +2719,12 @@
   {
     "name": "Boon Of Exquisite Radiance",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2563,8 +2744,12 @@
   {
     "name": "Boon Of Fluid Forms",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2584,8 +2769,12 @@
   {
     "name": "Boon Of Fortune S Favor",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2601,8 +2790,12 @@
   {
     "name": "Boon Of Poison Mastery",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2622,8 +2815,12 @@
   {
     "name": "Boon Of Revelry",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2643,8 +2840,12 @@
   {
     "name": "Boon Of Terror",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2668,8 +2869,12 @@
   {
     "name": "Boon Of The Bright Sun",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2689,8 +2894,13 @@
   {
     "name": "Boon Of The Furious Storm",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+, Spellcasting or Pact Magic Feature",
+      "level": 19,
+      "abilities": {},
+      "requires_spellcasting": true
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2710,8 +2920,12 @@
   {
     "name": "Boon Of The Soul Drinker",
     "source": "Forgotten Realms - Heroes of Faerun",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2731,8 +2945,12 @@
   {
     "name": "Boon Of Blazing Dawn",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2760,8 +2978,12 @@
   {
     "name": "Boon Of Looming Shadows",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2785,8 +3007,12 @@
   {
     "name": "Boon Of Misty Escape",
     "source": "Astarion's Book of Hungers",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "epic_boon",
+    "prerequisites": {
+      "text": "Level 19+",
+      "level": 19,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -2802,8 +3028,12 @@
   {
     "name": "Aberrant Dragonmark",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t Have Another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Aberrant Fortitude",
@@ -2827,8 +3057,12 @@
   {
     "name": "Mark Of Detection",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t have another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Deductive Intuition",
@@ -2840,7 +3074,7 @@
       },
       {
         "name": "Spells of the Mark",
-        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Detection Spells table are added to that feature’s spell list. Mark of Detection Spells Spell Level Spells 1 Detect Evil and Good , Identify 2 Detect Thoughts , Find Traps 3 Clairvoyance , Nondetection 4 Arcane Eye , Divination 5 Legend Lore"
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Detection Spells table are added to that feature’s spell list.\n\n• 1 — Spell Level: Detect Evil and Good, Spells: ,\n• Identify — Spell Level: 2, Spells: Detect Thoughts\n• , — Spell Level: Find Traps, Spells: 3\n• Clairvoyance — Spell Level: ,, Spells: Nondetection\n• 4 — Spell Level: Arcane Eye, Spells: ,\n• Divination — Spell Level: 5, Spells: Legend Lore"
       }
     ],
     "ability_score_increase": null
@@ -2848,8 +3082,12 @@
   {
     "name": "Mark Of Finding",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t have another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Hunter’s Intuition",
@@ -2861,7 +3099,7 @@
       },
       {
         "name": "Spells of the Mark",
-        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Finding Spells table are added to that feature’s spell list. Mark of Finding Spells Spell Level Spells 1 Faerie Fire , Longstrider 2 Locate Animals or Plants , Mind Spike 3 Clairvoyance , Speak with Plants 4 Divination , Locate Creature 5 Commune with Nature"
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Finding Spells table are added to that feature’s spell list.\n\n• 1 — Spell Level: Faerie Fire, Spells: ,\n• Longstrider — Spell Level: 2, Spells: Locate Animals or Plants\n• , — Spell Level: Mind Spike, Spells: 3\n• Clairvoyance — Spell Level: ,, Spells: Speak with Plants\n• 4 — Spell Level: Divination, Spells: ,\n• Locate Creature — Spell Level: 5, Spells: Commune with Nature"
       }
     ],
     "ability_score_increase": null
@@ -2869,8 +3107,12 @@
   {
     "name": "Mark Of Handling",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t have another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Wild Intuition",
@@ -2886,7 +3128,7 @@
       },
       {
         "name": "Spells of the Mark",
-        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Handling Spells table are added to that feature’s spell list. Mark of Handling Spells Spell Level Spells 1 Command , Find Familiar 2 Beast Sense , Calm Emotions 3 Beacon of Hope , Conjure Animals 4 Aura of Life , Dominate Beast 5 Awaken"
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Handling Spells table are added to that feature’s spell list.\n\n• 1 — Spell Level: Command, Spells: ,\n• Find Familiar — Spell Level: 2, Spells: Beast Sense\n• , — Spell Level: Calm Emotions, Spells: 3\n• Beacon of Hope — Spell Level: ,, Spells: Conjure Animals\n• 4 — Spell Level: Aura of Life, Spells: ,\n• Dominate Beast — Spell Level: 5, Spells: Awaken"
       }
     ],
     "ability_score_increase": null
@@ -2894,8 +3136,12 @@
   {
     "name": "Mark Of Healing",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t have another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Medical Intuition",
@@ -2907,7 +3153,7 @@
       },
       {
         "name": "Spells of the Mark",
-        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Healing Spells table are added to that feature’s spell list. Mark of Healing Spells Spell Level Spells 1 False Life , Healing Word 2 Arcane Vigor , Prayer of Healing 3 Aura of Vitality , Mass Healing Word 4 Aura of Life , Aura of Purity 5 Greater Restoration"
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Healing Spells table are added to that feature’s spell list.\n\n• 1 — Spell Level: False Life, Spells: ,\n• Healing Word — Spell Level: 2, Spells: Arcane Vigor\n• , — Spell Level: Prayer of Healing, Spells: 3\n• Aura of Vitality — Spell Level: ,, Spells: Mass Healing Word\n• 4 — Spell Level: Aura of Life, Spells: ,\n• Aura of Purity — Spell Level: 5, Spells: Greater Restoration"
       }
     ],
     "ability_score_increase": null
@@ -2915,8 +3161,12 @@
   {
     "name": "Mark Of Hospitality",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t have another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ever Hospitable",
@@ -2928,7 +3178,7 @@
       },
       {
         "name": "Spells of the Mark",
-        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Hospitality Spells table are added to that feature’s spell list. Mark of Hospitality Spells Spell Level Spells 1 Goodberry , Sleep 2 Aid , Enhance Ability 3 Create Food and Water , Leomund's Tiny Hut 4 Aura of Purity , Mordenkainen's Private Sanctum 5 Hallow"
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Hospitality Spells table are added to that feature’s spell list.\n\n• 1 — Spell Level: Goodberry, Spells: ,\n• Sleep — Spell Level: 2, Spells: Aid\n• , — Spell Level: Enhance Ability, Spells: 3\n• Create Food and Water — Spell Level: ,, Spells: Leomund's Tiny Hut\n• 4 — Spell Level: Aura of Purity, Spells: ,\n• Mordenkainen's Private Sanctum — Spell Level: 5, Spells: Hallow"
       }
     ],
     "ability_score_increase": null
@@ -2936,8 +3186,12 @@
   {
     "name": "Mark Of Making",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t Have Another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Artisan’s Intuition",
@@ -2949,7 +3203,7 @@
       },
       {
         "name": "Spells of the Mark",
-        "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Making Spells table are added to that feature’s spell list. Mark of Making Spells Spell Level Spells 1 Identify , Tenser's Floating Disk 2 Continual Flame , Spiritual Weapon 3 Conjure Barrage , Elemental Weapon 4 Fabricate , Stone Shape 5 Creation"
+        "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Making Spells table are added to that feature’s spell list.\n\n• 1 — Spell Level: Identify, Spells: ,\n• Tenser's Floating Disk — Spell Level: 2, Spells: Continual Flame\n• , — Spell Level: Spiritual Weapon, Spells: 3\n• Conjure Barrage — Spell Level: ,, Spells: Elemental Weapon\n• 4 — Spell Level: Fabricate, Spells: ,\n• Stone Shape — Spell Level: 5, Spells: Creation"
       }
     ],
     "ability_score_increase": null
@@ -2957,8 +3211,12 @@
   {
     "name": "Mark Of Passage",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t have another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Courier’s Speed",
@@ -2978,7 +3236,7 @@
       },
       {
         "name": "Spells of the Mark",
-        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Passage Spells table are added to that feature’s spell list. Mark of Passage Spells Spell Level Spells 1 Expeditious Retreat , Jump 2 Find Steed , Pass without Trace 3 Blink , Phantom Steed 4 Dimension Door , Freedom of Movement 5 Teleportation Circle"
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Passage Spells table are added to that feature’s spell list.\n\n• 1 — Spell Level: Expeditious Retreat, Spells: ,\n• Jump — Spell Level: 2, Spells: Find Steed\n• , — Spell Level: Pass without Trace, Spells: 3\n• Blink — Spell Level: ,, Spells: Phantom Steed\n• 4 — Spell Level: Dimension Door, Spells: ,\n• Freedom of Movement — Spell Level: 5, Spells: Teleportation Circle"
       }
     ],
     "ability_score_increase": null
@@ -2986,8 +3244,12 @@
   {
     "name": "Mark Of Scribing",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t Have Another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Gifted Scribe",
@@ -2999,7 +3261,7 @@
       },
       {
         "name": "Spells of the Mark",
-        "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Scribing Spells table are added to that feature’s spell list. Mark of Scribing Spells Spell Level Spells 1 Command , Illusory Script 2 Animal Messenger , Silence 3 Sending , Tongues 4 Arcane Eye , Confusion 5 Dream"
+        "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Scribing Spells table are added to that feature’s spell list.\n\n• 1 — Spell Level: Command, Spells: ,\n• Illusory Script — Spell Level: 2, Spells: Animal Messenger\n• , — Spell Level: Silence, Spells: 3\n• Sending — Spell Level: ,, Spells: Tongues\n• 4 — Spell Level: Arcane Eye, Spells: ,\n• Confusion — Spell Level: 5, Spells: Dream"
       }
     ],
     "ability_score_increase": null
@@ -3007,8 +3269,12 @@
   {
     "name": "Mark Of Sentinel",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t Have Another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Mark Of Sentinel",
@@ -3028,7 +3294,7 @@
       },
       {
         "name": "Spells of the Mark",
-        "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Sentinel Spells table are added to that feature’s spell list. Mark of Sentinel Spells Spell Level Spells 1 Compelled Duel , Shield of Faith 2 Warding Bond , Zone of Truth 3 Counterspell , Protection from Energy 4 Death Ward , Guardian-of-Faith 5 Bigby's Hand"
+        "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Sentinel Spells table are added to that feature’s spell list.\n\n• 1 — Spell Level: Compelled Duel, Spells: ,\n• Shield of Faith — Spell Level: 2, Spells: Warding Bond\n• , — Spell Level: Zone of Truth, Spells: 3\n• Counterspell — Spell Level: ,, Spells: Protection from Energy\n• 4 — Spell Level: Death Ward, Spells: ,\n• Guardian-of-Faith — Spell Level: 5, Spells: Bigby's Hand"
       }
     ],
     "ability_score_increase": null
@@ -3036,8 +3302,12 @@
   {
     "name": "Mark Of Shadow",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t Have Another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Cunning Intuition",
@@ -3049,7 +3319,7 @@
       },
       {
         "name": "Spells of the Mark",
-        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Shadow Spells table are added to that feature’s spell list. Mark of Shadow Spells Spell Level Spells 1 Disguise Self , Silent Image 2 Darkness , Pass without Trace 3 Clairvoyance , Major Image 4 Greater Invisibility , Hallucinatory Terrain 5 Mislead"
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Shadow Spells table are added to that feature’s spell list.\n\n• 1 — Spell Level: Disguise Self, Spells: ,\n• Silent Image — Spell Level: 2, Spells: Darkness\n• , — Spell Level: Pass without Trace, Spells: 3\n• Clairvoyance — Spell Level: ,, Spells: Major Image\n• 4 — Spell Level: Greater Invisibility, Spells: ,\n• Hallucinatory Terrain — Spell Level: 5, Spells: Mislead"
       }
     ],
     "ability_score_increase": null
@@ -3057,8 +3327,12 @@
   {
     "name": "Mark Of Storm",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t Have Another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Windwright’s Intuition",
@@ -3078,7 +3352,7 @@
       },
       {
         "name": "Spells of the Mark",
-        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Storm Spells table are added to that feature’s spell list. Mark of Storm Spells Spell Level Spells 1 Feather Fall , Fog Cloud 2 Levitate , Shatter 3 Sleet Storm , Wind Wall 4 Conjure Minor Elementals , Control Water 5 Conjure Elemental"
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Storm Spells table are added to that feature’s spell list.\n\n• 1 — Spell Level: Feather Fall, Spells: ,\n• Fog Cloud — Spell Level: 2, Spells: Levitate\n• , — Spell Level: Shatter, Spells: 3\n• Sleet Storm — Spell Level: ,, Spells: Wind Wall\n• 4 — Spell Level: Conjure Minor Elementals, Spells: ,\n• Control Water — Spell Level: 5, Spells: Conjure Elemental"
       }
     ],
     "ability_score_increase": null
@@ -3086,8 +3360,12 @@
   {
     "name": "Mark Of Warding",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "dragonmark",
+    "prerequisites": {
+      "text": "Eberron Campaign, Can’t Have Another Dragonmark Feat",
+      "level": null,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Warder’s Intuition",
@@ -3099,7 +3377,7 @@
       },
       {
         "name": "Spells of the Mark",
-        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Warding Spells table are added to that feature’s spell list. Mark of Warding Spells Spell Level Spells 1 Armor of Agathys , Sanctuary 2 Knock , Nystul's Magic Aura 3 Glyph of Warding , Magic Circle 4 Leomund's Secret Chest , Mordenkainen's Faithful Hound 5 Antilife Shell"
+        "description": "If you have the Spellcasting or Pact Magic feature, the spells on the Mark of Warding Spells table are added to that feature’s spell list.\n\n• 1 — Spell Level: Armor of Agathys, Spells: ,\n• Sanctuary — Spell Level: 2, Spells: Knock\n• , — Spell Level: Nystul's Magic Aura, Spells: 3\n• Glyph of Warding — Spell Level: ,, Spells: Magic Circle\n• 4 — Spell Level: Leomund's Secret Chest, Spells: ,\n• Mordenkainen's Faithful Hound — Spell Level: 5, Spells: Antilife Shell"
       }
     ],
     "ability_score_increase": null
@@ -3107,8 +3385,12 @@
   {
     "name": "Greater Aberrant Mark",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3128,8 +3410,12 @@
   {
     "name": "Greater Mark Of Detection",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3149,8 +3435,12 @@
   {
     "name": "Greater Mark Of Finding",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3170,8 +3460,12 @@
   {
     "name": "Greater Mark Of Handling",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3195,8 +3489,12 @@
   {
     "name": "Greater Mark Of Healing",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3216,8 +3514,12 @@
   {
     "name": "Greater Mark Of Hospitality",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3237,8 +3539,12 @@
   {
     "name": "Greater Mark Of Making",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3258,8 +3564,12 @@
   {
     "name": "Greater Mark Of Passage",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3279,8 +3589,12 @@
   {
     "name": "Greater Mark Of Scribing",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3300,8 +3614,12 @@
   {
     "name": "Greater Mark Of Sentinel",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3321,8 +3639,12 @@
   {
     "name": "Greater Mark Of Shadow",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3342,8 +3664,12 @@
   {
     "name": "Greater Mark Of Storm",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3363,8 +3689,12 @@
   {
     "name": "Greater Mark Of Warding",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "greater_dragonmark",
+    "prerequisites": {
+      "text": "Level 4+,",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",
@@ -3384,8 +3714,12 @@
   {
     "name": "Potent Dragonmark",
     "source": "Eberron - Forge of the Artificer",
-    "category": "origin",
-    "prerequisites": null,
+    "category": "general",
+    "prerequisites": {
+      "text": "Level 4+, Any Dragonmark Feat",
+      "level": 4,
+      "abilities": {}
+    },
     "benefits": [
       {
         "name": "Ability Score Increase",

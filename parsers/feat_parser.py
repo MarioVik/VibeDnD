@@ -1,51 +1,127 @@
 """Parser for feat entries from dnd2024_data.json."""
 
 import re
+
 from parsers.base_parser import extract_name_from_url, extract_source, join_description_lines
 
+FEAT_CATEGORY_BY_FAMILY_HEADING = {
+    "origin feats": "origin",
+    "general feats": "general",
+    "fighting style feats": "fighting_style",
+    "epic boon feats": "epic_boon",
+    "dragonmark feats": "dragonmark",
+    "greater dragonmark feats": "greater_dragonmark",
+}
 
-def parse_prerequisites(content: str) -> dict | None:
-    """Parse prerequisite line like 'Prerequisite: Level 4+, Strength 13+'."""
-    lines = content.split("\n")
-    for line in lines:
-        stripped = line.strip()
-        if stripped.lower().startswith("prerequisite"):
-            text = re.sub(r'^prerequisite\s*:\s*', '', stripped, flags=re.IGNORECASE)
-            result = {"level": None, "abilities": {}}
 
-            # Level requirement
-            level_match = re.search(r'Level\s+(\d+)\+?', text, re.IGNORECASE)
-            if level_match:
-                result["level"] = int(level_match.group(1))
+def _normalize_heading(text: str) -> str:
+    return " ".join(str(text or "").strip().rstrip(":").split()).lower()
 
-            # Ability requirements: "Strength 13+", "Dexterity 13+"
-            ability_pattern = re.findall(
-                r'(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)\s+(\d+)\+?',
-                text, re.IGNORECASE,
-            )
-            for ability, score in ability_pattern:
-                result["abilities"][ability.title()] = int(score)
 
-            # Class requirement
-            class_match = re.search(r'(Spellcasting|Pact Magic)\s+feature', text, re.IGNORECASE)
-            if class_match:
-                result["requires_spellcasting"] = True
+def _normalize_tag(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(text or "").lower())
 
-            return result if result["level"] or result["abilities"] else result
 
+def _category_from_page_tag(tag: str) -> str | None:
+    normalized = _normalize_tag(tag)
+    if normalized.endswith("greaterdragonmarkfeat"):
+        return "greater_dragonmark"
+    if normalized.endswith("dragonmarkfeat"):
+        return "dragonmark"
+    if normalized.endswith("epicboonfeat"):
+        return "epic_boon"
+    if normalized.endswith("fightingstylefeat"):
+        return "fighting_style"
+    if normalized.endswith("originfeat"):
+        return "origin"
+    if normalized.endswith("generalfeat"):
+        return "general"
     return None
 
 
-def categorize_feat(prereqs: dict | None) -> str:
-    """Categorize feat as origin, general, or epic_boon."""
-    if prereqs is None:
-        return "origin"
-    level = prereqs.get("level")
-    if level is None:
-        return "origin"
-    if level >= 19:
-        return "epic_boon"
-    return "general"
+def _extract_prerequisite_text(content: str) -> str | None:
+    match = re.search(r"Prerequisite\s*:\s*([^\n)]+)", content, re.IGNORECASE)
+    if not match:
+        return None
+    return match.group(1).strip()
+
+
+def parse_prerequisites(content: str) -> dict | None:
+    """Parse prerequisite text like 'Level 4+, Strength 13+'."""
+    text = _extract_prerequisite_text(content)
+    if not text:
+        return None
+
+    result = {
+        "text": text,
+        "level": None,
+        "abilities": {},
+    }
+
+    # Level requirement
+    level_match = re.search(r"Level\s+(\d+)\+?", text, re.IGNORECASE)
+    if level_match:
+        result["level"] = int(level_match.group(1))
+
+    # Ability requirements: "Strength 13+", "Dexterity 13+"
+    ability_pattern = re.findall(
+        r"(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)\s+(\d+)\+?",
+        text,
+        re.IGNORECASE,
+    )
+    for ability, score in ability_pattern:
+        result["abilities"][ability.title()] = int(score)
+
+    # Class requirement
+    class_match = re.search(r"(Spellcasting|Pact Magic)\s+feature", text, re.IGNORECASE)
+    if class_match:
+        result["requires_spellcasting"] = True
+
+    return result
+
+
+def resolve_feat_category(entry: dict, feat_name: str) -> str:
+    """Resolve the feat category from explicit scraped metadata."""
+    family_heading = str(entry.get("feat_family_heading", "") or "").strip()
+    if not family_heading:
+        raise ValueError(
+            f"Feat '{feat_name}' is missing feat_family_heading metadata in dnd2024_data.json."
+        )
+
+    heading_category = FEAT_CATEGORY_BY_FAMILY_HEADING.get(_normalize_heading(family_heading))
+    if not heading_category:
+        raise ValueError(
+            f"Feat '{feat_name}' has unknown feat_family_heading '{family_heading}'."
+        )
+
+    page_tags = entry.get("page_tags")
+    if not isinstance(page_tags, list) or not page_tags:
+        raise ValueError(
+            f"Feat '{feat_name}' is missing page_tags metadata in dnd2024_data.json."
+        )
+
+    tag_categories = {
+        category
+        for category in (_category_from_page_tag(tag) for tag in page_tags)
+        if category
+    }
+    if not tag_categories:
+        raise ValueError(
+            f"Feat '{feat_name}' has no recognized feat category tag in page_tags={page_tags!r}."
+        )
+    if len(tag_categories) > 1:
+        raise ValueError(
+            f"Feat '{feat_name}' has conflicting feat category tags in page_tags={page_tags!r}."
+        )
+
+    tag_category = next(iter(tag_categories))
+    if tag_category != heading_category:
+        raise ValueError(
+            f"Feat '{feat_name}' category mismatch: "
+            f"feat_family_heading '{family_heading}' -> '{heading_category}', "
+            f"page_tags {page_tags!r} -> '{tag_category}'."
+        )
+    return heading_category
 
 
 def parse_benefits(feat_name: str, content: str) -> list[dict]:
@@ -166,8 +242,8 @@ def parse_feats(raw_data: list[dict]) -> list[dict]:
         # Prerequisites
         prereqs = parse_prerequisites(content)
 
-        # Category
-        category = categorize_feat(prereqs)
+        # Category comes from explicit feat-index family metadata plus page tags.
+        category = resolve_feat_category(entry, name)
 
         benefits = parse_benefits(name, content)
 
