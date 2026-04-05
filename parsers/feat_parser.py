@@ -116,6 +116,11 @@ def resolve_feat_category(entry: dict, feat_name: str) -> str:
 
     tag_category = next(iter(tag_categories))
     if tag_category != heading_category:
+        # The wiki index page groups all dragonmark feats under one "Dragonmark Feats"
+        # heading, but page tags distinguish dragonmark vs greater_dragonmark.
+        # Trust the more specific page tag in this known hierarchy.
+        if heading_category == "dragonmark" and tag_category == "greater_dragonmark":
+            return tag_category
         raise ValueError(
             f"Feat '{feat_name}' category mismatch: "
             f"feat_family_heading '{family_heading}' -> '{heading_category}', "

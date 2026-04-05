@@ -47,7 +47,6 @@ FEAT_FAMILY_HEADINGS = {
     "Fighting Style Feats",
     "Epic Boon Feats",
     "Dragonmark Feats",
-    "Greater Dragonmark Feats",
 }
 
 
@@ -82,7 +81,7 @@ def _extract_page_tags(soup: BeautifulSoup) -> list[str]:
         if not href:
             continue
 
-        tag = unquote(href.rstrip("/").rsplit("/", 1)[-1]).strip()
+        tag = unquote(href.rstrip("/").rsplit("/", 1)[-1]).split("#")[0].strip()
         if not tag or tag in seen:
             continue
 
