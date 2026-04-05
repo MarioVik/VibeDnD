@@ -478,9 +478,6 @@
         "level": 2,
         "proficiency_bonus": 2,
         "features": [
-          "2",
-          "2",
-          "+2",
           "Danger Sense",
           "Reckless Attack"
         ],

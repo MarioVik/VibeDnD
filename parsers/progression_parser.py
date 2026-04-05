@@ -245,11 +245,15 @@ def _parse_row_values(values: list[str], header_info: dict) -> dict:
         )
         n_trailing = n_extra + n_spell
 
-        # Everything between prof bonus and trailing columns is features
+        # Separate feature names (text) from trailing numeric column values
         remaining = values[idx:]
-        if n_trailing > 0 and len(remaining) > n_trailing:
-            feature_values = remaining[:-n_trailing]
-            trailing = remaining[-n_trailing:]
+        if n_trailing > 0:
+            numeric_vals = [v for v in remaining if _is_numeric_like(v)]
+            feature_values = [v for v in remaining if not _is_numeric_like(v)]
+            if len(numeric_vals) >= n_trailing:
+                trailing = numeric_vals[-n_trailing:]
+            else:
+                trailing = numeric_vals
         else:
             feature_values = remaining
             trailing = []
@@ -349,6 +353,18 @@ def _parse_spell_cols(row: dict, values: list[str], header_info: dict) -> None:
         if idx < len(values):
             row["pact_slot_level"] = _parse_numeric(values[idx])
             idx += 1
+
+
+def _is_numeric_like(val: str) -> bool:
+    """Check if a value looks like a numeric/extra column value rather than a feature name."""
+    val = val.strip()
+    if val == "-":
+        return True
+    if re.match(r"^[+-]?\d+$", val):
+        return True
+    if re.match(r"^\d*[dD]\d+$", val):
+        return True
+    return False
 
 
 def _parse_numeric(val: str) -> int | None:
