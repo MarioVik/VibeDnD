@@ -809,6 +809,7 @@ class CharacterSheetPDF(FPDF):
         rows = build_standard_actions(
             self.c,
             self._get_spell_data(),
+            game_data=self._game_data_context(),
             weapon_options=getattr(self.c, "standard_action_options", {}) or {},
         )
         row_count = max(4, len(rows))

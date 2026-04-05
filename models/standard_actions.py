@@ -6,6 +6,7 @@ import json
 import os
 import re
 
+from models.spell_grant_utils import get_spellbook_entries
 from paths import data_dir
 
 
@@ -428,7 +429,30 @@ def _is_attack_cantrip(spell: dict) -> bool:
     return "spell attack" in desc
 
 
-def _cantrip_actions(character, spells_by_name: dict[str, dict]) -> list[dict]:
+def _spellbook_cantrip_names(character, spells_by_name: dict[str, dict], game_data=None) -> list[str]:
+    if game_data is not None:
+        names = [
+            str(entry.get("spell_name", "")).strip()
+            for entry in get_spellbook_entries(character, game_data)
+            if int(entry.get("level", 0) or 0) == 0
+        ]
+    else:
+        names = list(getattr(character, "selected_cantrips", []) or [])
+
+    unique: list[str] = []
+    seen: set[str] = set()
+    for name in names:
+        clean = str(name or "").strip()
+        if not clean or clean in seen:
+            continue
+        if clean not in spells_by_name:
+            continue
+        unique.append(clean)
+        seen.add(clean)
+    return sorted(unique)
+
+
+def _cantrip_actions(character, spells_by_name: dict[str, dict], game_data=None) -> list[dict]:
     rows: list[dict] = []
 
     cast_ability = None
@@ -444,7 +468,7 @@ def _cantrip_actions(character, spells_by_name: dict[str, dict]) -> list[dict]:
     spell_mod = character.ability_scores.modifier(cast_ability)
     attack_bonus = _modifier_str(spell_mod + character.proficiency_bonus)
 
-    for cantrip_name in sorted(character.selected_cantrips):
+    for cantrip_name in _spellbook_cantrip_names(character, spells_by_name, game_data):
         spell = spells_by_name.get(cantrip_name)
         if not spell or not _is_attack_cantrip(spell):
             continue
@@ -464,6 +488,7 @@ def _cantrip_actions(character, spells_by_name: dict[str, dict]) -> list[dict]:
 def build_standard_actions(
     character,
     spells_by_name: dict[str, dict] | None = None,
+    game_data=None,
     weapon_options: dict[str, dict] | None = None,
     equipped_weapon_keys: set[str] | None = None,
 ) -> list[dict]:
@@ -478,8 +503,9 @@ def build_standard_actions(
             primary = character.character_class.get("primary_ability", [])
             cast_ability = primary[0] if primary else None
     spell_mod = character.ability_scores.modifier(cast_ability) if cast_ability else 0
+    known_cantrip_names = _spellbook_cantrip_names(character, spells, game_data)
     has_true_strike = any(
-        name.lower() == "true strike" for name in character.selected_cantrips
+        name.lower() == "true strike" for name in known_cantrip_names
     )
 
     effective_equipped_keys = equipped_weapon_keys
@@ -530,7 +556,7 @@ def build_standard_actions(
         row["two_handed_active"] = use_two_handed
         upgraded.append(row)
 
-    return upgraded + _cantrip_actions(character, spells)
+    return upgraded + _cantrip_actions(character, spells, game_data)
 
 
 # Standard combat actions available to every character

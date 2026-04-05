@@ -1193,6 +1193,7 @@ def build_character_sheet(
         _sync_equipped_state()
         actions = build_standard_actions(
             c,
+            game_data=game_data,
             weapon_options=_weapon_options(),
             equipped_weapon_keys=_equipped_keys(),
         )

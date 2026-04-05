@@ -860,6 +860,7 @@ class CharacterViewer(ttk.Frame):
             actions = build_standard_actions(
                 c,
                 spells_by_name=self._spell_index,
+                game_data=self.data,
                 weapon_options=dict(c.standard_action_options or {}),
                 equipped_weapon_keys=set(c.equipped_weapons or []),
             )
@@ -993,6 +994,7 @@ class CharacterViewer(ttk.Frame):
             actions = build_standard_actions(
                 c,
                 spells_by_name=self._spell_index,
+                game_data=self.data,
                 weapon_options=dict(c.standard_action_options or {}),
                 equipped_weapon_keys=set(c.equipped_weapons or []),
             )

@@ -41,6 +41,7 @@ from models.spell_grant_utils import (
     scrub_spell_grant_choices,
     set_spell_grant_choice_value,
 )
+from models.standard_actions import build_standard_actions
 
 scenarios("features/level1_feature_catalog.feature")
 scenarios("features/level1_class_completion.feature")
@@ -849,3 +850,21 @@ def then_formatted_spellbook_label_includes(
         entry for entry in get_spellbook_entries(character, game_data) if entry["spell_name"] == spell_name
     )
     assert suffix in format_spellbook_entry_label(entry)
+
+
+@then(parsers.parse("the standard actions include the cantrip attack {spell_name}"))
+def then_standard_actions_include_cantrip_attack(
+    character: Character,
+    game_data: GameData,
+    spell_name: str,
+):
+    spells_by_name = {spell.get("name", ""): spell for spell in game_data.spells}
+    actions = build_standard_actions(
+        character,
+        spells_by_name=spells_by_name,
+        game_data=game_data,
+    )
+    assert any(
+        action.get("kind") == "cantrip" and action.get("name") == spell_name
+        for action in actions
+    )

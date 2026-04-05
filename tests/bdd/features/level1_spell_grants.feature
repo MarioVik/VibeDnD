@@ -26,6 +26,12 @@ Feature: Level 1 spell grants integrate with character creation
     Then the character has spell step content
     And the spellbook includes Light granted by Aasimar
 
+  Scenario: Granted attack cantrips appear in standard actions
+    Given a level 1 rogue character
+    And the character is the species Tiefling with the Infernal lineage
+    When spell grant defaults are applied
+    Then the standard actions include the cantrip attack Fire Bolt
+
   Scenario: Magic Initiate remains chooser-driven on the spells step
     Given a level 1 rogue character
     And the character has the species origin feat Magic Initiate
