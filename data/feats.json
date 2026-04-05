@@ -2306,7 +2306,7 @@
   {
     "name": "Boon Of Combat Prowess",
     "source": "Player's Handbook",
-    "category": "general",
+    "category": "epic_boon",
     "prerequisites": {
       "text": "Level 19+",
       "level": 19,
@@ -2327,7 +2327,7 @@
   {
     "name": "Boon Of Dimensional Travel",
     "source": "Player's Handbook",
-    "category": "general",
+    "category": "epic_boon",
     "prerequisites": {
       "text": "Level 19+",
       "level": 19,
@@ -2348,7 +2348,7 @@
   {
     "name": "Boon Of Energy Resistance",
     "source": "Player's Handbook",
-    "category": "general",
+    "category": "epic_boon",
     "prerequisites": {
       "text": "Level 19+",
       "level": 19,
@@ -2373,7 +2373,7 @@
   {
     "name": "Boon Of Fate",
     "source": "Player's Handbook",
-    "category": "general",
+    "category": "epic_boon",
     "prerequisites": {
       "text": "Level 19+",
       "level": 19,
@@ -2394,7 +2394,7 @@
   {
     "name": "Boon Of Fortitude",
     "source": "Player's Handbook",
-    "category": "general",
+    "category": "epic_boon",
     "prerequisites": {
       "text": "Level 19+",
       "level": 19,
@@ -2415,7 +2415,7 @@
   {
     "name": "Boon Of Irresistible Offense",
     "source": "Player's Handbook",
-    "category": "general",
+    "category": "epic_boon",
     "prerequisites": {
       "text": "Level 19+",
       "level": 19,
@@ -2440,7 +2440,7 @@
   {
     "name": "Boon Of Recovery",
     "source": "Player's Handbook",
-    "category": "general",
+    "category": "epic_boon",
     "prerequisites": {
       "text": "Level 19+",
       "level": 19,
@@ -2465,7 +2465,7 @@
   {
     "name": "Boon Of Skill",
     "source": "Player's Handbook",
-    "category": "general",
+    "category": "epic_boon",
     "prerequisites": {
       "text": "Level 19+",
       "level": 19,
@@ -2494,7 +2494,7 @@
   {
     "name": "Boon Of Speed",
     "source": "Player's Handbook",
-    "category": "general",
+    "category": "epic_boon",
     "prerequisites": {
       "text": "Level 19+",
       "level": 19,
@@ -2523,7 +2523,7 @@
   {
     "name": "Boon Of Spell Recall",
     "source": "Player's Handbook",
-    "category": "general",
+    "category": "epic_boon",
     "prerequisites": {
       "text": "Level 19+",
       "level": 19,
@@ -2544,7 +2544,7 @@
   {
     "name": "Boon Of The Night Spirit",
     "source": "Player's Handbook",
-    "category": "general",
+    "category": "epic_boon",
     "prerequisites": {
       "text": "Level 19+",
       "level": 19,
@@ -2569,7 +2569,7 @@
   {
     "name": "Boon Of Truesight",
     "source": "Player's Handbook",
-    "category": "general",
+    "category": "epic_boon",
     "prerequisites": {
       "text": "Level 19+",
       "level": 19,
@@ -3714,7 +3714,7 @@
   {
     "name": "Potent Dragonmark",
     "source": "Eberron - Forge of the Artificer",
-    "category": "general",
+    "category": "greater_dragonmark",
     "prerequisites": {
       "text": "Level 4+, Any Dragonmark Feat",
       "level": 4,
