@@ -7,16 +7,24 @@ from gui.base_step import WizardStep
 from gui.theme import COLORS, FONTS, SPACING
 from gui.widgets import (
     CardFrame,
+    FormattedDescription,
     GradientHeader,
     ScrollableFrame,
     SectionHeader,
+    SectionedListbox,
     WrappingLabel,
     register_mousewheel_target,
+)
+from gui.source_config import (
+    SECTION_ORDER,
+    UA_CATEGORY,
+    group_by_category,
+    handle_ua_toggle,
+    save_settings,
 )
 from models.level1_class_rules import (
     get_available_fighting_styles,
     get_available_order_options,
-    get_available_origin_feats,
     get_available_warlock_invocations,
     get_selected_weapon_mastery_details,
     get_tome_cantrip_options,
@@ -42,6 +50,12 @@ class ClassFeaturesStep(WizardStep):
         self._invocation_vars: dict[str, dict] = {}
         self._invocation_checkbuttons: dict[str, ttk.Checkbutton] = {}
         self._invocation_detail_text: tk.Text | None = None
+        self._feat_ua_prev_enabled = False
+        self._feat_toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._invocation_feat_list: SectionedListbox | None = None
+        self._invocation_feat_label: tk.Label | None = None
+        self._invocation_feat_source: tk.Label | None = None
+        self._invocation_feat_benefits_frame: tk.Frame | None = None
         self._updating_invocations = False
         super().__init__(parent_notebook, character, game_data)
 
@@ -415,29 +429,198 @@ class ClassFeaturesStep(WizardStep):
                     foreground=COLORS["fg_dim"],
                 ).pack(fill=tk.X, anchor="w", pady=(SPACING["xs"], 0))
 
-    def _build_single_combo(
-        self,
-        key: str,
-        title: str,
-        options: list[str],
-        description: str = "",
-    ):
-        card = self._card(title, description)
-        row = tk.Frame(card.inner, bg=COLORS["bg_surface"])
-        row.pack(fill=tk.X)
-        var = tk.StringVar(value=str(self._choice_value(key, "") or ""))
-        combo = ttk.Combobox(
-            row,
-            textvariable=var,
-            values=options,
-            state="readonly",
-            width=42,
+    def _build_invocation_feat_toggles(self, parent):
+        self._feat_toggle_vars.clear()
+
+        filters = self.data.source_filters.get("feats", {})
+        sections = SECTION_ORDER["feats"]
+        self._feat_ua_prev_enabled = filters.get(UA_CATEGORY, False)
+
+        for cat in sections:
+            label = "UA" if cat == UA_CATEGORY else cat
+            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
+            cb = ttk.Checkbutton(
+                parent,
+                text=label,
+                variable=var,
+                command=self._on_invocation_feat_toggle_change,
+            )
+            cb.pack(side=tk.LEFT, padx=(0, 4))
+            self._feat_toggle_vars[cat] = var
+
+    def _on_invocation_feat_toggle_change(self):
+        ua_var = self._feat_toggle_vars.get(UA_CATEGORY)
+        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._feat_ua_prev_enabled)
+        if not proceed:
+            return
+
+        filters = {cat: var.get() for cat, var in self._feat_toggle_vars.items()}
+        self.data.source_filters["feats"] = filters
+        self._feat_ua_prev_enabled = filters.get(UA_CATEGORY, False)
+        save_settings(self.data.source_filters)
+        self._populate_invocation_origin_feats()
+
+    def _populate_invocation_origin_feats(self):
+        if self._invocation_feat_list is None:
+            return
+
+        filters = self.data.source_filters.get("feats", {})
+        enabled = {cat for cat, on in filters.items() if on}
+
+        origin_feats = [feat for feat in self.data.feats if feat.get("category") == "origin"]
+        grouped = group_by_category(origin_feats, "feats")
+        sections = [
+            (cat, [feat["name"] for feat in items])
+            for cat, items in grouped
+            if cat in enabled
+        ]
+        self._invocation_feat_list.set_sectioned_items(sections)
+
+    def _clear_invocation_feat_details(self):
+        if self._invocation_feat_label is not None:
+            self._invocation_feat_label.configure(text="Select a feat")
+        if self._invocation_feat_source is not None:
+            self._invocation_feat_source.configure(text="")
+        if self._invocation_feat_benefits_frame is not None:
+            for widget in self._invocation_feat_benefits_frame.winfo_children():
+                widget.destroy()
+
+    def _render_feat_benefits(self, feat: dict, parent):
+        background = parent.cget("bg") if hasattr(parent, "cget") else COLORS["bg_surface"]
+        for benefit in feat.get("benefits", []):
+            block = tk.Frame(parent, bg=background)
+            block.pack(fill=tk.X, pady=2)
+            tk.Label(
+                block,
+                text=benefit.get("name", ""),
+                font=FONTS["body_bold"],
+                fg=COLORS["accent_text"],
+                bg=background,
+            ).pack(anchor="w")
+            description = benefit.get("description", "")
+            if description:
+                FormattedDescription(
+                    block,
+                    text=description,
+                    font=FONTS["body_small"],
+                    foreground=COLORS["fg_dim"],
+                    background=background,
+                ).pack(fill=tk.X, anchor="w", padx=(SPACING["lg"], 0))
+
+    def _on_invocation_feat_select(self, name: str):
+        feat = self.data.feats_by_name.get(name)
+        if not feat:
+            return
+
+        if not isinstance(self.character.level1_class_choices, dict):
+            self.character.level1_class_choices = {}
+        self.character.level1_class_choices["warlock_lessons_feat"] = feat["name"]
+        self._show_invocation_feat_details(feat)
+        self.notify_change()
+
+    def _show_invocation_feat_details(self, feat: dict):
+        if self._invocation_feat_label is None or self._invocation_feat_source is None:
+            return
+
+        self._invocation_feat_label.configure(text=feat["name"])
+        self._invocation_feat_source.configure(
+            text=f"Source: {feat.get('source', 'Unknown')}"
         )
-        combo.pack(fill=tk.X, expand=True)
-        combo.bind(
-            "<<ComboboxSelected>>",
-            lambda _event, v=var: self._set_choice(key, v.get()),
+
+        if self._invocation_feat_benefits_frame is not None:
+            for widget in self._invocation_feat_benefits_frame.winfo_children():
+                widget.destroy()
+            self._render_feat_benefits(feat, self._invocation_feat_benefits_frame)
+
+    def _build_warlock_origin_feat_picker(self):
+        section = tk.Frame(self._content, bg=COLORS["bg"])
+        section.pack(
+            fill=tk.X,
+            padx=SPACING["lg"],
+            pady=(SPACING["sm"], SPACING["sm"]),
         )
+        section.columnconfigure(1, weight=1)
+        section.rowconfigure(1, weight=1)
+        section.columnconfigure(0, minsize=260)
+
+        SectionHeader(section, text="Invocation Feat (Lessons Of The First Ones)").grid(
+            row=0,
+            column=0,
+            columnspan=2,
+            sticky="ew",
+            pady=(0, SPACING["sm"]),
+        )
+
+        list_frame = tk.Frame(section, bg=COLORS["bg"], width=260)
+        list_frame.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=(0, SPACING["xs"]),
+            pady=0,
+        )
+        list_frame.columnconfigure(0, weight=1)
+        list_frame.rowconfigure(2, weight=1)
+
+        tk.Label(
+            list_frame,
+            text="Choose an Origin Feat:",
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg"],
+        ).grid(row=0, column=0, sticky="w", pady=(0, 2))
+
+        toggle_frame = tk.Frame(list_frame, bg=COLORS["bg"])
+        toggle_frame.grid(row=1, column=0, sticky="ew", pady=(0, SPACING["xs"]))
+        self._build_invocation_feat_toggles(toggle_frame)
+
+        self._invocation_feat_list = SectionedListbox(
+            list_frame,
+            on_select=self._on_invocation_feat_select,
+        )
+        self._invocation_feat_list.grid(row=2, column=0, sticky="nsew")
+
+        detail_scroll = tk.Frame(section, bg=COLORS["bg"])
+        detail_scroll.grid(row=1, column=1, sticky="nsew", padx=0, pady=0)
+        detail_scroll.columnconfigure(0, weight=1)
+        detail_scroll.rowconfigure(0, weight=1)
+
+        detail_card = CardFrame(detail_scroll, pad=SPACING["lg"])
+        detail_card.grid(row=0, column=0, sticky="nsew")
+
+        self._invocation_feat_label = tk.Label(
+            detail_card.inner,
+            text="Select a feat",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        )
+        self._invocation_feat_label.pack(anchor="w")
+
+        self._invocation_feat_source = tk.Label(
+            detail_card.inner,
+            text="",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        )
+        self._invocation_feat_source.pack(anchor="w")
+
+        self._invocation_feat_benefits_frame = tk.Frame(
+            detail_card.inner,
+            bg=COLORS["bg_surface"],
+        )
+        self._invocation_feat_benefits_frame.pack(fill=tk.X, pady=(SPACING["xs"], 0))
+
+        self._populate_invocation_origin_feats()
+        self._clear_invocation_feat_details()
+
+        selected_name = str(self._choice_value("warlock_lessons_feat", "") or "")
+        if selected_name:
+            feat = self.data.feats_by_name.get(selected_name)
+            if feat:
+                self._show_invocation_feat_details(feat)
+                self._invocation_feat_list.select_item(selected_name)
 
     def _build_warlock_invocation_selector(self):
         self._invocation_vars.clear()
@@ -576,12 +759,7 @@ class ClassFeaturesStep(WizardStep):
                 "Choose two level-1 ritual spells from any class list.",
             )
         elif followup_kind == "feat":
-            self._build_single_combo(
-                "warlock_lessons_feat",
-                "Lessons Of The First Ones Feat",
-                [feat["name"] for feat in get_available_origin_feats(self.data)],
-                "Choose the Origin feat granted by this invocation.",
-            )
+            self._build_warlock_origin_feat_picker()
 
     def _build_fighter_step_one(self):
         self._build_radio_group(
