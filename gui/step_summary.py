@@ -17,6 +17,11 @@ from gui.widgets import (
 from models.enums import ALL_SKILLS
 from models.language_utils import all_languages
 from models.level1_class_rules import summarize_level1_class_choices
+from models.spell_grant_utils import (
+    format_spellbook_entry_label,
+    get_spellbook_sections,
+    has_spellbook_entries,
+)
 
 
 class SummaryStep(WizardStep):
@@ -368,39 +373,30 @@ class SummaryStep(WizardStep):
                     justify=tk.LEFT,
                 ).pack(fill=tk.X, pady=2)
 
-        # ── Spells (if caster) ──────────────────────────────────
-        if c.is_caster:
+        # ── Spells ───────────────────────────────────────────────
+        if has_spellbook_entries(c, self.data):
             SectionHeader(inner, text="Spells").pack(
                 fill=tk.X, pady=(0, SPACING["sm"])
             )
             spells_card = CardFrame(inner, pad=SPACING["lg"])
             spells_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
 
-            cantrips = c.selected_cantrips
-            spells = c.selected_spells
-
             _bg = COLORS["bg_surface"]
-            if cantrips:
+            for section_name, entries in get_spellbook_sections(c, self.data):
+                if not entries:
+                    continue
                 tk.Label(
-                    spells_card.inner, text="CANTRIPS",
-                    font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=_bg,
-                ).pack(anchor="w", pady=(0, 2))
-                cantrip_row = tk.Frame(spells_card.inner, bg=_bg)
-                cantrip_row.pack(fill=tk.X, anchor="w", pady=(0, SPACING["sm"]))
-                for name in cantrips:
-                    Chip(cantrip_row, text=name, style="default").pack(
-                        side=tk.LEFT, padx=(0, 4), pady=2
-                    )
-
-            if spells:
-                tk.Label(
-                    spells_card.inner, text="1ST-LEVEL SPELLS",
+                    spells_card.inner, text=section_name.upper(),
                     font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=_bg,
                 ).pack(anchor="w", pady=(0, 2))
                 spell_row = tk.Frame(spells_card.inner, bg=_bg)
-                spell_row.pack(fill=tk.X, anchor="w")
-                for name in spells:
-                    Chip(spell_row, text=name, style="accent").pack(
+                spell_row.pack(fill=tk.X, anchor="w", pady=(0, SPACING["sm"]))
+                for entry in entries:
+                    Chip(
+                        spell_row,
+                        text=format_spellbook_entry_label(entry),
+                        style="accent" if int(entry.get("level", 0) or 0) > 0 else "default",
+                    ).pack(
                         side=tk.LEFT, padx=(0, 4), pady=2
                     )
 

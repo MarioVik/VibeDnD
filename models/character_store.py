@@ -48,6 +48,7 @@ def character_to_save_dict(character: Character) -> dict:
         ),
         "feat_sub_choices": dict(c.feat_sub_choices),
         "level1_class_choices": dict(c.level1_class_choices),
+        "spell_grant_choices": dict(getattr(c, "spell_grant_choices", {}) or {}),
         "selected_cantrips": list(c.selected_cantrips),
         "selected_spells": list(c.selected_spells),
         "biography_backstory": str(getattr(c, "biography_backstory", "") or ""),
@@ -146,6 +147,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
 
     c.feat_sub_choices = data.get("feat_sub_choices", {})
     c.level1_class_choices = data.get("level1_class_choices", {})
+    c.spell_grant_choices = data.get("spell_grant_choices", {}) or {}
     c.selected_cantrips = data.get("selected_cantrips", [])
     c.selected_spells = data.get("selected_spells", [])
     c.biography_backstory = str(data.get("biography_backstory", "") or "")

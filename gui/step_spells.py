@@ -1,15 +1,35 @@
-"""Step 8: Spell selection for caster classes."""
+"""Spell selection and granted-spell follow-up choices."""
 
 import tkinter as tk
 from tkinter import ttk
+
 from gui.base_step import WizardStep
 from gui.theme import COLORS, FONTS, SPACING
-from gui.widgets import register_mousewheel_target, GradientHeader, SectionHeader, CardFrame
+from gui.widgets import (
+    CardFrame,
+    ConfirmDialog,
+    GradientHeader,
+    SectionHeader,
+    WrappingLabel,
+    register_mousewheel_target,
+)
 from models.level1_class_rules import (
     get_effective_cantrips_known,
     get_effective_prepared_spells,
-    get_unmet_level1_class_requirements,
-    scrub_level1_class_choices,
+)
+from models.spell_grant_utils import (
+    apply_default_spell_grant_abilities,
+    character_has_spell_step_content,
+    format_spellbook_entry_label,
+    get_active_spell_grant_sources,
+    get_selectable_class_cantrip_options,
+    get_selectable_class_spell_options,
+    get_spell_grant_choice_value,
+    get_spell_grant_followup_sources,
+    get_spell_grant_requirements,
+    get_spellbook_entries,
+    set_spell_grant_choice_value,
+    scrub_spell_grant_choices,
 )
 
 
@@ -17,28 +37,35 @@ class SpellsStep(WizardStep):
     tab_title = "Spells"
 
     def __init__(self, parent_notebook, character, game_data):
+        self._current_substep = 0
+        self._split_enabled = False
+        self._active_spell_row_name = ""
         self._updating_cantrips = False
         self._updating_spells = False
-        self.cantrip_checkbuttons = {}
-        self.spell_checkbuttons = {}
         self.cantrip_vars = {}
         self.spell_vars = {}
+        self.cantrip_checkbuttons = {}
+        self.spell_checkbuttons = {}
+        self.spell_row_widgets = {}
         super().__init__(parent_notebook, character, game_data)
 
     def build_ui(self):
         self.frame.columnconfigure(0, weight=1)
         self.frame.rowconfigure(1, weight=1)
 
-        # ── Hero header ─────────────────────────────────────────
         hero = GradientHeader(self.frame, min_height=60)
         hero.grid(row=0, column=0, sticky="ew")
 
         hero_row = tk.Frame(hero.inner, bg=COLORS["bg_hero"])
-        hero_row.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
+        hero_row.pack(
+            fill=tk.X,
+            padx=SPACING["card_pad"],
+            pady=(SPACING["xl"], SPACING["xl"]),
+        )
 
         tk.Label(
             hero_row,
-            text="Select Spells",
+            text="Spells",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg_hero"],
@@ -53,153 +80,449 @@ class SpellsStep(WizardStep):
         )
         self.info_label.pack(side=tk.RIGHT)
 
-        # Non-caster message
-        self.no_spells_card = CardFrame(self.frame, pad=SPACING["xl"])
-        self.no_spells_label = tk.Label(
-            self.no_spells_card.inner,
-            text="Your class does not have spellcasting at level 1.",
-            font=FONTS["body"],
-            fg=COLORS["fg_dim"],
-            bg=COLORS["bg_surface"],
-        )
-        self.no_spells_label.pack()
-
-        # Main content: two-column split (list left, detail right)
         self.content_frame = tk.Frame(self.frame, bg=COLORS["bg"])
-        # Not gridded yet — done in _show_spell_ui
+        self.content_frame.grid(row=1, column=0, sticky="nsew")
+        self.content_frame.columnconfigure(0, weight=1)
+        self.content_frame.rowconfigure(0, weight=1)
+
+    # ── Substep protocol ──────────────────────────────────────
+
+    def has_substeps(self) -> bool:
+        return self._split_enabled
+
+    def get_current_substep(self) -> int:
+        return self._current_substep
+
+    def get_substep_count(self) -> int:
+        return 2 if self._split_enabled else 1
+
+    def go_to_substep(self, index: int):
+        max_index = self.get_substep_count() - 1
+        new_index = max(0, min(max_index, index))
+        if new_index == self._current_substep:
+            return
+        self._current_substep = new_index
+        self._render()
+        self.notify_substep_change()
+
+    def is_primary_action_visible(self) -> bool:
+        return True
+
+    def is_primary_action_enabled(self) -> bool:
+        return self.is_current_substep_valid()
+
+    def is_current_substep_valid(self) -> bool:
+        if self._split_enabled and self._current_substep == 0:
+            return not self._class_spell_requirements()
+        if self._split_enabled and self._current_substep == 1:
+            return not self.get_current_substep_requirements()
+        return self.is_valid()
+
+    def get_sidebar_title(self) -> str | None:
+        if not self._split_enabled:
+            return None
+        return f"Spells ({self._current_substep + 1}/2)"
+
+    # ── Step lifecycle ────────────────────────────────────────
 
     def on_enter(self):
-        """Refresh spell lists based on current class."""
-        scrub_level1_class_choices(self.character, self.data)
-        cls = self.character.character_class
-        if not cls or not cls.get("caster_type"):
-            self._show_no_spells()
-            return
+        changed = False
+        changed = apply_default_spell_grant_abilities(self.character, self.data) or changed
+        changed = scrub_spell_grant_choices(self.character, self.data) or changed
+        split_changed = self._sync_substep_state()
+        self._render()
+        if changed:
+            self.notify_change()
+        if split_changed:
+            self.notify_substep_change()
 
-        self._show_spell_ui()
+    def _sync_substep_state(self) -> bool:
+        old_split = self._split_enabled
+        old_substep = self._current_substep
+        self._split_enabled = bool(
+            getattr(self.character, "is_caster", False)
+            and get_spell_grant_followup_sources(self.character, self.data)
+        )
+        if not self._split_enabled:
+            self._current_substep = 0
+        else:
+            self._current_substep = min(self._current_substep, 1)
+        return old_split != self._split_enabled or old_substep != self._current_substep
 
-    def _show_no_spells(self):
-        self.content_frame.grid_forget()
-        self.no_spells_card.grid(row=1, column=0, padx=SPACING["lg"], pady=SPACING["xl"], sticky="ew")
+    # ── Validation helpers ────────────────────────────────────
 
-    def _show_spell_ui(self):
-        """Build the full spell selection UI: left list + right detail."""
-        self.no_spells_card.grid_forget()
+    def _class_spell_requirements(self) -> list[str]:
+        if not getattr(self.character, "is_caster", False):
+            return []
+        cantrip_target = get_effective_cantrips_known(self.character)
+        spell_target = get_effective_prepared_spells(self.character)
+        cantrip_count = len(getattr(self.character, "selected_cantrips", []) or [])
+        spell_count = len(getattr(self.character, "selected_spells", []) or [])
+        messages: list[str] = []
+        if cantrip_target > cantrip_count:
+            messages.append(
+                f"Choose {cantrip_target - cantrip_count} more cantrip(s)."
+            )
+        if spell_target > spell_count:
+            messages.append(
+                f"Choose {spell_target - spell_count} more prepared spell(s)."
+            )
+        return messages
 
-        for w in self.content_frame.winfo_children():
-            w.destroy()
+    def get_current_substep_requirements(self) -> list[dict]:
+        if self._split_enabled and self._current_substep == 1:
+            return get_spell_grant_requirements(self.character, self.data)
+        if not self._split_enabled:
+            return get_spell_grant_requirements(self.character, self.data)
+        return []
+
+    def is_valid(self) -> bool:
+        return not self._class_spell_requirements() and not get_spell_grant_requirements(
+            self.character,
+            self.data,
+        )
+
+    # ── Rendering ─────────────────────────────────────────────
+
+    def _clear_content(self):
+        for child in self.content_frame.winfo_children():
+            child.destroy()
+        self._active_spell_row_name = ""
         self.cantrip_vars.clear()
         self.spell_vars.clear()
         self.cantrip_checkbuttons.clear()
         self.spell_checkbuttons.clear()
+        self.spell_row_widgets.clear()
 
-        cls = self.character.character_class
-        class_name = cls["name"]
-        cantrip_max = get_effective_cantrips_known(self.character)
-        spell_max = get_effective_prepared_spells(self.character)
+    def _render(self):
+        self._clear_content()
 
-        self.info_label.configure(
-            text=f"{class_name}: {cantrip_max} cantrips, {spell_max} prepared spells"
+        if not character_has_spell_step_content(self.character, self.data):
+            self.info_label.configure(text="")
+            card = CardFrame(self.content_frame, pad=SPACING["xl"])
+            card.grid(
+                row=0,
+                column=0,
+                padx=SPACING["lg"],
+                pady=SPACING["xl"],
+                sticky="ew",
+            )
+            tk.Label(
+                card.inner,
+                text="No spell selections are needed for this character.",
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(anchor="w")
+            return
+
+        cls = self.character.character_class or {}
+        if getattr(self.character, "is_caster", False):
+            self.info_label.configure(
+                text=(
+                    f"{cls.get('name', 'Caster')}: "
+                    f"{get_effective_cantrips_known(self.character)} cantrips, "
+                    f"{get_effective_prepared_spells(self.character)} prepared spells"
+                )
+            )
+        else:
+            self.info_label.configure(text="Granted spells and magical traits")
+
+        if self._split_enabled and self._current_substep == 1:
+            self._build_followup_only_view()
+            return
+
+        outer = tk.Frame(self.content_frame, bg=COLORS["bg"])
+        outer.grid(row=0, column=0, sticky="nsew")
+        outer.columnconfigure(0, weight=1)
+        outer.rowconfigure(1, weight=1)
+
+        if not self._split_enabled:
+            followup_sources = get_spell_grant_followup_sources(self.character, self.data)
+            if followup_sources:
+                self._build_followup_cards(
+                    outer,
+                    followup_sources,
+                    row=0,
+                    pady=(SPACING["sm"], SPACING["sm"]),
+                )
+
+        self._build_spell_list_area(outer, row=1)
+
+    def _build_followup_only_view(self):
+        sources = get_spell_grant_followup_sources(self.character, self.data)
+        wrapper = tk.Frame(self.content_frame, bg=COLORS["bg"])
+        wrapper.grid(row=0, column=0, sticky="nsew", padx=SPACING["lg"])
+        wrapper.columnconfigure(0, weight=1)
+
+        SectionHeader(wrapper, text="Granted Spell Choices").grid(
+            row=0,
+            column=0,
+            sticky="ew",
+            pady=(SPACING["sm"], SPACING["sm"]),
         )
 
-        self.content_frame.grid(row=1, column=0, sticky="nsew", padx=SPACING["lg"], pady=(0, SPACING["sm"]))
-        self.content_frame.columnconfigure(0, weight=1)
-        self.content_frame.columnconfigure(1, weight=1)
-        self.content_frame.rowconfigure(0, weight=1)
+        self._build_followup_cards(
+            wrapper,
+            sources,
+            row=1,
+            pady=(0, SPACING["sm"]),
+        )
 
-        # --- LEFT: spell list column ---
-        left = tk.Frame(self.content_frame, bg=COLORS["bg"])
+    def _build_followup_cards(self, parent, sources: list[dict], *, row: int, pady):
+        cards = tk.Frame(parent, bg=COLORS["bg"])
+        cards.grid(row=row, column=0, sticky="ew", pady=pady)
+        cards.columnconfigure(0, weight=1)
+
+        for source in sources:
+            card = CardFrame(cards, pad=SPACING["lg"])
+            card.pack(fill=tk.X, pady=(0, SPACING["sm"]))
+
+            tk.Label(
+                card.inner,
+                text=source["source_label"],
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_surface"],
+            ).pack(anchor="w")
+
+            self._build_source_followup_controls(card.inner, source)
+
+    def _build_source_followup_controls(self, parent, source: dict):
+        source_id = source["source_id"]
+        bg = COLORS["bg_surface"]
+
+        if source["source_list_options"]:
+            row = tk.Frame(parent, bg=bg)
+            row.pack(fill=tk.X, pady=(SPACING["xs"], 0))
+            tk.Label(
+                row,
+                text="Spell List",
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=bg,
+            ).pack(anchor="w")
+
+            value = str(source.get("source_list_value", "") or "")
+            var = tk.StringVar(value=value)
+            combo = ttk.Combobox(
+                row,
+                textvariable=var,
+                values=source["source_list_options"],
+                state="readonly",
+            )
+            combo.pack(fill=tk.X, pady=(2, 0))
+            combo.bind(
+                "<<ComboboxSelected>>",
+                lambda _event, sid=source_id, v=var: self._on_source_list_selected(
+                    sid, v.get().strip()
+                ),
+            )
+
+        if source.get("ability_choice_required"):
+            row = tk.Frame(parent, bg=bg)
+            row.pack(fill=tk.X, pady=(SPACING["xs"], 0))
+            tk.Label(
+                row,
+                text="Spellcasting Ability",
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=bg,
+            ).pack(anchor="w")
+
+            value = str(source.get("ability_value", "") or "")
+            var = tk.StringVar(value=value)
+            combo = ttk.Combobox(
+                row,
+                textvariable=var,
+                values=source["ability_options"],
+                state="readonly",
+            )
+            combo.pack(fill=tk.X, pady=(2, 0))
+            combo.bind(
+                "<<ComboboxSelected>>",
+                lambda _event, sid=source_id, v=var: self._on_ability_selected(
+                    sid,
+                    v.get().strip(),
+                ),
+            )
+
+        if source["source_list_options"] and not source.get("source_list_value"):
+            WrappingLabel(
+                parent,
+                text="Choose a spell list first to unlock this source's cantrips and spell options.",
+                background=bg,
+                foreground=COLORS["fg_dim"],
+            ).pack(fill=tk.X, anchor="w", pady=(SPACING["xs"], 0))
+            return
+
+        if source["cantrip_choice_count"]:
+            self._build_choice_slots(
+                parent,
+                source,
+                field="cantrips",
+                label="Cantrip",
+                options=source["cantrip_options"],
+                count=source["cantrip_choice_count"],
+            )
+
+        if source["spell_choice_count"]:
+            self._build_choice_slots(
+                parent,
+                source,
+                field="spells",
+                label="Spell",
+                options=source["spell_options"],
+                count=source["spell_choice_count"],
+            )
+
+    def _build_choice_slots(
+        self,
+        parent,
+        source: dict,
+        *,
+        field: str,
+        label: str,
+        options: list[str],
+        count: int,
+    ):
+        bg = COLORS["bg_surface"]
+        source_id = source["source_id"]
+        current_values = list(get_spell_grant_choice_value(self.character, source_id, field, []) or [])
+
+        if not options:
+            WrappingLabel(
+                parent,
+                text=f"No valid {label.lower()} options are currently available for {source['source_label']}.",
+                background=bg,
+                foreground=COLORS["fg_dim"],
+            ).pack(fill=tk.X, anchor="w", pady=(SPACING["xs"], 0))
+            return
+
+        for idx in range(count):
+            slot_value = current_values[idx] if idx < len(current_values) else ""
+            used_elsewhere = {
+                value
+                for i, value in enumerate(current_values)
+                if i != idx and str(value or "").strip()
+            }
+            slot_options = [
+                option
+                for option in options
+                if option == slot_value or option not in used_elsewhere
+            ]
+
+            row = tk.Frame(parent, bg=bg)
+            row.pack(fill=tk.X, pady=(SPACING["xs"], 0))
+            tk.Label(
+                row,
+                text=f"{label} {idx + 1}",
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=bg,
+            ).pack(anchor="w")
+
+            var = tk.StringVar(value=slot_value)
+            combo = ttk.Combobox(
+                row,
+                textvariable=var,
+                values=slot_options,
+                state="readonly",
+            )
+            combo.pack(fill=tk.X, pady=(2, 0))
+            combo.bind(
+                "<<ComboboxSelected>>",
+                lambda _event, sid=source_id, f=field, i=idx, v=var: self._on_slot_selected(
+                    sid,
+                    f,
+                    i,
+                    v.get().strip(),
+                ),
+            )
+
+    def _build_spell_list_area(self, parent, *, row: int):
+        area = tk.Frame(parent, bg=COLORS["bg"])
+        area.grid(
+            row=row,
+            column=0,
+            sticky="nsew",
+            padx=SPACING["lg"],
+            pady=(0, SPACING["sm"]),
+        )
+        area.columnconfigure(0, weight=1)
+        area.columnconfigure(1, weight=1)
+        area.rowconfigure(0, weight=1)
+
+        left = tk.Frame(area, bg=COLORS["bg"])
         left.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["xs"]))
 
-        cantrips = self.data.cantrips_for_class(class_name)
-        level1_spells = [
-            s
-            for s in self.data.spells_for_class(class_name, max_level=1)
-            if s["level"] == 1
-        ]
-        has_cantrips = cantrip_max > 0 and len(cantrips) > 0
-        has_spells = spell_max > 0 and len(level1_spells) > 0
+        if getattr(self.character, "is_caster", False):
+            cantrip_target = get_effective_cantrips_known(self.character)
+            spell_target = get_effective_prepared_spells(self.character)
+            current_cantrips = len(getattr(self.character, "selected_cantrips", []) or [])
+            current_spells = len(getattr(self.character, "selected_spells", []) or [])
 
-        current_cantrip_count = len(self.character.selected_cantrips)
-        current_spell_count = len(self.character.selected_spells)
+            if cantrip_target > 0:
+                self.cantrip_count_label = tk.Label(
+                    left,
+                    text=f"{current_cantrips} / {cantrip_target} cantrips selected",
+                    font=FONTS["label_upper_bold"],
+                    fg=COLORS["fg_dim"],
+                    bg=COLORS["bg"],
+                )
+                self.cantrip_count_label.pack(anchor="w", padx=4, pady=(0, 1))
+            else:
+                self.cantrip_count_label = None
 
-        _bg = COLORS["bg"]
-        if has_cantrips:
-            self.cantrip_count_label = tk.Label(
-                left,
-                text=f"{current_cantrip_count} / {cantrip_max} cantrips selected",
-                font=FONTS["label_upper_bold"],
-                fg=COLORS["fg_dim"],
-                bg=_bg,
-            )
-            self.cantrip_count_label.pack(anchor="w", padx=4, pady=(0, 1))
+            if spell_target > 0:
+                self.spell_count_label = tk.Label(
+                    left,
+                    text=f"{current_spells} / {spell_target} spells selected",
+                    font=FONTS["label_upper_bold"],
+                    fg=COLORS["fg_dim"],
+                    bg=COLORS["bg"],
+                )
+                self.spell_count_label.pack(anchor="w", padx=4, pady=(0, 1))
+            else:
+                self.spell_count_label = None
+        else:
+            self.cantrip_count_label = None
+            self.spell_count_label = None
 
-        if has_spells:
-            self.spell_count_label = tk.Label(
-                left,
-                text=f"{current_spell_count} / {spell_max} spells selected",
-                font=FONTS["label_upper_bold"],
-                fg=COLORS["fg_dim"],
-                bg=_bg,
-            )
-            self.spell_count_label.pack(anchor="w", padx=4, pady=(0, 1))
-
-        # Scrollable list
         list_outer = tk.Frame(left, bg=COLORS["bg"])
         list_outer.pack(fill=tk.BOTH, expand=True, pady=(2, 0))
-        canvas, inner = self._make_scrollable_list(list_outer)
+        _canvas, inner = self._make_scrollable_list(list_outer)
 
-        def _section_header(parent, title):
-            tk.Label(
-                parent,
-                text=f"\u2500\u2500 {title} \u2500\u2500",
-                font=FONTS["body_bold"],
-                fg=COLORS["accent_text"],
-                bg=COLORS["bg"],
-            ).pack(anchor="w", pady=(6, 2))
+        fixed_entries_by_level: dict[int, list[dict]] = {}
+        for entry in get_spellbook_entries(self.character, self.data):
+            if not entry["source_labels"] and not entry["dragonmark_eligible"]:
+                continue
+            fixed_entries_by_level.setdefault(int(entry["level"] or 0), []).append(entry)
 
-        if has_cantrips:
-            _section_header(inner, "Cantrips")
+        selectable_cantrips = get_selectable_class_cantrip_options(self.character, self.data)
+        selectable_spells = get_selectable_class_spell_options(self.character, self.data, level=1)
 
-            for spell in sorted(cantrips, key=lambda s: s["name"]):
-                var = tk.BooleanVar(
-                    value=spell["name"] in self.character.selected_cantrips
-                )
-                var.trace_add("write", lambda *a, s=spell: self._on_cantrip_toggle(s))
-                self.cantrip_vars[spell["name"]] = {"var": var, "spell": spell}
-                cb = ttk.Checkbutton(
-                    inner,
-                    text=spell["name"],
-                    variable=var,
-                )
-                cb.pack(anchor="w", pady=1, padx=(8, 0))
-                cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
-                self.cantrip_checkbuttons[spell["name"]] = cb
+        levels = sorted(set(fixed_entries_by_level.keys()) | {0 if selectable_cantrips else None, 1 if selectable_spells else None} - {None})
+        if not levels:
+            levels = sorted(fixed_entries_by_level.keys())
 
-        if has_spells:
-            _section_header(inner, "1st-Level")
+        for level in levels:
+            self._section_header(inner, "Cantrips" if level == 0 else f"Level {level}")
+            for entry in fixed_entries_by_level.get(level, []):
+                self._build_fixed_row(inner, entry)
+            if level == 0:
+                for spell_name in selectable_cantrips:
+                    self._build_selectable_row(inner, spell_name, kind="cantrip")
+            if level == 1:
+                for spell_name in selectable_spells:
+                    self._build_selectable_row(inner, spell_name, kind="spell")
 
-            for spell in sorted(level1_spells, key=lambda s: s["name"]):
-                var = tk.BooleanVar(
-                    value=spell["name"] in self.character.selected_spells
-                )
-                var.trace_add("write", lambda *a, s=spell: self._on_spell_toggle(s))
-                self.spell_vars[spell["name"]] = {"var": var, "spell": spell}
-
-                cb = ttk.Checkbutton(inner, text=spell["name"], variable=var)
-                cb.pack(anchor="w", pady=1, padx=(8, 0))
-                cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
-                self.spell_checkbuttons[spell["name"]] = cb
-
-        self._update_cantrip_states()
-        self._update_spell_states()
-
-        # --- RIGHT: spell detail panel ---
-        right = tk.Frame(self.content_frame, bg=COLORS["bg"])
+        right = tk.Frame(area, bg=COLORS["bg"])
         right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0))
 
         SectionHeader(right, text="Spell Details").pack(
-            fill=tk.X, pady=(0, SPACING["sm"])
+            fill=tk.X,
+            pady=(0, SPACING["sm"]),
         )
 
         detail_card = CardFrame(right, pad=SPACING["lg"])
@@ -218,24 +541,128 @@ class SpellsStep(WizardStep):
         )
         self.spell_detail_text.pack(fill=tk.BOTH, expand=True)
 
+        first_entry = next(iter(get_spellbook_entries(self.character, self.data)), None)
+        if first_entry:
+            self._show_detail(first_entry)
+        else:
+            self._set_detail_text("No spells are currently available for this character.")
+
+        self._update_cantrip_states()
+        self._update_spell_states()
+
+    def _section_header(self, parent, title: str):
+        tk.Label(
+            parent,
+            text=f"\u2500\u2500 {title} \u2500\u2500",
+            font=FONTS["body_bold"],
+            fg=COLORS["accent_text"],
+            bg=COLORS["bg"],
+        ).pack(anchor="w", pady=(6, 2))
+
+    def _build_fixed_row(self, parent, entry: dict):
+        row = tk.Frame(
+            parent,
+            bg=COLORS["bg"],
+            highlightthickness=1,
+            highlightbackground=COLORS["bg"],
+            highlightcolor=COLORS["accent"],
+        )
+        row.pack(fill=tk.X, padx=(4, 0), pady=1)
+        rail = tk.Frame(row, width=6, bg=COLORS["bg"])
+        rail.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 6))
+        label = tk.Label(
+            row,
+            text=format_spellbook_entry_label(entry),
+            font=FONTS["body"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg"],
+            anchor="w",
+            justify=tk.LEFT,
+        )
+        label.pack(anchor="w", fill=tk.X, pady=4)
+        self._register_spell_row(entry["spell_name"], row, label=label, rail=rail)
+        row.bind("<Enter>", lambda _event, e=entry: self._show_detail(e))
+        label.bind("<Enter>", lambda _event, e=entry: self._show_detail(e))
+
+    def _build_selectable_row(self, parent, spell_name: str, *, kind: str):
+        spell = self.data._spell_name_index.get(spell_name) if hasattr(self.data, "_spell_name_index") else None
+        if spell is None:
+            spell = next(
+                (
+                    item
+                    for item in getattr(self.data, "spells", [])
+                    if str(item.get("name", "")).strip() == spell_name
+                ),
+                {},
+            )
+
+        selected = spell_name in (
+            getattr(self.character, "selected_cantrips", [])
+            if kind == "cantrip"
+            else getattr(self.character, "selected_spells", [])
+        )
+        var = tk.BooleanVar(value=selected)
+        if kind == "cantrip":
+            var.trace_add("write", lambda *_args, s=spell: self._on_cantrip_toggle(s))
+            self.cantrip_vars[spell_name] = {"var": var, "spell": spell}
+        else:
+            var.trace_add("write", lambda *_args, s=spell: self._on_spell_toggle(s))
+            self.spell_vars[spell_name] = {"var": var, "spell": spell}
+
+        row = tk.Frame(
+            parent,
+            bg=COLORS["bg"],
+            highlightthickness=1,
+            highlightbackground=COLORS["bg"],
+            highlightcolor=COLORS["accent"],
+        )
+        row.pack(fill=tk.X, padx=(4, 0), pady=1)
+        rail = tk.Frame(row, width=6, bg=COLORS["bg"])
+        rail.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 6))
+
+        cb = ttk.Checkbutton(row, text=spell_name, variable=var)
+        cb.pack(side=tk.LEFT, anchor="w", pady=3)
+        entry = {
+            "spell_name": spell_name,
+            "spell": spell,
+            "level": int(spell.get("level", 0) or 0),
+            "source_labels": [],
+            "free_casts": [],
+            "ritual_only": False,
+            "dragonmark_eligible": False,
+            "detail_notes": [],
+        }
+        self._register_spell_row(spell_name, row, rail=rail)
+        row.bind("<Enter>", lambda _event, e=entry: self._show_detail(e))
+        cb.bind("<Enter>", lambda _event, e=entry: self._show_detail(e))
+        if kind == "cantrip":
+            self.cantrip_checkbuttons[spell_name] = cb
+        else:
+            self.spell_checkbuttons[spell_name] = cb
+
     def _make_scrollable_list(self, parent_frame):
         canvas = tk.Canvas(
-            parent_frame, bg=COLORS["bg"], highlightthickness=0, borderwidth=0
+            parent_frame,
+            bg=COLORS["bg"],
+            highlightthickness=0,
+            borderwidth=0,
         )
         scrollbar = ttk.Scrollbar(
-            parent_frame, orient=tk.VERTICAL, command=canvas.yview
+            parent_frame,
+            orient=tk.VERTICAL,
+            command=canvas.yview,
         )
         inner = tk.Frame(canvas, bg=COLORS["bg"])
 
         inner.bind(
-            "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+            "<Configure>",
+            lambda _event: canvas.configure(scrollregion=canvas.bbox("all")),
         )
         canvas_window = canvas.create_window((0, 0), window=inner, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
-
         canvas.bind(
             "<Configure>",
-            lambda e, cw=canvas_window: canvas.itemconfig(cw, width=e.width),
+            lambda event, cw=canvas_window: canvas.itemconfig(cw, width=event.width),
         )
 
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -247,50 +674,103 @@ class SpellsStep(WizardStep):
 
         return canvas, inner
 
-    # ── toggle handlers ──────────────────────────────────────────
+    # ── Change handlers ────────────────────────────────────────
 
-    def _on_cantrip_toggle(self, spell):
+    def _refresh_after_spell_choice(self):
+        changed = False
+        changed = apply_default_spell_grant_abilities(self.character, self.data) or changed
+        changed = scrub_spell_grant_choices(self.character, self.data) or changed
+        split_changed = self._sync_substep_state()
+        self._render()
+        self.notify_change()
+        if split_changed or changed:
+            self.notify_substep_change()
+
+    def _on_source_list_selected(self, source_id: str, value: str):
+        set_spell_grant_choice_value(self.character, source_id, "source_list", value)
+        set_spell_grant_choice_value(self.character, source_id, "cantrips", None)
+        set_spell_grant_choice_value(self.character, source_id, "spells", None)
+        self._refresh_after_spell_choice()
+
+    def _on_ability_selected(self, source_id: str, value: str):
+        class_ability = str(
+            (self.character.character_class or {}).get("spellcasting_ability", "") or ""
+        ).strip()
+        if class_ability and value and value != class_ability:
+            dlg = ConfirmDialog(
+                self.frame.winfo_toplevel(),
+                "Different Spellcasting Ability",
+                (
+                    f"Use {value} instead of your class spellcasting ability "
+                    f"({class_ability}) for this granted spell source?"
+                ),
+            )
+            if not dlg.result:
+                set_spell_grant_choice_value(self.character, source_id, "ability", class_ability)
+                self._refresh_after_spell_choice()
+                return
+
+        set_spell_grant_choice_value(self.character, source_id, "ability", value)
+        self._refresh_after_spell_choice()
+
+    def _on_slot_selected(self, source_id: str, field: str, index: int, value: str):
+        current = list(get_spell_grant_choice_value(self.character, source_id, field, []) or [])
+        while len(current) <= index:
+            current.append("")
+        current[index] = value
+        cleaned = [item for item in current if str(item or "").strip()]
+        set_spell_grant_choice_value(self.character, source_id, field, cleaned)
+        self._refresh_after_spell_choice()
+
+    def _on_cantrip_toggle(self, spell: dict):
         if self._updating_cantrips:
             return
         self._updating_cantrips = True
         try:
             cantrip_max = get_effective_cantrips_known(self.character)
-
-            selected = [name for name, d in self.cantrip_vars.items() if d["var"].get()]
+            selected = [
+                name for name, data in self.cantrip_vars.items() if data["var"].get()
+            ]
             if len(selected) > cantrip_max:
                 self.cantrip_vars[spell["name"]]["var"].set(False)
                 selected = [
-                    name for name, d in self.cantrip_vars.items() if d["var"].get()
+                    name
+                    for name, data in self.cantrip_vars.items()
+                    if data["var"].get()
                 ]
-
             self.character.selected_cantrips = selected
-            scrub_level1_class_choices(self.character, self.data)
-            self.cantrip_count_label.configure(
-                text=f"{len(selected)} / {cantrip_max} cantrips selected"
-            )
+            scrub_spell_grant_choices(self.character, self.data)
+            if self.cantrip_count_label is not None:
+                self.cantrip_count_label.configure(
+                    text=f"{len(selected)} / {cantrip_max} cantrips selected"
+                )
             self._update_cantrip_states()
             self.notify_change()
         finally:
             self._updating_cantrips = False
 
-    def _on_spell_toggle(self, spell):
+    def _on_spell_toggle(self, spell: dict):
         if self._updating_spells:
             return
         self._updating_spells = True
         try:
             spell_max = get_effective_prepared_spells(self.character)
-
-            selected = [name for name, d in self.spell_vars.items() if d["var"].get()]
+            selected = [
+                name for name, data in self.spell_vars.items() if data["var"].get()
+            ]
             if len(selected) > spell_max:
                 self.spell_vars[spell["name"]]["var"].set(False)
                 selected = [
-                    name for name, d in self.spell_vars.items() if d["var"].get()
+                    name
+                    for name, data in self.spell_vars.items()
+                    if data["var"].get()
                 ]
-
             self.character.selected_spells = selected
-            self.spell_count_label.configure(
-                text=f"{len(selected)} / {spell_max} spells selected"
-            )
+            scrub_spell_grant_choices(self.character, self.data)
+            if self.spell_count_label is not None:
+                self.spell_count_label.configure(
+                    text=f"{len(selected)} / {spell_max} spells selected"
+                )
             self._update_spell_states()
             self.notify_change()
         finally:
@@ -298,56 +778,106 @@ class SpellsStep(WizardStep):
 
     def _update_cantrip_states(self):
         cantrip_max = get_effective_cantrips_known(self.character)
-        selected = [name for name, d in self.cantrip_vars.items() if d["var"].get()]
-        at_max = len(selected) >= cantrip_max
-
+        selected = [name for name, data in self.cantrip_vars.items() if data["var"].get()]
+        at_max = len(selected) >= cantrip_max if cantrip_max else False
         for name, cb in self.cantrip_checkbuttons.items():
-            if at_max and name not in selected:
-                cb.configure(state=tk.DISABLED)
-            else:
-                cb.configure(state=tk.NORMAL)
+            cb.configure(
+                state=tk.DISABLED if at_max and name not in selected else tk.NORMAL
+            )
 
     def _update_spell_states(self):
         spell_max = get_effective_prepared_spells(self.character)
-        selected = [name for name, d in self.spell_vars.items() if d["var"].get()]
-        at_max = len(selected) >= spell_max
-
+        selected = [name for name, data in self.spell_vars.items() if data["var"].get()]
+        at_max = len(selected) >= spell_max if spell_max else False
         for name, cb in self.spell_checkbuttons.items():
-            if at_max and name not in selected:
-                cb.configure(state=tk.DISABLED)
-            else:
-                cb.configure(state=tk.NORMAL)
+            cb.configure(
+                state=tk.DISABLED if at_max and name not in selected else tk.NORMAL
+            )
 
-    def is_valid(self) -> bool:
-        cls = self.character.character_class
-        if not cls or not cls.get("caster_type"):
-            return True
-        return not get_unmet_level1_class_requirements(
-            self.character,
-            self.data,
-            step_key="spells",
-        )
+    def _register_spell_row(self, spell_name: str, row, *, label=None, rail=None):
+        self.spell_row_widgets[spell_name] = {
+            "row": row,
+            "label": label,
+            "rail": rail,
+        }
 
-    # ── spell detail hover ───────────────────────────────────────
+    def _set_spell_row_active(self, spell_name: str):
+        if spell_name == self._active_spell_row_name:
+            return
+        previous = self._active_spell_row_name
+        self._active_spell_row_name = spell_name
+        if previous:
+            self._apply_spell_row_style(previous, active=False)
+        if spell_name:
+            self._apply_spell_row_style(spell_name, active=True)
 
-    def _show_detail(self, spell):
-        self.spell_detail_text.configure(state=tk.NORMAL)
-        self.spell_detail_text.delete("1.0", tk.END)
+    def _apply_spell_row_style(self, spell_name: str, *, active: bool):
+        widgets = self.spell_row_widgets.get(spell_name)
+        if not widgets:
+            return
+        bg = COLORS["bg_container"] if active else COLORS["bg"]
+        border = COLORS["accent"] if active else COLORS["bg"]
+        rail_color = COLORS["accent_text"] if active else COLORS["bg"]
+        row = widgets["row"]
+        row.configure(bg=bg, highlightbackground=border)
+        rail = widgets.get("rail")
+        if rail is not None:
+            rail.configure(bg=rail_color)
+        label = widgets.get("label")
+        if label is not None:
+            label.configure(bg=bg)
+
+    # ── Detail pane ────────────────────────────────────────────
+
+    def _show_detail(self, entry: dict):
+        spell = entry.get("spell") or {}
+        name = str(entry.get("spell_name", "") or spell.get("name", "") or "").strip()
+        if not name:
+            self._set_detail_text("No spell data found for this entry.")
+            return
+        self._set_spell_row_active(name)
+
+        level = int(spell.get("level", entry.get("level", 0)) or 0)
+        level_text = "Cantrip" if level == 0 else f"Level {level}"
+        school = str(spell.get("school", "Unknown") or "Unknown")
 
         lines = [
-            f"{spell['name']}",
-            f"{'Cantrip' if spell['level'] == 0 else 'Level ' + str(spell['level'])} {spell['school']}",
-            f"Casting Time: {spell.get('casting_time', '?')}{'  (Ritual)' if spell.get('ritual') else ''}",
-            f"Range: {spell.get('range', '?')}",
-            f"Duration: {'Concentration, ' if spell.get('concentration') else ''}{spell.get('duration', '?')}",
-            "",
-            spell.get("description", ""),
+            name,
+            f"Level: {level_text}",
+            f"School: {school}",
+            f"Casting Time: {spell.get('casting_time', 'Unknown')}",
+            f"Range: {spell.get('range', 'Unknown')}",
+            f"Duration: {spell.get('duration', 'Unknown')}",
         ]
 
-        if spell.get("higher_levels"):
-            lines.extend(["", f"At Higher Levels: {spell['higher_levels']}"])
-        if spell.get("cantrip_upgrade"):
-            lines.extend(["", f"Cantrip Upgrade: {spell['cantrip_upgrade']}"])
+        source_labels = entry.get("source_labels", []) or []
+        if source_labels:
+            lines.append(f"Granted By: {', '.join(source_labels)}")
+        free_casts = entry.get("free_casts", []) or []
+        if free_casts:
+            lines.append(f"Free Casting: {', '.join(free_casts)}")
+        if entry.get("ritual_only"):
+            lines.append("Special: Ritual only")
+        if entry.get("dragonmark_eligible"):
+            lines.append("Special: Dragonmark spell")
+        for note in entry.get("detail_notes", []) or []:
+            lines.append(f"Special: {note}")
 
-        self.spell_detail_text.insert("1.0", "\n".join(lines))
+        lines.extend(["", str(spell.get("description", "") or "No description available.")])
+
+        higher = str(spell.get("higher_levels", "") or "").strip()
+        if higher:
+            lines.extend(["", f"At Higher Levels: {higher}"])
+        upgrade = str(spell.get("cantrip_upgrade", "") or "").strip()
+        if upgrade:
+            lines.extend(["", f"Cantrip Upgrade: {upgrade}"])
+
+        self._set_detail_text("\n".join(lines))
+
+    def _set_detail_text(self, text: str):
+        if not getattr(self, "spell_detail_text", None):
+            return
+        self.spell_detail_text.configure(state=tk.NORMAL)
+        self.spell_detail_text.delete("1.0", tk.END)
+        self.spell_detail_text.insert("1.0", text)
         self.spell_detail_text.configure(state=tk.DISABLED)

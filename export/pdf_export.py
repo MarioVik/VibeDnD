@@ -13,6 +13,10 @@ from models.level1_class_rules import (
     augment_level1_feature_description,
     get_level1_creation_choice_lines,
 )
+from models.spell_grant_utils import (
+    format_spellbook_entry_label,
+    get_spellbook_entries,
+)
 from models.standard_actions import build_standard_actions
 from models.inventory_service import cp_to_coins, current_wealth_cp
 
@@ -79,9 +83,10 @@ SKILLS_BY_ABILITY = {
 class CharacterSheetPDF(FPDF):
     """Custom PDF with decorative drawing methods for the character sheet."""
 
-    def __init__(self, character: Character):
+    def __init__(self, character: Character, game_data=None):
         super().__init__("P", "mm", "A4")
         self.c = character
+        self._game_data = game_data
         self.set_auto_page_break(auto=False)
 
         # Register Georgia font family
@@ -96,14 +101,13 @@ class CharacterSheetPDF(FPDF):
 
         if (
             character.is_caster
-            or character.selected_cantrips
-            or character.selected_spells
+            or self._spellbook_entries()
         ):
             self.add_page()
             self._draw_page_3_spells()
 
         # Spell description pages (manages its own page breaks)
-        if character.selected_cantrips or character.selected_spells:
+        if self._spellbook_entries():
             self._draw_spell_descriptions_pages()
 
     def _register_fonts(self):
@@ -1634,8 +1638,9 @@ class CharacterSheetPDF(FPDF):
         ]
         headers = ["Level", "Name", "Casting Time", "Range", "C / R / M", "Notes"]
 
+        spell_entries = self._spellbook_entries()
         all_spells = self._get_spell_data()
-        num_spells = len(c.selected_cantrips) + len(c.selected_spells)
+        num_spells = len(spell_entries)
         blank_rows = max(0, 12 - num_spells)
         table_content_h = 6 + 1 + 4.5 + (num_spells + blank_rows) * 4.5 + 2
         table_content_h = min(table_content_h, PAGE_H - MARGIN - table_y)
@@ -1663,19 +1668,21 @@ class CharacterSheetPDF(FPDF):
         self.set_line_width(0.15)
         self.line(x0 + 1, ty - 0.5, x0 + table_w - 1, ty - 0.5)
 
-        for spell_name in c.selected_cantrips:
+        for entry in spell_entries:
             if ty > PAGE_H - MARGIN - 5:
                 break
+            spell_name = entry["spell_name"]
             spell = all_spells.get(spell_name, {})
-            self._draw_spell_row(x0, ty, col_widths, 0, spell_name, spell)
-            ty += 4.5
-
-        for spell_name in c.selected_spells:
-            if ty > PAGE_H - MARGIN - 5:
-                break
-            spell = all_spells.get(spell_name, {})
-            level = spell.get("level", 1)
-            self._draw_spell_row(x0, ty, col_widths, level, spell_name, spell)
+            level = int(entry.get("level", spell.get("level", 0)) or 0)
+            self._draw_spell_row(
+                x0,
+                ty,
+                col_widths,
+                level,
+                format_spellbook_entry_label(entry),
+                spell,
+                entry,
+            )
             ty += 4.5
 
         for _ in range(blank_rows):
@@ -1839,19 +1846,28 @@ class CharacterSheetPDF(FPDF):
 
         return y + h
 
-    def _draw_spell_row(self, x, y, col_widths, level, name, spell):
+    def _draw_spell_row(self, x, y, col_widths, level, name, spell, entry=None):
         """Draw one row in the spell table."""
         cx = x + 1
         self._sans("", 6)
         self.set_text_color(*C_BLACK)
 
+        notes: list[str] = []
+        if entry:
+            if entry.get("free_casts"):
+                notes.append(", ".join(entry["free_casts"]))
+            if entry.get("ritual_only"):
+                notes.append("Ritual only")
+            if entry.get("dragonmark_eligible"):
+                notes.append("Dragonmark")
+
         values = [
-            str(level),
+            "C" if int(level or 0) == 0 else str(level),
             name,
             spell.get("casting_time", ""),
             spell.get("range", ""),
             self._spell_flags(spell),
-            self._spell_components_short(spell),
+            "; ".join(notes)[:30],
         ]
 
         for i, val in enumerate(values):
@@ -1885,23 +1901,13 @@ class CharacterSheetPDF(FPDF):
 
     def _draw_spell_descriptions_pages(self):
         """Render full spell descriptions across one or more pages."""
-        c = self.c
         spell_data = self._get_spell_data()
-
-        # Gather all spells: cantrips first, then leveled spells sorted by level
-        spells_to_render = []
-        for name in sorted(c.selected_cantrips):
-            sd = spell_data.get(name)
-            if sd:
-                spells_to_render.append(sd)
-
-        leveled = []
-        for name in c.selected_spells:
-            sd = spell_data.get(name)
-            if sd:
-                leveled.append(sd)
-        leveled.sort(key=lambda s: (s.get("level", 0), s.get("name", "")))
-        spells_to_render.extend(leveled)
+        spell_entries = self._spellbook_entries()
+        spells_to_render: list[tuple[dict, dict]] = []
+        for entry in spell_entries:
+            spell = spell_data.get(entry["spell_name"])
+            if spell:
+                spells_to_render.append((entry, spell))
 
         if not spells_to_render:
             return
@@ -1920,8 +1926,8 @@ class CharacterSheetPDF(FPDF):
         current_col = 0
         max_y = PAGE_H - MARGIN - 8  # leave room for footer
 
-        for spell in spells_to_render:
-            card_h = self._measure_spell_card(spell, col_w)
+        for entry, spell in spells_to_render:
+            card_h = self._measure_spell_card(spell, col_w, entry)
 
             # Check if card fits in current column
             if col_y[current_col] + card_h > max_y:
@@ -1946,7 +1952,7 @@ class CharacterSheetPDF(FPDF):
                     current_col = 0
 
             col_y[current_col] = self._draw_spell_card(
-                col_x[current_col], col_y[current_col], col_w, spell
+                col_x[current_col], col_y[current_col], col_w, spell, entry
             )
             col_y[current_col] += 2  # gap between cards
 
@@ -1963,12 +1969,30 @@ class CharacterSheetPDF(FPDF):
         footer_y = PAGE_H - MARGIN - 1
         self._draw_ornamental_line(MARGIN + 30, footer_y, CONTENT_W - 60, 0.2)
 
-    def _measure_spell_card(self, spell, w):
+    def _measure_spell_card(self, spell, w, entry=None):
         """Estimate the height of a spell description card."""
         inner_w = w - 4  # padding
         h = 6  # title bar
         h += 1.5  # top padding
         h += 3.5  # level/school line
+        if entry:
+            extra_tags: list[str] = []
+            if entry.get("free_casts"):
+                extra_tags.append(f"Free Casting: {', '.join(entry['free_casts'])}")
+            if entry.get("ritual_only"):
+                extra_tags.append("Ritual only")
+            for note in entry.get("detail_notes", []) or []:
+                extra_tags.append(note)
+            if extra_tags:
+                self._sans("I", 5.2)
+                lines = self.multi_cell(
+                    inner_w,
+                    2.8,
+                    " • ".join(extra_tags),
+                    dry_run=True,
+                    output="LINES",
+                )
+                h += len(lines) * 2.8 + 0.5
         h += 3  # casting time + range
         h += 3  # duration + components line
         h += 2  # gap before description
@@ -1996,7 +2020,7 @@ class CharacterSheetPDF(FPDF):
         h += 2  # bottom padding
         return h
 
-    def _draw_spell_card(self, x, y, w, spell):
+    def _draw_spell_card(self, x, y, w, spell, entry=None):
         """Draw a single spell description card. Returns bottom y."""
         inner_w = w - 4
         inner_x = x + 2
@@ -2013,7 +2037,8 @@ class CharacterSheetPDF(FPDF):
         self._rounded_rect(x, y, w, card_h, R_MD, "D")
 
         # Title bar with spell name
-        self._redraw_title(x, y, w, spell.get("name", "Spell"))
+        title = format_spellbook_entry_label(entry) if entry else spell.get("name", "Spell")
+        self._redraw_title(x, y, w, title)
 
         ty = y + 6 + 1.5
 
@@ -2041,6 +2066,21 @@ class CharacterSheetPDF(FPDF):
         self.set_xy(inner_x, ty)
         self.cell(inner_w, 3.5, level_text)
         ty += 3.5
+
+        if entry:
+            extra_tags: list[str] = []
+            if entry.get("free_casts"):
+                extra_tags.append(f"Free Casting: {', '.join(entry['free_casts'])}")
+            if entry.get("ritual_only"):
+                extra_tags.append("Ritual only")
+            for note in entry.get("detail_notes", []) or []:
+                extra_tags.append(note)
+            if extra_tags:
+                self._sans("I", 5.2)
+                self.set_text_color(*C_MED_GRAY)
+                self.set_xy(inner_x, ty)
+                self.multi_cell(inner_w, 2.8, " • ".join(extra_tags))
+                ty = self.get_y() + 0.5
 
         # Stats: Casting Time | Range
         self._sans("B", 5.5)
@@ -2134,6 +2174,16 @@ class CharacterSheetPDF(FPDF):
                 parts.append("M")
         return ", ".join(parts)
 
+    def _game_data_context(self):
+        if self._game_data is None:
+            from gui.data_loader import GameData
+
+            self._game_data = GameData()
+        return self._game_data
+
+    def _spellbook_entries(self) -> list[dict]:
+        return get_spellbook_entries(self.c, self._game_data_context())
+
     def _get_spell_data(self) -> dict[str, dict]:
         """Load spell data for the spell table."""
         import json
@@ -2150,7 +2200,7 @@ class CharacterSheetPDF(FPDF):
         return {}
 
 
-def export_pdf(character: Character, path: str):
+def export_pdf(character: Character, path: str, game_data=None):
     """Generate and save a PDF character sheet."""
-    pdf = CharacterSheetPDF(character)
+    pdf = CharacterSheetPDF(character, game_data=game_data)
     pdf.output(path)

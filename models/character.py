@@ -81,6 +81,7 @@ class Character:
     species_origin_feat: dict | None = None  # Species origin feat (Human Versatile)
     feat_sub_choices: dict = field(default_factory=dict)
     level1_class_choices: dict = field(default_factory=dict)
+    spell_grant_choices: dict = field(default_factory=dict)
 
     selected_cantrips: list[str] = field(default_factory=list)
     selected_spells: list[str] = field(default_factory=list)

@@ -49,7 +49,12 @@ from models.enums import ALL_SKILLS
 from models.language_utils import all_languages
 from models.level1_class_rules import (
     augment_level1_feature_description,
-    get_level1_creation_choice_lines,
+)
+from models.spell_grant_utils import (
+    format_spellbook_entry_label,
+    get_free_spell_summary_entries,
+    get_spellbook_sections,
+    has_spellbook_entries,
 )
 from models.standard_actions import (
     WEAPON_DATA,
@@ -100,6 +105,7 @@ class CharacterViewer(ttk.Frame):
         self._inventory_entries_by_name = {}
         self._selected_inventory_name = ""
         self._hover_tooltips: list[HoverTooltip] = []
+        self._spell_entries_by_label: dict[str, dict] = {}
 
         self._view_dirty = {
             _DASHBOARD: True,
@@ -258,7 +264,7 @@ class CharacterViewer(ttk.Frame):
         self._hover_tooltips.clear()
 
     def _character_has_spells(self) -> bool:
-        return bool(self.character.selected_cantrips or self.character.selected_spells)
+        return has_spellbook_entries(self.character, self.data)
 
     # ================================================================
     # DASHBOARD VIEW
@@ -1484,23 +1490,27 @@ class CharacterViewer(ttk.Frame):
 
         c = self.character
         cls = c.character_class or {}
+        free_spell_entries = get_free_spell_summary_entries(c, self.data)
 
         # Spellcasting stats header
         cast_ability = cls.get("spellcasting_ability")
-        if cast_ability:
+        if cast_ability or free_spell_entries:
             stats_frame = tk.Frame(wrapper, bg=COLORS["bg"])
             stats_frame.pack(fill=tk.X, pady=(SPACING["sm"], SPACING["section_gap"]))
 
-            spell_mod = c.ability_scores.modifier(cast_ability)
-            attack_bonus = spell_mod + c.proficiency_bonus
-            save_dc = 8 + spell_mod + c.proficiency_bonus
-            ability_score = c.ability_scores.total(cast_ability)
+            if cast_ability:
+                spell_mod = c.ability_scores.modifier(cast_ability)
+                attack_bonus = spell_mod + c.proficiency_bonus
+                save_dc = 8 + spell_mod + c.proficiency_bonus
+                ability_score = c.ability_scores.total(cast_ability)
+                stat_specs = [
+                    ("Spell Attack", f"+{attack_bonus}", f"PROF + {cast_ability[:3].upper()}"),
+                    ("Save DC", str(save_dc), "BASE 8"),
+                ]
+            else:
+                stat_specs = []
 
-            for label, value, sub in [
-                ("Spell Attack", f"+{attack_bonus}", f"PROF + {cast_ability[:3].upper()}"),
-                ("Save DC", str(save_dc), "BASE 8"),
-                ("Spell Ability", cast_ability[:3].upper(), f"{ability_score} (+{spell_mod})"),
-            ]:
+            for label, value, sub in stat_specs:
                 stat_cf = CardFrame(stats_frame, pad=SPACING["md"])
                 stat_cf.pack(side=tk.LEFT, padx=(0, SPACING["card_gap"]))
 
@@ -1530,8 +1540,61 @@ class CharacterViewer(ttk.Frame):
                     fg_color=COLORS["gold"],
                 ).pack(side=tk.LEFT, padx=(8, 0))
 
-            # Spell slots inline with stats
-            self._build_spell_slot_display(stats_frame)
+            if free_spell_entries:
+                free_cf = CardFrame(stats_frame, pad=SPACING["md"])
+                free_cf.pack(side=tk.LEFT, padx=(0, SPACING["card_gap"]))
+
+                tk.Label(
+                    free_cf.inner,
+                    text="FREE SPELLS",
+                    font=FONTS["label_upper_bold"],
+                    fg=COLORS["fg_dim"],
+                    bg=COLORS["bg_surface"],
+                ).pack(anchor="w")
+
+                for entry in free_spell_entries:
+                    tk.Label(
+                        free_cf.inner,
+                        text=f"{entry['label']} - {entry['cadence']}",
+                        font=FONTS["body"],
+                        fg=COLORS["fg"],
+                        bg=COLORS["bg_surface"],
+                        anchor="w",
+                        justify=tk.LEFT,
+                    ).pack(anchor="w")
+
+            if cast_ability:
+                stat_cf = CardFrame(stats_frame, pad=SPACING["md"])
+                stat_cf.pack(side=tk.LEFT, padx=(0, SPACING["card_gap"]))
+
+                tk.Label(
+                    stat_cf.inner,
+                    text="SPELL ABILITY",
+                    font=FONTS["label_upper_bold"],
+                    fg=COLORS["fg_dim"],
+                    bg=COLORS["bg_surface"],
+                ).pack(anchor="w")
+
+                val_row = tk.Frame(stat_cf.inner, bg=COLORS["bg_surface"])
+                val_row.pack(anchor="w")
+
+                tk.Label(
+                    val_row,
+                    text=cast_ability[:3].upper(),
+                    font=FONTS["stat_large"],
+                    fg=COLORS["accent_text"],
+                    bg=COLORS["bg_surface"],
+                ).pack(side=tk.LEFT)
+
+                PillBadge(
+                    val_row,
+                    text=f"{ability_score} (+{spell_mod})",
+                    bg_color=COLORS["badge_glass_dim"],
+                    fg_color=COLORS["gold"],
+                ).pack(side=tk.LEFT, padx=(8, 0))
+
+                # Spell slots inline with stats
+                self._build_spell_slot_display(stats_frame)
 
         # Spell list (reuse existing pattern with split view)
         spell_area = tk.Frame(wrapper, bg=COLORS["bg"])
@@ -1546,7 +1609,7 @@ class CharacterViewer(ttk.Frame):
 
         tk.Label(
             left,
-            text="Known Spells",
+            text="Spell List",
             font=FONTS["heading_serif_sm"],
             fg=COLORS["fg"],
             bg=COLORS["bg_surface"],
@@ -1782,38 +1845,6 @@ class CharacterViewer(ttk.Frame):
             SectionHeader(inner, text=feat_title).pack(
                 fill=tk.X, pady=(0, SPACING["sm"])
             )
-            creation_choice_lines = get_level1_creation_choice_lines(c)
-            if creation_choice_lines:
-                creation_card = CardFrame(
-                    inner,
-                    bg=COLORS["bg_container"],
-                    border_color=COLORS["border_subtle"],
-                    pad=SPACING["lg"],
-                )
-                creation_card.pack(fill=tk.X, pady=(0, SPACING["sm"]))
-                header = tk.Frame(creation_card.inner, bg=COLORS["bg_container"])
-                header.pack(fill=tk.X)
-                tk.Label(
-                    header,
-                    text="Level 1 Creation Choices",
-                    font=FONTS["heading_serif_sm"],
-                    fg=COLORS["fg"],
-                    bg=COLORS["bg_container"],
-                ).pack(side=tk.LEFT)
-                PillBadge(
-                    header,
-                    text="LEVEL 1",
-                    bg_color=COLORS["badge_glass_dim"],
-                    fg_color=COLORS["gold"],
-                ).pack(side=tk.RIGHT)
-                for line in creation_choice_lines:
-                    WrappingLabel(
-                        creation_card.inner,
-                        text=line,
-                        font=FONTS["body_bold"],
-                        foreground=COLORS["fg"],
-                        background=COLORS["bg_container"],
-                    ).pack(fill=tk.X, pady=(6, 0))
             features_grid = tk.Frame(inner, bg=COLORS["bg"])
             features_grid.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
             features_grid.columnconfigure(0, weight=1)
@@ -2331,50 +2362,52 @@ class CharacterViewer(ttk.Frame):
     # ================================================================
 
     def _refresh_spells_tab(self):
-        cantrips = list(dict.fromkeys(self.character.selected_cantrips or []))
-        spells = list(dict.fromkeys(self.character.selected_spells or []))
-
+        self._spell_entries_by_label = {}
         sections: list[tuple[str, list[str]]] = []
-        if cantrips:
-            sections.append(("Cantrips", sorted(cantrips)))
+        sub_items: dict[str, list[str]] = {}
 
-        by_level: dict[int, list[str]] = {}
-        unknown_level: list[str] = []
-        for name in spells:
-            spell = self._spell_index.get(name)
-            if spell is None:
-                unknown_level.append(name)
-                continue
-            lvl = int(spell.get("level", 1))
-            by_level.setdefault(lvl, []).append(name)
+        for section_name, entries in get_spellbook_sections(self.character, self.data):
+            labels: list[str] = []
+            for entry in entries:
+                label = format_spellbook_entry_label(entry)
+                labels.append(label)
+                self._spell_entries_by_label[label] = entry
+                details: list[str] = []
+                if entry.get("free_casts"):
+                    details.append(f"Free: {', '.join(entry['free_casts'])}")
+                if entry.get("ritual_only"):
+                    details.append("Ritual only")
+                if entry.get("detail_notes"):
+                    details.extend(entry["detail_notes"])
+                if details:
+                    sub_items[label] = details
+            if labels:
+                sections.append((section_name, labels))
 
-        for lvl in sorted(by_level.keys()):
-            sections.append((f"Level {lvl}", sorted(by_level[lvl])))
-        if unknown_level:
-            sections.append(("Other", sorted(unknown_level)))
-
-        self.spells_list.set_sectioned_items(sections)
+        self.spells_list.set_sectioned_items(sections, sub_items=sub_items)
 
         if sections and sections[0][1]:
-            self.spells_list.select_item(sections[0][1][0])
-            self._show_spell_details(sections[0][1][0])
+            first_label = sections[0][1][0]
+            self.spells_list.select_item(first_label)
+            self._show_spell_details(self._spell_entries_by_label.get(first_label))
         else:
             self._show_spell_details(None)
 
-    def _on_spell_select(self, spell_name: str):
-        self._show_spell_details(spell_name)
+    def _on_spell_select(self, spell_label: str):
+        self._show_spell_details(self._spell_entries_by_label.get(spell_label))
 
-    def _show_spell_details(self, spell_name: str | None):
-        if not spell_name:
+    def _show_spell_details(self, entry: dict | None):
+        if not entry:
             self.spell_title.configure(text="No spells known")
             self._set_spell_detail_text(
-                "This character has no selected cantrips or spells."
+                "This character has no spells or magical grants to display."
             )
             return
 
+        spell_name = str(entry.get("spell_name", "") or "").strip()
         spell = self._spell_index.get(spell_name, {})
         if not spell:
-            self.spell_title.configure(text=spell_name)
+            self.spell_title.configure(text=format_spellbook_entry_label(entry))
             self._set_spell_detail_text("No spell data found for this entry.")
             return
 
@@ -2394,7 +2427,7 @@ class CharacterViewer(ttk.Frame):
                 comp_text.append(k)
         components = ", ".join(comp_text) if comp_text else "None"
 
-        self.spell_title.configure(text=spell.get("name", spell_name))
+        self.spell_title.configure(text=format_spellbook_entry_label(entry))
         body = [
             f"Level: {level_text}",
             f"School: {school}",
@@ -2403,6 +2436,18 @@ class CharacterViewer(ttk.Frame):
             f"Duration: {spell.get('duration', 'Unknown')}",
             f"Components: {components}",
         ]
+        source_labels = entry.get("source_labels", []) or []
+        if source_labels:
+            body.append(f"Granted By: {', '.join(source_labels)}")
+        free_casts = entry.get("free_casts", []) or []
+        if free_casts:
+            body.append(f"Free Casting: {', '.join(free_casts)}")
+        if entry.get("ritual_only"):
+            body.append("Special: Ritual only")
+        if entry.get("dragonmark_eligible"):
+            body.append("Special: Dragonmark spell")
+        for note in entry.get("detail_notes", []) or []:
+            body.append(f"Special: {note}")
         source = spell.get("source")
         if source:
             body.append(f"Source: {source}")
@@ -2428,6 +2473,9 @@ class CharacterViewer(ttk.Frame):
             "Range",
             "Duration",
             "Components",
+            "Granted By",
+            "Free Casting",
+            "Special",
             "Source",
             "At Higher Levels",
         }
@@ -3201,7 +3249,7 @@ class CharacterViewer(ttk.Frame):
         )
         if path:
             try:
-                export_pdf(self.character, path)
+                export_pdf(self.character, path, game_data=self.data)
                 AlertDialog(
                     self.winfo_toplevel(),
                     "Export",

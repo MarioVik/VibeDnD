@@ -26,6 +26,7 @@ from models.level1_class_rules import (
     get_unmet_level1_class_requirements,
     requires_level1_class_features_step,
 )
+from models.spell_grant_utils import character_has_spell_step_content
 from models.language_utils import compute_language_sources
 from models.skill_utils import compute_skill_sources
 
@@ -479,7 +480,7 @@ class CharacterCreatorApp:
         if key == "class_features":
             return requires_level1_class_features_step(self.character, self.data)
         if key == "spells":
-            return self.character.is_caster
+            return character_has_spell_step_content(self.character, self.data)
         return True
 
     def _is_step_visible(self, idx: int) -> bool:
@@ -686,24 +687,31 @@ class CharacterCreatorApp:
                 f"({chosen}/{needed} selected)",
             )
         elif isinstance(step, SpellsStep):
-            blockers = get_unmet_level1_class_requirements(
-                self.character,
-                self.data,
-                step_key="spells",
-            )
             cantrip_max = get_effective_cantrips_known(self.character)
             spell_max = get_effective_prepared_spells(self.character)
             cantrip_count = len(self.character.selected_cantrips)
             spell_count = len(self.character.selected_spells)
+            blockers = step.get_current_substep_requirements()
+            current_substep = step.get_current_substep()
+            is_split = step.get_substep_count() > 1
             parts = []
-            if cantrip_max > 0 and cantrip_count < cantrip_max:
+            if (not is_split or current_substep == 0) and cantrip_max > 0 and cantrip_count < cantrip_max:
                 parts.append(f"{cantrip_count}/{cantrip_max} cantrips")
-            if spell_max > 0 and spell_count < spell_max:
+            if (not is_split or current_substep == 0) and spell_max > 0 and spell_count < spell_max:
                 parts.append(f"{spell_count}/{spell_max} spells")
+            if blockers and (not parts or current_substep > 0):
+                body = "\n\n".join(blocker["message"] for blocker in blockers)
+            elif parts:
+                body = (
+                    "Select all your spells before moving on. "
+                    f"({', '.join(parts)} selected)"
+                )
+            else:
+                body = "Resolve all required spell selections before moving on."
             AlertDialog(
                 self.root,
                 "Spell Selection Required",
-                f"Select all your spells before moving on. ({', '.join(parts)} selected)",
+                body,
             )
         elif isinstance(step, ClassFeaturesStep):
             blockers = step.get_current_substep_requirements()
@@ -851,7 +859,7 @@ class CharacterCreatorApp:
         )
         if path:
             try:
-                export_pdf(self.character, path)
+                export_pdf(self.character, path, game_data=self.data)
                 AlertDialog(self.root, "Export", f"PDF character sheet saved to {path}")
             except Exception as e:
                 AlertDialog(self.root, "Export Error", f"Failed to generate PDF:\n{e}")

@@ -27,10 +27,25 @@ from models.level1_class_rules import (
     get_weapon_mastery_options,
     scrub_level1_class_choices,
 )
+from models.spell_grant_utils import (
+    apply_default_spell_grant_abilities,
+    character_has_spell_step_content,
+    format_spellbook_entry_label,
+    get_active_spell_grant_sources,
+    get_free_spell_summary_entries,
+    get_selectable_class_cantrip_options,
+    get_selectable_class_spell_options,
+    get_spell_grant_choice_value,
+    get_spell_grant_requirements,
+    get_spellbook_entries,
+    scrub_spell_grant_choices,
+    set_spell_grant_choice_value,
+)
 
 scenarios("features/level1_feature_catalog.feature")
 scenarios("features/level1_class_completion.feature")
 scenarios("features/level1_class_integrations.feature")
+scenarios("features/level1_spell_grants.feature")
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DOC_PATH = REPO_ROOT / "docs" / "testing" / "level1-class-creation.md"
@@ -61,6 +76,92 @@ def _class_by_slug(game_data: GameData, class_slug: str) -> dict:
         if cls.get("slug") == class_slug:
             return cls
     raise AssertionError(f"Unknown class slug: {class_slug}")
+
+
+def _species_by_name(game_data: GameData, species_name: str) -> dict:
+    species = game_data.species_by_name.get(species_name)
+    if not species:
+        raise AssertionError(f"Unknown species: {species_name}")
+    return species
+
+
+def _set_species(
+    character: Character,
+    game_data: GameData,
+    species_name: str,
+    *,
+    sub_choice: str = "",
+):
+    character.species = _species_by_name(game_data, species_name)
+    character.species_sub_choice = sub_choice or None
+
+
+def _set_species_origin_feat(character: Character, game_data: GameData, feat_name: str):
+    feat = game_data.find_feat(feat_name)
+    if not feat:
+        raise AssertionError(f"Unknown feat: {feat_name}")
+    character.species_origin_feat = feat
+
+
+def _set_background_feat(character: Character, feat_name: str):
+    character.background = {"name": "BDD Background", "feat": feat_name}
+
+
+def _source_by_label(character: Character, game_data: GameData, label: str) -> dict:
+    for source in get_active_spell_grant_sources(character, game_data):
+        if source["source_label"] == label:
+            return source
+    raise AssertionError(f"Unknown active spell grant source: {label}")
+
+
+def _refresh_spell_grants(character: Character, game_data: GameData):
+    scrub_level1_class_choices(character, game_data)
+    apply_default_spell_grant_abilities(character, game_data)
+    scrub_spell_grant_choices(character, game_data)
+
+
+def _choose_default_spell_grant_choices(character: Character, game_data: GameData):
+    _refresh_spell_grants(character, game_data)
+    class_ability = str((character.character_class or {}).get("spellcasting_ability", "") or "").strip()
+
+    for source in get_active_spell_grant_sources(character, game_data):
+        source_id = source["source_id"]
+
+        if source["source_list_options"] and not str(
+            get_spell_grant_choice_value(character, source_id, "source_list", "") or ""
+        ).strip():
+            set_spell_grant_choice_value(
+                character,
+                source_id,
+                "source_list",
+                source["source_list_options"][0],
+            )
+            _refresh_spell_grants(character, game_data)
+            source = _source_by_label(character, game_data, source["source_label"])
+
+        if source.get("ability_choice_required") and not str(
+            get_spell_grant_choice_value(character, source_id, "ability", "") or ""
+        ).strip():
+            ability = class_ability or source["ability_options"][0]
+            set_spell_grant_choice_value(character, source_id, "ability", ability)
+
+        if source["cantrip_choice_count"]:
+            set_spell_grant_choice_value(
+                character,
+                source_id,
+                "cantrips",
+                list(source["cantrip_options"][: source["cantrip_choice_count"]]),
+            )
+
+        if source["spell_choice_count"]:
+            set_spell_grant_choice_value(
+                character,
+                source_id,
+                "spells",
+                list(source["spell_options"][: source["spell_choice_count"]]),
+            )
+
+    _refresh_spell_grants(character, game_data)
 
 
 def _table_rows(path: Path, heading: str) -> list[dict[str, str]]:
@@ -152,7 +253,7 @@ def _select_spell_choices(
     preferred_spells = preferred_spells or []
 
     cantrip_target = get_effective_cantrips_known(character)
-    cantrip_options = [spell["name"] for spell in game_data.cantrips_for_class(class_name)]
+    cantrip_options = get_selectable_class_cantrip_options(character, game_data)
     selected_cantrips: list[str] = []
     for spell_name in preferred_cantrips + cantrip_options:
         if spell_name in cantrip_options and spell_name not in selected_cantrips:
@@ -162,11 +263,7 @@ def _select_spell_choices(
     character.selected_cantrips = selected_cantrips
 
     spell_target = get_effective_prepared_spells(character)
-    spell_options = [
-        spell["name"]
-        for spell in game_data.spells_for_class(class_name, max_level=1)
-        if spell.get("level") == 1
-    ]
+    spell_options = get_selectable_class_spell_options(character, game_data, level=1)
     selected_spells: list[str] = []
     for spell_name in preferred_spells + spell_options:
         if spell_name in spell_options and spell_name not in selected_spells:
@@ -237,6 +334,7 @@ def _complete_level1_character(
         warlock_invocation=warlock_invocation,
     )
     scrub_level1_class_choices(character, game_data)
+    apply_default_spell_grant_abilities(character, game_data)
 
     _choose_class_skills(character)
     if class_slug == "rogue":
@@ -252,9 +350,16 @@ def _complete_level1_character(
         preferred_cantrips=preferred_cantrips,
     )
     _finalize_warlock_nested_choices(character, game_data)
+    _choose_default_spell_grant_choices(character, game_data)
+    _select_spell_choices(
+        character,
+        game_data,
+        preferred_cantrips=preferred_cantrips,
+    )
     _choose_languages(character)
     character.equipment_choice_class = _first_equipment_option(character)
     scrub_level1_class_choices(character, game_data)
+    _refresh_spell_grants(character, game_data)
 
     blockers = get_unmet_level1_class_requirements(character, game_data)
     assert blockers == [], f"Expected complete character for {class_slug}, got {blockers}"
@@ -357,6 +462,47 @@ def given_completed_warlock(game_data: GameData, invocation: str) -> Character:
     )
 
 
+@given(parsers.parse("the character is the species {species_name}"))
+def given_character_species(character: Character, game_data: GameData, species_name: str):
+    _set_species(character, game_data, species_name)
+    _refresh_spell_grants(character, game_data)
+
+
+@given(parsers.parse("the character is the species {species_name} with the {sub_choice} lineage"))
+def given_character_species_subchoice(
+    character: Character,
+    game_data: GameData,
+    species_name: str,
+    sub_choice: str,
+):
+    _set_species(character, game_data, species_name, sub_choice=sub_choice)
+    _refresh_spell_grants(character, game_data)
+
+
+@given(parsers.parse("the character has the species origin feat {feat_name}"))
+def given_species_origin_feat(character: Character, game_data: GameData, feat_name: str):
+    _set_species_origin_feat(character, game_data, feat_name)
+    _refresh_spell_grants(character, game_data)
+
+
+@given(parsers.parse("the character has the background feat {feat_name}"))
+def given_background_feat(character: Character, game_data: GameData, feat_name: str):
+    _set_background_feat(character, feat_name)
+    _refresh_spell_grants(character, game_data)
+
+
+@given(parsers.parse("the {source_label} source uses {ability} as its spellcasting ability"))
+def given_source_ability_choice(
+    character: Character,
+    game_data: GameData,
+    source_label: str,
+    ability: str,
+):
+    source = _source_by_label(character, game_data, source_label)
+    set_spell_grant_choice_value(character, source["source_id"], "ability", ability)
+    _refresh_spell_grants(character, game_data)
+
+
 @when(parsers.parse("the {requirement_id} requirement is removed from that character"))
 def when_requirement_removed(character: Character, requirement_id: str, game_data: GameData):
     _remove_requirement(character, requirement_id)
@@ -414,6 +560,23 @@ def when_tome_ritual_removed(character: Character, game_data: GameData):
 def when_lessons_feat_removed(character: Character, game_data: GameData):
     _remove_requirement(character, "warlock-lessons-feat")
     scrub_level1_class_choices(character, game_data)
+
+
+@when("spell grant defaults are applied")
+def when_spell_grant_defaults_applied(character: Character, game_data: GameData):
+    _refresh_spell_grants(character, game_data)
+
+
+@when(parsers.parse("the {source_label} source spell list is set to {list_name}"))
+def when_spell_grant_source_list_selected(
+    character: Character,
+    game_data: GameData,
+    source_label: str,
+    list_name: str,
+):
+    source = _source_by_label(character, game_data, source_label)
+    set_spell_grant_choice_value(character, source["source_id"], "source_list", list_name)
+    _refresh_spell_grants(character, game_data)
 
 
 @then("the markdown specification documents every level 1 class feature")
@@ -551,3 +714,138 @@ def then_warlock_invocation_annotation(character: Character):
     assert "Selected Invocation: Pact of the Tome" in lines
     assert any(line.startswith("Tome Cantrips: ") for line in lines)
     assert any(line.startswith("Tome Rituals: ") for line in lines)
+
+
+@then("the character has spell step content")
+def then_character_has_spell_step(character: Character, game_data: GameData):
+    assert character_has_spell_step_content(character, game_data)
+
+
+@then(parsers.parse("the spellbook includes {spell_name} granted by {source_label}"))
+def then_spellbook_includes_granted_spell(
+    character: Character,
+    game_data: GameData,
+    spell_name: str,
+    source_label: str,
+):
+    entries = {
+        entry["spell_name"]: entry
+        for entry in get_spellbook_entries(character, game_data)
+    }
+    assert spell_name in entries
+    assert source_label in entries[spell_name]["source_labels"]
+
+
+@then(parsers.parse("the spellbook does not include {spell_name}"))
+def then_spellbook_excludes_spell(character: Character, game_data: GameData, spell_name: str):
+    assert spell_name not in {
+        entry["spell_name"] for entry in get_spellbook_entries(character, game_data)
+    }
+
+
+@then(parsers.parse("the spellbook includes {count:d} cantrips total"))
+def then_spellbook_cantrip_count(character: Character, game_data: GameData, count: int):
+    assert sum(
+        1 for entry in get_spellbook_entries(character, game_data) if int(entry.get("level", 0) or 0) == 0
+    ) == count
+
+
+@then(parsers.parse("{spell_name} is not a selectable base cantrip for that character"))
+def then_spell_not_selectable_cantrip(character: Character, game_data: GameData, spell_name: str):
+    assert spell_name not in get_selectable_class_cantrip_options(character, game_data)
+
+
+@then(parsers.parse("{spell_name} is not a selectable base level 1 spell for that character"))
+def then_spell_not_selectable_level1(character: Character, game_data: GameData, spell_name: str):
+    assert spell_name not in get_selectable_class_spell_options(character, game_data, level=1)
+
+
+@then(parsers.parse("{spell_name} is a selectable base level 1 spell for that character"))
+def then_spell_is_selectable_level1(character: Character, game_data: GameData, spell_name: str):
+    assert spell_name in get_selectable_class_spell_options(character, game_data, level=1)
+
+
+@then(parsers.parse("the {source_label} source requires a spell list choice"))
+def then_source_requires_spell_list(character: Character, game_data: GameData, source_label: str):
+    source = _source_by_label(character, game_data, source_label)
+    requirements = get_spell_grant_requirements(character, game_data)
+    requirement_ids = {item["id"] for item in requirements}
+    assert f"{source['source_id']}:source_list" in requirement_ids
+
+
+@then(
+    parsers.parse(
+        "the {source_label} source requires {cantrip_count:d} cantrip choices and {spell_count:d} spell choices"
+    )
+)
+def then_source_requires_spell_choices(
+    character: Character,
+    game_data: GameData,
+    source_label: str,
+    cantrip_count: int,
+    spell_count: int,
+):
+    source = _source_by_label(character, game_data, source_label)
+    requirements = get_spell_grant_requirements(character, game_data)
+    requirement_ids = {item["id"] for item in requirements}
+    if cantrip_count:
+        assert source["cantrip_choice_count"] == cantrip_count
+        assert f"{source['source_id']}:cantrips" in requirement_ids
+    if spell_count:
+        assert source["spell_choice_count"] == spell_count
+        assert f"{source['source_id']}:spells" in requirement_ids
+
+
+@then(parsers.parse("the {source_label} source uses {ability} as its spellcasting ability"))
+def then_source_uses_ability(
+    character: Character,
+    game_data: GameData,
+    source_label: str,
+    ability: str,
+):
+    source = _source_by_label(character, game_data, source_label)
+    assert get_spell_grant_choice_value(character, source["source_id"], "ability", "") == ability
+
+
+@then(parsers.parse("the {source_label} source offers {count:d} cantrip choice instead of a fixed cantrip"))
+def then_source_offers_cantrip_choice(
+    character: Character,
+    game_data: GameData,
+    source_label: str,
+    count: int,
+):
+    source = _source_by_label(character, game_data, source_label)
+    assert source["cantrip_choice_count"] == count
+    assert source["granted_entries"] == []
+
+
+@then(parsers.parse("the free spell summary includes {label} - {cadence}"))
+def then_free_spell_summary_includes(
+    character: Character,
+    game_data: GameData,
+    label: str,
+    cadence: str,
+):
+    assert {"label": label, "cadence": cadence} in get_free_spell_summary_entries(character, game_data)
+
+
+@then(parsers.parse("{spell_name} is tagged as a Dragonmark spell"))
+def then_spell_is_dragonmark(character: Character, game_data: GameData, spell_name: str):
+    entries = {
+        entry["spell_name"]: entry
+        for entry in get_spellbook_entries(character, game_data)
+    }
+    assert entries[spell_name]["dragonmark_eligible"] is True
+
+
+@then(parsers.parse("the formatted spellbook label for {spell_name} includes {suffix}"))
+def then_formatted_spellbook_label_includes(
+    character: Character,
+    game_data: GameData,
+    spell_name: str,
+    suffix: str,
+):
+    entry = next(
+        entry for entry in get_spellbook_entries(character, game_data) if entry["spell_name"] == spell_name
+    )
+    assert suffix in format_spellbook_entry_label(entry)

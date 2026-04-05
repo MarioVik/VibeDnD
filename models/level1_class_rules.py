@@ -14,6 +14,10 @@ from functools import lru_cache
 
 from models.language_utils import compute_language_sources
 from models.skill_utils import compute_skill_sources
+from models.spell_grant_utils import (
+    get_spell_grant_requirements,
+    scrub_spell_grant_choices,
+)
 from paths import data_dir
 
 FIGHTING_STYLE_FEAT_NAMES = [
@@ -790,6 +794,7 @@ def _requirement(
 def get_unmet_level1_class_requirements(character, game_data, step_key: str | None = None) -> list[dict]:
     """Return unresolved level-1 class requirements for character creation."""
     scrub_level1_class_choices(character, game_data)
+    scrub_spell_grant_choices(character, game_data)
 
     cls = character.character_class or {}
     slug = cls.get("slug", "")
@@ -865,6 +870,8 @@ def get_unmet_level1_class_requirements(character, game_data, step_key: str | No
                 missing_count=spell_missing,
             )
         )
+
+    requirements.extend(get_spell_grant_requirements(character, game_data))
 
     valid_class_equipment = {
         str(option.get("option", "")).strip()

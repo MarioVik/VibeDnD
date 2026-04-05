@@ -29,6 +29,11 @@ from models.level1_class_rules import (
     augment_level1_feature_description,
     get_level1_creation_choice_lines,
 )
+from models.spell_grant_utils import (
+    format_spellbook_entry_label,
+    get_spellbook_sections,
+    has_spellbook_entries,
+)
 from models.inventory_service import (
     base_wealth_cp,
     cp_to_coins,
@@ -594,16 +599,16 @@ def build_character_sheet(
                 )
 
     # ── Spells ──────────────────────────────────────────────────
-    if _show("spells") and (c.selected_cantrips or c.selected_spells):
+    if _show("spells") and has_spellbook_entries(c, game_data):
         spell_sec = ttk.LabelFrame(parent, text="Spells")
         spell_sec.pack(fill=tk.X, pady=section_pady)
-        if c.selected_cantrips:
+        for section_name, entries in get_spellbook_sections(c, game_data):
             WrappingLabel(
-                spell_sec, text=f"  Cantrips: {', '.join(c.selected_cantrips)}"
-            ).pack(fill=tk.X, anchor="w", padx=8, pady=2)
-        if c.selected_spells:
-            WrappingLabel(
-                spell_sec, text=f"  Level 1: {', '.join(c.selected_spells)}"
+                spell_sec,
+                text=(
+                    f"  {section_name}: "
+                    f"{', '.join(format_spellbook_entry_label(entry) for entry in entries)}"
+                ),
             ).pack(fill=tk.X, anchor="w", padx=8, pady=2)
 
     # Parsed equipment/inventory
