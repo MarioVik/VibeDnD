@@ -1907,6 +1907,35 @@ class CharacterViewer(ttk.Frame):
                 on_decrement=lambda d=unit_cp: _adjust_wealth(-d),
             ).pack(side=tk.LEFT, padx=(2, 0))
 
+        # ── Attunement slots ──
+        attune_cf = CardFrame(currency_frame, pad=SPACING["md"])
+        attune_cf.pack(side=tk.LEFT, padx=(0, SPACING["card_gap"]))
+
+        tk.Label(
+            attune_cf.inner,
+            text="ATTUNEMENT",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w")
+
+        self._attunement_slot_frame = tk.Frame(
+            attune_cf.inner, bg=COLORS["bg_surface"]
+        )
+        self._attunement_slot_frame.pack(anchor="w", fill=tk.X, pady=(4, 0))
+        self._attunement_slot_labels: list[tk.Label] = []
+        for i in range(3):
+            lbl = tk.Label(
+                self._attunement_slot_frame,
+                text="○",
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            )
+            lbl.pack(anchor="w")
+            self._attunement_slot_labels.append(lbl)
+        self._refresh_attunement_display()
+
         # ── Inventory split view ──
         self._inventory_parent = wrapper
         self._render_inventory_split_view()
@@ -2966,6 +2995,14 @@ class CharacterViewer(ttk.Frame):
         )
         # Starts hidden; shown only when an equippable item is selected
 
+        self._inv_attune_btn = ttk.Button(
+            actions,
+            text="Attune",
+            command=self._toggle_attune_selected,
+            state=tk.DISABLED,
+        )
+        # Starts hidden; shown only when an attuneable item is selected
+
         self.remove_one_btn = ttk.Button(
             actions,
             text="Remove one",
@@ -2987,10 +3024,13 @@ class CharacterViewer(ttk.Frame):
     _EQUIP_CHECK = "\u2611"
     _EQUIP_UNCHECK = "\u2610"
 
+    _ATTUNE_STAR = "\u2605"
+
     def _refresh_inventory_split_items(self):
         weapon_counts, armor_counts, inv_entries = self._effective_inventory_pools()
         equipped_weapons = set(self.character.equipped_weapons or [])
         equipped_armor = set(self.character.equipped_armor or [])
+        attuned = set(self.character.attuned_items)
 
         self._inv_list_entries: dict[str, dict] = {}
         sections: list[tuple[str, list[str]]] = []
@@ -3003,7 +3043,8 @@ class CharacterViewer(ttk.Frame):
             name = key.title()
             equipped = key in equipped_weapons
             check = self._EQUIP_CHECK if equipped else self._EQUIP_UNCHECK
-            display = f"{check} {name} (x{qty})" if qty > 1 else f"{check} {name}"
+            star = f" {self._ATTUNE_STAR}" if key in attuned else ""
+            display = f"{check} {name}{star} (x{qty})" if qty > 1 else f"{check} {name}{star}"
             weapon_names.append(display)
             self._inv_list_entries[display] = {
                 "name": name,
@@ -3028,7 +3069,8 @@ class CharacterViewer(ttk.Frame):
             name = key.title()
             equipped = key in equipped_armor
             check = self._EQUIP_CHECK if equipped else self._EQUIP_UNCHECK
-            display = f"{check} {name} (x{qty})" if qty > 1 else f"{check} {name}"
+            star = f" {self._ATTUNE_STAR}" if key in attuned else ""
+            display = f"{check} {name}{star} (x{qty})" if qty > 1 else f"{check} {name}{star}"
             armor_names.append(display)
             self._inv_list_entries[display] = {
                 "name": name,
@@ -3046,7 +3088,8 @@ class CharacterViewer(ttk.Frame):
         for e in sorted(inv_entries, key=lambda x: x.get("name", "").casefold()):
             name = e["name"]
             qty = e["qty"]
-            display = f"{name} (x{qty})" if qty > 1 else name
+            star = f"{self._ATTUNE_STAR} " if e["key"] in attuned else ""
+            display = f"{star}{name} (x{qty})" if qty > 1 else f"{star}{name}"
             inv_names.append(display)
             self._inv_list_entries[display] = {
                 "name": name,
@@ -3114,6 +3157,7 @@ class CharacterViewer(ttk.Frame):
         self.remove_one_btn.configure(state=tk.DISABLED)
         self.remove_all_btn.configure(state=tk.DISABLED)
         self._inv_equip_btn.pack_forget()
+        self._inv_attune_btn.pack_forget()
         self.inventory_detail_title.configure(text="No items")
         self._set_inventory_detail_text("No inventory items available.")
 
@@ -3205,6 +3249,82 @@ class CharacterViewer(ttk.Frame):
         self._on_sheet_changed()
         self._refresh_inventory_split_items()
 
+    def _item_requires_attunement(self, entry: dict) -> bool:
+        """Check if an inventory entry's item requires attunement."""
+        record = self._find_item_record(entry)
+        if not record:
+            return False
+        if record.get("category") == "Magic Items":
+            attune_raw = record.get("description", "")
+            if attune_raw.startswith("Attuned:"):
+                attune_val = attune_raw.split(":", 1)[1].strip()
+                if attune_val and attune_val != "-":
+                    return True
+        full_desc = record.get("full_description", "")
+        if "(Requires Attunement)" in full_desc:
+            return True
+        return False
+
+    def _item_requires_attunement_by_record(self, record: dict) -> bool:
+        """Check if an item record requires attunement (no entry lookup)."""
+        if not record:
+            return False
+        if record.get("category") == "Magic Items":
+            attune_raw = record.get("description", "")
+            if attune_raw.startswith("Attuned:"):
+                attune_val = attune_raw.split(":", 1)[1].strip()
+                if attune_val and attune_val != "-":
+                    return True
+        full_desc = record.get("full_description", "")
+        if "(Requires Attunement)" in full_desc:
+            return True
+        return False
+
+    def _toggle_attune_selected(self):
+        """Toggle attunement on the currently selected inventory item."""
+        if not self._selected_inventory_name:
+            return
+        entry = None
+        for e in self._inv_list_entries.values():
+            if e.get("name") == self._selected_inventory_name:
+                entry = e
+                break
+        if not entry:
+            return
+        key = entry.get("key", "")
+        if key in self.character.attuned_items:
+            self.character.attuned_items.remove(key)
+        else:
+            if len(self.character.attuned_items) >= 3:
+                AlertDialog(
+                    self.winfo_toplevel(),
+                    "Attunement Full",
+                    "You can only attune to 3 magic items at a time. "
+                    "Unattune an item first to make room.",
+                )
+                return
+            self.character.attuned_items.append(key)
+        self._on_sheet_changed()
+        self._refresh_inventory_split_items()
+        self._refresh_attunement_display()
+
+    def _refresh_attunement_display(self):
+        """Update the attunement slot indicators."""
+        attuned = self.character.attuned_items
+        for i, lbl in enumerate(self._attunement_slot_labels):
+            if i < len(attuned):
+                key = attuned[i]
+                name = key.title()
+                # Truncate long names
+                if len(name) > 18:
+                    name = name[:16] + "\u2026"
+                lbl.configure(
+                    text=f"\u25cf {name}",
+                    fg=COLORS["gold"],
+                )
+            else:
+                lbl.configure(text="\u25cb Empty", fg=COLORS["fg_dim"])
+
     def _on_inventory_select_entry(self, entry: dict):
         self._selected_inventory_name = entry.get("name", "")
         qty = int(entry.get("qty", 1) or 1)
@@ -3218,6 +3338,19 @@ class CharacterViewer(ttk.Frame):
             )
         else:
             self._inv_equip_btn.pack_forget()
+
+        # Show/hide attune button for magic items requiring attunement
+        if self._item_requires_attunement(entry):
+            key = entry.get("key", "")
+            is_attuned = key in self.character.attuned_items
+            btn_text = "Unattune" if is_attuned else "Attune"
+            self._inv_attune_btn.configure(state=tk.NORMAL, text=btn_text)
+            self._inv_attune_btn.pack(
+                side=tk.LEFT, padx=(0, 6), before=self.remove_one_btn
+            )
+        else:
+            self._inv_attune_btn.pack_forget()
+
         self._show_inventory_details(entry)
 
     def _find_item_record(self, entry: dict) -> dict | None:
@@ -3273,6 +3406,8 @@ class CharacterViewer(ttk.Frame):
             lines.append(f"Quantity: {entry.get('qty', 1)}")
         if entry.get("equippable"):
             lines.append(f"Equipped: {'Yes' if entry.get('equipped') else 'No'}")
+        if entry.get("key", "") in self.character.attuned_items:
+            lines.append("Attuned: Yes")
         if record:
             item_type = str(record.get("type", "")).strip() or "Item"
             lines.append(f"Type: {item_type}")
@@ -3378,6 +3513,14 @@ class CharacterViewer(ttk.Frame):
             {a for a in (self.character.equipped_armor or []) if a in armor_counts}
         )
 
+        # Auto-unattune items no longer in inventory
+        all_keys = set(weapon_counts) | set(armor_counts)
+        for inv_e in self._inv_list_entries.values():
+            all_keys.add(inv_e.get("key", ""))
+        self.character.attuned_items = [
+            k for k in self.character.attuned_items if k in all_keys
+        ]
+
         self._on_sheet_changed()
         self._view_dirty[_INVENTORY] = True
         self._show_view(_INVENTORY)
@@ -3424,15 +3567,29 @@ class CharacterViewer(ttk.Frame):
         self.app.show_wizard(self.character, self.save_path)
 
     def _on_add_inventory(self):
+        def _on_item_added(item=None):
+            if item and self._item_requires_attunement_by_record(item):
+                key = normalize_item_key(item.get("name", ""))
+                if key and key not in self.character.attuned_items:
+                    if len(self.character.attuned_items) < 3:
+                        self.character.attuned_items.append(key)
+                    else:
+                        AlertDialog(
+                            self.winfo_toplevel(),
+                            "Attunement Full",
+                            f"{item.get('name', 'This item')} requires attunement, "
+                            "but you already have 3 items attuned. "
+                            "Unattune an item first to benefit from this item's effects.",
+                        )
+            self._on_sheet_changed()
+            self._mark_all_dirty()
+            self._show_view(self._current_view)
+
         AddInventoryDialog(
             self,
             self.character,
             self.data,
-            on_changed=lambda: (
-                self._on_sheet_changed(),
-                self._mark_all_dirty(),
-                self._show_view(self._current_view),
-            ),
+            on_changed=_on_item_added,
         )
 
     def _on_short_rest(self):

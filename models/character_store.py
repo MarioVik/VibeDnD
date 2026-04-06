@@ -70,6 +70,7 @@ def character_to_save_dict(character: Character) -> dict:
         "removed_items": dict(c.removed_items),
         "wealth_adjust_cp": int(c.wealth_adjust_cp),
         "inventory_transactions": list(c.inventory_transactions),
+        "attuned_items": list(c.attuned_items),
         "current_hit_points": c.current_hit_points,
         "temp_hit_points": c.temp_hit_points,
         "spent_hit_dice": dict(c.spent_hit_dice),
@@ -166,6 +167,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.removed_items = data.get("removed_items", {}) or {}
     c.wealth_adjust_cp = int(data.get("wealth_adjust_cp", 0))
     c.inventory_transactions = data.get("inventory_transactions", [])
+    c.attuned_items = data.get("attuned_items", [])
     c.current_hit_points = data.get("current_hit_points", None)
     c.temp_hit_points = int(data.get("temp_hit_points", 0))
     c.spent_hit_dice = data.get("spent_hit_dice", {})
