@@ -1885,7 +1885,10 @@ class CharacterViewer(ttk.Frame):
                 bg=COLORS["bg_surface"],
             ).pack(anchor="w")
 
-            val_row = tk.Frame(stat_cf.inner, bg=COLORS["bg_surface"])
+            center = tk.Frame(stat_cf.inner, bg=COLORS["bg_surface"])
+            center.pack(expand=True)
+
+            val_row = tk.Frame(center, bg=COLORS["bg_surface"])
             val_row.pack(anchor="w", fill=tk.X)
 
             var = tk.StringVar(value=str(coin_values.get(coin_key, 0)))
@@ -1925,7 +1928,10 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_surface"],
         ).pack(anchor="w")
 
-        self._attunement_slot_frame = tk.Frame(attune_cf.inner, bg=COLORS["bg_surface"])
+        attune_center = tk.Frame(attune_cf.inner, bg=COLORS["bg_surface"])
+        attune_center.pack(expand=True)
+
+        self._attunement_slot_frame = tk.Frame(attune_center, bg=COLORS["bg_surface"])
         self._attunement_slot_frame.pack(anchor="w", fill=tk.X, pady=(4, 0))
         self._attunement_slot_labels: list[tk.Label] = []
         for i in range(3):
