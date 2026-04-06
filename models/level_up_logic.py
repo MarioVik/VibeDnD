@@ -398,14 +398,21 @@ def get_spell_summary(ctx: LevelUpContext, game_data) -> list[str]:
         parts.append(f"Learn {new_cantrips} new cantrip(s)")
     if new_prepared > 0:
         parts.append(f"Prepare {new_prepared} additional spell(s)")
-    if new_slot_levels:
-        names = sorted(new_slot_levels, key=lambda x: SLOT_ORDER.get(x, 99))
-        parts.append(f"New spell slot level(s): {', '.join(names)}")
-    if curr_slots:
-        slot_parts = []
-        for k, v in sorted(curr_slots.items(), key=lambda x: SLOT_ORDER.get(x[0], 99)):
-            slot_parts.append(f"{v} x {k}-level")
-        parts.append(f"Total spell slots: {', '.join(slot_parts)}")
+
+    # Per-level additional spell slots
+    for k, v in sorted(curr_slots.items(), key=lambda x: SLOT_ORDER.get(x[0], 99)):
+        prev_v = int(prev_slots.get(k, 0) or 0)
+        diff = int(v) - prev_v
+        if diff > 0:
+            parts.append(
+                f"+{diff} additional {k}-level spell slot{'s' if diff != 1 else ''}"
+            )
+        elif k in new_slot_levels:
+            # New level unlocked but no increase shown yet
+            parts.append(
+                f"+{v} additional {k}-level spell slot{'s' if int(v) != 1 else ''}"
+            )
+
     return parts
 
 

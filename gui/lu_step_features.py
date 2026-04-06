@@ -288,7 +288,7 @@ class LuFeaturesStep(LevelUpStep):
         for p in parts:
             tk.Label(
                 card.inner,
-                text=p,
+                text=f"  \u2022  {p}",
                 font=FONTS["body"],
                 fg=COLORS["fg"],
                 bg=COLORS["bg_surface"],
