@@ -105,6 +105,40 @@ def character_to_save_dict(character: Character) -> dict:
     return d
 
 
+def _normalize_key(name: str) -> str:
+    """Lowercase, collapse whitespace — mirrors inventory_service.normalize_item_key."""
+    return re.sub(r"\s+", " ", str(name or "").strip().lower())
+
+
+def _filter_valid_attunement(c: Character) -> list[str]:
+    """Return only attuned keys that correspond to items still in inventory."""
+    from models.standard_actions import (
+        get_selected_weapon_counts,
+        get_selected_armor_counts,
+        get_selected_non_weapon_items,
+    )
+
+    valid_keys: set[str] = set()
+
+    # Base equipment pools (weapons, armor from starting equipment)
+    valid_keys.update(get_selected_weapon_counts(c).keys())
+    valid_keys.update(get_selected_armor_counts(c).keys())
+
+    # Non-weapon/armor starting equipment
+    for line in get_selected_non_weapon_items(c):
+        name = re.sub(r"^\d+\s+", "", line).strip()
+        if name:
+            valid_keys.add(_normalize_key(name))
+
+    # Custom inventory items
+    for ent in getattr(c, "custom_inventory", []) or []:
+        name = ent.get("name", "")
+        if name:
+            valid_keys.add(_normalize_key(name))
+
+    return [k for k in c.attuned_items if k in valid_keys]
+
+
 def save_dict_to_character(data: dict, game_data) -> Character:
     """Reconstruct a Character from a save dict by resolving names via
     *game_data* (a :class:`gui.data_loader.GameData` instance).
@@ -168,6 +202,11 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.wealth_adjust_cp = int(data.get("wealth_adjust_cp", 0))
     c.inventory_transactions = data.get("inventory_transactions", [])
     c.attuned_items = data.get("attuned_items", [])
+
+    # Validate attunement: remove orphaned entries whose items no longer exist
+    if c.attuned_items:
+        c.attuned_items = _filter_valid_attunement(c)
+
     c.current_hit_points = data.get("current_hit_points", None)
     c.temp_hit_points = int(data.get("temp_hit_points", 0))
     c.spent_hit_dice = data.get("spent_hit_dice", {})
@@ -373,7 +412,12 @@ def list_saved_characters(characters_path: str) -> list[dict]:
         except (json.JSONDecodeError, OSError):
             continue
 
-    results.sort(key=lambda item: (str(item.get("name", "")).casefold(), str(item.get("path", ""))))
+    results.sort(
+        key=lambda item: (
+            str(item.get("name", "")).casefold(),
+            str(item.get("path", "")),
+        )
+    )
     return results
 
 

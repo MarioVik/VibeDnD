@@ -237,6 +237,12 @@ class CharacterViewer(ttk.Frame):
 
         # Build or refresh if needed
         if not self._view_built.get(key):
+            # Clean up any leftover children from a prior failed build
+            for w in view.winfo_children():
+                try:
+                    w.destroy()
+                except tk.TclError:
+                    pass
             self._build_view(key)
             self._view_built[key] = True
             self._view_dirty[key] = False
@@ -1919,9 +1925,7 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_surface"],
         ).pack(anchor="w")
 
-        self._attunement_slot_frame = tk.Frame(
-            attune_cf.inner, bg=COLORS["bg_surface"]
-        )
+        self._attunement_slot_frame = tk.Frame(attune_cf.inner, bg=COLORS["bg_surface"])
         self._attunement_slot_frame.pack(anchor="w", fill=tk.X, pady=(4, 0))
         self._attunement_slot_labels: list[tk.Label] = []
         for i in range(3):
@@ -3044,7 +3048,9 @@ class CharacterViewer(ttk.Frame):
             equipped = key in equipped_weapons
             check = self._EQUIP_CHECK if equipped else self._EQUIP_UNCHECK
             star = f" {self._ATTUNE_STAR}" if key in attuned else ""
-            display = f"{check} {name}{star} (x{qty})" if qty > 1 else f"{check} {name}{star}"
+            display = (
+                f"{check} {name}{star} (x{qty})" if qty > 1 else f"{check} {name}{star}"
+            )
             weapon_names.append(display)
             self._inv_list_entries[display] = {
                 "name": name,
@@ -3070,7 +3076,9 @@ class CharacterViewer(ttk.Frame):
             equipped = key in equipped_armor
             check = self._EQUIP_CHECK if equipped else self._EQUIP_UNCHECK
             star = f" {self._ATTUNE_STAR}" if key in attuned else ""
-            display = f"{check} {name}{star} (x{qty})" if qty > 1 else f"{check} {name}{star}"
+            display = (
+                f"{check} {name}{star} (x{qty})" if qty > 1 else f"{check} {name}{star}"
+            )
             armor_names.append(display)
             self._inv_list_entries[display] = {
                 "name": name,
@@ -3309,7 +3317,23 @@ class CharacterViewer(ttk.Frame):
         self._refresh_attunement_display()
 
     def _refresh_attunement_display(self):
-        """Update the attunement slot indicators."""
+        """Update the attunement slot indicators.
+
+        Also reconciles orphaned attunement entries whose items no longer
+        exist in any inventory pool.
+        """
+        # Reconcile: drop attuned keys that aren't in any current pool
+        weapon_counts, armor_counts, inv_entries = self._effective_inventory_pools()
+        valid_keys = set(weapon_counts) | set(armor_counts)
+        for inv_e in inv_entries:
+            valid_keys.add(inv_e.get("key", ""))
+        before = len(self.character.attuned_items)
+        self.character.attuned_items = [
+            k for k in self.character.attuned_items if k in valid_keys
+        ]
+        if len(self.character.attuned_items) != before:
+            self._on_sheet_changed()
+
         attuned = self.character.attuned_items
         for i, lbl in enumerate(self._attunement_slot_labels):
             if i < len(attuned):
@@ -3505,7 +3529,7 @@ class CharacterViewer(ttk.Frame):
             AlertDialog(self.winfo_toplevel(), "Remove Item", msg)
             return
 
-        weapon_counts, armor_counts, _ = self._effective_inventory_pools()
+        weapon_counts, armor_counts, inv_entries = self._effective_inventory_pools()
         self.character.equipped_weapons = [
             w for w in (self.character.equipped_weapons or []) if w in weapon_counts
         ]
@@ -3513,9 +3537,9 @@ class CharacterViewer(ttk.Frame):
             {a for a in (self.character.equipped_armor or []) if a in armor_counts}
         )
 
-        # Auto-unattune items no longer in inventory
+        # Auto-unattune items no longer in inventory (use fresh pool data)
         all_keys = set(weapon_counts) | set(armor_counts)
-        for inv_e in self._inv_list_entries.values():
+        for inv_e in inv_entries:
             all_keys.add(inv_e.get("key", ""))
         self.character.attuned_items = [
             k for k in self.character.attuned_items if k in all_keys
