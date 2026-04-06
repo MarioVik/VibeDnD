@@ -24,20 +24,39 @@ except Exception:
     CLASS_CHOICES = {}
 
 SLOT_ORDER = {
-    "1st": 1, "2nd": 2, "3rd": 3, "4th": 4, "5th": 5,
-    "6th": 6, "7th": 7, "8th": 8, "9th": 9,
+    "1st": 1,
+    "2nd": 2,
+    "3rd": 3,
+    "4th": 4,
+    "5th": 5,
+    "6th": 6,
+    "7th": 7,
+    "8th": 8,
+    "9th": 9,
 }
 
 SWAP_CLASSES = {"bard", "sorcerer", "warlock"}
 
 ALL_ABILITIES = [
-    "Strength", "Dexterity", "Constitution",
-    "Intelligence", "Wisdom", "Charisma",
+    "Strength",
+    "Dexterity",
+    "Constitution",
+    "Intelligence",
+    "Wisdom",
+    "Charisma",
 ]
 
 DAMAGE_TYPES = [
-    "Acid", "Cold", "Fire", "Force", "Lightning",
-    "Necrotic", "Poison", "Psychic", "Radiant", "Thunder",
+    "Acid",
+    "Cold",
+    "Fire",
+    "Force",
+    "Lightning",
+    "Necrotic",
+    "Poison",
+    "Psychic",
+    "Radiant",
+    "Thunder",
 ]
 
 _AMMO_NAMES = {"Arrows", "Bolts", "Bullets, Firearm", "Bullets, Sling", "Needles"}
@@ -45,6 +64,7 @@ _SWORD_NAMES = {"Greatsword", "Longsword", "Rapier", "Scimitar", "Shortsword"}
 
 
 # ── Context dataclass ─────────────────────────────────────────────────
+
 
 @dataclass
 class LevelUpContext:
@@ -100,6 +120,7 @@ class LevelUpContext:
 
 # ── Data helpers ──────────────────────────────────────────────────────
 
+
 def _to_int(v) -> int:
     if not v:
         return 0
@@ -114,7 +135,9 @@ def _to_int(v) -> int:
         return 0
 
 
-def spell_deltas(class_slug: str, new_class_level: int, game_data) -> tuple[int, int, int]:
+def spell_deltas(
+    class_slug: str, new_class_level: int, game_data
+) -> tuple[int, int, int]:
     """Return (new_cantrip_count, new_prepared_count, max_spell_level)."""
     level_data = game_data.get_level_data(class_slug, new_class_level)
     if not level_data:
@@ -167,7 +190,9 @@ def has_swap_step(class_slug: str, character: Character) -> bool:
     return can_c or can_s
 
 
-def get_current_subclass(ctx: LevelUpContext, character: Character, game_data) -> str | None:
+def get_current_subclass(
+    ctx: LevelUpContext, character: Character, game_data
+) -> str | None:
     """Return the subclass slug for the class being levelled."""
     if ctx.subclass_slug:
         return ctx.subclass_slug
@@ -182,7 +207,9 @@ def get_current_subclass(ctx: LevelUpContext, character: Character, game_data) -
     return None
 
 
-def get_choices_config(ctx: LevelUpContext, character: Character, game_data) -> dict | None:
+def get_choices_config(
+    ctx: LevelUpContext, character: Character, game_data
+) -> dict | None:
     level_str = str(ctx.new_class_level)
     cfg = CLASS_CHOICES.get(ctx.class_slug)
     if cfg and cfg.get("gains_by_level", {}).get(level_str):
@@ -213,7 +240,9 @@ def get_active_pool(config: dict, new_class_level: int) -> str | None:
     return config.get("pools", {}).get(str(new_class_level))
 
 
-def get_available_options(config: dict, ctx: LevelUpContext, character: Character) -> list[dict]:
+def get_available_options(
+    config: dict, ctx: LevelUpContext, character: Character
+) -> list[dict]:
     options = config.get("options", [])
     active_pool = get_active_pool(config, ctx.new_class_level)
     if active_pool:
@@ -252,13 +281,15 @@ def get_sub_choice_options(sub_choice: dict, game_data) -> list[str]:
             return sorted(w["name"] for w in weapons if w["name"] not in _AMMO_NAMES)
         elif sc_filter == "ammunition":
             return sorted(
-                w["name"] for w in weapons
+                w["name"]
+                for w in weapons
                 if w["name"] not in _AMMO_NAMES
                 and "ammunition" in w.get("description", "").lower()
             )
         elif sc_filter == "thrown":
             return sorted(
-                w["name"] for w in weapons
+                w["name"]
+                for w in weapons
                 if w["name"] not in _AMMO_NAMES
                 and "thrown" in w.get("description", "").lower()
             )
@@ -278,27 +309,30 @@ def get_sub_choice_options(sub_choice: dict, game_data) -> list[str]:
         magic = game_data.items_by_category.get("Magic Items", [])
         if sc_filter == "common":
             return sorted(
-                m["name"] for m in magic
+                m["name"]
+                for m in magic
                 if m.get("rarity") == "Common"
                 and m.get("type") not in ("Potion", "Scroll")
             )
         elif sc_filter == "uncommon_wondrous":
             return sorted(
-                m["name"] for m in magic
-                if m.get("rarity") == "Uncommon"
-                and m.get("type") == "Wondrous Item"
+                m["name"]
+                for m in magic
+                if m.get("rarity") == "Uncommon" and m.get("type") == "Wondrous Item"
             )
         elif sc_filter == "rare_wondrous":
             return sorted(
-                m["name"] for m in magic
-                if m.get("rarity") == "Rare"
-                and m.get("type") == "Wondrous Item"
+                m["name"]
+                for m in magic
+                if m.get("rarity") == "Rare" and m.get("type") == "Wondrous Item"
             )
 
     return []
 
 
-def get_subclass_grants(ctx: LevelUpContext, character: Character, game_data) -> list[dict]:
+def get_subclass_grants(
+    ctx: LevelUpContext, character: Character, game_data
+) -> list[dict]:
     sub_slug = get_current_subclass(ctx, character, game_data)
     if not sub_slug:
         return []
@@ -311,11 +345,13 @@ def get_subclass_grants(ctx: LevelUpContext, character: Character, game_data) ->
         gp = feat.get("grants_proficiency")
         ge = feat.get("grants_expertise")
         if gp or ge:
-            grants.append({
-                "feature_name": feat["name"],
-                "grants_proficiency": gp,
-                "grants_expertise": ge,
-            })
+            grants.append(
+                {
+                    "feature_name": feat["name"],
+                    "grants_proficiency": gp,
+                    "grants_expertise": ge,
+                }
+            )
     return grants
 
 
@@ -349,7 +385,9 @@ def get_spell_summary(ctx: LevelUpContext, game_data) -> list[str]:
     level_data = game_data.get_level_data(ctx.class_slug, ctx.new_class_level)
     if not level_data:
         return []
-    new_cantrips, new_prepared, _ = spell_deltas(ctx.class_slug, ctx.new_class_level, game_data)
+    new_cantrips, new_prepared, _ = spell_deltas(
+        ctx.class_slug, ctx.new_class_level, game_data
+    )
     prev = game_data.get_level_data(ctx.class_slug, ctx.new_class_level - 1) or {}
     curr_slots = level_data.get("spell_slots", {})
     prev_slots = prev.get("spell_slots", {})
@@ -366,7 +404,9 @@ def get_spell_summary(ctx: LevelUpContext, game_data) -> list[str]:
     if curr_slots:
         s = ", ".join(
             f"{k}: {v}"
-            for k, v in sorted(curr_slots.items(), key=lambda x: SLOT_ORDER.get(x[0], 99))
+            for k, v in sorted(
+                curr_slots.items(), key=lambda x: SLOT_ORDER.get(x[0], 99)
+            )
         )
         parts.append(f"Total spell slots: {s}")
     return parts
@@ -406,21 +446,37 @@ def get_max_swap_spell_level(ctx: LevelUpContext, game_data) -> int:
 
 # ── Validation ────────────────────────────────────────────────────────
 
-def validate_class_step(ctx: LevelUpContext, character: Character) -> tuple[bool, str, str]:
+
+def validate_class_step(
+    ctx: LevelUpContext, character: Character
+) -> tuple[bool, str, str]:
     if (
         ctx.class_slug != ctx.primary_class_slug
         and character.class_level_in(ctx.class_slug) == 0
     ):
         met, reason = character.multiclass_prereqs_met(ctx.class_slug)
         if not met:
-            return False, "Prerequisites Not Met", f"Cannot multiclass into {ctx.class_slug.title()}:\n{reason}"
+            return (
+                False,
+                "Prerequisites Not Met",
+                f"Cannot multiclass into {ctx.class_slug.title()}:\n{reason}",
+            )
         pri_met, pri_reason = character.multiclass_prereqs_met(ctx.primary_class_slug)
         if not pri_met:
-            return False, "Prerequisites Not Met", f"Cannot multiclass out of {ctx.primary_class_slug.title()}:\n{pri_reason}"
+            return (
+                False,
+                "Prerequisites Not Met",
+                f"Cannot multiclass out of {ctx.primary_class_slug.title()}:\n{pri_reason}",
+            )
     return True, "", ""
 
 
 def validate_features_step(ctx: LevelUpContext) -> tuple[bool, str, str]:
+    """Validate HP selection (legacy — kept for backward compatibility)."""
+    return validate_hp_step(ctx)
+
+
+def validate_hp_step(ctx: LevelUpContext) -> tuple[bool, str, str]:
     """Validate HP selection."""
     if ctx.hp_mode == "manual":
         try:
@@ -428,7 +484,11 @@ def validate_features_step(ctx: LevelUpContext) -> tuple[bool, str, str]:
             if val < 1:
                 raise ValueError
         except (ValueError, AttributeError):
-            return False, "Invalid HP", "Please enter a valid number (>= 1) for your hit points."
+            return (
+                False,
+                "Invalid HP",
+                "Please enter a valid number (>= 1) for your hit points.",
+            )
     return True, "", ""
 
 
@@ -438,23 +498,39 @@ def validate_subclass_step(ctx: LevelUpContext) -> tuple[bool, str, str]:
     return True, "", ""
 
 
-def validate_asi_step(ctx: LevelUpContext, character: Character, game_data) -> tuple[bool, str, str]:
+def validate_asi_step(
+    ctx: LevelUpContext, character: Character, game_data
+) -> tuple[bool, str, str]:
     if not ctx.feat_name:
-        return False, "Missing Choice", "Please select a feat for your Ability Score Improvement."
+        return (
+            False,
+            "Missing Choice",
+            "Please select a feat for your Ability Score Improvement.",
+        )
     feat = game_data.find_feat(ctx.feat_name)
     asi_field = feat.get("ability_score_increase") if feat else None
     if ctx.feat_name == "Ability Score Improvement":
         if not ctx.asi_selections:
-            return False, "Missing Choice", "Please select which ability scores to increase."
+            return (
+                False,
+                "Missing Choice",
+                "Please select which ability scores to increase.",
+            )
         for ab, amt in ctx.asi_selections.items():
             if character.ability_scores.total(ab) + amt > 20:
-                return False, "Score Too High", f"{ab} would exceed 20. Please choose a different ability."
+                return (
+                    False,
+                    "Score Too High",
+                    f"{ab} would exceed 20. Please choose a different ability.",
+                )
     elif asi_field and not ctx.asi_selections:
         return False, "Missing Choice", "Please select which ability score to increase."
     return True, "", ""
 
 
-def validate_proficiency_step(ctx: LevelUpContext, character: Character, game_data) -> tuple[bool, str, str]:
+def validate_proficiency_step(
+    ctx: LevelUpContext, character: Character, game_data
+) -> tuple[bool, str, str]:
     grants = get_subclass_grants(ctx, character, game_data)
     prof_needed = 0
     exp_needed = 0
@@ -470,17 +546,27 @@ def validate_proficiency_step(ctx: LevelUpContext, character: Character, game_da
     if len(ctx.expertise_picks) < exp_needed:
         return False, "Missing Choice", "Please select all skill expertise choices."
     if len(ctx.prof_picks) != len(set(ctx.prof_picks)):
-        return False, "Duplicate Choice", "Please choose different skills for each proficiency."
+        return (
+            False,
+            "Duplicate Choice",
+            "Please choose different skills for each proficiency.",
+        )
     return True, "", ""
 
 
 def validate_language_step(ctx: LevelUpContext) -> tuple[bool, str, str]:
     if len(ctx.language_selections) < 2:
-        return False, "Missing Choice", f"Deft Explorer grants 2 languages. Please choose ({len(ctx.language_selections)}/2 selected)."
+        return (
+            False,
+            "Missing Choice",
+            f"Deft Explorer grants 2 languages. Please choose ({len(ctx.language_selections)}/2 selected).",
+        )
     return True, "", ""
 
 
-def validate_choices_step(ctx: LevelUpContext, character: Character, game_data) -> tuple[bool, str, str]:
+def validate_choices_step(
+    ctx: LevelUpContext, character: Character, game_data
+) -> tuple[bool, str, str]:
     config = get_choices_config(ctx, character, game_data)
     if not config:
         return True, "", ""
@@ -491,7 +577,11 @@ def validate_choices_step(ctx: LevelUpContext, character: Character, game_data) 
     out = ctx.replace_out
     inp = ctx.replace_in
     if out and not inp:
-        return False, "Incomplete Swap", f"You chose to remove a {config.get('choice_label', 'choice')} but haven't selected a replacement."
+        return (
+            False,
+            "Incomplete Swap",
+            f"You chose to remove a {config.get('choice_label', 'choice')} but haven't selected a replacement.",
+        )
 
     # Build options-by-name lookup
     options_by_name = {o["name"]: o for o in config.get("options", [])}
@@ -503,9 +593,17 @@ def validate_choices_step(ctx: LevelUpContext, character: Character, game_data) 
         sub_sel = ctx.choice_sub_selections.get(name, "")
         sc_type = opt["sub_choice"].get("type", "")
         if not sub_sel:
-            return False, "Missing Selection", f'"{name}" requires you to select a specific item.'
+            return (
+                False,
+                "Missing Selection",
+                f'"{name}" requires you to select a specific item.',
+            )
         if sc_type == "armor_and_damage_type" and "|" not in sub_sel:
-            return False, "Missing Damage Type", f'"{name}" requires both an armor and a damage type selection.'
+            return (
+                False,
+                "Missing Damage Type",
+                f'"{name}" requires both an armor and a damage type selection.',
+            )
 
     if inp:
         opt = options_by_name.get(inp)
@@ -513,32 +611,61 @@ def validate_choices_step(ctx: LevelUpContext, character: Character, game_data) 
             sub_sel = ctx.choice_sub_selections.get(inp, "")
             sc_type = opt["sub_choice"].get("type", "")
             if not sub_sel:
-                return False, "Missing Selection", f'Replacement "{inp}" requires you to select a specific item.'
+                return (
+                    False,
+                    "Missing Selection",
+                    f'Replacement "{inp}" requires you to select a specific item.',
+                )
             if sc_type == "armor_and_damage_type" and "|" not in sub_sel:
-                return False, "Missing Damage Type", f'Replacement "{inp}" requires both an armor and a damage type.'
+                return (
+                    False,
+                    "Missing Damage Type",
+                    f'Replacement "{inp}" requires both an armor and a damage type.',
+                )
     return True, "", ""
 
 
 def validate_spell_step(ctx: LevelUpContext, game_data) -> tuple[bool, str, str]:
-    new_cantrips_max, new_prepared_max, _ = spell_deltas(ctx.class_slug, ctx.new_class_level, game_data)
+    new_cantrips_max, new_prepared_max, _ = spell_deltas(
+        ctx.class_slug, ctx.new_class_level, game_data
+    )
     if new_cantrips_max > 0 and len(ctx.selected_new_cantrips) < new_cantrips_max:
-        return False, "Missing Choice", f"Please select {new_cantrips_max} new cantrip(s)."
+        return (
+            False,
+            "Missing Choice",
+            f"Please select {new_cantrips_max} new cantrip(s).",
+        )
     if new_prepared_max > 0 and len(ctx.selected_new_spells) < new_prepared_max:
-        return False, "Missing Choice", f"Please select {new_prepared_max} new spell(s)."
+        return (
+            False,
+            "Missing Choice",
+            f"Please select {new_prepared_max} new spell(s).",
+        )
     return True, "", ""
 
 
 def validate_swap_step(ctx: LevelUpContext) -> tuple[bool, str, str]:
     if ctx.swap_out_cantrip and not ctx.swap_in_cantrip:
-        return False, "Incomplete Swap", "You selected a cantrip to forget but didn't pick one to learn."
+        return (
+            False,
+            "Incomplete Swap",
+            "You selected a cantrip to forget but didn't pick one to learn.",
+        )
     if ctx.swap_out_spell and not ctx.swap_in_spell:
-        return False, "Incomplete Swap", "You selected a spell to forget but didn't pick one to learn."
+        return (
+            False,
+            "Incomplete Swap",
+            "You selected a spell to forget but didn't pick one to learn.",
+        )
     return True, "", ""
 
 
 # ── Apply level-up ────────────────────────────────────────────────────
 
-def build_class_level(ctx: LevelUpContext, character: Character, game_data) -> ClassLevel:
+
+def build_class_level(
+    ctx: LevelUpContext, character: Character, game_data
+) -> ClassLevel:
     """Construct the ClassLevel from the completed context."""
     # Resolve HP
     selected_class_data = None
@@ -667,7 +794,10 @@ def apply_level_up(character: Character, cl: ClassLevel, ctx: LevelUpContext):
 
 # ── Step visibility ───────────────────────────────────────────────────
 
-def get_visible_step_keys(ctx: LevelUpContext, character: Character, game_data) -> list[str]:
+
+def get_visible_step_keys(
+    ctx: LevelUpContext, character: Character, game_data
+) -> list[str]:
     """Return the ordered list of visible level-up step keys."""
     level_data = game_data.get_level_data(ctx.class_slug, ctx.new_class_level)
     keys = []
@@ -676,7 +806,10 @@ def get_visible_step_keys(ctx: LevelUpContext, character: Character, game_data) 
     if character.level >= 1:
         keys.append("lu_class")
 
-    # Features & HP — always
+    # Hit Points — always
+    keys.append("lu_hp")
+
+    # Features — always
     keys.append("lu_features")
 
     # Subclass — if this level grants "Subclass" (not "Subclass Feature")

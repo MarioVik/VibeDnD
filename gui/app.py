@@ -35,6 +35,7 @@ from gui.character_viewer import CharacterViewer
 
 # Level-up wizard steps and logic
 from gui.lu_step_class import LuClassStep
+from gui.lu_step_hp import LuHpStep
 from gui.lu_step_features import LuFeaturesStep
 from gui.lu_step_subclass import LuSubclassStep
 from gui.lu_step_asi import LuAsiStep
@@ -50,6 +51,7 @@ from models.level_up_logic import (
     apply_level_up,
     validate_class_step,
     validate_features_step,
+    validate_hp_step,
     validate_subclass_step,
     validate_asi_step,
     validate_proficiency_step,
@@ -96,7 +98,8 @@ _DYNAMIC_PRIMARY_ACTION_LABELS = ["Confirm Expertise"]
 # Level-up wizard step definitions: (key, label, icon, StepClass)
 _LU_STEPS = [
     ("lu_class", "Class", "", LuClassStep),
-    ("lu_features", "Features & HP", "", LuFeaturesStep),
+    ("lu_hp", "Hit Points", "", LuHpStep),
+    ("lu_features", "Features", "", LuFeaturesStep),
     ("lu_subclass", "Subclass", "", LuSubclassStep),
     ("lu_asi", "Feat / ASI", "", LuAsiStep),
     ("lu_proficiencies", "Proficiencies", "", LuProficienciesStep),
@@ -109,6 +112,7 @@ _LU_STEP_LABELS = {key: label for key, label, _, _ in _LU_STEPS}
 
 _LU_CONFIRM_LABELS = {
     "lu_class": "Confirm Class",
+    "lu_hp": "Confirm HP",
     "lu_features": "Confirm Features",
     "lu_subclass": "Confirm Subclass",
     "lu_asi": "Confirm Feat / ASI",
@@ -1368,11 +1372,28 @@ class CharacterCreatorApp:
                         return c.get("name", ctx.class_slug)
             return ""
 
-        if key == "lu_features":
+        if key == "lu_hp":
             if ctx.hp_mode == "average":
                 return "Average HP"
             elif ctx.hp_manual_value:
                 return f"HP: {ctx.hp_manual_value}"
+            return ""
+
+        if key == "lu_features":
+            level_data = self.data.get_level_data(ctx.class_slug, ctx.new_class_level)
+            if level_data:
+                features = level_data.get("features", [])
+                display = [
+                    f
+                    for f in features
+                    if f not in ("-", "Ability Score Improvement")
+                    and not (
+                        f == "Subclass"
+                        or (f.startswith("Subclass") and "Feature" not in f)
+                    )
+                ]
+                if display:
+                    return f"{len(display)} feature{'s' if len(display) != 1 else ''}"
             return ""
 
         if key == "lu_subclass":
@@ -1430,6 +1451,7 @@ class CharacterCreatorApp:
         # Call the appropriate validator to get the error message
         validators = {
             "lu_class": lambda: validate_class_step(ctx, char),
+            "lu_hp": lambda: validate_hp_step(ctx),
             "lu_features": lambda: validate_features_step(ctx),
             "lu_subclass": lambda: validate_subclass_step(ctx),
             "lu_asi": lambda: validate_asi_step(ctx, char, data),
