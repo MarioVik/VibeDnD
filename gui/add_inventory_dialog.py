@@ -507,7 +507,7 @@ class AddInventoryDialog(tk.Toplevel):
             AlertDialog(self, "Add to Inventory", msg)
             return
         if callable(self.on_changed):
-            self.on_changed()
+            self.on_changed(self.selected_item)
         self._refresh_meta()
 
     def _add_free(self):

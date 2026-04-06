@@ -103,6 +103,7 @@ class Character:
     removed_items: dict[str, int] = field(default_factory=dict)
     wealth_adjust_cp: int = 0
     inventory_transactions: list[dict] = field(default_factory=list)
+    attuned_items: list[str] = field(default_factory=list)  # item keys
 
     # Languages
     chosen_languages: list[str] = field(default_factory=list)

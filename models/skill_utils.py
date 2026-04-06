@@ -353,12 +353,42 @@ _ITEM_SKILL_ADVANTAGES: dict[str, set[str]] = {
     "eyes of the eagle": {"Perception"},
     "robe of eyes": {"Perception"},
     "winter camouflage": {"Stealth"},
+    "quarterstaff of the acrobat": {"Acrobatics"},
+    "belt of dwarvenkind": {"Persuasion"},
+    "book of exalted deeds": {"Persuasion"},
+    "ioun stone": {"Perception"},
+    "eyes of minute seeing": {"Investigation"},
+    "demonomicon of iggwilv": {"Survival"},
+}
+
+# Items whose skill advantages only apply when attuned
+_ITEMS_REQUIRING_ATTUNEMENT: set[str] = {
+    "cloak of elvenkind",
+    "cloak of the bat",
+    "robe of eyes",
+    "rod of alertness",
+    "quarterstaff of the acrobat",
+    "belt of dwarvenkind",
+    "book of exalted deeds",
+    "ioun stone",
+    "demonomicon of iggwilv",
 }
 
 # Species name (lowercase) -> set of skill display names that gain advantage
 _SPECIES_SKILL_ADVANTAGES: dict[str, set[str]] = {
     "changeling": {"Deception", "Intimidation", "Performance", "Persuasion"},
 }
+
+
+def _is_item_active(item_key: str, character) -> bool:
+    """Check if an item's skill benefits are active.
+
+    Items requiring attunement only grant benefits when attuned.
+    """
+    if item_key not in _ITEMS_REQUIRING_ATTUNEMENT:
+        return True
+    attuned = set(getattr(character, "attuned_items", []) or [])
+    return item_key in attuned
 
 
 def get_all_skill_advantage_names(character) -> set[str]:
@@ -375,17 +405,17 @@ def get_all_skill_advantage_names(character) -> set[str]:
     # Custom inventory items (non-weapon / non-armor items are always "active")
     for item in getattr(character, "custom_inventory", []) or []:
         item_key = (item.get("name") or "").strip().lower()
-        if item_key in _ITEM_SKILL_ADVANTAGES:
+        if item_key in _ITEM_SKILL_ADVANTAGES and _is_item_active(item_key, character):
             advantages.update(_ITEM_SKILL_ADVANTAGES[item_key])
 
     # Equipped weapons
     for key in getattr(character, "equipped_weapons", []) or []:
-        if key in _ITEM_SKILL_ADVANTAGES:
+        if key in _ITEM_SKILL_ADVANTAGES and _is_item_active(key, character):
             advantages.update(_ITEM_SKILL_ADVANTAGES[key])
 
     # Equipped armor / shield
     for key in getattr(character, "equipped_armor", []) or []:
-        if key in _ITEM_SKILL_ADVANTAGES:
+        if key in _ITEM_SKILL_ADVANTAGES and _is_item_active(key, character):
             advantages.update(_ITEM_SKILL_ADVANTAGES[key])
 
     return advantages
@@ -408,7 +438,7 @@ def get_skill_advantage_source_labels(character, skill_name: str) -> list[str]:
     for item in getattr(character, "custom_inventory", []) or []:
         item_name = (item.get("name") or "").strip()
         item_key = item_name.lower()
-        if item_key in _ITEM_SKILL_ADVANTAGES:
+        if item_key in _ITEM_SKILL_ADVANTAGES and _is_item_active(item_key, character):
             if skill_name in _ITEM_SKILL_ADVANTAGES[item_key]:
                 _append_unique_label(labels, seen, item_name)
 
@@ -416,7 +446,8 @@ def get_skill_advantage_source_labels(character, skill_name: str) -> list[str]:
         getattr(character, "equipped_armor", []) or []
     ):
         if key in _ITEM_SKILL_ADVANTAGES and skill_name in _ITEM_SKILL_ADVANTAGES[key]:
-            _append_unique_label(labels, seen, key.title())
+            if _is_item_active(key, character):
+                _append_unique_label(labels, seen, key.title())
 
     return labels
 
