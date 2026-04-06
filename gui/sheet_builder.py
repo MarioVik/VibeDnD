@@ -40,6 +40,7 @@ from models.inventory_service import (
     current_wealth_cp,
     normalize_item_key,
 )
+from models.skill_utils import is_equippable_gear
 
 
 CONTAINER_CONTENTS = {
@@ -687,6 +688,7 @@ def build_character_sheet(
         return False
 
     # Merge custom inventory entries (added via item browser).
+    gear_items: list[str] = []  # keys of equippable magic gear in inventory
     for ent in getattr(c, "custom_inventory", []) or []:
         name = str(ent.get("name", "")).strip()
         if not name:
@@ -699,6 +701,9 @@ def build_character_sheet(
         elif category == "Armor":
             armor_counts[key] = armor_counts.get(key, 0) + qty
         else:
+            if is_equippable_gear(key):
+                if key not in gear_items:
+                    gear_items.append(key)
             inventory_items.append(f"{qty} {name}" if qty > 1 else name)
 
     removed_items = {
@@ -767,6 +772,8 @@ def build_character_sheet(
         c.equipped_armor = (["shield"] if "shield" in c.equipped_armor else []) + body[
             :1
         ]
+    # Prune equipped_gear to only items still in inventory
+    c.equipped_gear = [g for g in (c.equipped_gear or []) if g in gear_items]
 
     # ── Wealth ──────────────────────────────────────────────────
     if _show("wealth"):
@@ -930,6 +937,7 @@ def build_character_sheet(
 
     equip_vars: dict[str, tk.BooleanVar] = {}
     armor_vars: dict[str, tk.BooleanVar] = {}
+    gear_vars: dict[str, tk.BooleanVar] = {}
 
     def _col_header(parent_frame):
         h = ttk.Frame(parent_frame)
@@ -1016,6 +1024,33 @@ def build_character_sheet(
                 text="No armor in selected equipment.",
                 style="Dim.TLabel",
             ).pack(anchor="w")
+
+        # ── Magic Gear sub-section ───────────────────────────────────
+        if gear_items:
+            gear_frame = ttk.LabelFrame(equip_sec, text="Magic Gear")
+            gear_frame.pack(fill=tk.X, padx=8, pady=(2, 4) if compact else (2, 6))
+            gear_inner = ttk.Frame(gear_frame)
+            gear_inner.pack(fill=tk.X, padx=8, pady=section_inner_pady)
+            _col_header(gear_inner)
+            for gear_key in sorted(gear_items):
+                equipped = gear_key in set(c.equipped_gear or [])
+                var = tk.BooleanVar(value=equipped)
+                gear_vars[gear_key] = var
+
+                row = ttk.Frame(gear_inner)
+                row.pack(fill=tk.X, pady=row_pady)
+                if read_only:
+                    indicator = _EQUIP_CHECK if equipped else _EQUIP_UNCHECK
+                    ttk.Label(row, text=f" {indicator} ", width=4).pack(side=tk.LEFT)
+                else:
+                    ttk.Checkbutton(
+                        row,
+                        variable=var,
+                        command=lambda k=gear_key: _on_gear_toggle(k),
+                    ).pack(side=tk.LEFT)
+                ttk.Label(
+                    row, text=gear_key.title(), foreground=COLORS["fg_dim"]
+                ).pack(side=tk.LEFT)
     else:
         for weapon_key in sorted(weapon_counts.keys()):
             equip_vars[weapon_key] = tk.BooleanVar(
@@ -1024,6 +1059,10 @@ def build_character_sheet(
         for armor_key in sorted(armor_counts.keys()):
             armor_vars[armor_key] = tk.BooleanVar(
                 value=armor_key in set(c.equipped_armor or [])
+            )
+        for gear_key in sorted(gear_items):
+            gear_vars[gear_key] = tk.BooleanVar(
+                value=gear_key in set(c.equipped_gear or [])
             )
 
     if _show("inventory"):
@@ -1083,13 +1122,22 @@ def build_character_sheet(
     def _sync_equipped_state():
         prev_weapons = list(c.equipped_weapons or [])
         prev_armor = list(c.equipped_armor or [])
+        prev_gear = list(c.equipped_gear or [])
         c.equipped_weapons = sorted(_equipped_keys())
         c.equipped_armor = _normalized_equipped_armor(_equipped_armor_keys())
+        c.equipped_gear = sorted(k for k, v in gear_vars.items() if v.get())
         ac_lbl = stat_value_labels.get("AC")
         if ac_lbl is not None:
             ac_lbl.configure(text=str(c.armor_class))
-        if prev_weapons != c.equipped_weapons or prev_armor != c.equipped_armor:
+        if (
+            prev_weapons != c.equipped_weapons
+            or prev_armor != c.equipped_armor
+            or prev_gear != c.equipped_gear
+        ):
             _emit_change()
+
+    def _on_gear_toggle(changed_key: str):
+        _render_action_rows()
 
     def _on_armor_toggle(changed_key: str):
         """Allow only one body armor at a time; shield is independent."""

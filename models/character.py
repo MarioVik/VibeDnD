@@ -99,6 +99,7 @@ class Character:
     attack_order: list[str] = field(default_factory=list)
     equipped_weapons: list[str] | None = None
     equipped_armor: list[str] | None = None
+    equipped_gear: list[str] = field(default_factory=list)  # magic gear item keys
     custom_inventory: list[dict] = field(default_factory=list)
     removed_items: dict[str, int] = field(default_factory=dict)
     wealth_adjust_cp: int = 0

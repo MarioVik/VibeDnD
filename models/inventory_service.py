@@ -6,6 +6,7 @@ from datetime import datetime
 import re
 
 from gui.equipment_utils import extract_gp
+from models.skill_utils import is_equippable_gear
 
 
 def _selected_equipment_gp(character) -> int:
@@ -119,6 +120,14 @@ def add_item(character, item: dict, qty: int, mode: str) -> tuple[bool, str]:
         )
     character.custom_inventory = inv
 
+    # Auto-equip magic gear items that require equipping to grant their benefit
+    item_key = normalize_item_key(item.get("name", ""))
+    if is_equippable_gear(item_key):
+        equipped = list(getattr(character, "equipped_gear", []) or [])
+        if item_key not in equipped:
+            equipped.append(item_key)
+            character.equipped_gear = equipped
+
     logged_cost = total_cost if mode == "buy" else 0
     _add_transaction(
         character,
@@ -157,6 +166,20 @@ def remove_item(character, item_name: str, qty: int = 1) -> tuple[bool, str]:
 
     inv = [e for e in inv if int(e.get("qty", 0)) > 0]
     character.custom_inventory = inv
+
+    # If the item is fully gone from custom inventory, clear attunement and gear equip
+    still_in_inv = any(
+        normalize_item_key(e.get("name", "")) == target_key for e in inv
+    )
+    if not still_in_inv:
+        if getattr(character, "attuned_items", None):
+            character.attuned_items = [
+                k for k in character.attuned_items if k != target_key
+            ]
+        if getattr(character, "equipped_gear", None):
+            character.equipped_gear = [
+                k for k in character.equipped_gear if k != target_key
+            ]
 
     if remaining > 0:
         removed = dict(getattr(character, "removed_items", {}) or {})

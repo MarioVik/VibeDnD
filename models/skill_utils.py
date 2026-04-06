@@ -374,6 +374,13 @@ _ITEMS_REQUIRING_ATTUNEMENT: set[str] = {
     "demonomicon of iggwilv",
 }
 
+# Non-attunement items that grant benefits only when equipped (in equipped_gear)
+_ITEMS_REQUIRING_EQUIP: set[str] = {
+    "boots of elvenkind",
+    "eyes of minute seeing",
+    "eyes of the eagle",
+}
+
 # Species name (lowercase) -> set of skill display names that gain advantage
 _SPECIES_SKILL_ADVANTAGES: dict[str, set[str]] = {
     "changeling": {"Deception", "Intimidation", "Performance", "Persuasion"},
@@ -384,11 +391,20 @@ def _is_item_active(item_key: str, character) -> bool:
     """Check if an item's skill benefits are active.
 
     Items requiring attunement only grant benefits when attuned.
+    Items requiring equipping only grant benefits when in equipped_gear.
     """
-    if item_key not in _ITEMS_REQUIRING_ATTUNEMENT:
-        return True
-    attuned = set(getattr(character, "attuned_items", []) or [])
-    return item_key in attuned
+    if item_key in _ITEMS_REQUIRING_ATTUNEMENT:
+        attuned = set(getattr(character, "attuned_items", []) or [])
+        return item_key in attuned
+    if item_key in _ITEMS_REQUIRING_EQUIP:
+        equipped = set(getattr(character, "equipped_gear", []) or [])
+        return item_key in equipped
+    return True
+
+
+def is_equippable_gear(item_key: str) -> bool:
+    """Return True if this item is a non-attunement equippable magic gear item."""
+    return item_key in _ITEMS_REQUIRING_EQUIP
 
 
 def get_all_skill_advantage_names(character) -> set[str]:
