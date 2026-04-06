@@ -1869,7 +1869,7 @@ class CharacterViewer(ttk.Frame):
 
         for label, coin_key, unit_cp, color in coin_defs:
             stat_cf = CardFrame(currency_frame, pad=SPACING["md"])
-            stat_cf.pack(side=tk.LEFT, padx=(0, SPACING["card_gap"]))
+            stat_cf.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
 
             tk.Label(
                 stat_cf.inner,
@@ -1909,7 +1909,7 @@ class CharacterViewer(ttk.Frame):
 
         # ── Attunement slots ──
         attune_cf = CardFrame(currency_frame, pad=SPACING["md"])
-        attune_cf.pack(side=tk.LEFT, padx=(0, SPACING["card_gap"]))
+        attune_cf.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
 
         tk.Label(
             attune_cf.inner,
