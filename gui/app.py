@@ -33,6 +33,32 @@ from models.skill_utils import compute_skill_sources
 from gui.home_screen import HomeScreen
 from gui.character_viewer import CharacterViewer
 
+# Level-up wizard steps and logic
+from gui.lu_step_class import LuClassStep
+from gui.lu_step_features import LuFeaturesStep
+from gui.lu_step_subclass import LuSubclassStep
+from gui.lu_step_asi import LuAsiStep
+from gui.lu_step_proficiencies import LuProficienciesStep
+from gui.lu_step_languages import LuLanguagesStep
+from gui.lu_step_choices import LuChoicesStep
+from gui.lu_step_spells import LuSpellsStep
+from gui.lu_step_swap import LuSwapStep
+from models.level_up_logic import (
+    LevelUpContext,
+    get_visible_step_keys,
+    build_class_level,
+    apply_level_up,
+    validate_class_step,
+    validate_features_step,
+    validate_subclass_step,
+    validate_asi_step,
+    validate_proficiency_step,
+    validate_language_step,
+    validate_choices_step,
+    validate_spell_step,
+    validate_swap_step,
+)
+
 # Wizard step definitions: (key, label, icon, StepClass)
 _WIZARD_STEPS = [
     ("species", "Species", "", SpeciesStep),
@@ -67,6 +93,32 @@ _CONFIRM_STEP_LABELS = {
 }
 _DYNAMIC_PRIMARY_ACTION_LABELS = ["Confirm Expertise"]
 
+# Level-up wizard step definitions: (key, label, icon, StepClass)
+_LU_STEPS = [
+    ("lu_class", "Class", "", LuClassStep),
+    ("lu_features", "Features & HP", "", LuFeaturesStep),
+    ("lu_subclass", "Subclass", "", LuSubclassStep),
+    ("lu_asi", "Feat / ASI", "", LuAsiStep),
+    ("lu_proficiencies", "Proficiencies", "", LuProficienciesStep),
+    ("lu_languages", "Languages", "", LuLanguagesStep),
+    ("lu_choices", "Class Choices", "", LuChoicesStep),
+    ("lu_spells", "Spells", "", LuSpellsStep),
+    ("lu_swap", "Spell Swap", "", LuSwapStep),
+]
+_LU_STEP_LABELS = {key: label for key, label, _, _ in _LU_STEPS}
+
+_LU_CONFIRM_LABELS = {
+    "lu_class": "Confirm Class",
+    "lu_features": "Confirm Features",
+    "lu_subclass": "Confirm Subclass",
+    "lu_asi": "Confirm Feat / ASI",
+    "lu_proficiencies": "Confirm Proficiencies",
+    "lu_languages": "Confirm Languages",
+    "lu_choices": "Confirm Choices",
+    "lu_spells": "Confirm Spells",
+    "lu_swap": "Confirm Swap",
+}
+
 
 class CharacterCreatorApp:
     """Main application window with screen management."""
@@ -88,6 +140,7 @@ class CharacterCreatorApp:
         self.home_screen = HomeScreen(self.container, self)
         self.wizard_frame = None
         self.viewer_frame = None
+        self.lu_frame = None
 
         # State
         self.character = None
@@ -146,12 +199,28 @@ class CharacterCreatorApp:
         )
         self.viewer_frame.pack(fill=tk.BOTH, expand=True)
 
+    def show_level_up_wizard(self, character, save_path):
+        """Switch to the level-up wizard screen."""
+        self._hide_all()
+        self.character = character
+        self.current_save_path = save_path
+
+        if self.lu_frame:
+            try:
+                self.lu_frame.destroy()
+            except tk.TclError:
+                pass
+        self.lu_frame = self._build_level_up_wizard(character, save_path)
+        self.lu_frame.pack(fill=tk.BOTH, expand=True)
+
     def _hide_all(self):
         self.home_screen.frame.pack_forget()
         if self.wizard_frame:
             self.wizard_frame.pack_forget()
         if self.viewer_frame:
             self.viewer_frame.pack_forget()
+        if self.lu_frame:
+            self.lu_frame.pack_forget()
 
     # ── Wizard builder ──────────────────────────────────────────
 
@@ -896,6 +965,553 @@ class CharacterCreatorApp:
                 AlertDialog(self.root, "Export", f"PDF character sheet saved to {path}")
             except Exception as e:
                 AlertDialog(self.root, "Export Error", f"Failed to generate PDF:\n{e}")
+
+    # ══════════════════════════════════════════════════════════════
+    # Level-Up Wizard
+    # ══════════════════════════════════════════════════════════════
+
+    def _build_level_up_wizard(self, character, save_path):
+        """Create the level-up wizard with sidebar step navigation."""
+        frame = tk.Frame(self.container, bg=COLORS["bg"])
+
+        # -- Content area (right side) --
+        content_area = tk.Frame(frame, bg=COLORS["bg"])
+
+        # Bottom nav bar (pack FIRST so it claims space)
+        nav_bar = tk.Frame(
+            content_area,
+            bg=COLORS["bg_surface"],
+            highlightbackground=COLORS["border_subtle"],
+            highlightcolor=COLORS["border_subtle"],
+            highlightthickness=1,
+        )
+        nav_bar.pack(fill=tk.X, side=tk.BOTTOM)
+
+        # Step content container
+        self._lu_step_container = tk.Frame(content_area, bg=COLORS["bg"])
+        self._lu_step_container.pack(fill=tk.BOTH, expand=True)
+
+        # ---- Build bottom nav bar ----
+        nav_inner = tk.Frame(nav_bar, bg=COLORS["bg_surface"])
+        nav_inner.pack(fill=tk.X, padx=SPACING["lg"], pady=10)
+
+        # Left section: Previous
+        left_frame = tk.Frame(nav_inner, bg=COLORS["bg_surface"])
+        left_frame.pack(side=tk.LEFT)
+
+        self._lu_back_btn = ttk.Button(
+            left_frame,
+            text="\u25c0  Back",
+            command=self._lu_back,
+        )
+        self._lu_back_btn.pack(side=tk.LEFT)
+        left_frame.update_idletasks()
+        left_frame.configure(
+            width=self._lu_back_btn.winfo_reqwidth(),
+            height=self._lu_back_btn.winfo_reqheight(),
+        )
+        left_frame.pack_propagate(False)
+
+        # Center section: Step counter + progress bar
+        center_frame = tk.Frame(nav_inner, bg=COLORS["bg_surface"])
+        center_frame.pack(side=tk.LEFT, expand=True)
+
+        center_inner = tk.Frame(center_frame, bg=COLORS["bg_surface"])
+        center_inner.pack()
+
+        self._lu_step_label = tk.Label(
+            center_inner,
+            text="Step 1 of 1",
+            font=FONTS["step_counter"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        )
+        self._lu_step_label.pack(side=tk.LEFT, padx=(0, SPACING["md"]))
+
+        self._lu_progress_bar = HPBar(center_inner, width=160, height=6)
+        self._lu_progress_bar.pack(side=tk.LEFT)
+
+        # Right section: Next / Apply button
+        right_frame = tk.Frame(nav_inner, bg=COLORS["bg_surface"])
+        right_frame.pack(side=tk.RIGHT)
+
+        self._lu_next_btn = ttk.Button(
+            right_frame,
+            text="Next  \u25b6",
+            style="WizardAccent.TButton",
+            command=self._lu_next,
+        )
+        self._lu_next_btn.pack(side=tk.RIGHT)
+        candidate_labels = ["Apply Level Up \u2713"] + list(_LU_CONFIRM_LABELS.values())
+        original_text = self._lu_next_btn.cget("text")
+        max_width = 0
+        for label in candidate_labels:
+            self._lu_next_btn.configure(text=label)
+            right_frame.update_idletasks()
+            max_width = max(max_width, self._lu_next_btn.winfo_reqwidth())
+        self._lu_next_btn.configure(text=original_text)
+        right_frame.configure(
+            width=max_width,
+            height=self._lu_next_btn.winfo_reqheight(),
+        )
+        right_frame.pack_propagate(False)
+
+        # -- Build LevelUpContext --
+        primary_slug = (
+            character.class_levels[0].class_slug if character.class_levels else ""
+        )
+        new_total = character.level + 1
+        new_class_level = character.class_level_in(primary_slug) + 1
+
+        self._lu_ctx = LevelUpContext(
+            new_total_level=new_total,
+            primary_class_slug=primary_slug,
+            class_slug=primary_slug,
+            new_class_level=new_class_level,
+        )
+
+        # -- Create all level-up steps --
+        self._lu_steps = []
+        self._lu_step_keys = []
+        self._lu_current_step_idx = 0
+        self._lu_reached_step_keys = set()
+
+        for key, _label, _icon, StepClass in _LU_STEPS:
+            step = StepClass(
+                self._lu_step_container,
+                character,
+                self.data,
+                level_up_ctx=self._lu_ctx,
+            )
+            self._lu_steps.append(step)
+            self._lu_step_keys.append(key)
+
+        # -- Compute initial visible steps --
+        self._lu_visible_keys_cache = get_visible_step_keys(
+            self._lu_ctx, character, self.data
+        )
+
+        # Mark first visible step as reached
+        if self._lu_visible_keys_cache:
+            self._lu_reached_step_keys = {self._lu_visible_keys_cache[0]}
+
+        # -- Register callbacks --
+        # The class step can change which class we're leveling, so recompute
+        # visible steps when it changes.
+        class_step_idx = self._lu_step_keys.index("lu_class")
+        self._lu_steps[class_step_idx].on_change_callbacks.append(
+            self._lu_recompute_visible_steps
+        )
+
+        for step in self._lu_steps:
+            step.on_change_callbacks.append(self._lu_update_nav)
+            step.on_substep_change_callbacks.append(self._lu_update_nav)
+            step.on_substep_change_callbacks.append(self._lu_update_sidebar)
+
+        # -- Sidebar (left side) --
+        nav_items = []
+        for key, label, icon, _ in _LU_STEPS:
+            nav_items.append({"key": key, "text": label, "icon": icon})
+
+        self._lu_sidebar = WizardSidebar(
+            frame,
+            nav_items=nav_items,
+            on_navigate=self._lu_sidebar_nav,
+            header_title="Level Up",
+            on_back=self._lu_cancel,
+            show_selection_panel=True,
+            width=224,
+        )
+        self._lu_sidebar.pack(side=tk.LEFT, fill=tk.Y)
+
+        # Pack content after sidebar
+        content_area.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # -- Update sidebar visibility and show first step --
+        self._lu_update_step_visibility()
+        if self._lu_visible_keys_cache:
+            first_key = self._lu_visible_keys_cache[0]
+            first_idx = self._lu_step_keys.index(first_key)
+            self._lu_show_step(first_idx)
+
+        return frame
+
+    # ── Level-Up: Navigation ────────────────────────────────────
+
+    def _lu_show_step(self, idx: int):
+        """Show the level-up step at the given index, hiding the current one."""
+        if 0 <= self._lu_current_step_idx < len(self._lu_steps):
+            self._lu_steps[self._lu_current_step_idx].frame.pack_forget()
+
+        self._lu_current_step_idx = idx
+        key = self._lu_step_keys[idx]
+        self._lu_reached_step_keys.add(key)
+        step = self._lu_steps[idx]
+        step.frame.pack(fill=tk.BOTH, expand=True)
+        step.on_enter()
+
+        self._lu_update_sidebar()
+        self._lu_update_nav()
+
+    def _lu_sidebar_nav(self, key: str):
+        """Handle sidebar click in the level-up wizard."""
+        if key not in self._lu_step_keys:
+            return
+        if key not in self._lu_reached_step_keys:
+            return
+        if key not in self._lu_visible_keys_cache:
+            return
+
+        idx = self._lu_step_keys.index(key)
+        step = self._lu_steps[idx]
+        if step.has_substeps():
+            if step.is_valid():
+                step.go_to_substep(max(0, step.get_substep_count() - 1))
+            else:
+                step.go_to_substep(0)
+
+        self._lu_show_step(idx)
+
+    def _lu_next(self):
+        """Advance to the next level-up step (or apply if on last)."""
+        curr = self._lu_current_step_idx
+        step = self._lu_steps[curr]
+        key = self._lu_step_keys[curr]
+
+        # Handle substep advancement
+        if (
+            step.has_substeps()
+            and step.get_current_substep() < step.get_substep_count() - 1
+        ):
+            if not step.is_current_substep_valid():
+                self._lu_show_validation_error(key)
+                return
+            step.go_to_substep(step.get_current_substep() + 1)
+            self._lu_update_nav()
+            return
+
+        if not step.is_valid():
+            self._lu_show_validation_error(key)
+            return
+
+        # Check if this is the last visible step
+        visible = self._lu_visible_keys_cache
+        if key in visible:
+            pos = visible.index(key)
+            if pos == len(visible) - 1:
+                # Last step — apply level-up
+                self._lu_apply_and_finish()
+                return
+            next_key = visible[pos + 1]
+            next_idx = self._lu_step_keys.index(next_key)
+            self._lu_reached_step_keys.add(next_key)
+            self._lu_show_step(next_idx)
+
+    def _lu_back(self):
+        """Go back to the previous level-up step."""
+        curr = self._lu_current_step_idx
+        step = self._lu_steps[curr]
+        key = self._lu_step_keys[curr]
+
+        # Handle substep back
+        if step.has_substeps() and step.get_current_substep() > 0:
+            step.go_to_substep(step.get_current_substep() - 1)
+            self._lu_update_nav()
+            return
+
+        visible = self._lu_visible_keys_cache
+        if key in visible:
+            pos = visible.index(key)
+            if pos > 0:
+                prev_key = visible[pos - 1]
+                prev_idx = self._lu_step_keys.index(prev_key)
+                prev_step = self._lu_steps[prev_idx]
+                if prev_step.has_substeps() and prev_step.is_valid():
+                    prev_step.go_to_substep(max(0, prev_step.get_substep_count() - 1))
+                self._lu_show_step(prev_idx)
+
+    # ── Level-Up: Visibility ────────────────────────────────────
+
+    def _lu_recompute_visible_steps(self):
+        """Recompute visible steps after class selection changes."""
+        self._lu_visible_keys_cache = get_visible_step_keys(
+            self._lu_ctx, self.character, self.data
+        )
+        self._lu_update_step_visibility()
+        self._lu_update_sidebar()
+        self._lu_update_nav()
+
+    def _lu_update_step_visibility(self):
+        """Show/hide level-up sidebar nav buttons based on visible steps."""
+        if not hasattr(self, "_lu_sidebar"):
+            return
+
+        for key in self._lu_step_keys:
+            btn = self._lu_sidebar._nav_buttons.get(key)
+            if btn:
+                btn.pack_forget()
+        for key in self._lu_visible_keys_cache:
+            btn = self._lu_sidebar._nav_buttons.get(key)
+            if btn:
+                btn.pack(fill=tk.X, pady=1)
+
+        # If current step is no longer visible, jump to the first visible one
+        current_key = self._lu_step_keys[self._lu_current_step_idx]
+        if current_key not in self._lu_visible_keys_cache:
+            if self._lu_visible_keys_cache:
+                fallback_key = self._lu_visible_keys_cache[0]
+                self._lu_show_step(self._lu_step_keys.index(fallback_key))
+
+    # ── Level-Up: UI Updates ────────────────────────────────────
+
+    def _lu_update_nav(self):
+        """Update the level-up wizard's bottom navigation bar."""
+        if not hasattr(self, "_lu_next_btn"):
+            return
+
+        curr = self._lu_current_step_idx
+        step = self._lu_steps[curr]
+        key = self._lu_step_keys[curr]
+        visible = self._lu_visible_keys_cache
+
+        # Determine position in visible steps
+        if key in visible:
+            vis_pos = visible.index(key)
+            vis_count = len(visible)
+            is_last = vis_pos == vis_count - 1
+        else:
+            vis_pos = 0
+            vis_count = len(visible)
+            is_last = False
+
+        # Back button
+        can_go_back = (key in visible and visible.index(key) > 0) or (
+            step.has_substeps() and step.get_current_substep() > 0
+        )
+        if can_go_back:
+            self._lu_back_btn.configure(state=tk.NORMAL)
+            if not self._lu_back_btn.winfo_manager():
+                self._lu_back_btn.pack(side=tk.LEFT)
+        elif self._lu_back_btn.winfo_manager():
+            self._lu_back_btn.pack_forget()
+
+        # Next / Apply button
+        show_primary = is_last or step.is_primary_action_visible()
+        if show_primary:
+            if not self._lu_next_btn.winfo_manager():
+                self._lu_next_btn.pack(side=tk.RIGHT)
+        elif self._lu_next_btn.winfo_manager():
+            self._lu_next_btn.pack_forget()
+
+        if is_last:
+            # Check all visible steps are valid
+            all_valid = all(
+                self._lu_steps[self._lu_step_keys.index(k)].is_valid() for k in visible
+            )
+            self._lu_next_btn.configure(
+                text="Apply Level Up \u2713",
+                command=self._lu_next,
+                state=tk.NORMAL if all_valid else tk.DISABLED,
+            )
+        elif show_primary:
+            confirm_label = step.get_primary_action_label() or _LU_CONFIRM_LABELS.get(
+                key, "Confirm"
+            )
+            self._lu_next_btn.configure(
+                text=confirm_label,
+                command=self._lu_next,
+                state=tk.NORMAL if step.is_primary_action_enabled() else tk.DISABLED,
+            )
+
+        # Step counter and progress bar
+        self._lu_step_label.configure(text=f"Step {vis_pos + 1} of {vis_count}")
+        self._lu_progress_bar.set_hp(vis_pos + 1, vis_count)
+
+    def _lu_update_sidebar(self):
+        """Update level-up sidebar step states and selection summaries."""
+        if not hasattr(self, "_lu_sidebar"):
+            return
+
+        visible = self._lu_visible_keys_cache
+        current_key = self._lu_step_keys[self._lu_current_step_idx]
+
+        self._lu_sidebar.update_step_states(
+            visible,
+            current_key,
+            self._lu_reached_step_keys,
+        )
+
+        for key in self._lu_step_keys:
+            if key not in visible or key not in self._lu_reached_step_keys:
+                self._lu_sidebar.set_selection(key, "")
+                continue
+
+            value = self._lu_get_selection_text(key)
+            if key == current_key and not value:
+                value = "Currently Editing"
+            elif not value and key in self._lu_reached_step_keys:
+                idx = self._lu_step_keys.index(key)
+                if self._lu_steps[idx].is_valid():
+                    value = "Completed"
+                else:
+                    value = "Selection Required"
+            self._lu_sidebar.set_selection(key, value)
+
+    def _lu_get_selection_text(self, key: str) -> str:
+        """Return sidebar selection summary for a level-up step."""
+        ctx = self._lu_ctx
+
+        if key == "lu_class":
+            if ctx.class_slug:
+                for c in self.data.classes:
+                    if c.get("slug") == ctx.class_slug:
+                        return c.get("name", ctx.class_slug)
+            return ""
+
+        if key == "lu_features":
+            if ctx.hp_mode == "average":
+                return "Average HP"
+            elif ctx.hp_manual_value:
+                return f"HP: {ctx.hp_manual_value}"
+            return ""
+
+        if key == "lu_subclass":
+            return ctx.subclass_name or ""
+
+        if key == "lu_asi":
+            return ctx.feat_name or ""
+
+        if key == "lu_proficiencies":
+            count = len(ctx.prof_picks) + len(ctx.expertise_picks)
+            if count:
+                return f"{count} selected"
+            return ""
+
+        if key == "lu_languages":
+            count = len(ctx.language_selections)
+            if count:
+                return f"{count} language{'s' if count != 1 else ''}"
+            return ""
+
+        if key == "lu_choices":
+            count = len(ctx.selected_new_choices)
+            if count:
+                return f"{count} choice{'s' if count != 1 else ''}"
+            return ""
+
+        if key == "lu_spells":
+            c = len(ctx.selected_new_cantrips)
+            s = len(ctx.selected_new_spells)
+            parts = []
+            if c:
+                parts.append(f"{c} cantrip{'s' if c != 1 else ''}")
+            if s:
+                parts.append(f"{s} spell{'s' if s != 1 else ''}")
+            return ", ".join(parts) if parts else ""
+
+        if key == "lu_swap":
+            swaps = []
+            if ctx.swap_in_cantrip:
+                swaps.append("cantrip")
+            if ctx.swap_in_spell:
+                swaps.append("spell")
+            return "Swapped " + " & ".join(swaps) if swaps else ""
+
+        return ""
+
+    # ── Level-Up: Validation ────────────────────────────────────
+
+    def _lu_show_validation_error(self, key: str):
+        """Show a validation error dialog for a level-up step."""
+        ctx = self._lu_ctx
+        char = self.character
+        data = self.data
+
+        # Call the appropriate validator to get the error message
+        validators = {
+            "lu_class": lambda: validate_class_step(ctx, char),
+            "lu_features": lambda: validate_features_step(ctx),
+            "lu_subclass": lambda: validate_subclass_step(ctx),
+            "lu_asi": lambda: validate_asi_step(ctx, char, data),
+            "lu_proficiencies": lambda: validate_proficiency_step(ctx, char, data),
+            "lu_languages": lambda: validate_language_step(ctx),
+            "lu_choices": lambda: validate_choices_step(ctx, char, data),
+            "lu_spells": lambda: validate_spell_step(ctx, data),
+            "lu_swap": lambda: validate_swap_step(ctx),
+        }
+
+        validator = validators.get(key)
+        if validator:
+            ok, title, message = validator()
+            if not ok:
+                AlertDialog(self.root, title, message)
+                return
+
+        # Fallback generic error
+        AlertDialog(
+            self.root,
+            "Selection Required",
+            "Please complete this step before moving on.",
+        )
+
+    # ── Level-Up: Cancel & Apply ────────────────────────────────
+
+    def _lu_cancel(self):
+        """Cancel the level-up wizard and return to the character viewer."""
+        dlg = ConfirmDialog(
+            self.root,
+            "Cancel Level Up",
+            "Cancel this level-up and return to the character sheet?\n\n"
+            "All level-up progress will be lost.",
+        )
+        if not dlg.result:
+            return
+
+        self.show_viewer(self.character, self.current_save_path)
+
+    def _lu_apply_and_finish(self):
+        """Validate all steps, apply the level-up, save, and return to viewer."""
+        visible = self._lu_visible_keys_cache
+
+        # Find first invalid step
+        for key in visible:
+            idx = self._lu_step_keys.index(key)
+            if not self._lu_steps[idx].is_valid():
+                self._lu_show_step(idx)
+                self._lu_show_validation_error(key)
+                return
+
+        # Build and apply
+        try:
+            cl = build_class_level(self._lu_ctx, self.character, self.data)
+            apply_level_up(self.character, cl, self._lu_ctx)
+        except Exception as exc:
+            AlertDialog(
+                self.root,
+                "Level-Up Error",
+                f"An error occurred while applying the level-up:\n\n{exc}",
+            )
+            return
+
+        # Save
+        from models.character_store import save_character
+        from paths import characters_dir
+
+        try:
+            save_character(
+                self.character,
+                characters_dir(),
+                existing_filename=self.current_save_path,
+            )
+        except Exception as exc:
+            AlertDialog(
+                self.root,
+                "Save Error",
+                f"The level-up was applied but saving failed:\n\n{exc}",
+            )
+
+        # Return to character viewer
+        self.show_viewer(self.character, self.current_save_path)
 
     def run(self):
         self.root.mainloop()

@@ -3462,15 +3462,7 @@ class CharacterViewer(ttk.Frame):
         )
 
     def _on_level_up(self):
-        from gui.level_up_wizard import LevelUpWizard
-
-        def on_complete():
-            save_character(
-                self.character, characters_dir(), existing_filename=self.save_path
-            )
-            self.app.show_viewer(self.character, self.save_path)
-
-        LevelUpWizard(self, self.character, self.data, on_complete=on_complete)
+        self.app.show_level_up_wizard(self.character, self.save_path)
 
     # ── Exports ──
 
