@@ -1123,7 +1123,6 @@ class CharacterCreatorApp:
             on_navigate=self._lu_sidebar_nav,
             header_title="Level Up",
             on_back=self._lu_cancel,
-            show_selection_panel=True,
             width=224,
         )
         self._lu_sidebar.pack(side=tk.LEFT, fill=tk.Y)
