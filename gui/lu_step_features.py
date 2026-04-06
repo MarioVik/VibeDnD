@@ -79,14 +79,14 @@ class LuFeaturesStep(LevelUpStep):
 
         self._level_label.configure(text=f"{cls_name} Level {self.ctx.new_class_level}")
 
-        # ── Features section ──
-        self._build_features_section(inner, level_data)
-
-        # ── Spell summary (informational) ──
+        # ── Spell summary first (small, easy to miss otherwise) ──
         if has_new_spell_options(
             self.ctx.class_slug, self.ctx.new_class_level, self.data
         ):
             self._build_spell_summary(inner)
+
+        # ── Features section ──
+        self._build_features_section(inner, level_data)
 
     def _build_features_section(self, parent, level_data):
         if not level_data:

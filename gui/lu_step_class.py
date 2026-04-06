@@ -206,8 +206,8 @@ class LuClassStep(LevelUpStep):
         PillBadge(
             header,
             text="RECOMMENDED",
-            bg_color=COLORS["gold_dark"],
-            fg_color=COLORS["gold_on_dark"],
+            bg_color="#8B1A1A",
+            fg_color="#FFFFFF",
         ).pack(side=tk.RIGHT, padx=(SPACING["xs"], 0))
 
         PillBadge(
@@ -216,13 +216,6 @@ class LuClassStep(LevelUpStep):
             bg_color=COLORS["badge_glass_dim"],
             fg_color=COLORS["gold"],
         ).pack(side=tk.RIGHT, padx=(SPACING["xs"], 0))
-
-        PillBadge(
-            header,
-            text="PRIMARY",
-            bg_color=COLORS["accent"],
-            fg_color=COLORS["accent_text"],
-        ).pack(side=tk.RIGHT)
 
         desc = cls.get("description", "")
         if desc:
@@ -266,7 +259,6 @@ class LuClassStep(LevelUpStep):
     ):
         """Build a standard class card in the grid."""
         name = cls.get("name", slug.title())
-        is_primary = slug == self.ctx.primary_class_slug
         is_selected = slug == self.ctx.class_slug
         current_levels = self.character.class_level_in(slug)
 
@@ -295,14 +287,6 @@ class LuClassStep(LevelUpStep):
             fg=COLORS["fg"],
             bg=card.inner.cget("bg"),
         ).pack(side=tk.LEFT)
-
-        if is_primary:
-            PillBadge(
-                header,
-                text="PRIMARY",
-                bg_color=COLORS["accent"],
-                fg_color=COLORS["accent_text"],
-            ).pack(side=tk.RIGHT, padx=(SPACING["xs"], 0))
 
         if current_levels > 0:
             PillBadge(
