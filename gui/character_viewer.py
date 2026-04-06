@@ -80,7 +80,7 @@ _NAV_ITEMS = [
     {"key": _FEATURES, "text": "Features", "icon": "\u2605"},
     {"key": _SPELLBOOK, "text": "Spellbook", "icon": "\u2726"},
     {"key": _INVENTORY, "text": "Inventory", "icon": "\u229e"},
-    {"key": _BACKSTORY, "text": "Biography", "icon": "\u270E"},
+    {"key": _BACKSTORY, "text": "Biography", "icon": "\u270e"},
 ]
 
 
@@ -143,18 +143,32 @@ class CharacterViewer(ttk.Frame):
         long_state = tk.NORMAL if can_long_rest(c) else tk.DISABLED
 
         bottom_buttons = [
-            {"text": "Short Rest", "command": self._on_short_rest, "state": short_state, "key": "short_rest"},
-            {"text": "Long Rest", "command": self._on_long_rest, "state": long_state, "key": "long_rest"},
+            {
+                "text": "Short Rest",
+                "command": self._on_short_rest,
+                "state": short_state,
+                "key": "short_rest",
+            },
+            {
+                "text": "Long Rest",
+                "command": self._on_long_rest,
+                "state": long_state,
+                "key": "long_rest",
+            },
         ]
         if c.level < 20:
             bottom_buttons.append(
                 {"text": "Level Up", "command": self._on_level_up, "key": "level_up"},
             )
         bottom_buttons.append(
-            {"text": "Export  \u25BE", "key": "export_dropdown", "submenu": [
-                {"text": "Export PDF", "command": self._export_pdf},
-                {"text": "Export Character", "command": self._export_json},
-            ]},
+            {
+                "text": "Export  \u25be",
+                "key": "export_dropdown",
+                "submenu": [
+                    {"text": "Export PDF", "command": self._export_pdf},
+                    {"text": "Export Character", "command": self._export_json},
+                ],
+            },
         )
         # TODO: Add back "Respec Character" button (command: self._on_edit) when the respec feature is fully working
 
@@ -172,8 +186,11 @@ class CharacterViewer(ttk.Frame):
         c = self.character
         if c.is_multiclass:
             from collections import Counter
+
             _counts = Counter(cl.class_slug for cl in c.class_levels)
-            _sidebar_summary = f"{c.species_name} " + "/".join(f"{s.title()} {n}" for s, n in _counts.items())
+            _sidebar_summary = f"{c.species_name} " + "/".join(
+                f"{s.title()} {n}" for s, n in _counts.items()
+            )
         else:
             _parts = []
             if c.species:
@@ -246,7 +263,10 @@ class CharacterViewer(ttk.Frame):
         if key == _DASHBOARD:
             self._dispose_hover_tooltips()
         for w in frame.winfo_children():
-            w.destroy()
+            try:
+                w.destroy()
+            except tk.TclError:
+                pass
         self._view_built[key] = False
         self._build_view(key)
         self._view_built[key] = True
@@ -302,9 +322,12 @@ class CharacterViewer(ttk.Frame):
                 )
                 # Frame wrapper with accent stripe for portrait
                 portrait_card = tk.Frame(
-                    top_wrapper, bg="#222222",
+                    top_wrapper,
+                    bg="#222222",
                 )
-                portrait_card.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
+                portrait_card.pack(
+                    side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"])
+                )
                 # Canvas inside the card; starts 1x1, resizes to match right_col
                 portrait_canvas = tk.Canvas(
                     portrait_card,
@@ -351,7 +374,10 @@ class CharacterViewer(ttk.Frame):
 
         # ── Hero section (gradient) ──
         hero = GradientHeader(right_col, min_height=100)
-        hero.pack(fill=tk.X, pady=(0, SPACING["card_gap"] if has_portrait else SPACING["section_gap"]))
+        hero.pack(
+            fill=tk.X,
+            pady=(0, SPACING["card_gap"] if has_portrait else SPACING["section_gap"]),
+        )
         hero_inner = hero.inner
 
         _hero_bg = COLORS["bg_hero"]
@@ -377,12 +403,17 @@ class CharacterViewer(ttk.Frame):
         level_pill.pack(side=tk.RIGHT, padx=8)
 
         summary_frame = tk.Frame(hero_inner, bg=_hero_bg)
-        summary_frame.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(4, SPACING["2xl"]))
+        summary_frame.pack(
+            fill=tk.X, padx=SPACING["card_pad"], pady=(4, SPACING["2xl"])
+        )
 
         if c.is_multiclass:
             from collections import Counter
+
             counts = Counter(cl.class_slug for cl in c.class_levels)
-            _class_line = f"{c.species_name} " + "/".join(f"{slug.title()} {n}" for slug, n in counts.items())
+            _class_line = f"{c.species_name} " + "/".join(
+                f"{slug.title()} {n}" for slug, n in counts.items()
+            )
         else:
             _identity_parts = []
             if c.species:
@@ -391,10 +422,14 @@ class CharacterViewer(ttk.Frame):
                 _identity_parts.append(c.class_name)
             _subclass_slug = c.current_subclass
             if _subclass_slug and self.data:
-                _sc = self.data.get_subclass(c.character_class.get("slug", ""), _subclass_slug)
+                _sc = self.data.get_subclass(
+                    c.character_class.get("slug", ""), _subclass_slug
+                )
                 if _sc:
                     _identity_parts.append(_sc["name"])
-            _class_line = " ".join(_identity_parts) if _identity_parts else "No selections"
+            _class_line = (
+                " ".join(_identity_parts) if _identity_parts else "No selections"
+            )
         if c.background_name:
             _class_line += f" - {c.background_name}"
 
@@ -419,7 +454,11 @@ class CharacterViewer(ttk.Frame):
         # Build hit dice pool data
         _hd_pool = c.hit_dice_pool
         # Sort by die size descending
-        _hd_sorted = sorted(_hd_pool, key=lambda s: _hd_pool[s][2], reverse=True) if _hd_pool else []
+        _hd_sorted = (
+            sorted(_hd_pool, key=lambda s: _hd_pool[s][2], reverse=True)
+            if _hd_pool
+            else []
+        )
         _hd_is_multi = len(_hd_sorted) > 1
 
         # Proficiency box — square (width = height)
@@ -435,14 +474,20 @@ class CharacterViewer(ttk.Frame):
         prof_frame.bind("<Configure>", _keep_prof_square)
 
         tk.Label(
-            prof_frame, text="PROFICIENCY",
-            font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+            prof_frame,
+            text="PROFICIENCY",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
         ).pack(side=tk.TOP, pady=(6, 0))
         _prof_center = tk.Frame(prof_frame, bg=COLORS["bg_surface"])
         _prof_center.pack(expand=True)
         tk.Label(
-            _prof_center, text=f"+{c.proficiency_bonus}",
-            font=FONTS["stat_large"], fg=COLORS["fg"], bg=COLORS["bg_surface"],
+            _prof_center,
+            text=f"+{c.proficiency_bonus}",
+            font=FONTS["stat_large"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
         ).pack()
         # Invisible spacer to match the die badge height in the Hit Dice box
         tk.Frame(_prof_center, bg=COLORS["bg_surface"], height=24).pack()
@@ -462,8 +507,11 @@ class CharacterViewer(ttk.Frame):
         hd_frame.bind("<Configure>", _keep_hd_sized)
 
         tk.Label(
-            hd_frame, text="HIT DICE",
-            font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+            hd_frame,
+            text="HIT DICE",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
         ).pack(side=tk.TOP, pady=(6, 0))
 
         if _hd_sorted:
@@ -479,37 +527,52 @@ class CharacterViewer(ttk.Frame):
                     _col_f = tk.Frame(_hd_center, bg=_hd_bg)
                     _col_f.grid(row=0, column=col_i, padx=4)
                     tk.Label(
-                        _col_f, text=f"{_rem}/{_tot}",
-                        font=FONTS["stat_large"], fg=COLORS["fg"], bg=_hd_bg,
+                        _col_f,
+                        text=f"{_rem}/{_tot}",
+                        font=FONTS["stat_large"],
+                        fg=COLORS["fg"],
+                        bg=_hd_bg,
                     ).pack()
                     _badge_bg = COLORS["bg_container"]
                     _badge = tk.Frame(_col_f, bg=_badge_bg, padx=6, pady=1)
                     _badge.pack(pady=(2, 0))
                     tk.Label(
-                        _badge, text=f"d{_die}",
-                        font=FONTS["body_bold"], fg=COLORS["fg_dim"], bg=_badge_bg,
+                        _badge,
+                        text=f"d{_die}",
+                        font=FONTS["body_bold"],
+                        fg=COLORS["fg_dim"],
+                        bg=_badge_bg,
                     ).pack()
             else:
                 # Single class: value on top, die badge below
                 _slug = _hd_sorted[0]
                 _rem, _tot, _die = _hd_pool[_slug]
                 tk.Label(
-                    _hd_center, text=f"{_rem}/{_tot}",
-                    font=FONTS["stat_large"], fg=COLORS["fg"], bg=_hd_bg,
+                    _hd_center,
+                    text=f"{_rem}/{_tot}",
+                    font=FONTS["stat_large"],
+                    fg=COLORS["fg"],
+                    bg=_hd_bg,
                 ).pack()
                 _badge_bg = COLORS["bg_container"]
                 _badge = tk.Frame(_hd_center, bg=_badge_bg, padx=8, pady=2)
                 _badge.pack(pady=(2, 0))
                 tk.Label(
-                    _badge, text=f"d{_die}",
-                    font=FONTS["body_bold"], fg=COLORS["fg_dim"], bg=_badge_bg,
+                    _badge,
+                    text=f"d{_die}",
+                    font=FONTS["body_bold"],
+                    fg=COLORS["fg_dim"],
+                    bg=_badge_bg,
                 ).pack()
         else:
             # Fallback for no class levels
             _die = (c.character_class or {}).get("hit_die", 8)
             tk.Label(
-                hd_frame, text=f"{c.level}/{c.level}",
-                font=FONTS["stat_large"], fg=COLORS["fg"], bg=COLORS["bg_surface"],
+                hd_frame,
+                text=f"{c.level}/{c.level}",
+                font=FONTS["stat_large"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_surface"],
             ).pack(expand=True)
 
         # Saving Throws box
@@ -530,9 +593,12 @@ class CharacterViewer(ttk.Frame):
         saves_grid.columnconfigure(1, weight=1)
 
         _save_order = [
-            "Strength", "Intelligence",
-            "Dexterity", "Wisdom",
-            "Constitution", "Charisma",
+            "Strength",
+            "Intelligence",
+            "Dexterity",
+            "Wisdom",
+            "Constitution",
+            "Charisma",
         ]
         for i, ability_name in enumerate(_save_order):
             col = i % 2
@@ -549,18 +615,25 @@ class CharacterViewer(ttk.Frame):
             save_row_f.grid(row=row, column=col, sticky="ew", padx=(0, 12), pady=2)
 
             tk.Label(
-                save_row_f, text=indicator,
-                font=FONTS["body"], fg=color, bg=COLORS["bg_surface"],
+                save_row_f,
+                text=indicator,
+                font=FONTS["body"],
+                fg=color,
+                bg=COLORS["bg_surface"],
             ).pack(side=tk.LEFT, padx=(0, 4))
             tk.Label(
-                save_row_f, text=ability_name[:3].upper(),
+                save_row_f,
+                text=ability_name[:3].upper(),
                 font=FONTS["body"],
                 fg=COLORS["fg"] if is_prof else COLORS["fg_dim"],
                 bg=COLORS["bg_surface"],
             ).pack(side=tk.LEFT)
             tk.Label(
-                save_row_f, text=save_str,
-                font=FONTS["heading_serif_sm"], fg=color, bg=COLORS["bg_surface"],
+                save_row_f,
+                text=save_str,
+                font=FONTS["heading_serif_sm"],
+                fg=color,
+                bg=COLORS["bg_surface"],
             ).pack(side=tk.RIGHT)
 
         # ── Ability Scores ──
@@ -573,7 +646,14 @@ class CharacterViewer(ttk.Frame):
         ab_row.columnconfigure(list(range(6)), weight=1)
 
         for i, ability_name in enumerate(
-            ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
+            [
+                "Strength",
+                "Dexterity",
+                "Constitution",
+                "Intelligence",
+                "Wisdom",
+                "Charisma",
+            ]
         ):
             total = c.ability_scores.total(ability_name)
             mod_str = c.ability_scores.modifier_str(ability_name)
@@ -590,10 +670,8 @@ class CharacterViewer(ttk.Frame):
         SectionHeader(
             inner,
             text="Skills",
-            right_text="● = proficiency   ◉ = expertise",
-        ).pack(
-            fill=tk.X, pady=(0, SPACING["sm"])
-        )
+            right_text="● = proficiency   ◉ = expertise   ★ = advantage",
+        ).pack(fill=tk.X, pady=(0, SPACING["sm"]))
 
         skills_card = CardFrame(inner, pad=SPACING["lg"])
         skills_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
@@ -603,6 +681,7 @@ class CharacterViewer(ttk.Frame):
 
         all_profs = c.all_skill_proficiencies
         all_expertise = getattr(c, "all_skill_expertise", set())
+        all_advantages = c.all_skill_advantages
 
         half = (len(ALL_SKILLS) + 1) // 2
         for idx, skill_enum in enumerate(ALL_SKILLS):
@@ -636,6 +715,7 @@ class CharacterViewer(ttk.Frame):
 
             is_prof = skill_display in all_profs
             is_expert = skill_display in all_expertise
+            has_advantage = skill_display in all_advantages
 
             # Proficiency indicator
             indicator = "\u25cf" if is_prof else "\u25cb"
@@ -650,7 +730,20 @@ class CharacterViewer(ttk.Frame):
                 fg=fg_color,
                 bg=COLORS["bg_surface"],
             )
-            indicator_label.pack(side=tk.LEFT, padx=(0, 4))
+            indicator_label.pack(side=tk.LEFT, padx=(0, 0 if has_advantage else 4))
+
+            # Advantage star indicator
+            if has_advantage:
+                adv_label = tk.Label(
+                    skill_row,
+                    text="\u2605",
+                    font=FONTS["body_small"],
+                    fg=COLORS["gold"],
+                    bg=COLORS["bg_surface"],
+                )
+                adv_label.pack(side=tk.LEFT, padx=(0, 4))
+            else:
+                adv_label = None
 
             name_label = tk.Label(
                 skill_row,
@@ -681,16 +774,24 @@ class CharacterViewer(ttk.Frame):
             )
             value_label.pack(side=tk.RIGHT)
 
-            skill_row._tooltip = self._register_hover_tooltip(HoverTooltip(
-                [
-                    skill_row,
-                    indicator_label,
-                    name_label,
-                    ability_label,
-                    value_label,
-                ],
-                lambda s=skill_display, char=c: char.skill_modifier_breakdown_text(s),
-            ))
+            tooltip_widgets = [
+                skill_row,
+                indicator_label,
+                name_label,
+                ability_label,
+                value_label,
+            ]
+            if adv_label is not None:
+                tooltip_widgets.insert(2, adv_label)
+
+            skill_row._tooltip = self._register_hover_tooltip(
+                HoverTooltip(
+                    tooltip_widgets,
+                    lambda s=skill_display, char=c: char.skill_modifier_breakdown_text(
+                        s
+                    ),
+                )
+            )
 
         # ── Senses & Proficiencies (side-by-side) ──
         senses_prof_row = tk.Frame(inner, bg=COLORS["bg"])
@@ -777,7 +878,6 @@ class CharacterViewer(ttk.Frame):
                     side=tk.LEFT, padx=(0, 4), pady=2
                 )
 
-
     # ================================================================
     # COMBAT VIEW
     # ================================================================
@@ -799,7 +899,9 @@ class CharacterViewer(ttk.Frame):
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg_hero"],
-        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
+        ).pack(
+            anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"])
+        )
 
         # ── Two-column layout: Vital Stats (left 20%) | Attacks (right 80%) ──
         combat_columns = tk.Frame(inner, bg=COLORS["bg"], height=200)
@@ -810,7 +912,9 @@ class CharacterViewer(ttk.Frame):
         right_col.place(relx=0, relwidth=0.35, rely=0, relheight=1.0, width=-gap // 2)
 
         left_col = tk.Frame(combat_columns, bg=COLORS["bg"])
-        left_col.place(relx=0.35, relwidth=0.65, rely=0, relheight=1.0, x=gap // 2, width=-gap // 2)
+        left_col.place(
+            relx=0.35, relwidth=0.65, rely=0, relheight=1.0, x=gap // 2, width=-gap // 2
+        )
 
         # Propagate height from children
         def _update_combat_height(event=None):
@@ -823,9 +927,7 @@ class CharacterViewer(ttk.Frame):
         right_col.bind("<Configure>", _update_combat_height)
 
         # ── Left: Attacks ──
-        SectionHeader(left_col, text="Attacks").pack(
-            fill=tk.X, pady=(0, SPACING["sm"])
-        )
+        SectionHeader(left_col, text="Attacks").pack(fill=tk.X, pady=(0, SPACING["sm"]))
 
         attacks_card = CardFrame(left_col, accent_left=True, pad=SPACING["md"])
         attacks_card.pack(fill=tk.BOTH, expand=True)
@@ -1063,9 +1165,8 @@ class CharacterViewer(ttk.Frame):
                 akey = _action_key(a)
                 weapon_key = a.get("weapon_key", "")
                 weapon_saved = saved_opts.get(weapon_key, {})
-                is_configurable = (
-                    a.get("kind") == "weapon"
-                    and (a.get("can_true_strike") or a.get("versatile"))
+                is_configurable = a.get("kind") == "weapon" and (
+                    a.get("can_true_strike") or a.get("versatile")
                 )
 
                 row = tk.Frame(content, bg=COLORS["bg_surface"], padx=8, pady=6)
@@ -1255,8 +1356,9 @@ class CharacterViewer(ttk.Frame):
 
         # Regular HP fills the remaining space to the left
         hp_cf = CardFrame(hp_row, accent_left=True, pad=SPACING["md"])
-        hp_cf.pack(side=tk.LEFT, fill=tk.BOTH, expand=True,
-                   padx=(0, SPACING["card_gap"]))
+        hp_cf.pack(
+            side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, SPACING["card_gap"])
+        )
 
         tk.Label(
             hp_cf.inner,
@@ -1315,14 +1417,20 @@ class CharacterViewer(ttk.Frame):
 
         init_str = f"+{c.initiative}" if c.initiative >= 0 else str(c.initiative)
         speed_cf = None
-        for col_i, (stat_label, stat_value) in enumerate([
-            ("INITIATIVE", init_str),
-            ("ARMOR CLASS", str(c.armor_class)),
-            ("SPEED", f"{c.speed} ft"),
-        ]):
+        for col_i, (stat_label, stat_value) in enumerate(
+            [
+                ("INITIATIVE", init_str),
+                ("ARMOR CLASS", str(c.armor_class)),
+                ("SPEED", f"{c.speed} ft"),
+            ]
+        ):
             cf = CardFrame(stats_row, accent_left=(col_i == 0), pad=SPACING["md"])
-            cf.grid(row=0, column=col_i, sticky="nsew",
-                    padx=(0 if col_i == 0 else SPACING["card_gap"], 0))
+            cf.grid(
+                row=0,
+                column=col_i,
+                sticky="nsew",
+                padx=(0 if col_i == 0 else SPACING["card_gap"], 0),
+            )
             if col_i == 2:
                 speed_cf = cf
             tk.Label(
@@ -1371,8 +1479,12 @@ class CharacterViewer(ttk.Frame):
             desc = action.get("description", "")
             action_type = action.get("type", "Action")
 
-            card = CardFrame(actions_grid, bg=COLORS["bg_container"],
-                             border_color=COLORS["border_subtle"], pad=SPACING["lg"])
+            card = CardFrame(
+                actions_grid,
+                bg=COLORS["bg_container"],
+                border_color=COLORS["border_subtle"],
+                pad=SPACING["lg"],
+            )
             card.grid(row=row_idx, column=col_idx, padx=4, pady=4, sticky="nsew")
             card.set_hover()
 
@@ -1406,7 +1518,6 @@ class CharacterViewer(ttk.Frame):
             if col_idx >= 2:
                 col_idx = 0
                 row_idx += 1
-
 
     def _build_spell_slot_display(self, parent):
         """Build spell slot indicators."""
@@ -1442,7 +1553,11 @@ class CharacterViewer(ttk.Frame):
 
             tk.Label(
                 row,
-                text=f"LEVEL {slot_level}".replace("st", "").replace("nd", "").replace("rd", "").replace("th", "").upper(),
+                text=f"LEVEL {slot_level}".replace("st", "")
+                .replace("nd", "")
+                .replace("rd", "")
+                .replace("th", "")
+                .upper(),
                 font=FONTS["label_upper_bold"],
                 fg=COLORS["fg"],
                 bg=COLORS["bg_surface"],
@@ -1461,8 +1576,11 @@ class CharacterViewer(ttk.Frame):
             dots_frame.pack(side=tk.RIGHT, padx=(0, 8))
             for j in range(count):
                 dot = tk.Canvas(
-                    dots_frame, width=12, height=12,
-                    bg=COLORS["bg_surface"], highlightthickness=0,
+                    dots_frame,
+                    width=12,
+                    height=12,
+                    bg=COLORS["bg_surface"],
+                    highlightthickness=0,
                 )
                 dot.create_oval(1, 1, 11, 11, fill=COLORS["accent_text"], outline="")
                 dot.pack(side=tk.LEFT, padx=2)
@@ -1488,7 +1606,9 @@ class CharacterViewer(ttk.Frame):
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg_hero"],
-        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
+        ).pack(
+            anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"])
+        )
 
         c = self.character
         cls = c.character_class or {}
@@ -1506,7 +1626,11 @@ class CharacterViewer(ttk.Frame):
                 save_dc = 8 + spell_mod + c.proficiency_bonus
                 ability_score = c.ability_scores.total(cast_ability)
                 stat_specs = [
-                    ("Spell Attack", f"+{attack_bonus}", f"PROF + {cast_ability[:3].upper()}"),
+                    (
+                        "Spell Attack",
+                        f"+{attack_bonus}",
+                        f"PROF + {cast_ability[:3].upper()}",
+                    ),
                     ("Save DC", str(save_dc), "BASE 8"),
                 ]
             else:
@@ -1680,7 +1804,9 @@ class CharacterViewer(ttk.Frame):
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg_hero"],
-        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
+        ).pack(
+            anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"])
+        )
 
         # ── Currency (editable, spellbook-card style) ──
         currency_frame = tk.Frame(wrapper, bg=COLORS["bg"])
@@ -1708,12 +1834,18 @@ class CharacterViewer(ttk.Frame):
                 if raw == "":
                     raw = "0"
                 if not raw.isdigit():
-                    AlertDialog(self.winfo_toplevel(), "Wealth", "Please enter whole numbers only.")
+                    AlertDialog(
+                        self.winfo_toplevel(),
+                        "Wealth",
+                        "Please enter whole numbers only.",
+                    )
                     _refresh_coin_display()
                     return False
                 parsed[coin_key] = int(raw)
             new_total_cp = parsed["gp"] * 100 + parsed["sp"] * 10 + parsed["cp"]
-            self.character.wealth_adjust_cp = int(new_total_cp - base_wealth_cp(self.character))
+            self.character.wealth_adjust_cp = int(
+                new_total_cp - base_wealth_cp(self.character)
+            )
             _refresh_coin_display()
             self._on_sheet_changed()
             return True
@@ -1723,9 +1855,15 @@ class CharacterViewer(ttk.Frame):
                 return
             cur = current_wealth_cp(self.character)
             if delta_cp < 0 and cur < abs(delta_cp):
-                AlertDialog(self.winfo_toplevel(), "Wealth", "You do not have enough wealth for that reduction.")
+                AlertDialog(
+                    self.winfo_toplevel(),
+                    "Wealth",
+                    "You do not have enough wealth for that reduction.",
+                )
                 return
-            self.character.wealth_adjust_cp = int(getattr(self.character, "wealth_adjust_cp", 0)) + int(delta_cp)
+            self.character.wealth_adjust_cp = int(
+                getattr(self.character, "wealth_adjust_cp", 0)
+            ) + int(delta_cp)
             _refresh_coin_display()
             self._on_sheet_changed()
 
@@ -1792,7 +1930,9 @@ class CharacterViewer(ttk.Frame):
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg_hero"],
-        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
+        ).pack(
+            anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"])
+        )
 
         # ── Species Traits ──
         if c.species and c.species.get("traits"):
@@ -1804,8 +1944,12 @@ class CharacterViewer(ttk.Frame):
             traits_grid.columnconfigure(0, weight=1)
             traits_grid.columnconfigure(1, weight=1)
             for i, trait in enumerate(get_species_trait_cards(c.species)):
-                card = CardFrame(traits_grid, bg=COLORS["bg_container"],
-                                 border_color=COLORS["border_subtle"], pad=SPACING["lg"])
+                card = CardFrame(
+                    traits_grid,
+                    bg=COLORS["bg_container"],
+                    border_color=COLORS["border_subtle"],
+                    pad=SPACING["lg"],
+                )
                 card.grid(row=i // 2, column=i % 2, padx=4, pady=4, sticky="nsew")
                 tk.Label(
                     card.inner,
@@ -1843,7 +1987,9 @@ class CharacterViewer(ttk.Frame):
 
         # ── Class Features ──
         if c.character_class and c.class_levels:
-            feat_title = "Class Features" if c.is_multiclass else f"{c.class_name} Features"
+            feat_title = (
+                "Class Features" if c.is_multiclass else f"{c.class_name} Features"
+            )
             SectionHeader(inner, text=feat_title).pack(
                 fill=tk.X, pady=(0, SPACING["sm"])
             )
@@ -1853,25 +1999,42 @@ class CharacterViewer(ttk.Frame):
             features_grid.columnconfigure(1, weight=1)
             card_idx = 0
             for cl in c.class_levels:
-                level_data = self.data.get_level_data(cl.class_slug, cl.class_level) if self.data else None
+                level_data = (
+                    self.data.get_level_data(cl.class_slug, cl.class_level)
+                    if self.data
+                    else None
+                )
                 feature_details = []
                 if level_data:
                     feature_details = [
-                        f for f in level_data.get("feature_details", [])
-                        if isinstance(f, dict) and f.get("name") not in ("-", "Ability Score Improvement")
+                        f
+                        for f in level_data.get("feature_details", [])
+                        if isinstance(f, dict)
+                        and f.get("name") not in ("-", "Ability Score Improvement")
                     ]
                     if not feature_details:
                         for name in level_data.get("features", []):
                             if name not in ("-", "Ability Score Improvement"):
-                                feature_details.append({"name": name, "description": ""})
+                                feature_details.append(
+                                    {"name": name, "description": ""}
+                                )
                 extra = []
                 if cl.feat_choice:
                     asi_desc = ""
                     if cl.asi_increases:
-                        asi_desc = ", ".join(f"{a} +{v}" for a, v in cl.asi_increases.items())
-                    extra.append({"name": f"Feat: {cl.feat_choice}", "description": asi_desc})
+                        asi_desc = ", ".join(
+                            f"{a} +{v}" for a, v in cl.asi_increases.items()
+                        )
+                    extra.append(
+                        {"name": f"Feat: {cl.feat_choice}", "description": asi_desc}
+                    )
                 if cl.subclass_slug:
-                    extra.append({"name": f"Subclass: {cl.subclass_slug.replace('-', ' ').title()}", "description": ""})
+                    extra.append(
+                        {
+                            "name": f"Subclass: {cl.subclass_slug.replace('-', ' ').title()}",
+                            "description": "",
+                        }
+                    )
                 all_items = feature_details + extra
                 if not all_items:
                     continue
@@ -1885,9 +2048,19 @@ class CharacterViewer(ttk.Frame):
                         c,
                         self.data,
                     )
-                    card = CardFrame(features_grid, bg=COLORS["bg_container"],
-                                     border_color=COLORS["border_subtle"], pad=SPACING["lg"])
-                    card.grid(row=card_idx // 2, column=card_idx % 2, padx=4, pady=4, sticky="nsew")
+                    card = CardFrame(
+                        features_grid,
+                        bg=COLORS["bg_container"],
+                        border_color=COLORS["border_subtle"],
+                        pad=SPACING["lg"],
+                    )
+                    card.grid(
+                        row=card_idx // 2,
+                        column=card_idx % 2,
+                        padx=4,
+                        pady=4,
+                        sticky="nsew",
+                    )
                     header = tk.Frame(card.inner, bg=COLORS["bg_container"])
                     header.pack(fill=tk.X)
                     tk.Label(
@@ -1924,7 +2097,12 @@ class CharacterViewer(ttk.Frame):
                 primary_slug = c.character_class.get("slug", "")
                 subclasses_for_class = self.data.get_subclasses_for_class(primary_slug)
                 subclass_data = next(
-                    (s for s in subclasses_for_class if s.get("slug") == c.current_subclass), None
+                    (
+                        s
+                        for s in subclasses_for_class
+                        if s.get("slug") == c.current_subclass
+                    ),
+                    None,
                 )
             if subclass_data:
                 desc = (subclass_data.get("description") or "").strip()
@@ -1932,7 +2110,9 @@ class CharacterViewer(ttk.Frame):
                     intro = re.split(r"\bLevel\s+\d+\s*:", desc, maxsplit=1)[0].strip()
                     if intro:
                         WrappingLabel(
-                            inner, text=intro, font=FONTS["body_small"],
+                            inner,
+                            text=intro,
+                            font=FONTS["body_small"],
                             foreground=COLORS["fg_dim"],
                         ).pack(fill=tk.X, pady=(0, SPACING["sm"]))
                 sub_grid = tk.Frame(inner, bg=COLORS["bg"])
@@ -1941,7 +2121,10 @@ class CharacterViewer(ttk.Frame):
                 sub_grid.columnconfigure(1, weight=1)
                 sub_idx = 0
                 features_by_level = subclass_data.get("features", {})
-                for lvl in sorted(features_by_level.keys(), key=lambda x: int(x) if str(x).isdigit() else 99):
+                for lvl in sorted(
+                    features_by_level.keys(),
+                    key=lambda x: int(x) if str(x).isdigit() else 99,
+                ):
                     try:
                         lvl_int = int(lvl)
                     except (ValueError, TypeError):
@@ -1949,9 +2132,19 @@ class CharacterViewer(ttk.Frame):
                     if lvl_int > c.level:
                         continue
                     for feat in features_by_level.get(lvl, []):
-                        card = CardFrame(sub_grid, bg=COLORS["bg_container"],
-                                         border_color=COLORS["border_subtle"], pad=SPACING["lg"])
-                        card.grid(row=sub_idx // 2, column=sub_idx % 2, padx=4, pady=4, sticky="nsew")
+                        card = CardFrame(
+                            sub_grid,
+                            bg=COLORS["bg_container"],
+                            border_color=COLORS["border_subtle"],
+                            pad=SPACING["lg"],
+                        )
+                        card.grid(
+                            row=sub_idx // 2,
+                            column=sub_idx % 2,
+                            padx=4,
+                            pady=4,
+                            sticky="nsew",
+                        )
                         header = tk.Frame(card.inner, bg=COLORS["bg_container"])
                         header.pack(fill=tk.X)
                         tk.Label(
@@ -1980,9 +2173,7 @@ class CharacterViewer(ttk.Frame):
         # ── Feats ──
         has_any_feat = c.feat or c.species_origin_feat
         if has_any_feat:
-            SectionHeader(inner, text="Feats").pack(
-                fill=tk.X, pady=(0, SPACING["sm"])
-            )
+            SectionHeader(inner, text="Feats").pack(fill=tk.X, pady=(0, SPACING["sm"]))
             feats_grid = tk.Frame(inner, bg=COLORS["bg"])
             feats_grid.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
             feats_grid.columnconfigure(0, weight=1)
@@ -1991,11 +2182,22 @@ class CharacterViewer(ttk.Frame):
             if c.feat:
                 feat_name = (
                     c.background.get("feat", c.feat.get("name", ""))
-                    if c.background else c.feat.get("name", "")
+                    if c.background
+                    else c.feat.get("name", "")
                 )
-                card = CardFrame(feats_grid, bg=COLORS["bg_container"],
-                                 border_color=COLORS["border_subtle"], pad=SPACING["lg"])
-                card.grid(row=feat_idx // 2, column=feat_idx % 2, padx=4, pady=4, sticky="nsew")
+                card = CardFrame(
+                    feats_grid,
+                    bg=COLORS["bg_container"],
+                    border_color=COLORS["border_subtle"],
+                    pad=SPACING["lg"],
+                )
+                card.grid(
+                    row=feat_idx // 2,
+                    column=feat_idx % 2,
+                    padx=4,
+                    pady=4,
+                    sticky="nsew",
+                )
                 header = tk.Frame(card.inner, bg=COLORS["bg_container"])
                 header.pack(fill=tk.X)
                 tk.Label(
@@ -2011,7 +2213,10 @@ class CharacterViewer(ttk.Frame):
                     bg_color=COLORS["badge_glass_dim"],
                     fg_color=COLORS["gold"],
                 ).pack(side=tk.RIGHT)
-                benefits = [f"{b['name']}: {b.get('description', '')}" for b in c.feat.get("benefits", [])]
+                benefits = [
+                    f"{b['name']}: {b.get('description', '')}"
+                    for b in c.feat.get("benefits", [])
+                ]
                 if benefits:
                     WrappingLabel(
                         card.inner,
@@ -2023,9 +2228,19 @@ class CharacterViewer(ttk.Frame):
                 feat_idx += 1
             if c.species_origin_feat:
                 sp_name = c.species_name if c.species else "Species"
-                card = CardFrame(feats_grid, bg=COLORS["bg_container"],
-                                 border_color=COLORS["border_subtle"], pad=SPACING["lg"])
-                card.grid(row=feat_idx // 2, column=feat_idx % 2, padx=4, pady=4, sticky="nsew")
+                card = CardFrame(
+                    feats_grid,
+                    bg=COLORS["bg_container"],
+                    border_color=COLORS["border_subtle"],
+                    pad=SPACING["lg"],
+                )
+                card.grid(
+                    row=feat_idx // 2,
+                    column=feat_idx % 2,
+                    padx=4,
+                    pady=4,
+                    sticky="nsew",
+                )
                 header = tk.Frame(card.inner, bg=COLORS["bg_container"])
                 header.pack(fill=tk.X)
                 tk.Label(
@@ -2041,7 +2256,10 @@ class CharacterViewer(ttk.Frame):
                     bg_color=COLORS["badge_glass_dim"],
                     fg_color=COLORS["gold"],
                 ).pack(side=tk.RIGHT)
-                benefits = [f"{b['name']}: {b.get('description', '')}" for b in c.species_origin_feat.get("benefits", [])]
+                benefits = [
+                    f"{b['name']}: {b.get('description', '')}"
+                    for b in c.species_origin_feat.get("benefits", [])
+                ]
                 if benefits:
                     WrappingLabel(
                         card.inner,
@@ -2065,14 +2283,18 @@ class CharacterViewer(ttk.Frame):
 
         # Hero header (full width)
         back_hero = GradientHeader(inner, min_height=50)
-        back_hero.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, SPACING["section_gap"]))
+        back_hero.grid(
+            row=0, column=0, columnspan=2, sticky="ew", pady=(0, SPACING["section_gap"])
+        )
         tk.Label(
             back_hero.inner,
             text="Biography",
             font=FONTS["heading_serif_lg"],
             fg=COLORS["fg"],
             bg=COLORS["bg_hero"],
-        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"]))
+        ).pack(
+            anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["xl"])
+        )
 
         # Grid layout: Portrait + desc/personality on top, backstory full-width bottom
         inner.columnconfigure(0, weight=1)
@@ -2082,7 +2304,13 @@ class CharacterViewer(ttk.Frame):
 
         # Top-left: Portrait
         portrait = tk.Frame(inner, bg=COLORS["bg_surface"])
-        portrait.grid(row=1, column=0, sticky="nsew", padx=(SPACING["lg"], SPACING["sm"]), pady=(0, SPACING["sm"]))
+        portrait.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=(SPACING["lg"], SPACING["sm"]),
+            pady=(0, SPACING["sm"]),
+        )
         portrait.columnconfigure(0, weight=1)
         self._bio_portrait_frame = portrait
 
@@ -2120,24 +2348,43 @@ class CharacterViewer(ttk.Frame):
 
         # Top-right: Physical Description + Personality stacked
         right_stack = tk.Frame(inner, bg=COLORS["bg"])
-        right_stack.grid(row=1, column=1, sticky="nsew", padx=(SPACING["sm"], 16), pady=(0, SPACING["sm"]))
+        right_stack.grid(
+            row=1,
+            column=1,
+            sticky="nsew",
+            padx=(SPACING["sm"], 16),
+            pady=(0, SPACING["sm"]),
+        )
         right_stack.columnconfigure(0, weight=1)
         right_stack.rowconfigure(1, weight=1)
         right_stack.rowconfigure(3, weight=1)
 
-        SectionHeader(right_stack, text="Physical Description").grid(row=0, column=0, sticky="ew", pady=(0, 4))
+        SectionHeader(right_stack, text="Physical Description").grid(
+            row=0, column=0, sticky="ew", pady=(0, 4)
+        )
         self.bio_description_text = self._make_bio_textbox(right_stack)
         self.bio_description_text.configure(height=4)
-        self.bio_description_text.grid(row=1, column=0, sticky="nsew", pady=(0, SPACING["sm"]))
+        self.bio_description_text.grid(
+            row=1, column=0, sticky="nsew", pady=(0, SPACING["sm"])
+        )
 
-        SectionHeader(right_stack, text="Personality").grid(row=2, column=0, sticky="ew", pady=(0, 4))
+        SectionHeader(right_stack, text="Personality").grid(
+            row=2, column=0, sticky="ew", pady=(0, 4)
+        )
         self.bio_personality_text = self._make_bio_textbox(right_stack)
         self.bio_personality_text.configure(height=4)
         self.bio_personality_text.grid(row=3, column=0, sticky="nsew")
 
         # Bottom: Character Backstory (full width)
         bottom = tk.Frame(inner, bg=COLORS["bg"])
-        bottom.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=(SPACING["lg"], 16), pady=(SPACING["sm"], SPACING["lg"]))
+        bottom.grid(
+            row=2,
+            column=0,
+            columnspan=2,
+            sticky="nsew",
+            padx=(SPACING["lg"], 16),
+            pady=(SPACING["sm"], SPACING["lg"]),
+        )
         bottom.columnconfigure(0, weight=1)
         bottom.rowconfigure(1, weight=1)
         SectionHeader(bottom, text="Character Backstory").pack(fill=tk.X, pady=(0, 4))
@@ -2654,7 +2901,11 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_surface"],
         ).pack(anchor="w", padx=8, pady=(8, 4))
 
-        self.inv_list = SectionedListbox(left, on_select=self._on_inv_list_select, on_sub_select=self._on_inv_sub_select)
+        self.inv_list = SectionedListbox(
+            left,
+            on_select=self._on_inv_list_select,
+            on_sub_select=self._on_inv_sub_select,
+        )
         self.inv_list.pack(fill=tk.BOTH, expand=True, padx=4, pady=(0, 4))
 
         btn_row = tk.Frame(left, bg=COLORS["bg_surface"])
@@ -2681,7 +2932,9 @@ class CharacterViewer(ttk.Frame):
             fg=COLORS["fg"],
             bg=COLORS["bg_surface"],
         )
-        self.inventory_detail_title.grid(row=0, column=0, sticky="w", padx=12, pady=(12, 4))
+        self.inventory_detail_title.grid(
+            row=0, column=0, sticky="w", padx=12, pady=(12, 4)
+        )
 
         self.inventory_detail_text = tk.Text(
             right,
@@ -2698,7 +2951,9 @@ class CharacterViewer(ttk.Frame):
             padx=12,
             pady=8,
         )
-        self.inventory_detail_text.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0, 8))
+        self.inventory_detail_text.grid(
+            row=1, column=0, sticky="nsew", padx=8, pady=(0, 8)
+        )
 
         actions = tk.Frame(right, bg=COLORS["bg_surface"])
         actions.grid(row=2, column=0, sticky="e", pady=(0, 8), padx=8)
@@ -2710,7 +2965,6 @@ class CharacterViewer(ttk.Frame):
             state=tk.DISABLED,
         )
         # Starts hidden; shown only when an equippable item is selected
-
 
         self.remove_one_btn = ttk.Button(
             actions,
@@ -2819,7 +3073,11 @@ class CharacterViewer(ttk.Frame):
                     remaining_sub_qty = max(0, total_sub_qty - removed_sub_qty)
                     if remaining_sub_qty <= 0:
                         continue
-                    sub_display = f"{clean_sub_name} (x{remaining_sub_qty})" if remaining_sub_qty > 1 else clean_sub_name
+                    sub_display = (
+                        f"{clean_sub_name} (x{remaining_sub_qty})"
+                        if remaining_sub_qty > 1
+                        else clean_sub_name
+                    )
                     sub_list.append(sub_display)
                     self._inv_list_entries[sub_display] = {
                         "name": clean_sub_name,
@@ -2955,7 +3213,9 @@ class CharacterViewer(ttk.Frame):
         if entry.get("equippable"):
             btn_text = "Unequip" if entry.get("equipped") else "Equip"
             self._inv_equip_btn.configure(state=tk.NORMAL, text=btn_text)
-            self._inv_equip_btn.pack(side=tk.LEFT, padx=(0, 6), before=self.remove_one_btn)
+            self._inv_equip_btn.pack(
+                side=tk.LEFT, padx=(0, 6), before=self.remove_one_btn
+            )
         else:
             self._inv_equip_btn.pack_forget()
         self._show_inventory_details(entry)

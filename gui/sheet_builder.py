@@ -397,12 +397,16 @@ def build_character_sheet(
 
         profs = c.all_skill_proficiencies
         expertise = c.all_skill_expertise
+        advantages = c.all_skill_advantages
         for i, skill in enumerate(ALL_SKILLS):
             target = col_left if i < 9 else col_right
             is_prof = skill.display_name in profs
             is_expert = skill.display_name in expertise
+            has_adv = skill.display_name in advantages
             mod_str = c.skill_modifier_str(skill.display_name)
             marker = "\u25c9" if is_expert else ("\u25c6" if is_prof else " ")
+            if has_adv:
+                marker += "\u2605"
             color = COLORS["accent"] if is_prof else COLORS["fg_dim"]
 
             row = ttk.Frame(target)
@@ -854,7 +858,9 @@ def build_character_sheet(
                         "You do not have enough wealth for that reduction.",
                     )
                     return
-                c.wealth_adjust_cp = int(getattr(c, "wealth_adjust_cp", 0)) + int(delta_cp)
+                c.wealth_adjust_cp = int(getattr(c, "wealth_adjust_cp", 0)) + int(
+                    delta_cp
+                )
                 _refresh_wealth_display()
                 _emit_change()
 
@@ -1253,9 +1259,9 @@ def build_character_sheet(
             def _make_readonly_textbox(parent_frame, label: str, content: str):
                 if not content.strip():
                     return
-                ttk.Label(
-                    parent_frame, text=label, style="Subheading.TLabel"
-                ).pack(anchor="w", padx=8, pady=(4, 2))
+                ttk.Label(parent_frame, text=label, style="Subheading.TLabel").pack(
+                    anchor="w", padx=8, pady=(4, 2)
+                )
                 WrappingLabel(
                     parent_frame,
                     text=content,
@@ -1267,9 +1273,9 @@ def build_character_sheet(
             _make_readonly_textbox(bio_sec, "Description", description)
 
             if has_portrait:
-                ttk.Label(
-                    bio_sec, text="Portrait", style="Subheading.TLabel"
-                ).pack(anchor="w", padx=8, pady=(4, 2))
+                ttk.Label(bio_sec, text="Portrait", style="Subheading.TLabel").pack(
+                    anchor="w", padx=8, pady=(4, 2)
+                )
                 canvas_w = 260
                 canvas = tk.Canvas(
                     bio_sec,
@@ -1307,7 +1313,8 @@ def build_character_sheet(
                         parent._bio_photo_orig = photo
                     else:
                         canvas.create_text(
-                            canvas_w // 2, 50,
+                            canvas_w // 2,
+                            50,
                             text="Preview unavailable",
                             fill=COLORS["fg_dim"],
                             font=FONTS["body"],
@@ -1315,7 +1322,8 @@ def build_character_sheet(
                 except Exception:
                     canvas.configure(height=100)
                     canvas.create_text(
-                        canvas_w // 2, 50,
+                        canvas_w // 2,
+                        50,
                         text="Image data is invalid",
                         fill=COLORS["fg_dim"],
                         font=FONTS["body"],

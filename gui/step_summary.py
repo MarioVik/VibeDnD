@@ -79,7 +79,9 @@ class SummaryStep(WizardStep):
 
         # Summary line
         summary_frame = tk.Frame(hero.inner, bg=_hero_bg)
-        summary_frame.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(4, SPACING["2xl"]))
+        summary_frame.pack(
+            fill=tk.X, padx=SPACING["card_pad"], pady=(4, SPACING["2xl"])
+        )
 
         _identity_parts = []
         if c.species:
@@ -114,17 +116,24 @@ class SummaryStep(WizardStep):
         def _keep_prof_square(event, f=prof_frame):
             if event.height > 1:
                 f.configure(width=event.height)
+
         prof_frame.bind("<Configure>", _keep_prof_square)
 
         tk.Label(
-            prof_frame, text="PROFICIENCY",
-            font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+            prof_frame,
+            text="PROFICIENCY",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
         ).pack(side=tk.TOP, pady=(6, 0))
         _prof_center = tk.Frame(prof_frame, bg=COLORS["bg_surface"])
         _prof_center.pack(expand=True)
         tk.Label(
-            _prof_center, text=f"+{c.proficiency_bonus}",
-            font=FONTS["stat_large"], fg=COLORS["fg"], bg=COLORS["bg_surface"],
+            _prof_center,
+            text=f"+{c.proficiency_bonus}",
+            font=FONTS["stat_large"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
         ).pack()
         tk.Frame(_prof_center, bg=COLORS["bg_surface"], height=24).pack()
 
@@ -137,11 +146,15 @@ class SummaryStep(WizardStep):
         def _keep_hd_sized(event, f=hd_frame):
             if event.height > 1:
                 f.configure(width=event.height)
+
         hd_frame.bind("<Configure>", _keep_hd_sized)
 
         tk.Label(
-            hd_frame, text="HIT DICE",
-            font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+            hd_frame,
+            text="HIT DICE",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
         ).pack(side=tk.TOP, pady=(6, 0))
 
         _die = (c.character_class or {}).get("hit_die", 8)
@@ -149,15 +162,21 @@ class SummaryStep(WizardStep):
         _hd_center = tk.Frame(hd_frame, bg=_hd_bg)
         _hd_center.pack(expand=True)
         tk.Label(
-            _hd_center, text=f"{c.level}/{c.level}",
-            font=FONTS["stat_large"], fg=COLORS["fg"], bg=_hd_bg,
+            _hd_center,
+            text=f"{c.level}/{c.level}",
+            font=FONTS["stat_large"],
+            fg=COLORS["fg"],
+            bg=_hd_bg,
         ).pack()
         _badge_bg = COLORS["bg_container"]
         _badge = tk.Frame(_hd_center, bg=_badge_bg, padx=8, pady=2)
         _badge.pack(pady=(2, 0))
         tk.Label(
-            _badge, text=f"d{_die}",
-            font=FONTS["body_bold"], fg=COLORS["fg_dim"], bg=_badge_bg,
+            _badge,
+            text=f"d{_die}",
+            font=FONTS["body_bold"],
+            fg=COLORS["fg_dim"],
+            bg=_badge_bg,
         ).pack()
 
         # Saving Throws box
@@ -168,8 +187,11 @@ class SummaryStep(WizardStep):
         saves_cf.grid(row=0, column=2, padx=(3, 0), sticky="nsew")
 
         tk.Label(
-            saves_cf.inner, text="SAVING THROWS",
-            font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+            saves_cf.inner,
+            text="SAVING THROWS",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
         ).pack(anchor="w")
 
         saves_grid = tk.Frame(saves_cf.inner, bg=COLORS["bg_surface"])
@@ -178,9 +200,12 @@ class SummaryStep(WizardStep):
         saves_grid.columnconfigure(1, weight=1)
 
         _save_order = [
-            "Strength", "Intelligence",
-            "Dexterity", "Wisdom",
-            "Constitution", "Charisma",
+            "Strength",
+            "Intelligence",
+            "Dexterity",
+            "Wisdom",
+            "Constitution",
+            "Charisma",
         ]
         for i, ability_name in enumerate(_save_order):
             col = i % 2
@@ -197,18 +222,25 @@ class SummaryStep(WizardStep):
             save_row_f.grid(row=row, column=col, sticky="ew", padx=(0, 12), pady=2)
 
             tk.Label(
-                save_row_f, text=indicator,
-                font=FONTS["body"], fg=color, bg=COLORS["bg_surface"],
+                save_row_f,
+                text=indicator,
+                font=FONTS["body"],
+                fg=color,
+                bg=COLORS["bg_surface"],
             ).pack(side=tk.LEFT, padx=(0, 4))
             tk.Label(
-                save_row_f, text=ability_name[:3].upper(),
+                save_row_f,
+                text=ability_name[:3].upper(),
                 font=FONTS["body"],
                 fg=COLORS["fg"] if is_prof else COLORS["fg_dim"],
                 bg=COLORS["bg_surface"],
             ).pack(side=tk.LEFT)
             tk.Label(
-                save_row_f, text=save_str,
-                font=FONTS["heading_serif_sm"], fg=color, bg=COLORS["bg_surface"],
+                save_row_f,
+                text=save_str,
+                font=FONTS["heading_serif_sm"],
+                fg=color,
+                bg=COLORS["bg_surface"],
             ).pack(side=tk.RIGHT)
 
         # ── Ability Scores ──────────────────────────────────────
@@ -221,21 +253,28 @@ class SummaryStep(WizardStep):
         ab_row.columnconfigure(list(range(6)), weight=1)
 
         for i, ability_name in enumerate(
-            ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
+            [
+                "Strength",
+                "Dexterity",
+                "Constitution",
+                "Intelligence",
+                "Wisdom",
+                "Charisma",
+            ]
         ):
             total = c.ability_scores.total(ability_name)
             mod_str = c.ability_scores.modifier_str(ability_name)
-            card = StatCard(ab_row, label=ability_name, value=mod_str, modifier=str(total))
+            card = StatCard(
+                ab_row, label=ability_name, value=mod_str, modifier=str(total)
+            )
             card.grid(row=0, column=i, padx=3, sticky="nsew")
 
         # ── Skills ──────────────────────────────────────────────
         SectionHeader(
             inner,
             text="Skills",
-            right_text="● = proficiency   ◉ = expertise",
-        ).pack(
-            fill=tk.X, pady=(0, SPACING["sm"])
-        )
+            right_text="● = proficiency   ◉ = expertise   ★ = advantage",
+        ).pack(fill=tk.X, pady=(0, SPACING["sm"]))
 
         skills_card = CardFrame(inner, pad=SPACING["lg"])
         skills_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
@@ -245,6 +284,7 @@ class SummaryStep(WizardStep):
 
         all_profs = c.all_skill_proficiencies
         all_expertise = c.all_skill_expertise
+        all_advantages = c.all_skill_advantages
 
         half = (len(ALL_SKILLS) + 1) // 2
         for idx, skill_enum in enumerate(ALL_SKILLS):
@@ -258,33 +298,51 @@ class SummaryStep(WizardStep):
 
             is_prof = skill_display in all_profs
             is_expert = skill_display in all_expertise
+            has_advantage = skill_display in all_advantages
             indicator = "\u25c9" if is_expert else ("\u25cf" if is_prof else "\u25cb")
             fg_color = COLORS["accent_text"] if is_prof else COLORS["fg_dim"]
 
             tk.Label(
-                skill_row, text=indicator,
-                font=FONTS["body_small"], fg=fg_color, bg=COLORS["bg_surface"],
-            ).pack(side=tk.LEFT, padx=(0, 4))
+                skill_row,
+                text=indicator,
+                font=FONTS["body_small"],
+                fg=fg_color,
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT, padx=(0, 0 if has_advantage else 4))
+
+            if has_advantage:
+                tk.Label(
+                    skill_row,
+                    text="\u2605",
+                    font=FONTS["body_small"],
+                    fg=COLORS["gold"],
+                    bg=COLORS["bg_surface"],
+                ).pack(side=tk.LEFT, padx=(0, 4))
 
             tk.Label(
                 skill_row,
                 text=skill_display.upper(),
                 font=FONTS["label_upper_bold"] if is_prof else FONTS["label_upper"],
-                fg=fg_color, bg=COLORS["bg_surface"],
+                fg=fg_color,
+                bg=COLORS["bg_surface"],
             ).pack(side=tk.LEFT)
 
             tk.Label(
                 skill_row,
                 text=f"({ability.value[:3].upper()})",
                 font=FONTS["label_tiny"],
-                fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
             ).pack(side=tk.LEFT, padx=(4, 0))
 
             mod_val = c.skill_modifier(skill_display)
             mod_text = f"+{mod_val}" if mod_val >= 0 else str(mod_val)
             tk.Label(
-                skill_row, text=mod_text,
-                font=FONTS["heading_serif_sm"], fg=fg_color, bg=COLORS["bg_surface"],
+                skill_row,
+                text=mod_text,
+                font=FONTS["heading_serif_sm"],
+                fg=fg_color,
+                bg=COLORS["bg_surface"],
             ).pack(side=tk.RIGHT)
 
         # ── Senses & Proficiencies (side-by-side) ───────────────
@@ -297,7 +355,9 @@ class SummaryStep(WizardStep):
         senses_col = tk.Frame(senses_prof_row, bg=COLORS["bg"])
         senses_col.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["sm"] // 2))
 
-        SectionHeader(senses_col, text="Senses").pack(fill=tk.X, pady=(0, SPACING["sm"]))
+        SectionHeader(senses_col, text="Senses").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
         senses_card = CardFrame(senses_col, pad=SPACING["lg"])
         senses_card.pack(fill=tk.BOTH, expand=True)
 
@@ -311,11 +371,15 @@ class SummaryStep(WizardStep):
             row = tk.Frame(senses_card.inner, bg=COLORS["bg_surface"])
             row.pack(fill=tk.X, pady=2)
             tk.Label(
-                row, text=label.upper(),
-                font=FONTS["label_upper"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+                row,
+                text=label.upper(),
+                font=FONTS["label_upper"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
             ).pack(side=tk.LEFT)
             tk.Label(
-                row, text=str(value),
+                row,
+                text=str(value),
                 font=FONTS["heading_serif_sm"],
                 fg=COLORS["gold"] if label == "Passive Perception" else COLORS["fg"],
                 bg=COLORS["bg_surface"],
@@ -325,7 +389,9 @@ class SummaryStep(WizardStep):
         prof_col = tk.Frame(senses_prof_row, bg=COLORS["bg"])
         prof_col.grid(row=0, column=1, sticky="nsew", padx=(SPACING["sm"] // 2, 0))
 
-        SectionHeader(prof_col, text="Proficiencies").pack(fill=tk.X, pady=(0, SPACING["sm"]))
+        SectionHeader(prof_col, text="Proficiencies").pack(
+            fill=tk.X, pady=(0, SPACING["sm"])
+        )
         prof_card = CardFrame(prof_col, pad=SPACING["lg"])
         prof_card.pack(fill=tk.BOTH, expand=True)
 
@@ -345,8 +411,11 @@ class SummaryStep(WizardStep):
             lang_header = tk.Frame(prof_card.inner, bg=COLORS["bg_surface"])
             lang_header.pack(fill=tk.X, anchor="w", pady=(8, 2))
             tk.Label(
-                lang_header, text="LANGUAGES",
-                font=FONTS["label_upper"], fg=COLORS["fg_dim"], bg=COLORS["bg_surface"],
+                lang_header,
+                text="LANGUAGES",
+                font=FONTS["label_upper"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
             ).pack(anchor="w")
             lang_frame = tk.Frame(prof_card.inner, bg=COLORS["bg_surface"])
             lang_frame.pack(fill=tk.X, anchor="w")
@@ -375,9 +444,7 @@ class SummaryStep(WizardStep):
 
         # ── Spells ───────────────────────────────────────────────
         if has_spellbook_entries(c, self.data):
-            SectionHeader(inner, text="Spells").pack(
-                fill=tk.X, pady=(0, SPACING["sm"])
-            )
+            SectionHeader(inner, text="Spells").pack(fill=tk.X, pady=(0, SPACING["sm"]))
             spells_card = CardFrame(inner, pad=SPACING["lg"])
             spells_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
 
@@ -386,8 +453,11 @@ class SummaryStep(WizardStep):
                 if not entries:
                     continue
                 tk.Label(
-                    spells_card.inner, text=section_name.upper(),
-                    font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=_bg,
+                    spells_card.inner,
+                    text=section_name.upper(),
+                    font=FONTS["label_upper_bold"],
+                    fg=COLORS["fg_dim"],
+                    bg=_bg,
                 ).pack(anchor="w", pady=(0, 2))
                 spell_row = tk.Frame(spells_card.inner, bg=_bg)
                 spell_row.pack(fill=tk.X, anchor="w", pady=(0, SPACING["sm"]))
@@ -395,10 +465,10 @@ class SummaryStep(WizardStep):
                     Chip(
                         spell_row,
                         text=format_spellbook_entry_label(entry),
-                        style="accent" if int(entry.get("level", 0) or 0) > 0 else "default",
-                    ).pack(
-                        side=tk.LEFT, padx=(0, 4), pady=2
-                    )
+                        style="accent"
+                        if int(entry.get("level", 0) or 0) > 0
+                        else "default",
+                    ).pack(side=tk.LEFT, padx=(0, 4), pady=2)
 
         # ── Equipment ───────────────────────────────────────────
         self._build_equipment_section(inner, c)
@@ -440,26 +510,36 @@ class SummaryStep(WizardStep):
                 tk.Label(
                     equip_card.inner,
                     text=f"FROM {c.class_name.upper()}",
-                    font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=_bg,
+                    font=FONTS["label_upper_bold"],
+                    fg=COLORS["fg_dim"],
+                    bg=_bg,
                 ).pack(anchor="w", pady=(0, 2))
                 tk.Label(
                     equip_card.inner,
                     text=class_items,
-                    font=FONTS["body"], fg=COLORS["fg"], bg=_bg,
-                    wraplength=600, justify=tk.LEFT,
+                    font=FONTS["body"],
+                    fg=COLORS["fg"],
+                    bg=_bg,
+                    wraplength=600,
+                    justify=tk.LEFT,
                 ).pack(anchor="w", pady=(0, SPACING["sm"]))
 
             if bg_items:
                 tk.Label(
                     equip_card.inner,
                     text=f"FROM {c.background_name.upper()}",
-                    font=FONTS["label_upper_bold"], fg=COLORS["fg_dim"], bg=_bg,
+                    font=FONTS["label_upper_bold"],
+                    fg=COLORS["fg_dim"],
+                    bg=_bg,
                 ).pack(anchor="w", pady=(0, 2))
                 tk.Label(
                     equip_card.inner,
                     text=bg_items,
-                    font=FONTS["body"], fg=COLORS["fg"], bg=_bg,
-                    wraplength=600, justify=tk.LEFT,
+                    font=FONTS["body"],
+                    fg=COLORS["fg"],
+                    bg=_bg,
+                    wraplength=600,
+                    justify=tk.LEFT,
                 ).pack(anchor="w")
 
     def _build_feats_section(self, inner, c):
@@ -473,9 +553,7 @@ class SummaryStep(WizardStep):
         if not feats:
             return
 
-        SectionHeader(inner, text="Feats").pack(
-            fill=tk.X, pady=(0, SPACING["sm"])
-        )
+        SectionHeader(inner, text="Feats").pack(fill=tk.X, pady=(0, SPACING["sm"]))
         feats_card = CardFrame(inner, pad=SPACING["lg"])
         feats_card.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
         _bg = COLORS["bg_surface"]
@@ -485,8 +563,11 @@ class SummaryStep(WizardStep):
             row.pack(fill=tk.X, pady=(0, SPACING["sm"]))
 
             tk.Label(
-                row, text=feat["name"],
-                font=FONTS["heading_serif_sm"], fg=COLORS["fg"], bg=_bg,
+                row,
+                text=feat["name"],
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["fg"],
+                bg=_bg,
             ).pack(side=tk.LEFT)
 
             PillBadge(

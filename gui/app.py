@@ -116,13 +116,17 @@ class CharacterCreatorApp:
 
         if character is None:
             from models.character import Character
+
             character = Character()
         self.character = character
         self.current_save_path = save_path
 
         # Rebuild wizard each time (steps bind to a specific Character)
         if self.wizard_frame:
-            self.wizard_frame.destroy()
+            try:
+                self.wizard_frame.destroy()
+            except tk.TclError:
+                pass
         self.wizard_frame = self._build_wizard(character, save_path)
         self.wizard_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -133,7 +137,10 @@ class CharacterCreatorApp:
         self.current_save_path = save_path
 
         if self.viewer_frame:
-            self.viewer_frame.destroy()
+            try:
+                self.viewer_frame.destroy()
+            except tk.TclError:
+                pass
         self.viewer_frame = CharacterViewer(
             self.container, character, save_path, self.data, self
         )
@@ -248,8 +255,11 @@ class CharacterCreatorApp:
         for key, label, icon, StepClass in _WIZARD_STEPS:
             if StepClass is SummaryStep:
                 step = StepClass(
-                    self._step_container, character, self.data,
-                    app=self, save_path=save_path,
+                    self._step_container,
+                    character,
+                    self.data,
+                    app=self,
+                    save_path=save_path,
                 )
             else:
                 step = StepClass(self._step_container, character, self.data)
@@ -262,8 +272,12 @@ class CharacterCreatorApp:
             self._reached_step_keys = {self._step_keys[0]}
 
         # Register callbacks
-        self.wizard_steps[0].on_change_callbacks.append(self._update_optional_step_visibility)
-        self.wizard_steps[1].on_change_callbacks.append(self._update_optional_step_visibility)
+        self.wizard_steps[0].on_change_callbacks.append(
+            self._update_optional_step_visibility
+        )
+        self.wizard_steps[1].on_change_callbacks.append(
+            self._update_optional_step_visibility
+        )
         for step in self.wizard_steps:
             step.on_change_callbacks.append(self._update_nav_buttons)
 
@@ -391,7 +405,10 @@ class CharacterCreatorApp:
 
         visible_key_set = set(visible_keys)
         for step_key in self._step_keys:
-            if step_key not in visible_key_set or step_key not in self._reached_step_keys:
+            if (
+                step_key not in visible_key_set
+                or step_key not in self._reached_step_keys
+            ):
                 self._wizard_sidebar.set_selection(step_key, "")
                 continue
             value = self._get_sidebar_selection_text(step_key)
@@ -516,9 +533,7 @@ class CharacterCreatorApp:
     def _visible_step_keys(self) -> list[str]:
         """Return the list of currently visible wizard step keys in active order."""
         return [
-            key
-            for key in self._ordered_step_keys()
-            if self._is_step_visible_key(key)
+            key for key in self._ordered_step_keys() if self._is_step_visible_key(key)
         ]
 
     def _update_optional_step_visibility(self):
@@ -594,7 +609,10 @@ class CharacterCreatorApp:
         step = self.wizard_steps[curr]
 
         # Handle substep advancement (grid -> detail)
-        if step.has_substeps() and step.get_current_substep() < step.get_substep_count() - 1:
+        if (
+            step.has_substeps()
+            and step.get_current_substep() < step.get_substep_count() - 1
+        ):
             if not step.is_current_substep_valid():
                 self._show_validation_error(step)
                 return
@@ -629,7 +647,9 @@ class CharacterCreatorApp:
                 # When going back to a step with substeps, show detail if it has a selection
                 prev_step = self.wizard_steps[prev_idx]
                 if prev_step.has_substeps() and prev_step.is_valid():
-                    prev_step.go_to_substep(self._last_available_substep_index(prev_step))
+                    prev_step.go_to_substep(
+                        self._last_available_substep_index(prev_step)
+                    )
                 self._show_step(prev_idx)
 
     def _show_validation_error(self, step):
@@ -657,7 +677,11 @@ class CharacterCreatorApp:
                     f"Choose {expertise_needed} Expertise {expertise_word} as well. "
                     f"({expertise_chosen}/{expertise_needed} selected)"
                 )
-            message = "\n\n".join(parts) if parts else "Complete your skill selections before moving on."
+            message = (
+                "\n\n".join(parts)
+                if parts
+                else "Complete your skill selections before moving on."
+            )
             AlertDialog(
                 self.root,
                 "Skill Selection Required",
@@ -695,9 +719,17 @@ class CharacterCreatorApp:
             current_substep = step.get_current_substep()
             is_split = step.get_substep_count() > 1
             parts = []
-            if (not is_split or current_substep == 0) and cantrip_max > 0 and cantrip_count < cantrip_max:
+            if (
+                (not is_split or current_substep == 0)
+                and cantrip_max > 0
+                and cantrip_count < cantrip_max
+            ):
                 parts.append(f"{cantrip_count}/{cantrip_max} cantrips")
-            if (not is_split or current_substep == 0) and spell_max > 0 and spell_count < spell_max:
+            if (
+                (not is_split or current_substep == 0)
+                and spell_max > 0
+                and spell_count < spell_max
+            ):
                 parts.append(f"{spell_count}/{spell_max} spells")
             if blockers and (not parts or current_substep > 0):
                 body = "\n\n".join(blocker["message"] for blocker in blockers)
@@ -725,7 +757,11 @@ class CharacterCreatorApp:
                 self.data,
                 step_key="equipment",
             )
-            body = blockers[0]["message"] if blockers else "Choose your starting equipment before moving on."
+            body = (
+                blockers[0]["message"]
+                if blockers
+                else "Choose your starting equipment before moving on."
+            )
             AlertDialog(self.root, "Equipment Selection Required", body)
         elif isinstance(step, BiographyStep):
             AlertDialog(
@@ -755,9 +791,8 @@ class CharacterCreatorApp:
         is_last_visible_step = bool(visible_indices) and curr == visible_indices[-1]
 
         # Back button: hide it when there's nowhere to go back to
-        can_go_back = (
-            self._previous_visible_step_index(curr) is not None
-            or (step.has_substeps() and step.get_current_substep() > 0)
+        can_go_back = self._previous_visible_step_index(curr) is not None or (
+            step.has_substeps() and step.get_current_substep() > 0
         )
         if can_go_back:
             self._back_btn.configure(state=tk.NORMAL)
@@ -787,9 +822,7 @@ class CharacterCreatorApp:
             self._next_btn.configure(
                 text=confirm_label,
                 command=self._wizard_next,
-                state=(
-                    tk.NORMAL if step.is_primary_action_enabled() else tk.DISABLED
-                ),
+                state=(tk.NORMAL if step.is_primary_action_enabled() else tk.DISABLED),
             )
 
         # Update step counter and progress bar

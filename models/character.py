@@ -11,8 +11,10 @@ from models.level1_class_rules import (
     get_level1_skill_bonus,
 )
 from models.skill_utils import (
+    get_all_skill_advantage_names,
     get_all_skill_expertise_names,
     get_all_skill_proficiency_names,
+    get_skill_advantage_source_labels,
     get_skill_expertise_source_labels,
     get_skill_proficiency_source_labels,
 )
@@ -241,6 +243,11 @@ class Character:
         """All skills the character has expertise in."""
         return get_all_skill_expertise_names(self)
 
+    @property
+    def all_skill_advantages(self) -> set[str]:
+        """All skills the character has advantage on from permanent sources."""
+        return get_all_skill_advantage_names(self)
+
     def skill_modifier(self, skill_display_name: str) -> int:
         """Calculate modifier for a skill."""
         skill = SKILL_BY_NAME.get(skill_display_name.lower())
@@ -333,14 +340,26 @@ class Character:
         def _fmt(value: int) -> str:
             return f"+{value}" if value >= 0 else str(value)
 
-        lines = [str(breakdown.get("skill_name", skill_display_name) or skill_display_name)]
+        lines = [
+            str(breakdown.get("skill_name", skill_display_name) or skill_display_name)
+        ]
         for component in components:
             line = f"{component['label']}: {_fmt(int(component['value']))}"
-            sources = [str(source).strip() for source in component.get("sources", []) if str(source).strip()]
+            sources = [
+                str(source).strip()
+                for source in component.get("sources", [])
+                if str(source).strip()
+            ]
             if sources:
                 line += f" ({', '.join(sources)})"
             lines.append(line)
         lines.append(f"Total: {_fmt(int(breakdown.get('total', 0) or 0))}")
+
+        # Append advantage info if applicable
+        adv_sources = get_skill_advantage_source_labels(self, skill_display_name)
+        if adv_sources:
+            lines.append(f"\u2605 Advantage ({', '.join(adv_sources)})")
+
         return "\n".join(lines)
 
     def saving_throw_modifier(self, ability_name: str) -> int:

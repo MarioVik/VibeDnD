@@ -252,7 +252,9 @@ def get_selectable_expertise_grants(character) -> list[dict]:
         slots = []
         current_values = list(grant["current_selections"])
         for slot_index in range(grant["count"]):
-            current = current_values[slot_index] if slot_index < len(current_values) else ""
+            current = (
+                current_values[slot_index] if slot_index < len(current_values) else ""
+            )
             blocked = set(auto_expertise)
             for other_id, other_slot, other_skill in all_selected:
                 if other_id == grant["id"] and other_slot == slot_index:
@@ -333,6 +335,88 @@ def get_skill_expertise_source_labels(character, skill_name: str) -> list[str]:
     for feat_slot, feat_name in _iter_character_feats(character):
         if get_feat_expertise_skill(character, feat_name) == skill_name:
             _append_unique_label(labels, seen, f"{feat_slot} - {feat_name}")
+
+    return labels
+
+
+# ---------------------------------------------------------------------------
+# Skill advantage detection (permanent / unconditional sources only)
+# ---------------------------------------------------------------------------
+
+# Item name (lowercase) -> set of skill display names that gain advantage
+_ITEM_SKILL_ADVANTAGES: dict[str, set[str]] = {
+    "boots of elvenkind": {"Stealth"},
+    "cloak of elvenkind": {"Stealth"},
+    "cloak of the bat": {"Stealth"},
+    "sentinel shield": {"Perception"},
+    "rod of alertness": {"Perception"},
+    "eyes of the eagle": {"Perception"},
+    "robe of eyes": {"Perception"},
+    "winter camouflage": {"Stealth"},
+}
+
+# Species name (lowercase) -> set of skill display names that gain advantage
+_SPECIES_SKILL_ADVANTAGES: dict[str, set[str]] = {
+    "changeling": {"Deception", "Intimidation", "Performance", "Persuasion"},
+}
+
+
+def get_all_skill_advantage_names(character) -> set[str]:
+    """Return all skills the character has advantage on from permanent sources."""
+    advantages: set[str] = set()
+
+    # Species-granted advantages
+    species = getattr(character, "species", None)
+    if species:
+        species_key = (species.get("name") or "").strip().lower()
+        if species_key in _SPECIES_SKILL_ADVANTAGES:
+            advantages.update(_SPECIES_SKILL_ADVANTAGES[species_key])
+
+    # Custom inventory items (non-weapon / non-armor items are always "active")
+    for item in getattr(character, "custom_inventory", []) or []:
+        item_key = (item.get("name") or "").strip().lower()
+        if item_key in _ITEM_SKILL_ADVANTAGES:
+            advantages.update(_ITEM_SKILL_ADVANTAGES[item_key])
+
+    # Equipped weapons
+    for key in getattr(character, "equipped_weapons", []) or []:
+        if key in _ITEM_SKILL_ADVANTAGES:
+            advantages.update(_ITEM_SKILL_ADVANTAGES[key])
+
+    # Equipped armor / shield
+    for key in getattr(character, "equipped_armor", []) or []:
+        if key in _ITEM_SKILL_ADVANTAGES:
+            advantages.update(_ITEM_SKILL_ADVANTAGES[key])
+
+    return advantages
+
+
+def get_skill_advantage_source_labels(character, skill_name: str) -> list[str]:
+    """Return human-readable labels for why the character has advantage on a skill."""
+    labels: list[str] = []
+    seen: set[str] = set()
+
+    species = getattr(character, "species", None)
+    if species:
+        species_key = (species.get("name") or "").strip().lower()
+        if species_key in _SPECIES_SKILL_ADVANTAGES:
+            if skill_name in _SPECIES_SKILL_ADVANTAGES[species_key]:
+                _append_unique_label(
+                    labels, seen, f"Species - {species.get('name', 'Unknown')}"
+                )
+
+    for item in getattr(character, "custom_inventory", []) or []:
+        item_name = (item.get("name") or "").strip()
+        item_key = item_name.lower()
+        if item_key in _ITEM_SKILL_ADVANTAGES:
+            if skill_name in _ITEM_SKILL_ADVANTAGES[item_key]:
+                _append_unique_label(labels, seen, item_name)
+
+    for key in list(getattr(character, "equipped_weapons", []) or []) + list(
+        getattr(character, "equipped_armor", []) or []
+    ):
+        if key in _ITEM_SKILL_ADVANTAGES and skill_name in _ITEM_SKILL_ADVANTAGES[key]:
+            _append_unique_label(labels, seen, key.title())
 
     return labels
 
