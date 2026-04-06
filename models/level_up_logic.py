@@ -402,13 +402,10 @@ def get_spell_summary(ctx: LevelUpContext, game_data) -> list[str]:
         names = sorted(new_slot_levels, key=lambda x: SLOT_ORDER.get(x, 99))
         parts.append(f"New spell slot level(s): {', '.join(names)}")
     if curr_slots:
-        s = ", ".join(
-            f"{k}: {v}"
-            for k, v in sorted(
-                curr_slots.items(), key=lambda x: SLOT_ORDER.get(x[0], 99)
-            )
-        )
-        parts.append(f"Total spell slots: {s}")
+        slot_parts = []
+        for k, v in sorted(curr_slots.items(), key=lambda x: SLOT_ORDER.get(x[0], 99)):
+            slot_parts.append(f"{v} x {k}-level")
+        parts.append(f"Total spell slots: {', '.join(slot_parts)}")
     return parts
 
 
