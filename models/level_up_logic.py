@@ -400,6 +400,7 @@ def get_spell_summary(ctx: LevelUpContext, game_data) -> list[str]:
         parts.append(f"Prepare {new_prepared} additional spell(s)")
 
     # Per-level additional spell slots
+    has_slot_change = False
     for k, v in sorted(curr_slots.items(), key=lambda x: SLOT_ORDER.get(x[0], 99)):
         prev_v = int(prev_slots.get(k, 0) or 0)
         diff = int(v) - prev_v
@@ -407,12 +408,16 @@ def get_spell_summary(ctx: LevelUpContext, game_data) -> list[str]:
             parts.append(
                 f"+{diff} additional {k}-level spell slot{'s' if diff != 1 else ''}"
             )
+            has_slot_change = True
         elif k in new_slot_levels:
             # New level unlocked but no increase shown yet
             parts.append(
                 f"+{v} additional {k}-level spell slot{'s' if int(v) != 1 else ''}"
             )
+            has_slot_change = True
 
+    if not has_slot_change and curr_slots:
+        parts.append("0 additional spell slots")
     return parts
 
 

@@ -99,7 +99,9 @@ class LuChoicesStep(LevelUpStep):
             self._choice_options_by_name[opt["name"]] = opt
 
         active_pool = get_active_pool(config, self.ctx.new_class_level)
-        pool_heading = f"{active_pool} {choice_plural}" if active_pool else choice_plural
+        pool_heading = (
+            f"{active_pool} {choice_plural}" if active_pool else choice_plural
+        )
         pool_subtext = f"{active_pool} {choice_label}" if active_pool else choice_label
 
         self._title_label.configure(text=f"Select {pool_heading}")
@@ -141,7 +143,9 @@ class LuChoicesStep(LevelUpStep):
         self._section_header(inner, f"Available {choice_plural}")
         for opt in sorted(available, key=lambda o: o["name"]):
             var = tk.BooleanVar(value=opt["name"] in self.ctx.selected_new_choices)
-            var.trace_add("write", lambda *a, o=opt: self._on_choice_toggle(o, new_count))
+            var.trace_add(
+                "write", lambda *a, o=opt: self._on_choice_toggle(o, new_count)
+            )
             self._choice_vars[opt["name"]] = var
             cb = ttk.Checkbutton(inner, text=opt["name"], variable=var)
             cb.pack(anchor="w", pady=1, padx=(SPACING["sm"], 0))
@@ -154,7 +158,8 @@ class LuChoicesStep(LevelUpStep):
 
         if known and config.get("can_replace"):
             SectionHeader(left, text="Replace one (optional)").pack(
-                fill=tk.X, pady=(SPACING["sm"], SPACING["xs"]),
+                fill=tk.X,
+                pady=(SPACING["sm"], SPACING["xs"]),
             )
 
             replace_cols = tk.Frame(left, bg=COLORS["bg"])
@@ -166,14 +171,18 @@ class LuChoicesStep(LevelUpStep):
             remove_card = CardFrame(replace_cols, pad=SPACING["sm"])
             remove_card.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["xs"]))
             tk.Label(
-                remove_card.inner, text="Remove",
-                font=FONTS["body_bold"], fg=COLORS["fg"],
+                remove_card.inner,
+                text="Remove",
+                font=FONTS["body_bold"],
+                fg=COLORS["fg"],
                 bg=COLORS["bg_surface"],
             ).pack(anchor="w")
 
             ttk.Radiobutton(
-                remove_card.inner, text="Don\u2019t replace",
-                variable=self._replace_out_var, value="",
+                remove_card.inner,
+                text="Don\u2019t replace",
+                variable=self._replace_out_var,
+                value="",
                 style="Card.TRadiobutton",
                 command=self._on_replace_change,
             ).pack(anchor="w", pady=1)
@@ -193,8 +202,10 @@ class LuChoicesStep(LevelUpStep):
                 else:
                     display = name
                 ttk.Radiobutton(
-                    remove_card.inner, text=display,
-                    variable=self._replace_out_var, value=name,
+                    remove_card.inner,
+                    text=display,
+                    variable=self._replace_out_var,
+                    value=name,
                     style="Card.TRadiobutton",
                     command=self._on_replace_change,
                 ).pack(anchor="w", pady=1, padx=(SPACING["sm"], 0))
@@ -203,22 +214,31 @@ class LuChoicesStep(LevelUpStep):
             learn_card = CardFrame(replace_cols, pad=SPACING["sm"])
             learn_card.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0))
             tk.Label(
-                learn_card.inner, text="Replace with",
-                font=FONTS["body_bold"], fg=COLORS["fg"],
+                learn_card.inner,
+                text="Replace with",
+                font=FONTS["body_bold"],
+                fg=COLORS["fg"],
                 bg=COLORS["bg_surface"],
             ).pack(anchor="w")
 
             ttk.Radiobutton(
-                learn_card.inner, text="Nothing",
-                variable=self._replace_in_var, value="",
+                learn_card.inner,
+                text="Nothing",
+                variable=self._replace_in_var,
+                value="",
                 style="Card.TRadiobutton",
                 command=self._on_replace_change,
             ).pack(anchor="w", pady=1)
 
-            for opt in sorted(get_available_options(config, self.ctx, self.character), key=lambda o: o["name"]):
+            for opt in sorted(
+                get_available_options(config, self.ctx, self.character),
+                key=lambda o: o["name"],
+            ):
                 ttk.Radiobutton(
-                    learn_card.inner, text=opt["name"],
-                    variable=self._replace_in_var, value=opt["name"],
+                    learn_card.inner,
+                    text=opt["name"],
+                    variable=self._replace_in_var,
+                    value=opt["name"],
                     style="Card.TRadiobutton",
                     command=self._on_replace_change,
                 ).pack(anchor="w", pady=1, padx=(SPACING["sm"], 0))
@@ -230,11 +250,15 @@ class LuChoicesStep(LevelUpStep):
         right.rowconfigure(1, weight=1)
 
         SectionHeader(right, text="Details").pack(
-            fill=tk.X, pady=(0, SPACING["sm"]),
+            fill=tk.X,
+            pady=(0, SPACING["sm"]),
         )
 
         detail_card = CardFrame(right, pad=SPACING["lg"])
         detail_card.pack(fill=tk.BOTH, expand=True)
+        detail_card.inner.rowconfigure(0, weight=1)
+        detail_card.inner.rowconfigure(1, weight=1)
+        detail_card.inner.columnconfigure(0, weight=1)
 
         self._detail_text = tk.Text(
             detail_card.inner,
@@ -246,35 +270,112 @@ class LuChoicesStep(LevelUpStep):
             highlightthickness=0,
             relief=tk.FLAT,
             state=tk.DISABLED,
+            height=10,
         )
-        self._detail_text.pack(fill=tk.BOTH, expand=True)
+        self._detail_text.grid(row=0, column=0, sticky="nsew")
 
-        # Sub-choice area
-        self._sub_choice_frame = tk.Frame(detail_card.inner, bg=COLORS["bg_surface"])
-        self._sub_choice_frame.pack(fill=tk.X, pady=(SPACING["xs"], 0))
-        self._sub_choice_var = tk.StringVar(value="")
-        self._sub_choice_var.trace_add("write", lambda *_: self._on_sub_choice_changed())
-        self._sub_choice_label = tk.Label(
-            self._sub_choice_frame, text="Select item:",
-            font=FONTS["body"], fg=COLORS["fg"],
+        # ── Sub-choice split view ──────────────────────────────
+        # Appears in the bottom half of the detail card when the
+        # hovered/selected choice requires a secondary selection
+        # (e.g. pick a weapon for "Returning Weapon").
+        self._sub_split = tk.Frame(detail_card.inner, bg=COLORS["bg_surface"])
+        # Not gridded yet — shown/hidden dynamically
+        self._sub_split.columnconfigure(0, weight=1)
+        self._sub_split.columnconfigure(1, weight=2)
+        self._sub_split.rowconfigure(0, weight=0)  # label row
+        self._sub_split.rowconfigure(1, weight=1)  # list + desc row
+        self._sub_split.rowconfigure(2, weight=0)  # optional damage type row
+
+        self._sub_choice_for: str | None = None
+        self._sub_choice_options: list[str] = []
+        self._sub_choice_selected: str = ""
+        self._sub_choice_type: str = ""
+
+        # Heading label
+        self._sub_heading = tk.Label(
+            self._sub_split,
+            text="Select item:",
+            font=FONTS["body_bold"],
+            fg=COLORS["fg"],
             bg=COLORS["bg_surface"],
+            anchor="w",
         )
-        self._sub_choice_combo = ttk.Combobox(
-            self._sub_choice_frame, textvariable=self._sub_choice_var,
-            state="readonly", width=30,
+        self._sub_heading.grid(
+            row=0,
+            column=0,
+            columnspan=2,
+            sticky="ew",
+            pady=(SPACING["xs"], SPACING["xs"]),
         )
+
+        # Left: scrollable item list
+        sub_list_frame = tk.Frame(self._sub_split, bg=COLORS["bg_high"])
+        sub_list_frame.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=(0, SPACING["xs"]),
+        )
+        self._sub_listbox = tk.Listbox(
+            sub_list_frame,
+            bg=COLORS["bg_high"],
+            fg=COLORS["fg"],
+            font=FONTS["body_small"],
+            selectbackground=COLORS["accent"],
+            selectforeground=COLORS["accent_text"],
+            highlightthickness=0,
+            borderwidth=0,
+            relief=tk.FLAT,
+            activestyle="none",
+            exportselection=False,
+        )
+        sub_scrollbar = ttk.Scrollbar(
+            sub_list_frame,
+            orient=tk.VERTICAL,
+            command=self._sub_listbox.yview,
+        )
+        self._sub_listbox.configure(yscrollcommand=sub_scrollbar.set)
+        sub_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self._sub_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self._sub_listbox.bind("<<ListboxSelect>>", self._on_sub_list_select)
+        register_mousewheel_target(sub_list_frame, self._sub_listbox)
+        register_mousewheel_target(self._sub_listbox, self._sub_listbox)
+
+        # Right: item description
+        self._sub_desc_text = tk.Text(
+            self._sub_split,
+            wrap=tk.WORD,
+            bg=COLORS["bg_high"],
+            fg=COLORS["fg"],
+            font=FONTS["body_small"],
+            borderwidth=0,
+            highlightthickness=0,
+            relief=tk.FLAT,
+            state=tk.DISABLED,
+        )
+        self._sub_desc_text.grid(row=1, column=1, sticky="nsew")
+
+        # Damage type row (for armor_and_damage_type)
+        self._dmg_row = tk.Frame(self._sub_split, bg=COLORS["bg_surface"])
         self._dmg_type_var = tk.StringVar(value="")
         self._dmg_type_var.trace_add("write", lambda *_: self._on_sub_choice_changed())
-        self._dmg_type_label = tk.Label(
-            self._sub_choice_frame, text="Damage type:",
-            font=FONTS["body"], fg=COLORS["fg"],
+        tk.Label(
+            self._dmg_row,
+            text="Damage type:",
+            font=FONTS["body"],
+            fg=COLORS["fg"],
             bg=COLORS["bg_surface"],
-        )
+        ).pack(side=tk.LEFT, padx=(0, SPACING["xs"]))
         self._dmg_type_combo = ttk.Combobox(
-            self._sub_choice_frame, textvariable=self._dmg_type_var,
-            state="readonly", values=DAMAGE_TYPES, width=20,
+            self._dmg_row,
+            textvariable=self._dmg_type_var,
+            state="readonly",
+            values=DAMAGE_TYPES,
+            width=18,
         )
-        self._sub_choice_for: str | None = None
+        self._dmg_type_combo.pack(side=tk.LEFT)
+        # dmg_row gridded only when needed
+
         self._hide_sub_choice_ui()
 
         # Update count
@@ -291,15 +392,24 @@ class LuChoicesStep(LevelUpStep):
 
     def _make_scrollable_list(self, parent_frame):
         canvas = tk.Canvas(
-            parent_frame, bg=COLORS["bg"], highlightthickness=0, borderwidth=0,
+            parent_frame,
+            bg=COLORS["bg"],
+            highlightthickness=0,
+            borderwidth=0,
         )
-        scrollbar = ttk.Scrollbar(parent_frame, orient=tk.VERTICAL, command=canvas.yview)
+        scrollbar = ttk.Scrollbar(
+            parent_frame, orient=tk.VERTICAL, command=canvas.yview
+        )
         inner = tk.Frame(canvas, bg=COLORS["bg"])
 
-        inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        inner.bind(
+            "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
         cw = canvas.create_window((0, 0), window=inner, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.bind("<Configure>", lambda e, _cw=cw: canvas.itemconfig(_cw, width=e.width))
+        canvas.bind(
+            "<Configure>", lambda e, _cw=cw: canvas.itemconfig(_cw, width=e.width)
+        )
 
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -326,9 +436,13 @@ class LuChoicesStep(LevelUpStep):
             self._update_count(max_count)
             at_max = len(selected) >= max_count
             for name, cb in self._choice_checkbuttons.items():
-                cb.configure(state=tk.DISABLED if at_max and name not in selected else tk.NORMAL)
+                cb.configure(
+                    state=tk.DISABLED if at_max and name not in selected else tk.NORMAL
+                )
             if opt["name"] in self.ctx.selected_new_choices and opt.get("sub_choice"):
                 self._show_sub_choice_ui(opt["name"], opt["sub_choice"])
+            else:
+                self._hide_sub_choice_ui()
         finally:
             self._updating_choices = False
 
@@ -341,6 +455,7 @@ class LuChoicesStep(LevelUpStep):
         self.ctx.replace_in = self._replace_in_var.get()
 
     def _show_choice_detail(self, opt: dict):
+        self._hide_sub_choice_ui()
         self._detail_text.configure(state=tk.NORMAL)
         self._detail_text.delete("1.0", tk.END)
         lines = [opt.get("name", ""), ""]
@@ -376,7 +491,7 @@ class LuChoicesStep(LevelUpStep):
             lines.append(f"Attunement: {attune_text}")
             desc_prefix = attune_match.group(0).strip().lower()
             if desc.strip().lower().startswith(desc_prefix):
-                desc = desc[attune_match.end():].strip()
+                desc = desc[attune_match.end() :].strip()
 
         if prereq or prereq_feat or min_lvl or attune_match:
             lines.append("")
@@ -390,24 +505,25 @@ class LuChoicesStep(LevelUpStep):
         is_replace_in = self.ctx.replace_in == name
         if sub_choice and (is_selected or is_replace_in):
             self._show_sub_choice_ui(name, sub_choice)
-        else:
-            self._hide_sub_choice_ui()
 
     def _hide_sub_choice_ui(self):
-        self._sub_choice_label.pack_forget()
-        self._sub_choice_combo.pack_forget()
-        self._dmg_type_label.pack_forget()
-        self._dmg_type_combo.pack_forget()
+        self._sub_split.grid_forget()
+        self._dmg_row.grid_forget()
         self._sub_choice_for = None
+        self._sub_choice_options = []
+        self._sub_choice_selected = ""
+        self._sub_choice_type = ""
 
     def _show_sub_choice_ui(self, choice_name: str, sub_choice: dict):
         self._hide_sub_choice_ui()
         self._sub_choice_for = choice_name
         sc_type = sub_choice.get("type", "")
+        self._sub_choice_type = sc_type
 
         options = get_sub_choice_options(sub_choice, self.data)
         if not options:
             return
+        self._sub_choice_options = options
 
         if sc_type == "weapon":
             label_text = "Select weapon:"
@@ -417,25 +533,76 @@ class LuChoicesStep(LevelUpStep):
             label_text = "Select magic item:"
         else:
             label_text = "Select item:"
+        self._sub_heading.configure(text=label_text)
 
-        self._sub_choice_label.configure(text=label_text)
-        self._sub_choice_combo.configure(values=options)
+        # Populate listbox
+        self._sub_listbox.delete(0, tk.END)
+        for name in options:
+            self._sub_listbox.insert(tk.END, name)
 
+        # Restore previous selection
         prev = self.ctx.choice_sub_selections.get(choice_name, "")
         if sc_type == "armor_and_damage_type" and "|" in prev:
             armor_part, dmg_part = prev.split("|", 1)
-            self._sub_choice_var.set(armor_part)
+            self._sub_choice_selected = armor_part
             self._dmg_type_var.set(dmg_part)
         else:
-            self._sub_choice_var.set(prev if prev in options else "")
+            self._sub_choice_selected = prev if prev in options else ""
             self._dmg_type_var.set("")
 
-        self._sub_choice_label.pack(anchor="w", pady=(SPACING["xs"], 0))
-        self._sub_choice_combo.pack(anchor="w", pady=(SPACING["xs"], 0), fill=tk.X)
+        if self._sub_choice_selected in options:
+            idx = options.index(self._sub_choice_selected)
+            self._sub_listbox.selection_set(idx)
+            self._sub_listbox.see(idx)
+            self._show_sub_item_detail(self._sub_choice_selected)
+        else:
+            self._sub_desc_text.configure(state=tk.NORMAL)
+            self._sub_desc_text.delete("1.0", tk.END)
+            self._sub_desc_text.insert("1.0", "Select an item from the list.")
+            self._sub_desc_text.configure(state=tk.DISABLED)
 
+        # Show the split view
+        self._sub_split.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            pady=(SPACING["sm"], 0),
+        )
+
+        # Show damage type row if needed
         if sc_type == "armor_and_damage_type":
-            self._dmg_type_label.pack(anchor="w", pady=(SPACING["xs"], 0))
-            self._dmg_type_combo.pack(anchor="w", pady=(SPACING["xs"], 0))
+            self._dmg_row.grid(
+                row=2,
+                column=0,
+                columnspan=2,
+                sticky="ew",
+                pady=(SPACING["xs"], 0),
+            )
+
+    def _on_sub_list_select(self, event):
+        """Handle click in the sub-choice listbox."""
+        sel = self._sub_listbox.curselection()
+        if not sel:
+            return
+        name = self._sub_choice_options[sel[0]]
+        self._sub_choice_selected = name
+        self._show_sub_item_detail(name)
+        self._on_sub_choice_changed()
+
+    def _show_sub_item_detail(self, item_name: str):
+        """Show the description of the selected sub-choice item."""
+        desc = ""
+        if self.data:
+            item = self.data.items_by_name.get(item_name)
+            if item:
+                desc = item.get("full_description") or item.get("description") or ""
+        if not desc:
+            desc = item_name
+
+        self._sub_desc_text.configure(state=tk.NORMAL)
+        self._sub_desc_text.delete("1.0", tk.END)
+        self._sub_desc_text.insert("1.0", f"{item_name}\n\n{desc}")
+        self._sub_desc_text.configure(state=tk.DISABLED)
 
     def _on_sub_choice_changed(self):
         name = self._sub_choice_for
@@ -444,9 +611,8 @@ class LuChoicesStep(LevelUpStep):
         opt = self._choice_options_by_name.get(name)
         if not opt or "sub_choice" not in opt:
             return
-        sc_type = opt["sub_choice"].get("type", "")
-        val = self._sub_choice_var.get()
-        if sc_type == "armor_and_damage_type":
+        val = self._sub_choice_selected
+        if self._sub_choice_type == "armor_and_damage_type":
             dmg = self._dmg_type_var.get()
             if val and dmg:
                 self.ctx.choice_sub_selections[name] = f"{val}|{dmg}"
