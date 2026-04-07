@@ -322,8 +322,13 @@ class CharacterCreatorApp:
             right_frame.update_idletasks()
             max_next_width = max(max_next_width, self._next_btn.winfo_reqwidth())
         self._next_btn.configure(text=original_next_text)
+
+        # Account for the preview button width so right_frame is wide enough
+        right_frame.update_idletasks()
+        preview_width = self._preview_sub_btn.winfo_reqwidth() + SPACING["sm"]
+        total_right_width = max_next_width + preview_width
         right_frame.configure(
-            width=max_next_width,
+            width=total_right_width,
             height=self._next_btn.winfo_reqheight(),
         )
         right_frame.pack_propagate(False)
