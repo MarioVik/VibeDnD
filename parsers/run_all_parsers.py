@@ -15,17 +15,38 @@ from parsers.feat_parser import parse_feats
 from parsers.progression_parser import parse_progressions
 from parsers.subclass_parser import parse_subclasses
 
-DATA_FILE = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dnd2024_data.json"
-)
-OUTPUT_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data"
-)
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_FILE = os.path.join(ROOT_DIR, "dnd2024_data.json")
+LEGACY_DATA_FILE = os.path.join(ROOT_DIR, "dnd2014_data.json")
+OUTPUT_DIR = os.path.join(ROOT_DIR, "data")
 
 
 def load_raw_data():
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def load_legacy_species_raw() -> list[dict]:
+    """Optional 2014 (legacy) species scrape; same shape as raw['species'] entries."""
+    if not os.path.exists(LEGACY_DATA_FILE):
+        return []
+    with open(LEGACY_DATA_FILE, "r", encoding="utf-8") as f:
+        legacy = json.load(f)
+    return legacy.get("species", [])
+
+
+def merge_species_lists(primary: list[dict], legacy: list[dict]) -> list[dict]:
+    """Merge by name; entries from *primary* win on collision (2024 over legacy)."""
+    by_name: dict[str, dict] = {}
+    for s in legacy:
+        name = s.get("name", "")
+        if name:
+            by_name[name] = s
+    for s in primary:
+        name = s.get("name", "")
+        if name:
+            by_name[name] = s
+    return sorted(by_name.values(), key=lambda x: x.get("name", ""))
 
 
 def save_json(data, filename):
@@ -94,8 +115,11 @@ def main():
     print(f"  Parsed {len(classes)} classes")
 
     print("\n--- Parsing Species ---")
-    species = parse_species(raw.get("species", []))
-    print(f"  Parsed {len(species)} species")
+    species_2024 = parse_species(raw.get("species", []))
+    legacy_entries = load_legacy_species_raw()
+    species_legacy = parse_species(legacy_entries) if legacy_entries else []
+    species = merge_species_lists(species_2024, species_legacy)
+    print(f"  Parsed {len(species)} species ({len(species_2024)} from 2024, {len(species_legacy)} legacy)")
 
     print("\n--- Parsing Backgrounds ---")
     backgrounds = parse_backgrounds(raw.get("backgrounds", []))

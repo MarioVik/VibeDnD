@@ -568,6 +568,38 @@ def _build_species_sources(character, game_data) -> list[dict]:
         ]
         sources.append(source)
 
+    if species_name == "Deep Gnome" and character.level >= 3:
+        source = _base_source(
+            "species:deep_gnome:svirfneblin_magic",
+            "Gift of the Svirfneblin",
+        )
+        source["ability_choice_required"] = True
+        source["ability_options"] = list(_SPELLCASTING_ABILITIES)
+        granted = [
+            _spell_entry(
+                source["source_id"],
+                source["source_label"],
+                "Disguise Self",
+                "spell",
+                free_cast="1 / Long Rest",
+            )
+        ]
+        if character.level >= 5:
+            granted.append(
+                _spell_entry(
+                    source["source_id"],
+                    source["source_label"],
+                    "Nondetection",
+                    "spell",
+                    free_cast="1 / Long Rest",
+                    detail_note=(
+                        "When you cast Nondetection with this trait, no material component is required."
+                    ),
+                )
+            )
+        source["granted_entries"] = granted
+        sources.append(source)
+
     return sources
 
 
