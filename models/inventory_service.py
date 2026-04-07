@@ -85,10 +85,17 @@ def normalize_item_key(name: str) -> str:
     return re.sub(r"\s+", " ", str(name or "").strip().lower())
 
 
-def add_item(character, item: dict, qty: int, mode: str) -> tuple[bool, str]:
+def add_item(
+    character,
+    item: dict,
+    qty: int,
+    mode: str,
+    variant: str | None = None,
+) -> tuple[bool, str]:
     """Add item to custom inventory.
 
     mode: "free" or "buy"
+    variant: optional base weapon/armor name for generic magic items
     Returns (ok, message).
     """
     qty = int(max(1, qty))
@@ -106,18 +113,42 @@ def add_item(character, item: dict, qty: int, mode: str) -> tuple[bool, str]:
 
     inv = list(getattr(character, "custom_inventory", []))
     item_id = item.get("id")
-    existing = next((e for e in inv if e.get("item_id") == item_id), None)
+
+    # When a variant is chosen, use a composite id so different variants
+    # of the same magic item are tracked separately.
+    if variant:
+        from models.magic_item_variants import get_variant_info
+
+        variant_slug = variant.lower().replace(" ", "-")
+        composite_id = f"{item_id}:{variant_slug}"
+        display_name = f"{item.get('name', 'Unknown Item')} ({variant})"
+        vinfo = get_variant_info(item.get("name", ""))
+        if vinfo and vinfo[0] == "weapon":
+            cat = "Weapons"
+        elif vinfo and vinfo[0] == "armor":
+            cat = "Armor"
+        else:
+            cat = item.get("category", "Adventuring Gear")
+    else:
+        composite_id = item_id
+        display_name = item.get("name", "Unknown Item")
+        cat = item.get("category", "Adventuring Gear")
+
+    existing = next(
+        (e for e in inv if e.get("item_id") == composite_id), None
+    )
     if existing:
         existing["qty"] = int(existing.get("qty", 0)) + qty
     else:
-        inv.append(
-            {
-                "item_id": item_id,
-                "name": item.get("name", "Unknown Item"),
-                "category": item.get("category", "Adventuring Gear"),
-                "qty": qty,
-            }
-        )
+        entry: dict = {
+            "item_id": composite_id,
+            "name": display_name,
+            "category": cat,
+            "qty": qty,
+        }
+        if variant:
+            entry["variant"] = variant
+        inv.append(entry)
     character.custom_inventory = inv
 
     # Auto-equip magic gear items that require equipping to grant their benefit
@@ -132,9 +163,9 @@ def add_item(character, item: dict, qty: int, mode: str) -> tuple[bool, str]:
     _add_transaction(
         character,
         mode,
-        str(item.get("id", "")),
-        item.get("name", "Item"),
-        item.get("category", "Adventuring Gear"),
+        str(composite_id or ""),
+        display_name,
+        cat,
         qty,
         logged_cost,
     )

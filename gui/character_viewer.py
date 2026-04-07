@@ -2899,17 +2899,35 @@ class CharacterViewer(ttk.Frame):
         return out
 
     def _can_equip_armor(self, armor_key: str) -> tuple[bool, str]:
-        req = self.ARMOR_REQUIRED.get(armor_key, "light")
+        # Resolve variant magic items to their base armor
+        base_key = armor_key
+        for ent in getattr(self.character, "custom_inventory", []) or []:
+            if str(ent.get("category", "")) != "Armor":
+                continue
+            variant = ent.get("variant")
+            if variant and str(ent.get("name", "")).strip().lower() == armor_key:
+                base_key = variant.strip().lower()
+                break
+        req = self.ARMOR_REQUIRED.get(base_key, "light")
         if req in self._armor_profs():
             return True, ""
         label = "Shields" if req == "shield" else f"{req.title()} armor"
         return False, f"{self.character.class_name} is not proficient with {label}."
 
     def _has_weapon_proficiency(self, weapon_key: str) -> bool:
+        # Resolve variant magic items to their base weapon
+        base_key = weapon_key
+        for ent in getattr(self.character, "custom_inventory", []) or []:
+            if str(ent.get("category", "")) != "Weapons":
+                continue
+            variant = ent.get("variant")
+            if variant and str(ent.get("name", "")).strip().lower() == weapon_key:
+                base_key = variant.strip().lower()
+                break
         profs = [str(p).lower() for p in self.character.effective_weapon_proficiencies]
-        if any(weapon_key in p for p in profs):
+        if any(base_key in p for p in profs):
             return True
-        meta = WEAPON_DATA.get(weapon_key, {})
+        meta = WEAPON_DATA.get(base_key, {})
         cat = meta.get("category", "")
         if cat == "simple" and any("simple" in p for p in profs):
             return True

@@ -211,10 +211,21 @@ class Character:
         if not equipped:
             return unarmored_ac
 
+        # Build variant → base armor mapping from custom inventory
+        variant_base: dict[str, str] = {}
+        for ent in getattr(self, "custom_inventory", []) or []:
+            if str(ent.get("category", "")) != "Armor":
+                continue
+            variant = ent.get("variant")
+            if variant:
+                key = str(ent.get("name", "")).strip().lower()
+                variant_base[key] = variant.strip().lower()
+
         shield_bonus = 2 if "shield" in equipped else 0
         body_ac_options = []
         for armor_name in equipped:
-            stats = _ARMOR_STATS.get(armor_name)
+            base_name = variant_base.get(armor_name, armor_name)
+            stats = _ARMOR_STATS.get(base_name)
             if not stats or stats.get("shield"):
                 continue
             cap = stats.get("dex_cap")

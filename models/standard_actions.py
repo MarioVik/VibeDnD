@@ -315,25 +315,35 @@ def _weapon_actions(
     rows: list[dict] = []
     counts = _weapon_counts_from_texts(_selected_equipment_texts(character))
 
+    # Maps composite weapon key → base weapon key (for variant magic items)
+    variant_base: dict[str, str] = {}
+
     # Merge custom inventory weapons from item browser additions.
     for ent in getattr(character, "custom_inventory", []) or []:
         if str(ent.get("category", "")) != "Weapons":
             continue
         key = str(ent.get("name", "")).strip().lower()
-        if key in WEAPON_DATA:
+        variant = ent.get("variant")
+        if variant:
+            base_key = variant.strip().lower()
+            variant_base[key] = base_key
+            if base_key in WEAPON_DATA:
+                counts[key] = counts.get(key, 0) + max(1, int(ent.get("qty", 1)))
+        elif key in WEAPON_DATA:
             counts[key] = counts.get(key, 0) + max(1, int(ent.get("qty", 1)))
 
     for weapon_name, qty in sorted(counts.items()):
         if equipped_weapon_keys is not None and weapon_name not in equipped_weapon_keys:
             continue
-        meta = WEAPON_DATA.get(weapon_name)
+        base_key = variant_base.get(weapon_name, weapon_name)
+        meta = WEAPON_DATA.get(base_key)
         if not meta:
             continue
 
         ability_mod = _weapon_ability_mod(character, meta)
         prof = (
             character.proficiency_bonus
-            if _has_weapon_proficiency(character, weapon_name, meta)
+            if _has_weapon_proficiency(character, base_key, meta)
             else 0
         )
         attack_bonus = ability_mod + prof
@@ -517,10 +527,22 @@ def build_standard_actions(
             )
 
     weapons = _weapon_actions(character, equipped_weapon_keys=effective_equipped_keys)
+
+    # Build variant base mapping for custom inventory magic weapons
+    variant_base: dict[str, str] = {}
+    for ent in getattr(character, "custom_inventory", []) or []:
+        if str(ent.get("category", "")) != "Weapons":
+            continue
+        variant = ent.get("variant")
+        if variant:
+            ckey = str(ent.get("name", "")).strip().lower()
+            variant_base[ckey] = variant.strip().lower()
+
     upgraded = []
     for row in weapons:
         key = row.get("weapon_key", "")
-        meta = WEAPON_DATA.get(key, {})
+        base_key = variant_base.get(key, key)
+        meta = WEAPON_DATA.get(base_key, {})
         cfg = options.get(key, {})
 
         use_two_handed = bool(
@@ -535,7 +557,7 @@ def build_standard_actions(
 
         prof = (
             character.proficiency_bonus
-            if _has_weapon_proficiency(character, key, meta)
+            if _has_weapon_proficiency(character, base_key, meta)
             else 0
         )
         attack_bonus = ability_mod + prof

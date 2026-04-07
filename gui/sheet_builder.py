@@ -662,8 +662,19 @@ def build_character_sheet(
         "shield": "shield",
     }
 
+    # Build variant → base armor mapping from custom inventory
+    _variant_armor_base: dict[str, str] = {}
+    for ent in getattr(c, "custom_inventory", []) or []:
+        if str(ent.get("category", "")) != "Armor":
+            continue
+        variant = ent.get("variant")
+        if variant:
+            key = str(ent.get("name", "")).strip().lower()
+            _variant_armor_base[key] = variant.strip().lower()
+
     def _can_equip_armor(armor_key: str) -> tuple[bool, str]:
-        req = ARMOR_REQUIRED.get(armor_key, "light")
+        base_key = _variant_armor_base.get(armor_key, armor_key)
+        req = ARMOR_REQUIRED.get(base_key, "light")
         profs = _normalized_armor_profs()
         if req in profs:
             return True, ""
@@ -675,11 +686,22 @@ def build_character_sheet(
             " You can't equip this item.",
         )
 
+    # Build variant → base weapon mapping from custom inventory
+    _variant_weapon_base: dict[str, str] = {}
+    for ent in getattr(c, "custom_inventory", []) or []:
+        if str(ent.get("category", "")) != "Weapons":
+            continue
+        variant = ent.get("variant")
+        if variant:
+            key = str(ent.get("name", "")).strip().lower()
+            _variant_weapon_base[key] = variant.strip().lower()
+
     def _has_weapon_proficiency_local(weapon_key: str) -> bool:
+        base_key = _variant_weapon_base.get(weapon_key, weapon_key)
         profs = [str(p).lower() for p in c.effective_weapon_proficiencies]
-        if any(weapon_key in p for p in profs):
+        if any(base_key in p for p in profs):
             return True
-        meta = WEAPON_DATA.get(weapon_key, {})
+        meta = WEAPON_DATA.get(base_key, {})
         cat = meta.get("category", "")
         if cat == "simple" and any("simple" in p for p in profs):
             return True

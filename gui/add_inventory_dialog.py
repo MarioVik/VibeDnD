@@ -247,15 +247,39 @@ class AddInventoryDialog(tk.Toplevel):
         )
         self.detail_text.grid(row=1, column=0, sticky="nsew", padx=8, pady=4)
 
+        # Variant picker frame (hidden by default, shown for generic magic items)
+        self.variant_frame = ttk.Frame(right)
+        self.variant_frame.grid(row=2, column=0, sticky="ew", padx=8, pady=(0, 4))
+        self.variant_frame.grid_remove()
+        ttk.Label(
+            self.variant_frame, text="Base item:", font=FONTS["body"]
+        ).pack(side=tk.LEFT)
+        self.variant_var = tk.StringVar(value="")
+        self.variant_combo = ttk.Combobox(
+            self.variant_frame,
+            textvariable=self.variant_var,
+            state="readonly",
+            width=28,
+        )
+        self.variant_combo.pack(side=tk.LEFT, padx=(6, 0), fill=tk.X, expand=True)
+        self.variant_combo.bind(
+            "<<ComboboxSelected>>", lambda e: self._on_variant_changed()
+        )
+        self._variant_required = False
+
         actions = ttk.Frame(right)
-        actions.grid(row=2, column=0, sticky="ew", padx=8, pady=(4, 8))
+        actions.grid(row=3, column=0, sticky="ew", padx=8, pady=(4, 8))
         ttk.Label(actions, text="Qty:").pack(side=tk.LEFT)
         self.qty_var = tk.IntVar(value=1)
         ttk.Spinbox(actions, from_=1, to=999, textvariable=self.qty_var, width=5).pack(
             side=tk.LEFT, padx=(4, 10)
         )
-        ttk.Button(actions, text="Add Free", command=self._add_free).pack(side=tk.LEFT)
-        ttk.Button(actions, text="Buy", command=self._buy).pack(side=tk.LEFT, padx=6)
+        self.btn_add_free = ttk.Button(
+            actions, text="Add Free", command=self._add_free
+        )
+        self.btn_add_free.pack(side=tk.LEFT)
+        self.btn_buy = ttk.Button(actions, text="Buy", command=self._buy)
+        self.btn_buy.pack(side=tk.LEFT, padx=6)
         ttk.Button(actions, text="Close", command=self.destroy).pack(side=tk.RIGHT)
 
         log = ttk.LabelFrame(self, text="Recent Transactions")
@@ -497,12 +521,46 @@ class AddInventoryDialog(tk.Toplevel):
         self.detail_text.insert("1.0", "\n".join(body))
         self.detail_text.configure(state=tk.DISABLED)
 
+        # Show/hide variant picker for generic magic items
+        from models.magic_item_variants import get_variant_options
+
+        options = get_variant_options(item.get("name", ""), self.data)
+        if options:
+            self.variant_combo["values"] = options
+            self.variant_var.set("")
+            self.variant_frame.grid()
+            self._variant_required = True
+            self._update_add_buttons()
+        else:
+            self.variant_frame.grid_remove()
+            self._variant_required = False
+            self._update_add_buttons()
+
+    def _on_variant_changed(self):
+        self._update_add_buttons()
+
+    def _update_add_buttons(self):
+        if self._variant_required and not self.variant_var.get():
+            self.btn_add_free.state(["disabled"])
+            self.btn_buy.state(["disabled"])
+        else:
+            self.btn_add_free.state(["!disabled"])
+            self.btn_buy.state(["!disabled"])
+
     def _add(self, mode: str):
         if not self.selected_item:
             AlertDialog(self, "Add to Inventory", "Select an item first.")
             return
+        if self._variant_required and not self.variant_var.get():
+            AlertDialog(
+                self,
+                "Add to Inventory",
+                "Select a base weapon or armor first.",
+            )
+            return
         qty = max(1, int(self.qty_var.get() or 1))
-        ok, msg = add_item(self.character, self.selected_item, qty, mode)
+        variant = self.variant_var.get() or None
+        ok, msg = add_item(self.character, self.selected_item, qty, mode, variant)
         if not ok:
             AlertDialog(self, "Add to Inventory", msg)
             return
