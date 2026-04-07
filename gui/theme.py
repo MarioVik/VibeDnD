@@ -496,20 +496,20 @@ def apply_theme(root: tk.Tk):
 
     style.configure(
         "Gold.TButton",
-        background=COLORS["gold_dark"],
-        foreground=COLORS["gold"],
-        font=FONTS["body_bold"],
-        bordercolor=COLORS["gold"],
-        lightcolor=COLORS["gold_dark"],
+        background=COLORS["bg_highest"],
+        foreground=COLORS["gold_on_dark"],
+        font=FONTS["body"],
+        bordercolor=COLORS["outline_dim"],
+        lightcolor=COLORS["bg_highest"],
         darkcolor=COLORS["bg_surface"],
     )
     style.map(
         "Gold.TButton",
-        background=[("active", COLORS["gold"])],
-        foreground=[("active", COLORS["gold_dark"])],
-        bordercolor=[("active", COLORS["gold"])],
-        lightcolor=[("active", COLORS["gold"])],
-        darkcolor=[("active", COLORS["gold_dark"])],
+        background=[("active", COLORS["bg_high"])],
+        foreground=[("active", COLORS["gold"])],
+        bordercolor=[("active", COLORS["outline"])],
+        lightcolor=[("active", COLORS["bg_high"])],
+        darkcolor=[("active", COLORS["bg_high"])],
     )
 
     style.configure(

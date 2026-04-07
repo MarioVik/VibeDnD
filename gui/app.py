@@ -304,8 +304,8 @@ class CharacterCreatorApp:
 
         # "Preview Subclasses" button — visible only on class detail substep
         self._preview_sub_btn = ttk.Button(
-            nav_inner,
-            text="\U0001f9ec  Preview Subclasses",
+            right_frame,
+            text="Preview Subclasses",
             style="Gold.TButton",
             command=self._enter_subclass_preview,
         )
@@ -898,7 +898,7 @@ class CharacterCreatorApp:
         )
         if show_preview:
             if not self._preview_sub_btn.winfo_manager():
-                self._preview_sub_btn.pack(side=tk.RIGHT, padx=(0, SPACING["md"]))
+                self._preview_sub_btn.pack(side=tk.RIGHT, padx=(0, SPACING["sm"]))
         elif self._preview_sub_btn.winfo_manager():
             self._preview_sub_btn.pack_forget()
 
