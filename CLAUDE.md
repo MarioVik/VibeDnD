@@ -181,6 +181,34 @@ Do not read these files unless absolutely necessary for a specific lookup:
 
 Use the schemas below instead.
 
+### 8. Legacy (2014 / “5e”) Content Must Follow 2024 Compatibility
+
+This app is a **2024 rules (“5.5e”) character builder**. It may include legacy 2014 (“5e”) content, but only under the 2024 compatibility model.
+
+**Scraped raw data (mandatory):** For **legacy species** (and any entry in `dnd2014_data.json` or similar), **never paste “Ability Score Increase” or any race/species ASI text into the scrape**. Omit those paragraphs completely. Ability scores in this app come from **backgrounds only**; including race ASI in raw data risks parsed traits or future “fixes” that **stack** with background ASIs and break balance. The same rule applies to **all future** legacy species scrapes.
+
+**Non-negotiable rules when adding legacy content:**
+- **Do not apply Ability Score Increases from legacy species/races** in the 2024 builder. Ability score increases come from the **background** (2024 model). **Do not put species ASI in scrapes** (see above).
+- Prefer a **single version** of an option:
+  - If an option exists in both legacy and updated form, the **updated form should be the default**.
+  - Keep legacy versions clearly labeled/sectioned as **Legacy** to avoid “two versions of the same thing.”
+
+**How to add legacy content without breaking the pipeline:**
+- **Raw sources are separate**: keep legacy scrapes in a dedicated file (e.g. `dnd2014_data.json`) rather than mixing into `dnd2024_data.json`.
+- **Never edit** `data/*.json` directly. Update parsers in `parsers/` and regenerate with `python parsers/run_all_parsers.py`.
+- **Merge at build time (parser output)**: update `parsers/run_all_parsers.py` to load both raw datasets and merge outputs into the existing runtime files (e.g. `data/species.json`).
+- **Sectioning / filters**:
+  - Category grouping is controlled by `gui/source_config.py` (`SOURCE_TO_CATEGORY` + `SECTION_ORDER`).
+  - Add a **Legacy** category at the end for each relevant context (`species`, `backgrounds`, `subclasses`) and map legacy sources (e.g. `"Player's Handbook (2014)"`) to it.
+
+**Spellcasting-ability choices tied to legacy species/subtraits:**
+- If legacy species text says “Intelligence, Wisdom, or Charisma is your spellcasting ability … (choose)”, use the existing spell-grant choice storage:
+  - Persist choices in `Character.spell_grant_choices`
+  - Collect/validate them in the **Spells** step via `models/spell_grant_utils.py` and `gui/step_spells.py`
+- Do not add one-off fields on `Character` unless there is no existing mechanism.
+
+**If you add a new runtime data file** (avoid unless necessary), register it in all build scripts (`build.py`, `build_macos.py`, `build_ubuntu.py`).
+
 ---
 
 ## Data Schemas

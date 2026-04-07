@@ -11,6 +11,7 @@ from gui.widgets import (
     SectionHeader,
     ScrollableFrame,
 )
+from models.item_effects import get_effective_modifier
 from models.level_up_logic import validate_hp_step
 
 
@@ -87,7 +88,7 @@ class LuHpStep(LevelUpStep):
                 break
 
         hit_die = selected_class_data.get("hit_die", 8) if selected_class_data else 8
-        con_mod = self.character.ability_scores.modifier("Constitution")
+        con_mod = get_effective_modifier(self.character, "Constitution")
         average = hit_die // 2 + 1
 
         card = CardFrame(parent, pad=SPACING["lg"])
@@ -168,7 +169,7 @@ class LuHpStep(LevelUpStep):
     def _update_hint(self):
         if self._hp_mode_var.get() != "manual":
             return
-        con_mod = self.character.ability_scores.modifier("Constitution")
+        con_mod = get_effective_modifier(self.character, "Constitution")
         val = self._hp_manual_var.get().strip()
         try:
             roll = int(val)

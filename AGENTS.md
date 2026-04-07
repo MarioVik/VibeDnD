@@ -181,6 +181,13 @@ Do not read these files unless absolutely necessary for a specific lookup:
 
 Use the schemas below instead.
 
+### 8. Legacy (2014 / “5e”) Content — Scrapes Must Omit Race ASIs
+
+This app uses **2024 rules**: **backgrounds** grant ability score increases at creation, not species/races.
+
+- **Never include** “Ability Score Increase” (or any **race/species ASI** text) in **legacy raw scrapes** (`dnd2014_data.json`, etc.). Omit those paragraphs when preparing data. Including them risks parsed traits or future code that **stacks** ASIs with backgrounds and makes characters **unbalanced**.
+- Full policy: see **§0 in `AI_README.md`** and **§8 in `CLAUDE.md`**.
+
 ---
 
 ## Data Schemas

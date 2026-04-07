@@ -18,6 +18,15 @@ from models.skill_utils import (
     get_skill_expertise_source_labels,
     get_skill_proficiency_source_labels,
 )
+from models.item_effects import (
+    get_ability_check_bonus,
+    get_active_ac_bonus,
+    get_armor_ac_bonus,
+    get_effective_modifier,
+    get_save_bonus,
+    get_shield_ac_bonus,
+    get_unarmored_ac_bonus,
+)
 
 
 # D&D 2024 multiclass prerequisites: 13+ in the class's primary ability
@@ -159,7 +168,7 @@ class Character:
     def hit_points(self) -> int:
         if not self.character_class:
             return 0
-        con_mod = self.ability_scores.modifier("Constitution")
+        con_mod = get_effective_modifier(self, "Constitution")
 
         if not self.class_levels:
             # Legacy: level 1 only
@@ -195,21 +204,25 @@ class Character:
 
     @property
     def armor_class(self) -> int:
-        """Unarmored AC = 10 + DEX mod."""
-        dex_mod = self.ability_scores.modifier("Dexterity")
+        """Compute AC including magic item bonuses."""
+        dex_mod = get_effective_modifier(self, "Dexterity")
 
         # Unarmored baseline (including class features)
         unarmored_ac = 10 + dex_mod
         if self.character_class and self.character_class.get("slug") == "barbarian":
-            con_mod = self.ability_scores.modifier("Constitution")
+            con_mod = get_effective_modifier(self, "Constitution")
             unarmored_ac = 10 + dex_mod + con_mod
         if self.character_class and self.character_class.get("slug") == "monk":
-            wis_mod = self.ability_scores.modifier("Wisdom")
+            wis_mod = get_effective_modifier(self, "Wisdom")
             unarmored_ac = 10 + dex_mod + wis_mod
+
+        # General AC bonus (Ring of Protection, etc.)
+        general_bonus = get_active_ac_bonus(self)
 
         equipped = set((self.equipped_armor or []))
         if not equipped:
-            return unarmored_ac
+            unarmored_bonus = get_unarmored_ac_bonus(self)
+            return unarmored_ac + general_bonus + unarmored_bonus
 
         # Build variant → base armor mapping from custom inventory
         variant_base: dict[str, str] = {}
@@ -221,24 +234,36 @@ class Character:
                 key = str(ent.get("name", "")).strip().lower()
                 variant_base[key] = variant.strip().lower()
 
-        shield_bonus = 2 if "shield" in equipped else 0
+        shield_bonus = 0
+        has_body_armor = False
         body_ac_options = []
         for armor_name in equipped:
             base_name = variant_base.get(armor_name, armor_name)
             stats = _ARMOR_STATS.get(base_name)
-            if not stats or stats.get("shield"):
+            if not stats:
                 continue
+            if stats.get("shield"):
+                shield_bonus = 2 + get_shield_ac_bonus(self, armor_name)
+                continue
+            has_body_armor = True
             cap = stats.get("dex_cap")
             dex_part = dex_mod if cap is None else min(dex_mod, cap)
-            body_ac_options.append(stats.get("base", 10) + dex_part)
+            magic_armor_bonus = get_armor_ac_bonus(self, armor_name)
+            body_ac_options.append(stats.get("base", 10) + dex_part + magic_armor_bonus)
 
         if body_ac_options:
-            return max(body_ac_options) + shield_bonus
-        return unarmored_ac + shield_bonus
+            return max(body_ac_options) + shield_bonus + general_bonus
+
+        # No body armor but has shield — add unarmored bonus
+        if not has_body_armor:
+            unarmored_bonus = get_unarmored_ac_bonus(self)
+            return unarmored_ac + shield_bonus + general_bonus + unarmored_bonus
+
+        return unarmored_ac + shield_bonus + general_bonus
 
     @property
     def initiative(self) -> int:
-        return self.ability_scores.modifier("Dexterity")
+        return get_effective_modifier(self, "Dexterity")
 
     @property
     def speed(self) -> int:
@@ -266,20 +291,23 @@ class Character:
         skill = SKILL_BY_NAME.get(skill_display_name.lower())
         if not skill:
             return 0
-        base_mod = self.ability_scores.modifier(skill.ability.value)
+        base_mod = get_effective_modifier(self, skill.ability.value)
+        check_bonus = get_ability_check_bonus(self)
         if skill_display_name in self.all_skill_expertise:
             return (
                 base_mod
                 + (self.proficiency_bonus * 2)
                 + get_level1_skill_bonus(self, skill_display_name)
+                + check_bonus
             )
         if skill_display_name in self.all_skill_proficiencies:
             return (
                 base_mod
                 + self.proficiency_bonus
                 + get_level1_skill_bonus(self, skill_display_name)
+                + check_bonus
             )
-        return base_mod + get_level1_skill_bonus(self, skill_display_name)
+        return base_mod + get_level1_skill_bonus(self, skill_display_name) + check_bonus
 
     def skill_modifier_str(self, skill_display_name: str) -> str:
         mod = self.skill_modifier(skill_display_name)
@@ -300,7 +328,7 @@ class Character:
         components = [
             {
                 "label": f"{ability_name} modifier",
-                "value": self.ability_scores.modifier(ability_name),
+                "value": get_effective_modifier(self, ability_name),
                 "sources": [],
             }
         ]
@@ -332,6 +360,16 @@ class Character:
                 {
                     "label": str(bonus.get("label", "") or "Other bonus"),
                     "value": int(bonus.get("value", 0) or 0),
+                    "sources": [],
+                }
+            )
+
+        check_bonus = get_ability_check_bonus(self)
+        if check_bonus:
+            components.append(
+                {
+                    "label": "Item bonus (ability checks)",
+                    "value": check_bonus,
                     "sources": [],
                 }
             )
@@ -376,12 +414,13 @@ class Character:
         return "\n".join(lines)
 
     def saving_throw_modifier(self, ability_name: str) -> int:
-        base = self.ability_scores.modifier(ability_name)
+        base = get_effective_modifier(self, ability_name)
+        item_bonus = get_save_bonus(self)
         if self.character_class and ability_name in self.character_class.get(
             "saving_throws", []
         ):
-            return base + self.proficiency_bonus
-        return base
+            return base + self.proficiency_bonus + item_bonus
+        return base + item_bonus
 
     def saving_throw_str(self, ability_name: str) -> str:
         mod = self.saving_throw_modifier(ability_name)

@@ -610,9 +610,7 @@ class CharacterViewer(ttk.Frame):
             col = i % 2
             row = i // 2
             is_prof = ability_name.lower() in saving_throws_lower_early
-            save_mod = c.ability_scores.modifier(ability_name)
-            if is_prof:
-                save_mod += c.proficiency_bonus
+            save_mod = c.saving_throw_modifier(ability_name)
             save_str = f"+{save_mod}" if save_mod >= 0 else str(save_mod)
             indicator = "●" if is_prof else "○"
             color = COLORS["accent_text"] if is_prof else COLORS["fg_dim"]
@@ -661,8 +659,10 @@ class CharacterViewer(ttk.Frame):
                 "Charisma",
             ]
         ):
-            total = c.ability_scores.total(ability_name)
-            mod_str = c.ability_scores.modifier_str(ability_name)
+            from models.item_effects import get_effective_ability_score, get_effective_modifier
+            total = get_effective_ability_score(c, ability_name)
+            mod_val = get_effective_modifier(c, ability_name)
+            mod_str = f"+{mod_val}" if mod_val >= 0 else str(mod_val)
 
             card = StatCard(
                 ab_row,
@@ -1627,10 +1627,13 @@ class CharacterViewer(ttk.Frame):
             stats_frame.pack(fill=tk.X, pady=(SPACING["sm"], SPACING["section_gap"]))
 
             if cast_ability:
-                spell_mod = c.ability_scores.modifier(cast_ability)
-                attack_bonus = spell_mod + c.proficiency_bonus
-                save_dc = 8 + spell_mod + c.proficiency_bonus
-                ability_score = c.ability_scores.total(cast_ability)
+                from models.item_effects import get_effective_modifier, get_effective_ability_score, get_spell_attack_bonus, get_spell_save_dc_bonus
+                spell_mod = get_effective_modifier(c, cast_ability)
+                item_spell_atk = get_spell_attack_bonus(c)
+                item_spell_dc = get_spell_save_dc_bonus(c)
+                attack_bonus = spell_mod + c.proficiency_bonus + item_spell_atk
+                save_dc = 8 + spell_mod + c.proficiency_bonus + item_spell_dc
+                ability_score = get_effective_ability_score(c, cast_ability)
                 stat_specs = [
                     (
                         "Spell Attack",

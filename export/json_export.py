@@ -3,6 +3,7 @@
 import json
 from models.character import Character
 from models.enums import ALL_SKILLS
+from models.item_effects import get_effective_ability_score, get_effective_modifier
 
 
 def character_to_dict(character: Character) -> dict:
@@ -20,8 +21,8 @@ def character_to_dict(character: Character) -> dict:
         abilities[name] = {
             "base": c.ability_scores.base(name),
             "bonus": c.ability_scores.bonus(name),
-            "total": c.ability_scores.total(name),
-            "modifier": c.ability_scores.modifier(name),
+            "total": get_effective_ability_score(c, name),
+            "modifier": get_effective_modifier(c, name),
         }
 
     saves = {}

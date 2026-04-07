@@ -7,6 +7,14 @@ import os
 import re
 
 from models.spell_grant_utils import get_spellbook_entries
+from models.item_effects import (
+    get_effective_modifier,
+    get_ranged_damage_bonus,
+    get_spell_attack_bonus,
+    get_weapon_attack_bonus,
+    get_weapon_damage_bonus,
+    get_weapon_extra_damage,
+)
 from paths import data_dir
 
 
@@ -300,8 +308,8 @@ def _has_weapon_proficiency(character, weapon_name: str, weapon_meta: dict) -> b
 
 
 def _weapon_ability_mod(character, weapon_meta: dict) -> int:
-    str_mod = character.ability_scores.modifier("Strength")
-    dex_mod = character.ability_scores.modifier("Dexterity")
+    str_mod = get_effective_modifier(character, "Strength")
+    dex_mod = get_effective_modifier(character, "Dexterity")
     if weapon_meta.get("ranged"):
         return dex_mod
     if weapon_meta.get("finesse"):
@@ -346,12 +354,21 @@ def _weapon_actions(
             if _has_weapon_proficiency(character, base_key, meta)
             else 0
         )
-        attack_bonus = ability_mod + prof
+        magic_atk = get_weapon_attack_bonus(character, weapon_name)
+        attack_bonus = ability_mod + prof + magic_atk
 
-        dmg_mod = _modifier_str(ability_mod)
+        magic_dmg = get_weapon_damage_bonus(character, weapon_name)
+        ranged_dmg = get_ranged_damage_bonus(character) if meta.get("ranged") else 0
+        total_dmg_mod = ability_mod + magic_dmg + ranged_dmg
+        dmg_mod = _modifier_str(total_dmg_mod)
         damage = f"{meta['damage']}{dmg_mod} {meta['type'].lower()}"
         if meta.get("versatile_damage"):
             damage += f" ({meta['versatile_damage']} two-handed)"
+
+        # Extra damage dice from magic items (e.g. Flame Tongue +2d6 fire)
+        extra_dmg = get_weapon_extra_damage(character, weapon_name)
+        if extra_dmg:
+            damage += " + " + " + ".join(extra_dmg)
 
         notes_parts = ["Ranged weapon" if meta.get("ranged") else "Melee weapon"]
         if meta.get("range"):
@@ -475,8 +492,9 @@ def _cantrip_actions(character, spells_by_name: dict[str, dict], game_data=None)
     if not cast_ability:
         return rows
 
-    spell_mod = character.ability_scores.modifier(cast_ability)
-    attack_bonus = _modifier_str(spell_mod + character.proficiency_bonus)
+    spell_mod = get_effective_modifier(character, cast_ability)
+    item_bonus = get_spell_attack_bonus(character)
+    attack_bonus = _modifier_str(spell_mod + character.proficiency_bonus + item_bonus)
 
     for cantrip_name in _spellbook_cantrip_names(character, spells_by_name, game_data):
         spell = spells_by_name.get(cantrip_name)
@@ -512,7 +530,7 @@ def build_standard_actions(
         if not cast_ability:
             primary = character.character_class.get("primary_ability", [])
             cast_ability = primary[0] if primary else None
-    spell_mod = character.ability_scores.modifier(cast_ability) if cast_ability else 0
+    spell_mod = get_effective_modifier(character, cast_ability) if cast_ability else 0
     known_cantrip_names = _spellbook_cantrip_names(character, spells, game_data)
     has_true_strike = any(
         name.lower() == "true strike" for name in known_cantrip_names
@@ -560,7 +578,8 @@ def build_standard_actions(
             if _has_weapon_proficiency(character, base_key, meta)
             else 0
         )
-        attack_bonus = ability_mod + prof
+        magic_atk = get_weapon_attack_bonus(character, key)
+        attack_bonus = ability_mod + prof + magic_atk
 
         die = (
             meta.get("versatile_damage")
@@ -571,8 +590,17 @@ def build_standard_actions(
         if use_true_strike:
             damage_type = f"radiant/{damage_type}"
 
+        magic_dmg = get_weapon_damage_bonus(character, key)
+        ranged_dmg = get_ranged_damage_bonus(character) if meta.get("ranged") else 0
+        total_dmg_mod = ability_mod + magic_dmg + ranged_dmg
+        damage_str = f"{die}{_modifier_str(total_dmg_mod)} {damage_type}"
+
+        extra_dmg = get_weapon_extra_damage(character, key)
+        if extra_dmg:
+            damage_str += " + " + " + ".join(extra_dmg)
+
         row["attack"] = _modifier_str(attack_bonus)
-        row["damage"] = f"{die}{_modifier_str(ability_mod)} {damage_type}"
+        row["damage"] = damage_str
         row["can_true_strike"] = can_true_strike
         row["true_strike_active"] = use_true_strike
         row["two_handed_active"] = use_two_handed

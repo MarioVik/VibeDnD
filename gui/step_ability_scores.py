@@ -445,7 +445,8 @@ class AbilityScoresStep(WizardStep):
             return
 
         hit_die = char_class.get("hit_die", 8)
-        con_mod = self.character.ability_scores.modifier("Constitution")
+        from models.item_effects import get_effective_modifier
+        con_mod = get_effective_modifier(self.character, "Constitution")
         average = hit_die // 2 + 1
 
         SectionHeader(self._hp_outer, text="HP at Level 1").pack(

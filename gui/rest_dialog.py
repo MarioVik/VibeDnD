@@ -11,6 +11,7 @@ from tkinter import ttk
 from gui.theme import COLORS, FONTS
 from gui.widgets import ScrollableFrame, AlertDialog, configure_modal_dialog
 from gui.spell_swap_panel import SpellSwapPanel, MultiSpellSwapPanel
+from models.item_effects import get_effective_modifier
 from models.skill_utils import (
     ZHENTARIM_TACTICS,
     get_feat_expertise_skill,
@@ -572,7 +573,7 @@ class RestDialog(tk.Toplevel):
             effects.append(f"You have {rem}/{total} d{die} hit dice remaining ({class_name})")
 
         if self.character.total_hit_dice_remaining > 0:
-            con_mod = self.character.ability_scores.modifier("Constitution")
+            con_mod = get_effective_modifier(self.character, "Constitution")
             sign = "+" if con_mod >= 0 else ""
             effects.append(f"You may spend hit dice to recover HP (each die {sign}{con_mod} CON)")
         else:
@@ -601,7 +602,7 @@ class RestDialog(tk.Toplevel):
             font=FONTS["heading"], foreground=COLORS["accent"],
         ).grid(row=0, column=0, sticky="w", padx=12, pady=(8, 2))
 
-        con_mod = self.character.ability_scores.modifier("Constitution")
+        con_mod = get_effective_modifier(self.character, "Constitution")
         sign = "+" if con_mod >= 0 else ""
         ttk.Label(
             parent,
@@ -729,7 +730,7 @@ class RestDialog(tk.Toplevel):
             self._hd_manual_hint.config(text="")
             return
 
-        con_mod = self.character.ability_scores.modifier("Constitution")
+        con_mod = get_effective_modifier(self.character, "Constitution")
         total_dice = sum(
             v.get() for v in self._hd_spend_vars.values()
             if isinstance(v.get(), int)
@@ -1091,7 +1092,7 @@ class RestDialog(tk.Toplevel):
         # ── Short Rest: hit dice spending ─────────────────────────
         if self.rest_type == "short" and self._hd_spend_vars:
             pool = self.character.hit_dice_pool
-            con_mod = self.character.ability_scores.modifier("Constitution")
+            con_mod = get_effective_modifier(self.character, "Constitution")
 
             # Gather dice to spend per class
             dice_to_spend: dict[str, int] = {}

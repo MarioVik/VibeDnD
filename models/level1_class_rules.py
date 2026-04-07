@@ -628,8 +628,9 @@ def get_effective_armor_proficiencies(character) -> list[str]:
 
 def get_level1_skill_bonus_details(character, skill_display_name: str) -> list[dict]:
     """Return detailed level-1 class-based skill bonuses for a specific skill."""
+    from models.item_effects import get_effective_modifier
     slug = _class_slug(character)
-    wisdom_bonus = max(1, character.ability_scores.modifier("Wisdom"))
+    wisdom_bonus = max(1, get_effective_modifier(character, "Wisdom"))
     if slug == "cleric" and _choice_value(character, "divine_order") == "Thaumaturge":
         if skill_display_name in {"Arcana", "Religion"}:
             return [

@@ -211,9 +211,7 @@ class SummaryStep(WizardStep):
             col = i % 2
             row = i // 2
             is_prof = ability_name.lower() in saving_throws_lower
-            save_mod = c.ability_scores.modifier(ability_name)
-            if is_prof:
-                save_mod += c.proficiency_bonus
+            save_mod = c.saving_throw_modifier(ability_name)
             save_str = f"+{save_mod}" if save_mod >= 0 else str(save_mod)
             indicator = "\u25cf" if is_prof else "\u25cb"
             color = COLORS["accent_text"] if is_prof else COLORS["fg_dim"]
@@ -262,8 +260,10 @@ class SummaryStep(WizardStep):
                 "Charisma",
             ]
         ):
-            total = c.ability_scores.total(ability_name)
-            mod_str = c.ability_scores.modifier_str(ability_name)
+            from models.item_effects import get_effective_ability_score, get_effective_modifier
+            total = get_effective_ability_score(c, ability_name)
+            mod_val = get_effective_modifier(c, ability_name)
+            mod_str = f"+{mod_val}" if mod_val >= 0 else str(mod_val)
             card = StatCard(
                 ab_row, label=ability_name, value=mod_str, modifier=str(total)
             )

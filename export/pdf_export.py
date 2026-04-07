@@ -563,8 +563,9 @@ class CharacterSheetPDF(FPDF):
             if pa:
                 primary_ability = pa[0]
 
-        primary_score = c.ability_scores.total(primary_ability)
-        primary_mod = c.ability_scores.modifier(primary_ability)
+        from models.item_effects import get_effective_ability_score, get_effective_modifier as _eff_mod
+        primary_score = get_effective_ability_score(c, primary_ability)
+        primary_mod = _eff_mod(c, primary_ability)
         passive_perception = 10 + c.skill_modifier("Perception")
 
         row_h = 18
@@ -692,8 +693,8 @@ class CharacterSheetPDF(FPDF):
         ab_box_x = x + group_pad_left
 
         for ability in ABILITIES:
-            total = c.ability_scores.total(ability)
-            mod = c.ability_scores.modifier(ability)
+            total = get_effective_ability_score(c, ability)
+            mod = _eff_mod(c, ability)
             skills = SKILLS_BY_ABILITY.get(ability, [])
 
             # Ability name label above group box
@@ -1531,10 +1532,14 @@ class CharacterSheetPDF(FPDF):
         if not c.character_class:
             return
 
+        from models.item_effects import get_spell_attack_bonus, get_spell_save_dc_bonus, get_effective_modifier
+
         cast_ability = c.character_class.get("spellcasting_ability", "Intelligence")
-        cast_mod = c.ability_scores.modifier(cast_ability)
-        save_dc = 8 + c.proficiency_bonus + cast_mod
-        atk_bonus = c.proficiency_bonus + cast_mod
+        cast_mod = get_effective_modifier(c, cast_ability)
+        item_spell_atk = get_spell_attack_bonus(c)
+        item_spell_dc = get_spell_save_dc_bonus(c)
+        save_dc = 8 + c.proficiency_bonus + cast_mod + item_spell_dc
+        atk_bonus = c.proficiency_bonus + cast_mod + item_spell_atk
 
         # Corner ornaments
         self._draw_corner_ornament(x0, y, 5, "tl")

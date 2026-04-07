@@ -317,6 +317,8 @@ def build_character_sheet(
 
     # ── Ability Scores ──────────────────────────────────────────
     if _show("abilities"):
+        from models.item_effects import get_effective_ability_score, get_effective_modifier
+
         abilities_frame = ttk.LabelFrame(parent, text="Ability Scores")
         abilities_frame.pack(fill=tk.X, pady=section_pady)
 
@@ -335,8 +337,9 @@ def build_character_sheet(
             af.pack(side=tk.LEFT, padx=12)
 
             short = ability_name[:3].upper()
-            total = c.ability_scores.total(ability_name)
-            mod_str = c.ability_scores.modifier_str(ability_name)
+            total = get_effective_ability_score(c, ability_name)
+            mod_val = get_effective_modifier(c, ability_name)
+            mod_str = f"+{mod_val}" if mod_val >= 0 else str(mod_val)
 
             ttk.Label(af, text=short, foreground=COLORS["fg_dim"]).pack()
             ttk.Label(
@@ -346,7 +349,6 @@ def build_character_sheet(
                 foreground=COLORS["fg_bright"],
             ).pack()
 
-            mod_val = c.ability_scores.modifier(ability_name)
             color = (
                 COLORS["positive"]
                 if mod_val > 0

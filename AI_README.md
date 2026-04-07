@@ -128,6 +128,67 @@ Supporting modules:
 ### `species.json`, `backgrounds.json`
 Follow a `{"name": "...", "source": "...", "description": "...", "features": [{"name": "...", "description": "..."}]}` pattern.
 
+## Legacy (2014 / “5e”) Content Policy (Species, Backgrounds, Subclasses)
+
+This project is a **2024 rules (“5.5e”) character builder** that may optionally include **legacy 2014 (“5e”) options**. When adding legacy content, follow these rules so the app remains rules-consistent and future AIs don’t accidentally “stack” incompatible systems.
+
+### 0) Scraped raw data: never include race/species ability score increases
+**Critical:** In **all** legacy raw scrape files (e.g. `dnd2014_data.json` and any future `dnd2014_*.json`), **do not include** paragraphs that grant **Ability Score Increases from a race or species** (e.g. “Your Intelligence score increases by …”, subrace +1 Dex, etc.).
+
+- **Why:** This app applies ASIs from **backgrounds only** (2024 model). If race ASI text exists in the scrape, parsers may turn it into a **trait** that players or future code treat as mechanical, or someone may “helpfully” wire it into the ability step—producing **double ASIs** with the background and making characters **wildly unbalanced**.
+- **What to do instead:** Omit those paragraphs from the scrape entirely. Do not rely on “we’ll ignore it in code”; keep it **out of the data**.
+- This rule applies to **every future** legacy species added to raw scrapes, not only Deep Gnome.
+
+### 1) Top-level compatibility rule (2024 builder)
+- **Ability Score Increases (ASIs)** at character creation come from the **background** (2024 model).
+- **Species/race ASIs must not appear in legacy scrapes** (see §0). The 2024 rules also say that if you used older book text that included species ASIs, you would **ignore** those increases when using 2024 creation—we enforce “ignore” by **not importing** that text at all.
+- Avoid duplicate “two versions of the same option”:
+  - If an option exists in both legacy and updated form, the **updated form should be preferred**.
+  - The legacy one should be labeled/sectioned as **Legacy** (and ideally not coexist as a separate “equivalent” unless intentionally supported).
+
+### 2) Data files: keep legacy raw sources separate
+- **Never edit** `data/*.json` directly. Add/adjust parsers in `parsers/` and regenerate via `python parsers/run_all_parsers.py`.
+- **Never read** large raw files for implementation. Don’t open `dnd2024_data.json` fully.
+- For legacy additions, prefer **separate raw scrape files** (examples):
+  - `dnd2024_data.json` (existing)
+  - `dnd2014_data.json` (legacy)
+  - If needed later: `dnd2014_backgrounds.json`, `dnd2014_subclasses.json`, etc.
+- **Parsers should merge outputs** into the existing runtime `data/*.json` files rather than introducing new runtime files unless there’s a strong reason.
+
+### 3) Legacy species implementation checklist
+- **Raw input**: add the species entry to a legacy raw file (e.g. `dnd2014_data.json`) with a `source` string that clearly identifies it (e.g. `"Player's Handbook (2014)"`). The `content` string must **not** contain race/species ASI paragraphs (see §0).
+- **Parsing**: update `parsers/run_all_parsers.py` to load both raw datasets and **merge species** into `data/species.json`.
+  - **Dedupe by name** and prefer the newest printing if duplicates ever occur.
+- **UI grouping**: `gui/source_config.py` controls sectioning via `SOURCE_TO_CATEGORY["species"]` and `SECTION_ORDER["species"]`.
+  - Map the 2014 source to a new **Legacy** category.
+  - Put **Legacy last** in `SECTION_ORDER["species"]` so it appears below existing sections.
+- **Rule-sensitive choices inside species text**:
+  - If a legacy species grants spells and says “choose Intelligence/Wisdom/Charisma”, the app’s existing pattern is to store that choice in `Character.spell_grant_choices` and collect it in the **Spells step** (see `models/spell_grant_utils.py` and `gui/step_spells.py`).
+  - Do **not** invent a new ad-hoc field on `Character` unless necessary; reuse the spell-grant system so save/load and validations stay consistent.
+
+### 4) Legacy backgrounds implementation checklist
+Backgrounds are tricky because 2014 and 2024 backgrounds differ structurally.
+
+- **2024 builder expectation**:
+  - Backgrounds drive ASIs and usually provide a feat in this app’s flow.
+- If adding a legacy background:
+  - Treat it as a **content option** with a `source` that maps to **Legacy** (via `SOURCE_TO_CATEGORY["backgrounds"]` / `SECTION_ORDER["backgrounds"]`).
+  - Ensure the UI/validation remains 2024-consistent:
+    - **ASIs remain background-driven** (2024 model). Do not reintroduce race/species ASIs.
+    - If a legacy background lacks a feat in its original printing, the 2024 compatibility model is: grant an **Origin feat choice**. If you implement that, do it centrally (so it affects all legacy backgrounds consistently).
+- Prefer to implement any “legacy background conversion” logic in one place (models), not scattered across UI screens.
+
+### 5) Legacy subclasses implementation checklist
+Subclasses in this repo come from parsed data and are selected/validated through the class/level-up flows.
+
+- **Data**: legacy subclasses should be added through the parser pipeline and end up in `data/subclasses.json` (and any progression data they require).
+- **Source grouping**: add mappings in `gui/source_config.py` under the `"subclasses"` context so legacy sources can be filtered and clearly labeled.
+- **Version precedence**: if a subclass has both a legacy and updated printing, prefer updated, and keep legacy clearly tagged/sectioned.
+
+### 6) Build/packaging rule for new runtime data
+- If you introduce a **new runtime `data/*.json` file** (avoid if you can), you must register it in all build scripts:
+  - `build.py`, `build_macos.py`, `build_ubuntu.py`
+
 ## Guidelines for AI
 1. **Token Conservation**: Do not read files in `data/` or `dnd2024_data.json` unless you need a specific lookup. Use the schemas above.
 2. **Logic Updates**: Most logic is in `models/` and `gui/`. Refer to those for behavior changes.

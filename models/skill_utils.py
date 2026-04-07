@@ -393,9 +393,10 @@ def _is_item_active(item_key: str, character) -> bool:
     Items requiring attunement only grant benefits when attuned.
     Items requiring equipping only grant benefits when in equipped_gear.
     """
+    from models.item_effects import _is_attuned
+
     if item_key in _ITEMS_REQUIRING_ATTUNEMENT:
-        attuned = set(getattr(character, "attuned_items", []) or [])
-        return item_key in attuned
+        return _is_attuned(item_key, character)
     if item_key in _ITEMS_REQUIRING_EQUIP:
         equipped = set(getattr(character, "equipped_gear", []) or [])
         return item_key in equipped
