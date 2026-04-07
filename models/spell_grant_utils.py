@@ -82,10 +82,24 @@ _ELF_LINEAGE_CANTRIPS = {
     "Shadowmoor Elf": "Starry Wisp",
 }
 
+_ELF_LINEAGE_SPELLS: dict[str, dict[int, str]] = {
+    "Drow": {3: "Faerie Fire", 5: "Darkness"},
+    "High Elf": {3: "Detect Magic", 5: "Misty Step"},
+    "Wood Elf": {3: "Longstrider", 5: "Pass Without Trace"},
+    "Lorwyn Elf": {3: "Command", 5: "Silence"},
+    "Shadowmoor Elf": {3: "Heroism", 5: "Gentle Repose"},
+}
+
 _TIEFLING_LEGACY_CANTRIPS = {
     "Abyssal": "Poison Spray",
     "Chthonic": "Chill Touch",
     "Infernal": "Fire Bolt",
+}
+
+_TIEFLING_LEGACY_SPELLS: dict[str, dict[int, str]] = {
+    "Abyssal": {3: "Ray Of Sickness", 5: "Hold Person"},
+    "Chthonic": {3: "False Life", 5: "Ray Of Enfeeblement"},
+    "Infernal": {3: "Hellish Rebuke", 5: "Darkness"},
 }
 
 _MARK_FEAT_DATA = {
@@ -476,7 +490,7 @@ def _build_species_sources(character, game_data) -> list[dict]:
         source = _base_source(f"species:elf:{_slugify(sub_choice)}", sub_choice)
         source["ability_choice_required"] = True
         source["ability_options"] = list(_SPELLCASTING_ABILITIES)
-        source["granted_entries"] = [
+        granted = [
             _spell_entry(
                 source["source_id"],
                 source["source_label"],
@@ -484,6 +498,19 @@ def _build_species_sources(character, game_data) -> list[dict]:
                 "cantrip",
             )
         ]
+        lineage_spells = _ELF_LINEAGE_SPELLS.get(sub_choice, {})
+        for min_level in sorted(lineage_spells):
+            if character.level >= min_level:
+                granted.append(
+                    _spell_entry(
+                        source["source_id"],
+                        source["source_label"],
+                        lineage_spells[min_level],
+                        "spell",
+                        free_cast="1 / Long Rest",
+                    )
+                )
+        source["granted_entries"] = granted
         sources.append(source)
 
     if species_name == "Gnome" and sub_choice == "Forest Gnome":
@@ -521,7 +548,7 @@ def _build_species_sources(character, game_data) -> list[dict]:
         source = _base_source(f"species:tiefling:{_slugify(sub_choice)}", sub_choice)
         source["ability_choice_required"] = True
         source["ability_options"] = list(_SPELLCASTING_ABILITIES)
-        source["granted_entries"] = [
+        granted = [
             _spell_entry(source["source_id"], source["source_label"], "Thaumaturgy", "cantrip"),
             _spell_entry(
                 source["source_id"],
@@ -530,6 +557,19 @@ def _build_species_sources(character, game_data) -> list[dict]:
                 "cantrip",
             ),
         ]
+        legacy_spells = _TIEFLING_LEGACY_SPELLS.get(sub_choice, {})
+        for min_level in sorted(legacy_spells):
+            if character.level >= min_level:
+                granted.append(
+                    _spell_entry(
+                        source["source_id"],
+                        source["source_label"],
+                        legacy_spells[min_level],
+                        "spell",
+                        free_cast="1 / Long Rest",
+                    )
+                )
+        source["granted_entries"] = granted
         sources.append(source)
 
     if species_name == "Khoravar":
@@ -1134,6 +1174,18 @@ def _class_spell_default_ability(character) -> str:
 def apply_default_spell_grant_abilities(character, game_data) -> bool:
     changed = False
     class_ability = _class_spell_default_ability(character)
+    if not class_ability:
+        # Non-caster: pick highest mental stat as default for species spells
+        scores = getattr(character, "ability_scores", None)
+        if scores:
+            best = ""
+            best_val = -1
+            for ab in _SPELLCASTING_ABILITIES:
+                val = scores.total(ab)
+                if val > best_val:
+                    best_val = val
+                    best = ab
+            class_ability = best
     if not class_ability:
         return False
 

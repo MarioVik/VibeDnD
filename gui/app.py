@@ -1542,7 +1542,7 @@ class CharacterCreatorApp:
         # Build and apply
         try:
             cl = build_class_level(self._lu_ctx, self.character, self.data)
-            apply_level_up(self.character, cl, self._lu_ctx)
+            apply_level_up(self.character, cl, self._lu_ctx, self.data)
         except Exception as exc:
             AlertDialog(
                 self.root,

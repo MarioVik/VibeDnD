@@ -767,7 +767,7 @@ def build_class_level(
     return cl
 
 
-def apply_level_up(character: Character, cl: ClassLevel, ctx: LevelUpContext):
+def apply_level_up(character: Character, cl: ClassLevel, ctx: LevelUpContext, game_data=None):
     """Apply all mutations to the character."""
     # ASI
     for ability, amount in cl.asi_increases.items():
@@ -799,6 +799,11 @@ def apply_level_up(character: Character, cl: ClassLevel, ctx: LevelUpContext):
 
     # Append the level
     character.class_levels.append(cl)
+
+    # Apply default spellcasting abilities for any newly-unlocked species spell grants
+    if game_data is not None:
+        from models.spell_grant_utils import apply_default_spell_grant_abilities
+        apply_default_spell_grant_abilities(character, game_data)
 
 
 # ── Step visibility ───────────────────────────────────────────────────
