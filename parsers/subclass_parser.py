@@ -121,7 +121,7 @@ def _parse_class_subclass_pages(class_subclass_data: list[dict]) -> list[dict]:
         features_by_level = _parse_subclass_features(content)
 
         title = entry.get("title", "").strip()
-        if title:
+        if title and title != "Unknown":
             display_name = title
         else:
             display_name = _display_name_from_slug(subclass_slug)

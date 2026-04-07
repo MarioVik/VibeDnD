@@ -58,6 +58,7 @@ SECTION_ORDER = {
     "backgrounds": ["Common", "Eberron", "Faerun", "Exotic"],
     "feats": ["Common", "Faerun", "Exotic"],
     "classes": ["Common", "Eberron", "Faerun", "Unearthed Arcana"],
+    "subclasses": ["Common", "Eberron", "Faerun", "Unearthed Arcana"],
 }
 
 # Category name for UA playtest content

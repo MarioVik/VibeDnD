@@ -1288,8 +1288,17 @@ def get_spell_grant_followup_sources(character, game_data) -> list[dict]:
 
 def character_has_spell_step_content(character, game_data) -> bool:
     if getattr(character, "is_caster", False):
-        return True
-    if get_active_spell_grant_sources(character, game_data):
+        from models.level1_class_rules import (
+            get_effective_cantrips_known,
+            get_effective_prepared_spells,
+        )
+
+        if (
+            get_effective_cantrips_known(character) > 0
+            or get_effective_prepared_spells(character) > 0
+        ):
+            return True
+    if get_spell_grant_followup_sources(character, game_data):
         return True
     return False
 

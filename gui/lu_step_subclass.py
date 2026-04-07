@@ -5,6 +5,13 @@ import tkinter as tk
 from tkinter import ttk
 
 from gui.lu_base_step import LevelUpStep
+from gui.source_config import (
+    SECTION_ORDER,
+    UA_CATEGORY,
+    group_by_category,
+    handle_ua_toggle,
+    save_settings,
+)
 from gui.theme import COLORS, FONTS, SPACING
 from gui.widgets import (
     CardFrame,
@@ -35,7 +42,7 @@ class LuSubclassStep(LevelUpStep):
         # Grid view (substep 0)
         self._grid_view = tk.Frame(self.frame, bg=COLORS["bg"])
         self._grid_view.columnconfigure(0, weight=1)
-        self._grid_view.rowconfigure(1, weight=1)
+        self._grid_view.rowconfigure(2, weight=1)
 
         grid_hero = GradientHeader(self._grid_view, min_height=60)
         grid_hero.grid(row=0, column=0, sticky="ew")
@@ -69,16 +76,25 @@ class LuSubclassStep(LevelUpStep):
             pady=(0, SPACING["xl"]),
         )
 
+        # Source filter toggles
+        self._grid_toggle_frame = tk.Frame(self._grid_view, bg=COLORS["bg"])
+        self._grid_toggle_frame.grid(row=1, column=0, sticky="ew", padx=SPACING["xl"], pady=(SPACING["md"], 0))
+        self.toggle_vars: dict[str, tk.BooleanVar] = {}
+        self._ua_prev_enabled = False
+
         self._tile_grid = TileGrid(
             self._grid_view,
             on_select=self._on_tile_click,
-            preferred_cols=3,
-            tile_width=280,
+            preferred_cols=4,
+            tile_width=250,
             tile_height=300,
+            min_tile_width=200,
             expand_tiles_to_fill=True,
+            expand_gap_with_tile=True,
             responsive_tile_height=True,
+            content_side_padding=SPACING["xl"],
         )
-        self._tile_grid.grid(row=1, column=0, sticky="nsew")
+        self._tile_grid.grid(row=2, column=0, sticky="nsew")
 
         # Detail view (substep 1)
         self._detail_view = tk.Frame(self.frame, bg=COLORS["bg"])
@@ -133,11 +149,70 @@ class LuSubclassStep(LevelUpStep):
     # ── Lifecycle ──
 
     def on_enter(self):
+        self._build_toggles()
         self._populate_tiles()
         self._show_current_substep()
 
+    def _build_toggles(self):
+        """Build source filter checkboxes for subclass sources."""
+        for w in self._grid_toggle_frame.winfo_children():
+            w.destroy()
+        self.toggle_vars.clear()
+
+        filters = self.data.source_filters.get("subclasses", {})
+        sections = SECTION_ORDER.get("subclasses", [])
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
+
+        for cat in sections:
+            label = "UA" if cat == UA_CATEGORY else cat
+            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
+            cb = ttk.Checkbutton(
+                self._grid_toggle_frame,
+                text=label,
+                variable=var,
+                command=self._on_toggle_change,
+            )
+            cb.pack(side=tk.LEFT, padx=(0, 6))
+            self.toggle_vars[cat] = var
+
+    def _on_toggle_change(self):
+        ua_var = self.toggle_vars.get(UA_CATEGORY)
+        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
+        if not proceed:
+            return
+
+        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
+        self.data.source_filters["subclasses"] = filters
+        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
+        save_settings(self.data.source_filters)
+        self._populate_tiles()
+
     def _populate_tiles(self):
         subclasses = self.data.get_subclasses_for_class(self.ctx.class_slug)
+
+        # Merge duplicate entries by slug: some subclasses have a named entry
+        # with empty features and an "Unknown" entry with the actual features.
+        merged: dict[str, dict] = {}
+        for sc in subclasses:
+            slug = sc.get("slug", "")
+            if slug not in merged:
+                merged[slug] = dict(sc)
+            else:
+                existing = merged[slug]
+                # Prefer a real name over "Unknown"
+                if existing.get("name") == "Unknown" and sc.get("name") != "Unknown":
+                    existing["name"] = sc["name"]
+                elif sc.get("name") == "Unknown" and existing.get("name") != "Unknown":
+                    pass  # keep existing name
+                # Merge features: keep whichever has data
+                if not existing.get("features") and sc.get("features"):
+                    existing["features"] = sc["features"]
+                    existing["feature_levels"] = sc.get("feature_levels", [])
+                # Prefer longer description
+                if len(sc.get("description") or "") > len(existing.get("description") or ""):
+                    existing["description"] = sc["description"]
+
+        subclass_list = list(merged.values())
 
         # Also include PHB core subclass names
         prog = self.data.get_progression(self.ctx.class_slug)
@@ -146,33 +221,66 @@ class LuSubclassStep(LevelUpStep):
             for name in prog.get("subclass_names", []):
                 phb_names.add(name)
 
-        existing_names = {sc["name"].lower() for sc in subclasses}
-        tiles = []
+        existing_names = {sc["name"].lower() for sc in subclass_list if sc.get("name") != "Unknown"}
 
-        for sc in sorted(subclasses, key=lambda s: s.get("name", "")):
-            features_at_level = sc.get("features", {}).get(str(self.ctx.new_class_level), [])
-            traits = [f.get("name", "") for f in features_at_level if f.get("name")]
-
-            tiles.append({
-                "name": sc["name"],
-                "description": (sc.get("description") or "")[:150],
-                "traits": traits,
-                "image_path": None,
-                "variant": "lore",
-            })
-
-        # PHB names not in UA data
+        # Build PHB stub entries for names not in detailed data
+        phb_stubs = []
         for name in sorted(phb_names):
             if name.lower() not in existing_names:
-                tiles.append({
+                phb_stubs.append({
                     "name": f"{name} (PHB)",
+                    "source": "Player's Handbook",
                     "description": "Core subclass — detailed feature data not available.",
-                    "traits": [],
+                    "features": {},
+                })
+
+        # Drop any still-unnamed entries after merge
+        all_subclasses = [
+            sc for sc in subclass_list if sc.get("name") != "Unknown"
+        ] + phb_stubs
+
+        filters = self.data.source_filters.get("subclasses", {})
+        enabled = {cat for cat, on in filters.items() if on}
+
+        grouped = group_by_category(all_subclasses, "subclasses")
+        sections = []
+        for cat, items in grouped:
+            if cat not in enabled:
+                continue
+            cat_tiles = []
+            for sc in items:
+                traits = self._collect_all_feature_names(sc)
+                cat_tiles.append({
+                    "name": sc["name"],
+                    "description": (sc.get("description") or "")[:150],
+                    "traits": traits,
                     "image_path": None,
                     "variant": "lore",
                 })
+            if cat_tiles:
+                sections.append((cat, cat_tiles))
+        self._tile_grid.set_sectioned_tiles(sections)
 
-        self._tile_grid.set_tiles(tiles)
+    @staticmethod
+    def _collect_all_feature_names(sc: dict) -> list[str]:
+        """Collect feature names from all levels for badge display."""
+        features_by_level = sc.get("features", {})
+        if not features_by_level:
+            return []
+
+        def _lvl_key(level_str: str) -> int:
+            try:
+                return int(level_str)
+            except (TypeError, ValueError):
+                return 99
+
+        traits: list[str] = []
+        for lvl in sorted(features_by_level.keys(), key=_lvl_key):
+            for feat in features_by_level[lvl]:
+                name = feat.get("name", "")
+                if name:
+                    traits.append(name)
+        return traits
 
     def _on_tile_click(self, name: str):
         clean_name = name.replace(" (PHB)", "")

@@ -302,7 +302,7 @@ class CharacterCreatorApp:
         )
         self._next_btn.pack(side=tk.RIGHT)
         candidate_next_labels = (
-            ["Finish \u2713"]
+            ["Complete & Save \u2713"]
             + list(_CONFIRM_STEP_LABELS.values())
             + _DYNAMIC_PRIMARY_ACTION_LABELS
         )
@@ -884,7 +884,7 @@ class CharacterCreatorApp:
         if is_last_visible_step:
             is_valid = self._all_visible_steps_valid()
             self._next_btn.configure(
-                text="Finish \u2713",
+                text="Complete & Save \u2713",
                 command=self._save_and_finish,
                 state=tk.NORMAL if is_valid else tk.DISABLED,
             )
@@ -1046,7 +1046,7 @@ class CharacterCreatorApp:
             command=self._lu_next,
         )
         self._lu_next_btn.pack(side=tk.RIGHT)
-        candidate_labels = ["Apply Level Up \u2713"] + list(_LU_CONFIRM_LABELS.values())
+        candidate_labels = ["Complete & Save \u2713"] + list(_LU_CONFIRM_LABELS.values())
         original_text = self._lu_next_btn.cget("text")
         max_width = 0
         for label in candidate_labels:
@@ -1312,7 +1312,7 @@ class CharacterCreatorApp:
                 self._lu_steps[self._lu_step_keys.index(k)].is_valid() for k in visible
             )
             self._lu_next_btn.configure(
-                text="Apply Level Up \u2713",
+                text="Complete & Save \u2713",
                 command=self._lu_next,
                 state=tk.NORMAL if all_valid else tk.DISABLED,
             )

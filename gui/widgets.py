@@ -2566,6 +2566,7 @@ class OptionTile(tk.Frame):
         feat_text = ""
         ability_items: list[str] = []
         skill_items: list[str] = []
+        generic_items: list[str] = []
 
         for raw_trait in self._traits:
             trait = " ".join(str(raw_trait).split())
@@ -2593,10 +2594,15 @@ class OptionTile(tk.Frame):
                 for item in self._split_lore_meta_values(value):
                     if item not in skill_items:
                         skill_items.append(item)
+            elif label_key == "tool" and value:
+                generic_items.append(f"Tool: {value}")
+            elif not separator and value:
+                generic_items.append(value)
 
         meta_items = (
             [{"kind": "ability", "text": item} for item in ability_items]
             + [{"kind": "skills", "text": item} for item in skill_items]
+            + [{"kind": "generic", "text": item} for item in generic_items]
         )
         return feat_text, meta_items
 
@@ -2617,7 +2623,9 @@ class OptionTile(tk.Frame):
             return (2, 2, 3)
         if self._tile_height <= 284:
             return (2, 2, 3)
-        return (3, 2, 4)
+        if self._tile_height <= 300:
+            return (2, 2, 6)
+        return (3, 2, 6)
 
     def _apply_lore_state(self, hovered: bool):
         surface = COLORS["bg_container"] if hovered else COLORS["bg_surface"]
@@ -3716,6 +3724,7 @@ class LoreOptionTile(tk.Frame):
         feat_text = ""
         ability_items: list[str] = []
         skill_items: list[str] = []
+        generic_items: list[str] = []
 
         for raw_trait in self._traits:
             trait = " ".join(str(raw_trait).split())
@@ -3743,10 +3752,15 @@ class LoreOptionTile(tk.Frame):
                 for item in self._split_lore_meta_values(value):
                     if item not in skill_items:
                         skill_items.append(item)
+            elif label_key == "tool" and value:
+                generic_items.append(f"Tool: {value}")
+            elif not separator and value:
+                generic_items.append(value)
 
         meta_items = (
             [{"kind": "ability", "text": item} for item in ability_items]
             + [{"kind": "skills", "text": item} for item in skill_items]
+            + [{"kind": "generic", "text": item} for item in generic_items]
         )
         return feat_text, meta_items
 
@@ -3766,7 +3780,9 @@ class LoreOptionTile(tk.Frame):
             return (2, 2, 3)
         if height <= 284:
             return (2, 2, 3)
-        return (3, 2, 4)
+        if height <= 300:
+            return (2, 2, 6)
+        return (3, 2, 6)
 
     def _wrap_text_lines(self, text: str, font_spec, width: int) -> list[str]:
         normalized = " ".join((text or "").split())
