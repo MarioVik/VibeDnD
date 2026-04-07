@@ -121,7 +121,7 @@ class ClassStep(WizardStep):
             self._build_subclass_preview_detail()
 
     def is_primary_action_visible(self) -> bool:
-        return self._current_substep == 1
+        return self._current_substep >= 1
 
     def get_next_label(self) -> str | None:
         if self._current_substep == 1 and self.is_valid():
