@@ -68,13 +68,18 @@ class ClassStep(WizardStep):
         self._class_portrait_source = None
         self._class_portrait_photo = None
         self._class_portrait_pending = False
+        self._selected_preview_sc: dict | None = None
 
-        # Two containers: grid view (substep 0) and detail view (substep 1)
+        # Substep 0: class grid, 1: class detail, 2: subclass grid, 3: subclass detail
         self._grid_frame = tk.Frame(self.frame, bg=COLORS["bg"])
         self._detail_frame = tk.Frame(self.frame, bg=COLORS["bg"])
+        self._sc_grid_frame = tk.Frame(self.frame, bg=COLORS["bg"])
+        self._sc_detail_frame = tk.Frame(self.frame, bg=COLORS["bg"])
 
         self._build_grid_view()
         self._build_detail_view()
+        self._build_subclass_grid_view()
+        self._build_subclass_detail_view()
 
         # Start on grid
         self._grid_frame.pack(fill=tk.BOTH, expand=True)
@@ -88,19 +93,35 @@ class ClassStep(WizardStep):
         return self._current_substep
 
     def get_substep_count(self) -> int:
+        # The wizard framework uses this for _last_available_substep_index.
+        # Return 2 so navigating back from the next step lands on substep 1
+        # (class detail), not the subclass preview.
         return 2
 
     def go_to_substep(self, index: int):
         if index == self._current_substep:
             return
-        self._current_substep = index
-        if index == 0:
-            self._detail_frame.pack_forget()
-            self._grid_frame.pack(fill=tk.BOTH, expand=True)
-        else:
-            self._grid_frame.pack_forget()
-            self._detail_frame.pack(fill=tk.BOTH, expand=True)
+        self._current_substep = max(0, min(3, index))
+        self._show_substep()
         self.notify_substep_change()
+
+    def _show_substep(self):
+        for f in (self._grid_frame, self._detail_frame, self._sc_grid_frame, self._sc_detail_frame):
+            f.pack_forget()
+        idx = self._current_substep
+        if idx == 0:
+            self._grid_frame.pack(fill=tk.BOTH, expand=True)
+        elif idx == 1:
+            self._detail_frame.pack(fill=tk.BOTH, expand=True)
+        elif idx == 2:
+            self._sc_grid_frame.pack(fill=tk.BOTH, expand=True)
+            self._populate_subclass_preview_tiles()
+        elif idx == 3:
+            self._sc_detail_frame.pack(fill=tk.BOTH, expand=True)
+            self._build_subclass_preview_detail()
+
+    def is_primary_action_visible(self) -> bool:
+        return self._current_substep == 1
 
     def get_next_label(self) -> str | None:
         if self._current_substep == 1 and self.is_valid():
@@ -1031,6 +1052,212 @@ class ClassStep(WizardStep):
                         ).pack(fill=tk.X, pady=(4, 0))
 
         self.notify_change()
+
+    # ── Subclass Preview (substeps 2 & 3) ─────────────────────────
+
+    def _build_subclass_grid_view(self):
+        """Build the subclass tile grid container (substep 2)."""
+        self._sc_grid_frame.columnconfigure(0, weight=1)
+        self._sc_grid_frame.rowconfigure(1, weight=1)
+
+        hero = GradientHeader(self._sc_grid_frame, min_height=50)
+        hero.grid(row=0, column=0, sticky="ew")
+        self._sc_grid_hero = hero
+
+        self._sc_tile_grid = TileGrid(
+            self._sc_grid_frame,
+            on_select=self._on_preview_tile_click,
+            preferred_cols=4,
+            tile_width=250,
+            tile_height=215,
+            min_tile_width=200,
+            expand_tiles_to_fill=True,
+            expand_gap_with_tile=True,
+            responsive_tile_height=True,
+            content_side_padding=SPACING["xl"],
+        )
+        self._sc_tile_grid.grid(row=1, column=0, sticky="nsew")
+
+    def _build_subclass_detail_view(self):
+        """Build the subclass detail container (substep 3)."""
+        self._sc_detail_frame.columnconfigure(0, weight=1)
+        self._sc_detail_frame.rowconfigure(1, weight=1)
+
+        self._sc_detail_hero = GradientHeader(self._sc_detail_frame, min_height=80)
+        self._sc_detail_hero.grid(row=0, column=0, sticky="ew")
+
+        self._sc_detail_scroll = ScrollableFrame(self._sc_detail_frame, auto_hide_scrollbar=True)
+        self._sc_detail_scroll.grid(row=1, column=0, sticky="nsew")
+
+    def enter_subclass_preview(self):
+        """Called by the app when the Preview Subclasses button is clicked."""
+        self.go_to_substep(2)
+
+    def _populate_subclass_preview_tiles(self):
+        """Fill the subclass tile grid for the currently selected class."""
+        # Update hero text
+        for w in self._sc_grid_hero.inner.winfo_children():
+            w.destroy()
+
+        cls_name = (self.character.character_class or {}).get("name", "")
+        tk.Label(
+            self._sc_grid_hero.inner,
+            text=f"Preview Subclasses — {cls_name}",
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_hero"],
+        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["lg"], SPACING["lg"]))
+
+        class_slug = (self.character.character_class or {}).get("slug", "")
+        subclasses = self.data.get_subclasses_for_class(class_slug)
+
+        filters = self.data.source_filters.get("subclasses", {})
+        enabled = {cat for cat, on in filters.items() if on}
+        grouped = group_by_category(subclasses, "subclasses")
+
+        self._preview_subclass_lookup: dict[str, dict] = {}
+        sections = []
+        for cat, items in grouped:
+            if cat not in enabled:
+                continue
+            cat_tiles = []
+            for sc in items:
+                traits = self._collect_feature_names(sc)
+                cat_tiles.append({
+                    "name": sc["name"],
+                    "description": (sc.get("description") or "")[:150],
+                    "traits": traits,
+                    "image_path": None,
+                    "variant": "lore",
+                })
+                self._preview_subclass_lookup[sc["name"]] = sc
+            if cat_tiles:
+                sections.append((cat, cat_tiles))
+
+        self._sc_tile_grid.set_sectioned_tiles(sections)
+
+    def _on_preview_tile_click(self, name: str):
+        sc = self._preview_subclass_lookup.get(name)
+        if sc:
+            self._selected_preview_sc = sc
+            self.go_to_substep(3)
+
+    def _build_subclass_preview_detail(self):
+        """Render the selected subclass's features in the detail view."""
+        sc = self._selected_preview_sc
+        if not sc:
+            return
+
+        # Hero
+        for w in self._sc_detail_hero.inner.winfo_children():
+            w.destroy()
+
+        hero_inner = tk.Frame(self._sc_detail_hero.inner, bg=COLORS["bg_hero"])
+        hero_inner.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(SPACING["xl"], SPACING["lg"]))
+
+        tk.Label(
+            hero_inner,
+            text=sc["name"],
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_hero"],
+        ).pack(side=tk.LEFT)
+
+        source = sc.get("source", "")
+        if source:
+            tk.Label(
+                hero_inner,
+                text=source,
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_hero"],
+            ).pack(side=tk.RIGHT)
+
+        # Content
+        for w in self._sc_detail_scroll.inner.winfo_children():
+            w.destroy()
+        inner = self._sc_detail_scroll.inner
+
+        desc = (sc.get("description") or "").strip()
+        if desc:
+            parts = re.split(r"\bLevel\s+\d+\s*:", desc, maxsplit=1)
+            intro = parts[0].strip()
+            if intro:
+                card = CardFrame(inner, pad=SPACING["lg"])
+                card.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["lg"], SPACING["sm"]))
+                WrappingLabel(
+                    card.inner,
+                    text=intro,
+                    font=FONTS["body"],
+                    foreground=COLORS["fg_dim"],
+                    background=COLORS["bg_surface"],
+                ).pack(fill=tk.X)
+
+        features_by_level = sc.get("features", {})
+        if features_by_level:
+            def _lvl_key(level_str: str) -> int:
+                try:
+                    return int(level_str)
+                except (TypeError, ValueError):
+                    return 99
+
+            for lvl in sorted(features_by_level.keys(), key=_lvl_key):
+                SectionHeader(inner, text=f"Level {lvl} Features").pack(
+                    fill=tk.X, padx=SPACING["lg"],
+                    pady=(SPACING["lg"], SPACING["sm"]),
+                )
+                for feat in features_by_level.get(lvl, []):
+                    feat_name = feat.get("name", "Feature")
+                    feat_desc = feat.get("description", "")
+
+                    card = CardFrame(inner, pad=SPACING["lg"])
+                    card.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["xs"]))
+
+                    feat_header = tk.Frame(card.inner, bg=COLORS["bg_surface"])
+                    feat_header.pack(fill=tk.X)
+
+                    tk.Label(
+                        feat_header,
+                        text=feat_name,
+                        font=FONTS["heading_serif_sm"],
+                        fg=COLORS["fg"],
+                        bg=COLORS["bg_surface"],
+                    ).pack(side=tk.LEFT)
+
+                    PillBadge(
+                        feat_header,
+                        text=f"LEVEL {lvl}",
+                        bg_color=COLORS["badge_glass_dim"],
+                        fg_color=COLORS["fg_dim"],
+                    ).pack(side=tk.RIGHT)
+
+                    if feat_desc:
+                        FormattedDescription(
+                            card.inner,
+                            text=feat_desc,
+                            font=FONTS["body_small"],
+                            foreground=COLORS["fg_dim"],
+                            background=COLORS["bg_surface"],
+                        ).pack(fill=tk.X, pady=(SPACING["xs"], 0))
+
+    @staticmethod
+    def _collect_feature_names(sc: dict) -> list[str]:
+        """Collect feature names from all levels for badge display."""
+        features_by_level = sc.get("features", {})
+        if not features_by_level:
+            return []
+        def _lvl_key(level_str: str) -> int:
+            try:
+                return int(level_str)
+            except (TypeError, ValueError):
+                return 99
+        traits: list[str] = []
+        for lvl in sorted(features_by_level.keys(), key=_lvl_key):
+            for feat in features_by_level[lvl]:
+                name = feat.get("name", "")
+                if name:
+                    traits.append(name)
+        return traits
 
     def is_valid(self) -> bool:
         return self.character.character_class is not None

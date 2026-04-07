@@ -6,8 +6,7 @@ from tkinter import ttk, filedialog
 from gui.theme import apply_theme, COLORS, FONTS, SPACING
 from gui.data_loader import GameData
 from gui.sidebar import WizardSidebar
-from gui.widgets import AlertDialog, ConfirmDialog, HPBar, configure_modal_dialog, TileGrid, GradientHeader
-from gui.source_config import group_by_category
+from gui.widgets import AlertDialog, ConfirmDialog, HPBar
 
 from gui.step_species import SpeciesStep
 from gui.step_class import ClassStep
@@ -308,7 +307,7 @@ class CharacterCreatorApp:
             nav_inner,
             text="\U0001f9ec  Preview Subclasses",
             style="Gold.TButton",
-            command=self._open_subclass_preview_dialog,
+            command=self._enter_subclass_preview,
         )
         # Packed/unpacked dynamically in _update_nav_buttons
         candidate_next_labels = (
@@ -926,108 +925,16 @@ class CharacterCreatorApp:
         self._step_label.configure(text=f"Step {visible_idx + 1} of {visible_count}")
         self._progress_bar.set_hp(visible_idx + 1, visible_count)
 
-    # ── Subclass Preview Dialog ──────────────────────────────────
+    # ── Subclass Preview ─────────────────────────────────────────
 
-    def _open_subclass_preview_dialog(self):
-        """Open a modal dialog showing subclass tiles for the selected class."""
-        cls = getattr(self, "character", None)
-        if not cls or not cls.character_class:
-            return
-        class_slug = cls.character_class.get("slug", "")
-        if not class_slug:
-            return
-
-        subclasses = self.data.get_subclasses_for_class(class_slug)
-        if not subclasses:
-            AlertDialog(self.root, "No Subclasses", "No subclasses found for this class.")
-            return
-
-        dialog = tk.Toplevel(self.root)
-        dialog.title("Preview Subclasses")
-        configure_modal_dialog(dialog, self.root)
-        dialog.configure(bg=COLORS["bg"])
-
-        # Size the dialog
-        dialog.geometry("960x620")
-        dialog.minsize(700, 400)
-
-        # Header
-        hero = GradientHeader(dialog, min_height=50)
-        hero.pack(fill=tk.X)
-        tk.Label(
-            hero.inner,
-            text=f"Subclasses — {cls.character_class.get('name', '')}",
-            font=FONTS["heading_serif_lg"],
-            fg=COLORS["fg"],
-            bg=COLORS["bg_hero"],
-        ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["lg"], SPACING["lg"]))
-
-        # Tile grid
-        tile_grid = TileGrid(
-            dialog,
-            on_select=lambda _name: None,
-            preferred_cols=4,
-            tile_width=250,
-            tile_height=215,
-            min_tile_width=200,
-            expand_tiles_to_fill=True,
-            expand_gap_with_tile=True,
-            responsive_tile_height=True,
-            content_side_padding=SPACING["xl"],
-        )
-        tile_grid.pack(fill=tk.BOTH, expand=True)
-
-        # Build sections
-        filters = self.data.source_filters.get("subclasses", {})
-        enabled = {cat for cat, on in filters.items() if on}
-        grouped = group_by_category(subclasses, "subclasses")
-
-        sections = []
-        for cat, items in grouped:
-            if cat not in enabled:
-                continue
-            cat_tiles = []
-            for sc in items:
-                traits = self._collect_subclass_feature_names(sc)
-                cat_tiles.append({
-                    "name": sc["name"],
-                    "description": (sc.get("description") or "")[:150],
-                    "traits": traits,
-                    "image_path": None,
-                    "variant": "lore",
-                })
-            if cat_tiles:
-                sections.append((cat, cat_tiles))
-
-        tile_grid.set_sectioned_tiles(sections)
-
-        # Close button
-        btn_frame = tk.Frame(dialog, bg=COLORS["bg_surface"])
-        btn_frame.pack(fill=tk.X, side=tk.BOTTOM)
-        btn_inner = tk.Frame(btn_frame, bg=COLORS["bg_surface"])
-        btn_inner.pack(pady=SPACING["md"])
-        ttk.Button(btn_inner, text="Close", command=dialog.destroy).pack()
-
-    @staticmethod
-    def _collect_subclass_feature_names(sc: dict) -> list[str]:
-        """Collect feature names from all levels for badge display."""
-        features_by_level = sc.get("features", {})
-        if not features_by_level:
-            return []
-
-        def _lvl_key(level_str: str) -> int:
-            try:
-                return int(level_str)
-            except (TypeError, ValueError):
-                return 99
-
-        traits: list[str] = []
-        for lvl in sorted(features_by_level.keys(), key=_lvl_key):
-            for feat in features_by_level[lvl]:
-                name = feat.get("name", "")
-                if name:
-                    traits.append(name)
-        return traits
+    def _enter_subclass_preview(self):
+        """Navigate to the subclass preview grid within the class step."""
+        curr = self._current_step_idx
+        step = self.wizard_steps[curr]
+        key = self._step_keys[curr]
+        if key == "class" and hasattr(step, "enter_subclass_preview"):
+            step.enter_subclass_preview()
+            self._update_nav_buttons()
 
     # ── Save & Export ──────────────────────────────────────────
 
