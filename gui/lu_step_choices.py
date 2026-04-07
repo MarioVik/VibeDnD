@@ -443,6 +443,7 @@ class LuChoicesStep(LevelUpStep):
                 self._show_sub_choice_ui(opt["name"], opt["sub_choice"])
             else:
                 self._hide_sub_choice_ui()
+            self.notify_change()
         finally:
             self._updating_choices = False
 
@@ -453,6 +454,7 @@ class LuChoicesStep(LevelUpStep):
     def _on_replace_change(self):
         self.ctx.replace_out = self._replace_out_var.get()
         self.ctx.replace_in = self._replace_in_var.get()
+        self.notify_change()
 
     def _show_choice_detail(self, opt: dict):
         self._hide_sub_choice_ui()
@@ -624,6 +626,7 @@ class LuChoicesStep(LevelUpStep):
             self.ctx.choice_sub_selections[name] = val
         else:
             self.ctx.choice_sub_selections.pop(name, None)
+        self.notify_change()
 
     def is_valid(self) -> bool:
         ok, _, _ = validate_choices_step(self.ctx, self.character, self.data)

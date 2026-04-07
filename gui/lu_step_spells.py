@@ -248,6 +248,7 @@ class LuSpellsStep(LevelUpStep):
             self.ctx.selected_new_cantrips = selected
             self._update_counts()
             self._update_cantrip_states(new_max, selected)
+            self.notify_change()
         finally:
             self._updating_cantrips = False
 
@@ -264,6 +265,7 @@ class LuSpellsStep(LevelUpStep):
             self.ctx.selected_new_spells = selected
             self._update_counts()
             self._update_spell_states(new_max, selected)
+            self.notify_change()
         finally:
             self._updating_spells = False
 
