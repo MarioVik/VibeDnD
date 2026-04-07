@@ -317,6 +317,86 @@ def enrich_magic_item_descriptions(items: list[dict]):
             item["full_description"] = full
 
 
+_PLUS_ITEM_SPLITS: dict[str, dict] = {
+    "Weapon, +1, +2 or +3": {
+        "base_name": "Weapon",
+        "type": "Weapon",
+        "rarities": {1: "Uncommon", 2: "Rare", 3: "Very Rare"},
+        "desc_template": "You have a +{n} bonus to attack rolls and damage rolls made with this magic weapon.",
+    },
+    "Armor, +1, +2, or +3": {
+        "base_name": "Armor",
+        "type": "Armor",
+        "rarities": {1: "Rare", 2: "Very Rare", 3: "Legendary"},
+        "desc_template": "You have a +{n} bonus to Armor Class while wearing this armor.",
+    },
+    "Shield, +1, +2, or +3": {
+        "base_name": "Shield",
+        "type": "Armor",
+        "rarities": {1: "Uncommon", 2: "Rare", 3: "Very Rare"},
+        "desc_template": "While holding this Shield, you have a +{n} bonus to Armor Class, in addition to the Shield\u2019s normal bonus to AC.",
+    },
+    "Ammunition, +1, +2, or +3": {
+        "base_name": "Ammunition",
+        "type": "Weapon",
+        "rarities": {1: "Uncommon", 2: "Rare", 3: "Very Rare"},
+        "desc_template": "You have a +{n} bonus to attack rolls and damage rolls made with this piece of magic ammunition. Once it hits a target, the ammunition is no longer magical.",
+    },
+    "Wand of the War Mage, +1, +2 or +3": {
+        "base_name": "Wand of the War Mage",
+        "type": "Wand",
+        "rarities": {1: "Uncommon", 2: "Rare", 3: "Very Rare"},
+        "desc_template": "While holding this wand, you gain a +{n} bonus to spell attack rolls. In addition, you ignore Half Cover when making a spell attack roll. Requires Attunement by a Spellcaster.",
+    },
+    "Rod of the Pact Keeper": {
+        "base_name": "Rod of the Pact Keeper",
+        "type": "Rod",
+        "rarities": {1: "Uncommon", 2: "Rare", 3: "Very Rare"},
+        "desc_template": "While holding this rod, you gain a +{n} bonus to spell attack rolls and to the saving throw DCs of your Warlock spells. In addition, you can regain one spell slot as a Magic action while holding the rod. You can\u2019t use this property again until you finish a Long Rest. Requires Attunement by a Warlock.",
+    },
+    "Wraps of Unarmed Power": {
+        "base_name": "Wraps of Unarmed Power",
+        "type": "Wondrous Item",
+        "rarities": {1: "Uncommon", 2: "Rare", 3: "Very Rare"},
+        "desc_template": "While wearing these wraps, you have a +{n} bonus to attack rolls and damage rolls made with your Unarmed Strikes, and those strikes count as magical.",
+    },
+}
+
+
+def _split_plus_items(items: list[dict]) -> list[dict]:
+    """Replace grouped '+1, +2, or +3' items with separate entries."""
+    result: list[dict] = []
+    for item in items:
+        name = item.get("name", "")
+        # Match by exact name, or by name without the "+1, +2 ..." suffix
+        spec = _PLUS_ITEM_SPLITS.get(name)
+        if not spec:
+            # Check if description contains the "(+1), ... (+2), ... (+3)" pattern
+            fd = item.get("full_description", "")
+            if "(+1)" in fd and "(+2)" in fd and "(+3)" in fd:
+                spec = _PLUS_ITEM_SPLITS.get(name)
+            if not spec:
+                result.append(item)
+                continue
+        for n in (1, 2, 3):
+            split = {
+                "id": f"magic-items:{_slug(spec['base_name'])}-plus-{n}",
+                "name": f"{spec['base_name']}, +{n}",
+                "category": "Magic Items",
+                "cost_cp": 0,
+                "description": item.get("description", ""),
+                "source": item.get("source", ""),
+                "type": spec.get("type", item.get("type", "")),
+                "rarity": spec["rarities"][n],
+                "magic_bonus": n,
+                "full_description": spec["desc_template"].format(n=n),
+            }
+            if item.get("detail_url"):
+                split["detail_url"] = item["detail_url"]
+            result.append(split)
+    return result
+
+
 def main():
     all_items = []
     seen = set()
@@ -331,6 +411,7 @@ def main():
             all_items.append(item)
 
     enrich_magic_item_descriptions(all_items)
+    all_items = _split_plus_items(all_items)
 
     os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
     with open(OUT_FILE, "w", encoding="utf-8") as f:

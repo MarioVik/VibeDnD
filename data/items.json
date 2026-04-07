@@ -2664,16 +2664,43 @@
     "full_description": "This ceramic jug appears to be able to hold a gallon of liquid and weighs 12 pounds whether full or empty. The jug sloshes when it is shaken, even if the jug is empty. You can take a Magic action and name one liquid from the Alchemy Jug Liquids table to cause the jug to produce the chosen liquid. Afterward, you can uncork the jug as a Utilize action and pour that liquid out, up to 2 gallons per minute. The maximum amount of liquid the jug can produce depends on the liquid you named. Once the jug starts producing a liquid, it can’t produce a different one, or more of one that has reached its maximum, until the next dawn. Alchemy Jug Liquids Liquid Max. Amount Acid 8 ounces Basic Poison 4 ounces Beer 4 gallons Honey 1 gallon Mayonnaise 2 gallons Oil 1 quart Vinegar 2 gallons Water, fresh 8 gallons Water, salt 12 gallons Wine 1 gallon"
   },
   {
-    "id": "magic-items:ammunition-1-2-or-3",
-    "name": "Ammunition, +1, +2, or +3",
+    "id": "magic-items:ammunition-plus-1",
+    "name": "Ammunition, +1",
     "category": "Magic Items",
     "cost_cp": 0,
     "description": "Attuned: -",
     "source": "http://dnd2024.wikidot.com/magic-item:all",
     "type": "Weapon",
     "rarity": "Uncommon",
-    "detail_url": "http://dnd2024.wikidot.com/magic-item:ammunition-1-2-or-3",
-    "full_description": "(+1), Rare (+2), or Very Rare (+3) You have a bonus to attack rolls and damage rolls made with this piece of magic ammunition. The bonus is determined by the rarity of the ammunition. Once it hits a target, the ammunition is no longer magical. This ammunition is typically found or sold in quantities of ten or twenty pieces. Ten pieces of this ammunition are equivalent in value to a potion of the same rarity."
+    "magic_bonus": 1,
+    "full_description": "You have a +1 bonus to attack rolls and damage rolls made with this piece of magic ammunition. Once it hits a target, the ammunition is no longer magical.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:ammunition-1-2-or-3"
+  },
+  {
+    "id": "magic-items:ammunition-plus-2",
+    "name": "Ammunition, +2",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Weapon",
+    "rarity": "Rare",
+    "magic_bonus": 2,
+    "full_description": "You have a +2 bonus to attack rolls and damage rolls made with this piece of magic ammunition. Once it hits a target, the ammunition is no longer magical.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:ammunition-1-2-or-3"
+  },
+  {
+    "id": "magic-items:ammunition-plus-3",
+    "name": "Ammunition, +3",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Weapon",
+    "rarity": "Very Rare",
+    "magic_bonus": 3,
+    "full_description": "You have a +3 bonus to attack rolls and damage rolls made with this piece of magic ammunition. Once it hits a target, the ammunition is no longer magical.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:ammunition-1-2-or-3"
   },
   {
     "id": "magic-items:amulet-of-proof-against-detection-and-location",
@@ -3732,16 +3759,43 @@
     "full_description": "This robe has cloth patches of various shapes and colors covering it. While wearing the robe, you can take a Magic action to detach one of the patches, causing it to become the object or creature it represents. Once the last patch is removed, the robe becomes an ordinary garment. The robe has two of each of the following patches: Bullseye Lantern (filled and lit) Dagger Mirror Pole Rope (coiled) Sack In addition, the robe has 4d4 other patches. The DM chooses the patches or determines them randomly by rolling on the following table. 1d100 Patch 01-08 Bag of 100 GP 09-15 Silver coffer (1 foot long, 6 inches wide and deep) worth 500 GP 16-22 Iron door (up to 10 feet wide and 10 feet high, barred on one side of your choice), which you can place in an opening you can reach; it conforms to fit the opening, attaching and hinging itself 23-30 10 gems worth 100 GP each 31-44 Wooden ladder (24 feet long) 45-51 Riding Horse with a Riding Saddle 52-59 Open pit (a 10-foot Cube), which you can place on the ground within 10 feet of yourself 60-68 4 Potions of Healing 69-75 Rowboat (12 feet long) 76-83 Spell Scroll containing one spell of level 1, 2, or 3 (your choice) 84-90 2 Mastiffs 91-96 Window (2 feet by 4 feet, up to 2 feet deep), which you can place on a vertical surface you can reach 97-00 Portable Ram"
   },
   {
-    "id": "magic-items:rod-of-the-pact-keeper",
-    "name": "Rod of the Pact Keeper",
+    "id": "magic-items:rod-of-the-pact-keeper-plus-1",
+    "name": "Rod of the Pact Keeper, +1",
     "category": "Magic Items",
     "cost_cp": 0,
     "description": "Attuned: Attunement",
     "source": "http://dnd2024.wikidot.com/magic-item:all",
     "type": "Rod",
     "rarity": "Uncommon",
-    "detail_url": "http://dnd2024.wikidot.com/magic-item:rod-of-the-pact-keeper",
-    "full_description": "(+1), Rare (+2), or Very Rare (+3) (Requires Attunement by a Warlock) While holding this rod, you gain a bonus to spell attack rolls and to the saving throw DCs of your Warlock spells. The bonus is determined by the rod’s rarity. In addition, you can regain one spell slot as a Magic action while holding the rod. You can’t use this property again until you finish a Long Rest."
+    "magic_bonus": 1,
+    "full_description": "While holding this rod, you gain a +1 bonus to spell attack rolls and to the saving throw DCs of your Warlock spells. In addition, you can regain one spell slot as a Magic action while holding the rod. You can’t use this property again until you finish a Long Rest. Requires Attunement by a Warlock.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:rod-of-the-pact-keeper"
+  },
+  {
+    "id": "magic-items:rod-of-the-pact-keeper-plus-2",
+    "name": "Rod of the Pact Keeper, +2",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Rod",
+    "rarity": "Rare",
+    "magic_bonus": 2,
+    "full_description": "While holding this rod, you gain a +2 bonus to spell attack rolls and to the saving throw DCs of your Warlock spells. In addition, you can regain one spell slot as a Magic action while holding the rod. You can’t use this property again until you finish a Long Rest. Requires Attunement by a Warlock.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:rod-of-the-pact-keeper"
+  },
+  {
+    "id": "magic-items:rod-of-the-pact-keeper-plus-3",
+    "name": "Rod of the Pact Keeper, +3",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Rod",
+    "rarity": "Very Rare",
+    "magic_bonus": 3,
+    "full_description": "While holding this rod, you gain a +3 bonus to spell attack rolls and to the saving throw DCs of your Warlock spells. In addition, you can regain one spell slot as a Magic action while holding the rod. You can’t use this property again until you finish a Long Rest. Requires Attunement by a Warlock.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:rod-of-the-pact-keeper"
   },
   {
     "id": "magic-items:rope-of-climbing",
@@ -3792,16 +3846,43 @@
     "full_description": "While holding this Shield, you have Advantage on Initiative rolls and Wisdom (Perception) checks. The Shield is emblazoned with a symbol of an eye."
   },
   {
-    "id": "magic-items:shield-1-2-or-3",
-    "name": "Shield, +1, +2, or +3",
+    "id": "magic-items:shield-plus-1",
+    "name": "Shield, +1",
     "category": "Magic Items",
     "cost_cp": 0,
     "description": "Attuned: -",
     "source": "http://dnd2024.wikidot.com/magic-item:all",
     "type": "Armor",
     "rarity": "Uncommon",
-    "detail_url": "http://dnd2024.wikidot.com/magic-item:shield-1-2-or-3",
-    "full_description": "(+1), Rare (+2), or Very Rare (+3) While holding this Shield, you have a bonus to Armor Class determined by the Shield’s rarity, in addition to the Shield’s normal bonus to AC."
+    "magic_bonus": 1,
+    "full_description": "While holding this Shield, you have a +1 bonus to Armor Class, in addition to the Shield’s normal bonus to AC.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:shield-1-2-or-3"
+  },
+  {
+    "id": "magic-items:shield-plus-2",
+    "name": "Shield, +2",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Armor",
+    "rarity": "Rare",
+    "magic_bonus": 2,
+    "full_description": "While holding this Shield, you have a +2 bonus to Armor Class, in addition to the Shield’s normal bonus to AC.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:shield-1-2-or-3"
+  },
+  {
+    "id": "magic-items:shield-plus-3",
+    "name": "Shield, +3",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Armor",
+    "rarity": "Very Rare",
+    "magic_bonus": 3,
+    "full_description": "While holding this Shield, you have a +3 bonus to Armor Class, in addition to the Shield’s normal bonus to AC.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:shield-1-2-or-3"
   },
   {
     "id": "magic-items:slippers-of-spider-climbing",
@@ -3948,16 +4029,43 @@
     "full_description": "This wand has 3 charges and regains 1d3 expended charges daily at dawn. While holding it, you can take a Magic action to expend 1 charge, and if a secret door or trap is within 60 feet of you, the wand pulses and points at the one nearest to you. uncommonwand"
   },
   {
-    "id": "magic-items:wand-of-the-war-mage-1-2-or-3",
-    "name": "Wand of the War Mage, +1, +2 or +3",
+    "id": "magic-items:wand-of-the-war-mage-plus-1",
+    "name": "Wand of the War Mage, +1",
     "category": "Magic Items",
     "cost_cp": 0,
     "description": "Attuned: Attunement",
     "source": "http://dnd2024.wikidot.com/magic-item:all",
     "type": "Wand",
     "rarity": "Uncommon",
-    "detail_url": "http://dnd2024.wikidot.com/magic-item:wand-of-the-war-mage-1-2-or-3",
-    "full_description": "(+1), Rare (+2), or Very Rare (+3) (Requires Attunement by a Spellcaster) While holding this wand, you gain a bonus to spell attack rolls determined by the wand’s rarity. In addition, you ignore Half Cover when making a spell attack roll. attunedrareuncommonvery-rarewand"
+    "magic_bonus": 1,
+    "full_description": "While holding this wand, you gain a +1 bonus to spell attack rolls. In addition, you ignore Half Cover when making a spell attack roll. Requires Attunement by a Spellcaster.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:wand-of-the-war-mage-1-2-or-3"
+  },
+  {
+    "id": "magic-items:wand-of-the-war-mage-plus-2",
+    "name": "Wand of the War Mage, +2",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Wand",
+    "rarity": "Rare",
+    "magic_bonus": 2,
+    "full_description": "While holding this wand, you gain a +2 bonus to spell attack rolls. In addition, you ignore Half Cover when making a spell attack roll. Requires Attunement by a Spellcaster.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:wand-of-the-war-mage-1-2-or-3"
+  },
+  {
+    "id": "magic-items:wand-of-the-war-mage-plus-3",
+    "name": "Wand of the War Mage, +3",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: Attunement",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Wand",
+    "rarity": "Very Rare",
+    "magic_bonus": 3,
+    "full_description": "While holding this wand, you gain a +3 bonus to spell attack rolls. In addition, you ignore Half Cover when making a spell attack roll. Requires Attunement by a Spellcaster.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:wand-of-the-war-mage-1-2-or-3"
   },
   {
     "id": "magic-items:wand-of-web",
@@ -3972,16 +4080,43 @@
     "full_description": "(Requires Attunement by a Spellcaster) This wand has 7 charges. While holding it, you can expend 1 charge to cast Web (save DC 13) from it. Regaining Charges. The wand regains 1d6 + 1 expended charges daily at dawn. If you expend the wand’s last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed. attuneduncommonwand"
   },
   {
-    "id": "magic-items:weapon-1-2-or-3",
-    "name": "Weapon, +1, +2 or +3",
+    "id": "magic-items:weapon-plus-1",
+    "name": "Weapon, +1",
     "category": "Magic Items",
     "cost_cp": 0,
     "description": "Attuned: -",
     "source": "http://dnd2024.wikidot.com/magic-item:all",
     "type": "Weapon",
     "rarity": "Uncommon",
-    "detail_url": "http://dnd2024.wikidot.com/magic-item:weapon-1-2-or-3",
-    "full_description": "(+1), Rare (+2), or Very Rare (+3) You have a bonus to attack rolls and damage rolls made with this magic weapon. The bonus is determined by the weapon’s rarity."
+    "magic_bonus": 1,
+    "full_description": "You have a +1 bonus to attack rolls and damage rolls made with this magic weapon.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:weapon-1-2-or-3"
+  },
+  {
+    "id": "magic-items:weapon-plus-2",
+    "name": "Weapon, +2",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Weapon",
+    "rarity": "Rare",
+    "magic_bonus": 2,
+    "full_description": "You have a +2 bonus to attack rolls and damage rolls made with this magic weapon.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:weapon-1-2-or-3"
+  },
+  {
+    "id": "magic-items:weapon-plus-3",
+    "name": "Weapon, +3",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Weapon",
+    "rarity": "Very Rare",
+    "magic_bonus": 3,
+    "full_description": "You have a +3 bonus to attack rolls and damage rolls made with this magic weapon.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:weapon-1-2-or-3"
   },
   {
     "id": "magic-items:weapon-of-warning",
@@ -4020,16 +4155,43 @@
     "full_description": "(Requires Attunement) These boots have 4 charges and regain 1d4 expended charges daily at dawn. While wearing the boots, you can take a Magic action to expend 1 charge, gaining a Fly Speed of 30 feet for 1 hour. If you are flying when the duration expires, you descend at a rate of 30 feet per round until you land."
   },
   {
-    "id": "magic-items:wraps-of-unarmed-power",
-    "name": "Wraps of Unarmed Power",
+    "id": "magic-items:wraps-of-unarmed-power-plus-1",
+    "name": "Wraps of Unarmed Power, +1",
     "category": "Magic Items",
     "cost_cp": 0,
     "description": "Attuned: -",
     "source": "http://dnd2024.wikidot.com/magic-item:all",
     "type": "Wondrous Item",
     "rarity": "Uncommon",
-    "detail_url": "http://dnd2024.wikidot.com/magic-item:wraps-of-unarmed-power",
-    "full_description": "(+1), Rare (+2), or Very Rare (+3) While wearing these wraps, you have a bonus to attack rolls and damage rolls made with your Unarmed Strikes. The bonus is determined by the wraps' rarity, and those strikes deal your choice of Force damage or their normal damage type."
+    "magic_bonus": 1,
+    "full_description": "While wearing these wraps, you have a +1 bonus to attack rolls and damage rolls made with your Unarmed Strikes, and those strikes count as magical.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:wraps-of-unarmed-power"
+  },
+  {
+    "id": "magic-items:wraps-of-unarmed-power-plus-2",
+    "name": "Wraps of Unarmed Power, +2",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Wondrous Item",
+    "rarity": "Rare",
+    "magic_bonus": 2,
+    "full_description": "While wearing these wraps, you have a +2 bonus to attack rolls and damage rolls made with your Unarmed Strikes, and those strikes count as magical.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:wraps-of-unarmed-power"
+  },
+  {
+    "id": "magic-items:wraps-of-unarmed-power-plus-3",
+    "name": "Wraps of Unarmed Power, +3",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Wondrous Item",
+    "rarity": "Very Rare",
+    "magic_bonus": 3,
+    "full_description": "While wearing these wraps, you have a +3 bonus to attack rolls and damage rolls made with your Unarmed Strikes, and those strikes count as magical.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:wraps-of-unarmed-power"
   },
   {
     "id": "magic-items:amulet-of-health",
@@ -4044,16 +4206,43 @@
     "full_description": "(Requires Attunement) Your Constitution is 19 while you wear this amulet. It has no effect on you if your Constitution is 19 or higher without it."
   },
   {
-    "id": "magic-items:armor-1-2-or-3",
-    "name": "Armor, +1, +2, or +3",
+    "id": "magic-items:armor-plus-1",
+    "name": "Armor, +1",
     "category": "Magic Items",
     "cost_cp": 0,
     "description": "Attuned: -",
     "source": "http://dnd2024.wikidot.com/magic-item:all",
     "type": "Armor",
     "rarity": "Rare",
-    "detail_url": "http://dnd2024.wikidot.com/magic-item:armor-1-2-or-3",
-    "full_description": "(+1), Very Rare (+2), or Legendary (+3) You have a bonus to Armor Class while wearing this armor. The bonus is determined by its rarity."
+    "magic_bonus": 1,
+    "full_description": "You have a +1 bonus to Armor Class while wearing this armor.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:armor-1-2-or-3"
+  },
+  {
+    "id": "magic-items:armor-plus-2",
+    "name": "Armor, +2",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Armor",
+    "rarity": "Very Rare",
+    "magic_bonus": 2,
+    "full_description": "You have a +2 bonus to Armor Class while wearing this armor.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:armor-1-2-or-3"
+  },
+  {
+    "id": "magic-items:armor-plus-3",
+    "name": "Armor, +3",
+    "category": "Magic Items",
+    "cost_cp": 0,
+    "description": "Attuned: -",
+    "source": "http://dnd2024.wikidot.com/magic-item:all",
+    "type": "Armor",
+    "rarity": "Legendary",
+    "magic_bonus": 3,
+    "full_description": "You have a +3 bonus to Armor Class while wearing this armor.",
+    "detail_url": "http://dnd2024.wikidot.com/magic-item:armor-1-2-or-3"
   },
   {
     "id": "magic-items:armor-of-resistance",

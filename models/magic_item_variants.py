@@ -1,6 +1,6 @@
 """Mapping of generic magic items to base weapon/armor variant choices.
 
-Generic magic items like 'Weapon, +1, +2 or +3' or 'Flame Tongue' require the
+Generic magic items like 'Weapon, +1' or 'Flame Tongue' require the
 user to pick a base weapon/armor type.  This module provides the mapping and a
 helper that returns the selectable options (reusing the same filter logic as
 the Artificer Replicate Magic Item sub-choices).
@@ -40,10 +40,14 @@ MAGIC_ITEM_VARIANTS: dict[str, tuple[str, str]] = {
     "Silvered Weapon": (WEAPON, FILTER_ALL),
     "Vicious Weapon": (WEAPON, FILTER_ALL),
     "Weapon of Warning": (WEAPON, FILTER_ALL),
-    "Weapon, +1, +2 or +3": (WEAPON, FILTER_ALL),
+    "Weapon, +1": (WEAPON, FILTER_ALL),
+    "Weapon, +2": (WEAPON, FILTER_ALL),
+    "Weapon, +3": (WEAPON, FILTER_ALL),
     # Ammunition-only weapons
     "Ammunition of Slaying": (WEAPON, FILTER_AMMUNITION),
-    "Ammunition, +1, +2, or +3": (WEAPON, FILTER_AMMUNITION),
+    "Ammunition, +1": (WEAPON, FILTER_AMMUNITION),
+    "Ammunition, +2": (WEAPON, FILTER_AMMUNITION),
+    "Ammunition, +3": (WEAPON, FILTER_AMMUNITION),
     "Repeating Shot": (WEAPON, FILTER_AMMUNITION),
     "Walloping Ammunition": (WEAPON, FILTER_AMMUNITION),
     # Thrown-only weapons
@@ -69,7 +73,9 @@ MAGIC_ITEM_VARIANTS: dict[str, tuple[str, str]] = {
     "Armor of Invulnerability": (ARMOR, FILTER_NO_SHIELD),
     "Armor of Resistance": (ARMOR, FILTER_NO_SHIELD),
     "Armor of Vulnerability": (ARMOR, FILTER_NO_SHIELD),
-    "Armor, +1, +2, or +3": (ARMOR, FILTER_NO_SHIELD),
+    "Armor, +1": (ARMOR, FILTER_NO_SHIELD),
+    "Armor, +2": (ARMOR, FILTER_NO_SHIELD),
+    "Armor, +3": (ARMOR, FILTER_NO_SHIELD),
     "Cast-Off Armor": (ARMOR, FILTER_NO_SHIELD),
     "Dragon Scale Mail": (ARMOR, FILTER_NO_SHIELD),
     "Enspelled Armor": (ARMOR, FILTER_NO_SHIELD),
