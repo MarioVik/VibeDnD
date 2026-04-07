@@ -87,7 +87,7 @@ class LuSubclassStep(LevelUpStep):
             on_select=self._on_tile_click,
             preferred_cols=4,
             tile_width=250,
-            tile_height=215,
+            tile_height=180,
             min_tile_width=200,
             expand_tiles_to_fill=True,
             expand_gap_with_tile=True,
