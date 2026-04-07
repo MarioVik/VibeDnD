@@ -369,8 +369,8 @@ def parse_species(raw_data: list[dict]) -> list[dict]:
         # Speed
         speed = parse_speed(content)
 
-        # Traits
-        traits = parse_traits(content)
+        # Traits (strip "Languages" — 2024 rules don't grant languages from species)
+        traits = [t for t in parse_traits(content) if t.get("name") != "Languages"]
 
         # Sub-choices (lineages, ancestry, legacy)
         sub_choices = parse_sub_choices(content, name)

@@ -189,6 +189,7 @@ This app is a **2024 rules (“5.5e”) character builder**. It may include lega
 
 **Non-negotiable rules when adding legacy content:**
 - **Do not apply Ability Score Increases from legacy species/races** in the 2024 builder. Ability score increases come from the **background** (2024 model). **Do not put species ASI in scrapes** (see above).
+- **Do not include “Languages” traits in species data.** Under 2024 rules, language proficiencies come from **backgrounds**, not species. The species parser automatically strips any “Languages” traits from legacy species.
 - Prefer a **single version** of an option:
   - If an option exists in both legacy and updated form, the **updated form should be the default**.
   - Keep legacy versions clearly labeled/sectioned as **Legacy** to avoid “two versions of the same thing.”

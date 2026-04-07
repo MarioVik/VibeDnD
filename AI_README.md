@@ -138,6 +138,7 @@ This project is a **2024 rules (“5.5e”) character builder** that may optiona
 - **Why:** This app applies ASIs from **backgrounds only** (2024 model). If race ASI text exists in the scrape, parsers may turn it into a **trait** that players or future code treat as mechanical, or someone may “helpfully” wire it into the ability step—producing **double ASIs** with the background and making characters **wildly unbalanced**.
 - **What to do instead:** Omit those paragraphs from the scrape entirely. Do not rely on “we’ll ignore it in code”; keep it **out of the data**.
 - This rule applies to **every future** legacy species added to raw scrapes, not only Deep Gnome.
+- **Also omit “Languages” paragraphs** from legacy species scrapes. Under 2024 rules, language proficiencies come from **backgrounds**, not species. The species parser automatically strips any “Languages” traits.
 
 ### 1) Top-level compatibility rule (2024 builder)
 - **Ability Score Increases (ASIs)** at character creation come from the **background** (2024 model).
