@@ -13,6 +13,7 @@ SETTINGS_PATH = settings_path()
 SOURCE_TO_CATEGORY = {
     "species": {
         "Player's Handbook": "Common",
+        "Player's Handbook (2014)": "Legacy",
         "Eberron - Forge of the Artificer": "Eberron",
         "Lorwyn - First Light": "Exotic",
         "Astarion's Book of Hungers": "Exotic",
@@ -54,7 +55,7 @@ SOURCE_TO_CATEGORY = {
 
 # Display order for each context's categories
 SECTION_ORDER = {
-    "species": ["Common", "Eberron", "Exotic"],
+    "species": ["Common", "Eberron", "Exotic", "Legacy"],
     "backgrounds": ["Common", "Eberron", "Faerun", "Exotic"],
     "feats": ["Common", "Faerun", "Exotic"],
     "classes": ["Common", "Eberron", "Faerun", "Unearthed Arcana"],

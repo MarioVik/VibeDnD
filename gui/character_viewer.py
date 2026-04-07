@@ -3316,7 +3316,10 @@ class CharacterViewer(ttk.Frame):
         return False
 
     def _toggle_attune_selected(self):
-        """Toggle attunement on the currently selected inventory item."""
+        """Toggle attunement on the currently selected inventory item.
+
+        For equippable items, attuning also equips and un-attuning also unequips.
+        """
         if not self._selected_inventory_name:
             return
         entry = None
@@ -3327,9 +3330,25 @@ class CharacterViewer(ttk.Frame):
         if not entry:
             return
         key = entry.get("key", "")
+        cat = entry.get("category", "")
+        equippable = entry.get("equippable", False)
+
         if key in self.character.attuned_items:
+            # Un-attune — also unequip if equippable
             self.character.attuned_items.remove(key)
+            if equippable:
+                if cat == "Weapons":
+                    equipped = list(self.character.equipped_weapons or [])
+                    equipped = [w for w in equipped if w != key]
+                    self.character.equipped_weapons = sorted(equipped)
+                elif cat == "Armor":
+                    equipped = list(self.character.equipped_armor or [])
+                    equipped = [a for a in equipped if a != key]
+                    self.character.equipped_armor = self._normalize_equipped_armor(
+                        set(equipped)
+                    )
         else:
+            # Attune — also equip if equippable
             if len(self.character.attuned_items) >= 3:
                 AlertDialog(
                     self.winfo_toplevel(),
@@ -3338,6 +3357,39 @@ class CharacterViewer(ttk.Frame):
                     "Unattune an item first to make room.",
                 )
                 return
+
+            if equippable:
+                if cat == "Weapons":
+                    if not self._has_weapon_proficiency(key):
+                        AlertDialog(
+                            self.winfo_toplevel(),
+                            "Weapon Proficiency",
+                            f"You are not proficient with {key.title()}. "
+                            "You can still equip it, but your proficiency bonus "
+                            "will not be added to attack rolls.",
+                        )
+                    equipped = list(self.character.equipped_weapons or [])
+                    if key not in equipped:
+                        equipped.append(key)
+                    self.character.equipped_weapons = sorted(equipped)
+                elif cat == "Armor":
+                    ok, reason = self._can_equip_armor(key)
+                    if not ok:
+                        AlertDialog(
+                            self.winfo_toplevel(),
+                            "Armor Training Required",
+                            reason,
+                        )
+                        return
+                    equipped = list(self.character.equipped_armor or [])
+                    if key != "shield":
+                        equipped = [a for a in equipped if a == "shield"]
+                    if key not in equipped:
+                        equipped.append(key)
+                    self.character.equipped_armor = self._normalize_equipped_armor(
+                        set(equipped)
+                    )
+
             self.character.attuned_items.append(key)
         self._on_sheet_changed()
         self._refresh_inventory_split_items()
@@ -3381,17 +3433,30 @@ class CharacterViewer(ttk.Frame):
         qty = int(entry.get("qty", 1) or 1)
         self.remove_one_btn.configure(state=tk.NORMAL)
         self.remove_all_btn.configure(state=tk.DISABLED if qty <= 1 else tk.NORMAL)
-        if entry.get("equippable"):
+
+        equippable = entry.get("equippable", False)
+        needs_attune = self._item_requires_attunement(entry)
+
+        # If both equippable and requires attunement, only show Attune button
+        # (attuning will also equip the item automatically)
+        if equippable and needs_attune:
+            self._inv_equip_btn.pack_forget()
+            key = entry.get("key", "")
+            is_attuned = key in self.character.attuned_items
+            btn_text = "Unattune" if is_attuned else "Attune"
+            self._inv_attune_btn.configure(state=tk.NORMAL, text=btn_text)
+            self._inv_attune_btn.pack(
+                side=tk.LEFT, padx=(0, 6), before=self.remove_one_btn
+            )
+        elif equippable:
             btn_text = "Unequip" if entry.get("equipped") else "Equip"
             self._inv_equip_btn.configure(state=tk.NORMAL, text=btn_text)
             self._inv_equip_btn.pack(
                 side=tk.LEFT, padx=(0, 6), before=self.remove_one_btn
             )
-        else:
+            self._inv_attune_btn.pack_forget()
+        elif needs_attune:
             self._inv_equip_btn.pack_forget()
-
-        # Show/hide attune button for magic items requiring attunement
-        if self._item_requires_attunement(entry):
             key = entry.get("key", "")
             is_attuned = key in self.character.attuned_items
             btn_text = "Unattune" if is_attuned else "Attune"
@@ -3400,6 +3465,7 @@ class CharacterViewer(ttk.Frame):
                 side=tk.LEFT, padx=(0, 6), before=self.remove_one_btn
             )
         else:
+            self._inv_equip_btn.pack_forget()
             self._inv_attune_btn.pack_forget()
 
         self._show_inventory_details(entry)
