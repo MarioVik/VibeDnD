@@ -109,7 +109,7 @@
     "name": "Deep Gnome",
     "source": "Player's Handbook (2014)",
     "description": "Deep gnomes, or svirfneblin, are natives of the Underdark and are suffused with that subterranean realm's magic. They can supernaturally camouflage themselves, and their svirfneblin magic renders them difficult to locate. These abilities have enabled them to survive for generations among the perils of the Underdark. Like other gnomes, deep gnomes can live for centuries, up to 500 years.",
-    "creature_type": "You are a Humanoid. You are also considered a gnome for any prerequisite or effect that requires you to be a gnome.",
+    "creature_type": "Humanoid",
     "size": {
       "options": [
         "Small"
@@ -118,6 +118,10 @@
     },
     "speed": 30,
     "traits": [
+      {
+        "name": "Gnome",
+        "description": "You are also considered a gnome for any prerequisite or effect that requires you to be a gnome."
+      },
       {
         "name": "Darkvision",
         "description": "You can see in dim light within 120 feet of you as if it were bright light and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
