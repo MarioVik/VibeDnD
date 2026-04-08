@@ -38,6 +38,7 @@ from models.level1_class_rules import (
     requires_level1_class_features_step,
     scrub_level1_class_choices,
 )
+from models.feat_utils import get_owned_feat_names
 
 
 class ClassFeaturesStep(WizardStep):
@@ -467,7 +468,22 @@ class ClassFeaturesStep(WizardStep):
         filters = self.data.source_filters.get("feats", {})
         enabled = {cat for cat, on in filters.items() if on}
 
-        origin_feats = [feat for feat in self.data.feats if feat.get("category") == "origin"]
+        owned = get_owned_feat_names(self.character)
+        current_name = str(
+            (self._choice_value("warlock_lessons_feat", "") or "")
+        ).strip()
+        current_key = current_name.casefold() if current_name else ""
+
+        origin_feats = []
+        for feat in self.data.feats:
+            if feat.get("category") != "origin":
+                continue
+            name = str(feat.get("name", "") or "").strip()
+            key = name.casefold()
+            if key in owned and key != current_key:
+                continue
+            origin_feats.append(feat)
+
         grouped = group_by_category(origin_feats, "feats")
         sections = [
             (cat, [feat["name"] for feat in items])
@@ -615,7 +631,25 @@ class ClassFeaturesStep(WizardStep):
         self._populate_invocation_origin_feats()
         self._clear_invocation_feat_details()
 
-        selected_name = str(self._choice_value("warlock_lessons_feat", "") or "")
+        selected_name = str(self._choice_value("warlock_lessons_feat", "") or "").strip()
+        if selected_name:
+            # If the stored Lessons feat duplicates another source (such as
+            # the background feat or species origin feat), clear it.
+            bg_name = str(
+                (getattr(self.character, "feat", None) or {}).get("name", "") or ""
+            ).strip()
+            sp_name = str(
+                (getattr(self.character, "species_origin_feat", None) or {}).get(
+                    "name", ""
+                )
+                or ""
+            ).strip()
+            if selected_name in {bg_name, sp_name}:
+                if not isinstance(self.character.level1_class_choices, dict):
+                    self.character.level1_class_choices = {}
+                self.character.level1_class_choices.pop("warlock_lessons_feat", None)
+                selected_name = ""
+
         if selected_name:
             feat = self.data.feats_by_name.get(selected_name)
             if feat:

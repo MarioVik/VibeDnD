@@ -19,6 +19,7 @@ from gui.source_config import (
     handle_ua_toggle,
     save_settings,
 )
+from models.feat_utils import get_owned_feat_names
 
 
 class FeatStep(WizardStep):
@@ -191,7 +192,26 @@ class FeatStep(WizardStep):
         filters = self.data.source_filters.get("feats", {})
         enabled = {cat for cat, on in filters.items() if on}
 
-        origin_feats = [f for f in self.data.feats if f.get("category") == "origin"]
+        # Compute owned feat names (case-insensitive) and allow the current
+        # species origin feat to remain visible so existing selections persist.
+        owned = get_owned_feat_names(self.character)
+        current_name = ""
+        if self.character.species_origin_feat:
+            current_name = str(
+                self.character.species_origin_feat.get("name", "") or ""
+            ).strip()
+        current_key = current_name.casefold() if current_name else ""
+
+        origin_feats = []
+        for feat in self.data.feats:
+            if feat.get("category") != "origin":
+                continue
+            name = str(feat.get("name", "") or "").strip()
+            key = name.casefold()
+            if key in owned and key != current_key:
+                continue
+            origin_feats.append(feat)
+
         grouped = group_by_category(origin_feats, "feats")
         sections = [
             (cat, [f["name"] for f in items])
@@ -231,6 +251,25 @@ class FeatStep(WizardStep):
         grants_feat, sp_name, trait_name = self._species_grants_origin_feat()
 
         if grants_feat:
+            # If the stored species origin feat duplicates another source (such
+            # as the background feat or Warlock Lessons origin feat), clear it.
+            if self.character.species_origin_feat:
+                sp_feat_name = str(
+                    self.character.species_origin_feat.get("name", "") or ""
+                ).strip()
+                bg_name = str(
+                    (getattr(self.character, "feat", None) or {}).get("name", "")
+                    or ""
+                ).strip()
+                lessons_name = str(
+                    (
+                        getattr(self.character, "level1_class_choices", {}) or {}
+                    ).get("warlock_lessons_feat", "")
+                    or ""
+                ).strip()
+                if sp_feat_name and sp_feat_name in {bg_name, lessons_name}:
+                    self.character.species_origin_feat = None
+
             self.empty_state.grid_forget()
             if not self.sp_section.winfo_manager():
                 self.sp_section.grid(
