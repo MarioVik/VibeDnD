@@ -47,6 +47,10 @@ class SpellsStep(WizardStep):
         self.cantrip_checkbuttons = {}
         self.spell_checkbuttons = {}
         self.spell_row_widgets = {}
+        self._followup_cantrip_vars: dict[str, dict[str, dict]] = {}
+        self._followup_spell_vars: dict[str, dict[str, dict]] = {}
+        self._followup_cantrip_cbs: dict[str, dict[str, ttk.Checkbutton]] = {}
+        self._followup_spell_cbs: dict[str, dict[str, ttk.Checkbutton]] = {}
         super().__init__(parent_notebook, character, game_data)
 
     def build_ui(self):
@@ -193,6 +197,10 @@ class SpellsStep(WizardStep):
         self.cantrip_checkbuttons.clear()
         self.spell_checkbuttons.clear()
         self.spell_row_widgets.clear()
+        self._followup_cantrip_vars.clear()
+        self._followup_spell_vars.clear()
+        self._followup_cantrip_cbs.clear()
+        self._followup_spell_cbs.clear()
 
     def _render(self):
         self._clear_content()
@@ -240,6 +248,7 @@ class SpellsStep(WizardStep):
         if not self._split_enabled:
             followup_sources = get_spell_grant_followup_sources(self.character, self.data)
             if followup_sources:
+                outer.rowconfigure(0, weight=1)
                 self._build_followup_cards(
                     outer,
                     followup_sources,
@@ -247,13 +256,15 @@ class SpellsStep(WizardStep):
                     pady=(SPACING["sm"], SPACING["sm"]),
                 )
 
-        self._build_spell_list_area(outer, row=1)
+        if getattr(self.character, "is_caster", False):
+            self._build_spell_list_area(outer, row=1)
 
     def _build_followup_only_view(self):
         sources = get_spell_grant_followup_sources(self.character, self.data)
         wrapper = tk.Frame(self.content_frame, bg=COLORS["bg"])
         wrapper.grid(row=0, column=0, sticky="nsew", padx=SPACING["lg"])
         wrapper.columnconfigure(0, weight=1)
+        wrapper.rowconfigure(1, weight=1)
 
         SectionHeader(wrapper, text="Granted Spell Choices").grid(
             row=0,
@@ -271,12 +282,12 @@ class SpellsStep(WizardStep):
 
     def _build_followup_cards(self, parent, sources: list[dict], *, row: int, pady):
         cards = tk.Frame(parent, bg=COLORS["bg"])
-        cards.grid(row=row, column=0, sticky="ew", pady=pady)
+        cards.grid(row=row, column=0, sticky="nsew", pady=pady)
         cards.columnconfigure(0, weight=1)
 
         for source in sources:
             card = CardFrame(cards, pad=SPACING["lg"])
-            card.pack(fill=tk.X, pady=(0, SPACING["sm"]))
+            card.pack(fill=tk.BOTH, expand=True, pady=(0, SPACING["sm"]))
 
             tk.Label(
                 card.inner,
@@ -291,33 +302,6 @@ class SpellsStep(WizardStep):
     def _build_source_followup_controls(self, parent, source: dict):
         source_id = source["source_id"]
         bg = COLORS["bg_surface"]
-
-        if source["source_list_options"]:
-            row = tk.Frame(parent, bg=bg)
-            row.pack(fill=tk.X, pady=(SPACING["xs"], 0))
-            tk.Label(
-                row,
-                text="Spell List",
-                font=FONTS["label_upper_bold"],
-                fg=COLORS["fg_dim"],
-                bg=bg,
-            ).pack(anchor="w")
-
-            value = str(source.get("source_list_value", "") or "")
-            var = tk.StringVar(value=value)
-            combo = ttk.Combobox(
-                row,
-                textvariable=var,
-                values=source["source_list_options"],
-                state="readonly",
-            )
-            combo.pack(fill=tk.X, pady=(2, 0))
-            combo.bind(
-                "<<ComboboxSelected>>",
-                lambda _event, sid=source_id, v=var: self._on_source_list_selected(
-                    sid, v.get().strip()
-                ),
-            )
 
         if source.get("ability_choice_required"):
             row = tk.Frame(parent, bg=bg)
@@ -347,6 +331,33 @@ class SpellsStep(WizardStep):
                 ),
             )
 
+        if source["source_list_options"]:
+            row = tk.Frame(parent, bg=bg)
+            row.pack(fill=tk.X, pady=(SPACING["xs"], 0))
+            tk.Label(
+                row,
+                text="Spell List",
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=bg,
+            ).pack(anchor="w")
+
+            value = str(source.get("source_list_value", "") or "")
+            var = tk.StringVar(value=value)
+            combo = ttk.Combobox(
+                row,
+                textvariable=var,
+                values=source["source_list_options"],
+                state="readonly",
+            )
+            combo.pack(fill=tk.X, pady=(2, 0))
+            combo.bind(
+                "<<ComboboxSelected>>",
+                lambda _event, sid=source_id, v=var: self._on_source_list_selected(
+                    sid, v.get().strip()
+                ),
+            )
+
         if source["source_list_options"] and not source.get("source_list_value"):
             WrappingLabel(
                 parent,
@@ -356,89 +367,322 @@ class SpellsStep(WizardStep):
             ).pack(fill=tk.X, anchor="w", pady=(SPACING["xs"], 0))
             return
 
-        if source["cantrip_choice_count"]:
-            self._build_choice_slots(
-                parent,
-                source,
-                field="cantrips",
-                label="Cantrip",
-                options=source["cantrip_options"],
-                count=source["cantrip_choice_count"],
-            )
+        self._build_followup_spell_list(parent, source)
 
-        if source["spell_choice_count"]:
-            self._build_choice_slots(
-                parent,
-                source,
-                field="spells",
-                label="Spell",
-                options=source["spell_options"],
-                count=source["spell_choice_count"],
-            )
+    def _find_spell_by_name(self, spell_name: str) -> dict | None:
+        """Look up a spell dict by exact name."""
+        if hasattr(self.data, "_spell_name_index"):
+            return self.data._spell_name_index.get(spell_name)
+        return next(
+            (
+                s
+                for s in getattr(self.data, "spells", [])
+                if str(s.get("name", "")).strip() == spell_name
+            ),
+            None,
+        )
 
-    def _build_choice_slots(
-        self,
-        parent,
-        source: dict,
-        *,
-        field: str,
-        label: str,
-        options: list[str],
-        count: int,
-    ):
-        bg = COLORS["bg_surface"]
+    def _build_followup_spell_list(self, parent, source: dict):
+        """Build a browsable split-detail spell list for a followup source."""
         source_id = source["source_id"]
-        current_values = list(get_spell_grant_choice_value(self.character, source_id, field, []) or [])
+        cantrip_options = source.get("cantrip_options") or []
+        spell_options = source.get("spell_options") or []
+        cantrip_max = source.get("cantrip_choice_count") or 0
+        spell_max = source.get("spell_choice_count") or 0
 
-        if not options:
-            WrappingLabel(
-                parent,
-                text=f"No valid {label.lower()} options are currently available for {source['source_label']}.",
-                background=bg,
-                foreground=COLORS["fg_dim"],
-            ).pack(fill=tk.X, anchor="w", pady=(SPACING["xs"], 0))
+        if not cantrip_options and not spell_options:
             return
 
-        for idx in range(count):
-            slot_value = current_values[idx] if idx < len(current_values) else ""
-            used_elsewhere = {
-                value
-                for i, value in enumerate(current_values)
-                if i != idx and str(value or "").strip()
-            }
-            slot_options = [
-                option
-                for option in options
-                if option == slot_value or option not in used_elsewhere
-            ]
+        selected_cantrips = list(
+            get_spell_grant_choice_value(
+                self.character, source_id, "cantrips", []
+            )
+            or []
+        )
+        selected_spells = list(
+            get_spell_grant_choice_value(
+                self.character, source_id, "spells", []
+            )
+            or []
+        )
 
-            row = tk.Frame(parent, bg=bg)
-            row.pack(fill=tk.X, pady=(SPACING["xs"], 0))
-            tk.Label(
-                row,
-                text=f"{label} {idx + 1}",
+        # Per-source tracking state
+        src_cantrip_vars: dict[str, dict] = {}
+        src_spell_vars: dict[str, dict] = {}
+        src_cantrip_cbs: dict[str, ttk.Checkbutton] = {}
+        src_spell_cbs: dict[str, ttk.Checkbutton] = {}
+        self._followup_cantrip_vars[source_id] = src_cantrip_vars
+        self._followup_spell_vars[source_id] = src_spell_vars
+        self._followup_cantrip_cbs[source_id] = src_cantrip_cbs
+        self._followup_spell_cbs[source_id] = src_spell_cbs
+
+        bg = COLORS["bg"]
+        row_widgets: dict[str, dict] = {}
+
+        # ── Two-column layout ──────────────────────────────────
+        area = tk.Frame(parent, bg=bg)
+        area.pack(fill=tk.BOTH, expand=True, pady=(SPACING["sm"], 0))
+        area.columnconfigure(0, weight=1)
+        area.columnconfigure(1, weight=1)
+        area.rowconfigure(0, weight=1)
+
+        # ── Left: scrollable spell list ────────────────────────
+        left = tk.Frame(area, bg=bg)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["xs"]))
+
+        cantrip_count_lbl = None
+        spell_count_lbl = None
+        if cantrip_max:
+            cantrip_count_lbl = tk.Label(
+                left,
+                text=f"{len(selected_cantrips)} / {cantrip_max} cantrips selected",
                 font=FONTS["label_upper_bold"],
                 fg=COLORS["fg_dim"],
                 bg=bg,
-            ).pack(anchor="w")
+            )
+            cantrip_count_lbl.pack(anchor="w", padx=4, pady=(0, 1))
 
-            var = tk.StringVar(value=slot_value)
-            combo = ttk.Combobox(
-                row,
-                textvariable=var,
-                values=slot_options,
-                state="readonly",
+        if spell_max:
+            spell_count_lbl = tk.Label(
+                left,
+                text=f"{len(selected_spells)} / {spell_max} spell(s) selected",
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=bg,
             )
-            combo.pack(fill=tk.X, pady=(2, 0))
-            combo.bind(
-                "<<ComboboxSelected>>",
-                lambda _event, sid=source_id, f=field, i=idx, v=var: self._on_slot_selected(
-                    sid,
-                    f,
-                    i,
-                    v.get().strip(),
-                ),
+            spell_count_lbl.pack(anchor="w", padx=4, pady=(0, 1))
+
+        list_outer = tk.Frame(left, bg=bg)
+        list_outer.pack(fill=tk.BOTH, expand=True, pady=(2, 0))
+        _canvas, inner = self._make_scrollable_list(list_outer)
+
+        # ── Right: detail panel ────────────────────────────────
+        right = tk.Frame(area, bg=bg)
+        right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0))
+
+        SectionHeader(right, text="Spell Details").pack(
+            fill=tk.X, pady=(0, SPACING["sm"]),
+        )
+
+        detail_card = CardFrame(right, pad=SPACING["lg"])
+        detail_card.pack(fill=tk.BOTH, expand=True)
+
+        detail_text = tk.Text(
+            detail_card.inner,
+            wrap=tk.WORD,
+            bg=COLORS["bg_surface"],
+            fg=COLORS["fg"],
+            font=FONTS["body"],
+            borderwidth=0,
+            highlightthickness=0,
+            relief=tk.FLAT,
+            state=tk.DISABLED,
+        )
+        detail_text.pack(fill=tk.BOTH, expand=True)
+
+        # ── Active-row styling (closure-based) ─────────────────
+        active_name = [""]
+
+        def _apply_style(widgets: dict, *, active: bool):
+            c = COLORS["bg_container"] if active else COLORS["bg"]
+            border = COLORS["accent"] if active else COLORS["bg"]
+            rail_c = COLORS["accent_text"] if active else COLORS["bg"]
+            widgets["row"].configure(bg=c, highlightbackground=border)
+            if widgets.get("rail"):
+                widgets["rail"].configure(bg=rail_c)
+
+        def _set_active(spell_name: str):
+            prev = active_name[0]
+            if prev == spell_name:
+                return
+            if prev and prev in row_widgets:
+                _apply_style(row_widgets[prev], active=False)
+            active_name[0] = spell_name
+            if spell_name and spell_name in row_widgets:
+                _apply_style(row_widgets[spell_name], active=True)
+
+        def _show_detail(entry: dict):
+            spell = entry.get("spell") or {}
+            name = str(entry.get("spell_name", "") or "").strip()
+            if not name:
+                return
+            _set_active(name)
+            level = int(spell.get("level", entry.get("level", 0)) or 0)
+            level_text = "Cantrip" if level == 0 else f"Level {level}"
+            lines = [
+                name,
+                f"Level: {level_text}",
+                f"School: {spell.get('school', 'Unknown')}",
+                f"Casting Time: {spell.get('casting_time', 'Unknown')}",
+                f"Range: {spell.get('range', 'Unknown')}",
+                f"Duration: {spell.get('duration', 'Unknown')}",
+            ]
+            lines.extend(
+                ["", str(spell.get("description", "") or "No description available.")]
             )
+            higher = str(spell.get("higher_levels", "") or "").strip()
+            if higher:
+                lines.extend(["", f"At Higher Levels: {higher}"])
+            upgrade = str(spell.get("cantrip_upgrade", "") or "").strip()
+            if upgrade:
+                lines.extend(["", f"Cantrip Upgrade: {upgrade}"])
+            detail_text.configure(state=tk.NORMAL)
+            detail_text.delete("1.0", tk.END)
+            detail_text.insert("1.0", "\n".join(lines))
+            detail_text.configure(state=tk.DISABLED)
+
+        # ── Toggle handlers ────────────────────────────────────
+        updating_cantrips = [False]
+        updating_spells = [False]
+
+        def _on_cantrip_toggle(spell_name: str):
+            if updating_cantrips[0]:
+                return
+            updating_cantrips[0] = True
+            try:
+                selected = [
+                    n for n, d in src_cantrip_vars.items() if d["var"].get()
+                ]
+                if len(selected) > cantrip_max:
+                    src_cantrip_vars[spell_name]["var"].set(False)
+                    selected = [
+                        n for n, d in src_cantrip_vars.items() if d["var"].get()
+                    ]
+                set_spell_grant_choice_value(
+                    self.character, source_id, "cantrips", selected
+                )
+                if cantrip_count_lbl:
+                    cantrip_count_lbl.configure(
+                        text=f"{len(selected)} / {cantrip_max} cantrips selected"
+                    )
+                _update_cantrip_states()
+                self.notify_change()
+            finally:
+                updating_cantrips[0] = False
+
+        def _on_spell_toggle(spell_name: str):
+            if updating_spells[0]:
+                return
+            updating_spells[0] = True
+            try:
+                selected = [
+                    n for n, d in src_spell_vars.items() if d["var"].get()
+                ]
+                if len(selected) > spell_max:
+                    src_spell_vars[spell_name]["var"].set(False)
+                    selected = [
+                        n for n, d in src_spell_vars.items() if d["var"].get()
+                    ]
+                set_spell_grant_choice_value(
+                    self.character, source_id, "spells", selected
+                )
+                if spell_count_lbl:
+                    spell_count_lbl.configure(
+                        text=f"{len(selected)} / {spell_max} spell(s) selected"
+                    )
+                _update_spell_states()
+                self.notify_change()
+            finally:
+                updating_spells[0] = False
+
+        def _update_cantrip_states():
+            selected = [
+                n for n, d in src_cantrip_vars.items() if d["var"].get()
+            ]
+            at_max = len(selected) >= cantrip_max if cantrip_max else False
+            for name, cb in src_cantrip_cbs.items():
+                cb.configure(
+                    state=tk.DISABLED
+                    if at_max and name not in selected
+                    else tk.NORMAL
+                )
+
+        def _update_spell_states():
+            selected = [
+                n for n, d in src_spell_vars.items() if d["var"].get()
+            ]
+            at_max = len(selected) >= spell_max if spell_max else False
+            for name, cb in src_spell_cbs.items():
+                cb.configure(
+                    state=tk.DISABLED
+                    if at_max and name not in selected
+                    else tk.NORMAL
+                )
+
+        # ── Build rows ─────────────────────────────────────────
+        def _build_row(spell_name: str, kind: str, is_selected: bool):
+            spell = self._find_spell_by_name(spell_name) or {}
+            var = tk.BooleanVar(value=is_selected)
+            entry = {
+                "spell_name": spell_name,
+                "spell": spell,
+                "level": int(spell.get("level", 0) or 0),
+                "source_labels": [],
+                "free_casts": [],
+                "ritual_only": False,
+                "dragonmark_eligible": False,
+                "detail_notes": [],
+            }
+
+            row_frame = tk.Frame(
+                inner,
+                bg=COLORS["bg"],
+                highlightthickness=1,
+                highlightbackground=COLORS["bg"],
+                highlightcolor=COLORS["accent"],
+            )
+            row_frame.pack(fill=tk.X, padx=(4, 0), pady=1)
+            rail = tk.Frame(row_frame, width=6, bg=COLORS["bg"])
+            rail.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 6))
+            cb = ttk.Checkbutton(row_frame, text=spell_name, variable=var)
+            cb.pack(side=tk.LEFT, anchor="w", pady=3)
+
+            row_widgets[spell_name] = {"row": row_frame, "rail": rail}
+            row_frame.bind("<Enter>", lambda _e, e=entry: _show_detail(e))
+            cb.bind("<Enter>", lambda _e, e=entry: _show_detail(e))
+
+            if kind == "cantrip":
+                src_cantrip_vars[spell_name] = {"var": var, "spell": spell}
+                src_cantrip_cbs[spell_name] = cb
+                var.trace_add(
+                    "write", lambda *_a, sn=spell_name: _on_cantrip_toggle(sn)
+                )
+            else:
+                src_spell_vars[spell_name] = {"var": var, "spell": spell}
+                src_spell_cbs[spell_name] = cb
+                var.trace_add(
+                    "write", lambda *_a, sn=spell_name: _on_spell_toggle(sn)
+                )
+
+        # ── Populate sections ──────────────────────────────────
+        if cantrip_options:
+            self._section_header(inner, "Cantrips")
+            for name in cantrip_options:
+                _build_row(name, "cantrip", name in selected_cantrips)
+
+        if spell_options:
+            self._section_header(inner, "Level 1 Spells")
+            for name in spell_options:
+                _build_row(name, "spell", name in selected_spells)
+
+        # Show first spell's details
+        first = (cantrip_options or spell_options or [None])[0]
+        if first:
+            spell = self._find_spell_by_name(first)
+            if spell:
+                _show_detail({
+                    "spell_name": first,
+                    "spell": spell,
+                    "level": int(spell.get("level", 0) or 0),
+                    "source_labels": [],
+                    "free_casts": [],
+                    "ritual_only": False,
+                    "dragonmark_eligible": False,
+                    "detail_notes": [],
+                })
+
+        _update_cantrip_states()
+        _update_spell_states()
 
     def _build_spell_list_area(self, parent, *, row: int):
         area = tk.Frame(parent, bg=COLORS["bg"])
@@ -711,15 +955,6 @@ class SpellsStep(WizardStep):
                 return
 
         set_spell_grant_choice_value(self.character, source_id, "ability", value)
-        self._refresh_after_spell_choice()
-
-    def _on_slot_selected(self, source_id: str, field: str, index: int, value: str):
-        current = list(get_spell_grant_choice_value(self.character, source_id, field, []) or [])
-        while len(current) <= index:
-            current.append("")
-        current[index] = value
-        cleaned = [item for item in current if str(item or "").strip()]
-        set_spell_grant_choice_value(self.character, source_id, field, cleaned)
         self._refresh_after_spell_choice()
 
     def _on_cantrip_toggle(self, spell: dict):
