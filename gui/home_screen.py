@@ -504,12 +504,29 @@ class HomeScreen:
         accent_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
         if not disabled:
-            self._bind_clickable(
-                card, 
-                command, 
-                on_enter=lambda _e: card.configure(highlightbackground=COLORS["accent"]),
-                on_leave=lambda _e: card.configure(highlightbackground=COLORS["border_medium"])
-            )
+            def on_enter(_e):
+                card.configure(bg=COLORS["bg_high"], highlightbackground=accent)
+                inner.configure(bg=COLORS["bg_high"])
+                header.configure(bg=COLORS["bg_high"])
+                for widget in inner.winfo_children():
+                    if isinstance(widget, tk.Label):
+                        widget.configure(bg=COLORS["bg_high"])
+                for widget in header.winfo_children():
+                    if isinstance(widget, tk.Label) and widget is not token:
+                        widget.configure(bg=COLORS["bg_high"])
+
+            def on_leave(_e):
+                card.configure(bg=COLORS["bg_highest"], highlightbackground=COLORS["border_medium"])
+                inner.configure(bg=COLORS["bg_highest"])
+                header.configure(bg=COLORS["bg_highest"])
+                for widget in inner.winfo_children():
+                    if isinstance(widget, tk.Label):
+                        widget.configure(bg=COLORS["bg_highest"])
+                for widget in header.winfo_children():
+                    if isinstance(widget, tk.Label) and widget is not token:
+                        widget.configure(bg=COLORS["bg_highest"])
+
+            self._bind_clickable(card, command, on_enter=on_enter, on_leave=on_leave)
 
         return card
 

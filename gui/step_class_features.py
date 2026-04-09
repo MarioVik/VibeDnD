@@ -368,7 +368,7 @@ class ClassFeaturesStep(WizardStep):
         def update_tiles(current_selection: list[str]):
             for wp_name, widgets in tile_refs.items():
                 is_sel = wp_name in current_selection
-                border_c = COLORS["accent"] if is_sel else COLORS["border_medium"]
+                border_c = "#4a2028" if is_sel else COLORS["border_medium"]
                 bg_hex = COLORS.get("tile_hover", COLORS["bg_highest"]) if is_sel else COLORS.get("tile_bg", COLORS["bg_surface"])
                 fg_title = COLORS["accent_text"] if is_sel else COLORS["fg"]
                 
@@ -384,6 +384,29 @@ class ClassFeaturesStep(WizardStep):
                     widgets["mastery_title"].configure(bg=bg_hex)
                 if widgets.get("mastery_lbl"):
                     widgets["mastery_lbl"].configure(background=bg_hex)
+
+        def on_enter_tile(wp_name: str):
+            widgets = tile_refs.get(wp_name)
+            if not widgets:
+                return
+            is_sel = wp_name in list(self._choice_value("weapon_mastery", []))
+            
+            # Use darker accent highlight from the header
+            widgets["border"].configure(bg="#4a2028")
+            widgets["tile"].configure(bg=COLORS["bg_high"])
+            widgets["title"].configure(bg=COLORS["bg_high"])
+            if widgets.get("stats"):
+                widgets["stats"].configure(background=COLORS["bg_high"])
+            if widgets.get("mastery_title"):
+                widgets["mastery_title"].configure(bg=COLORS["bg_high"])
+            if widgets.get("mastery_lbl"):
+                widgets["mastery_lbl"].configure(background=COLORS["bg_high"])
+
+        def on_leave_tile(wp_name: str):
+            widgets = tile_refs.get(wp_name)
+            if not widgets:
+                return
+            update_tiles(list(self._choice_value("weapon_mastery", [])))
 
         def on_toggle(weapon_name: str):
             curr = list(self._choice_value("weapon_mastery", []))
@@ -431,7 +454,7 @@ class ClassFeaturesStep(WizardStep):
             row = idx // columns
             col = idx % columns
 
-            border_color = COLORS["accent"] if is_selected else COLORS["border_medium"]
+            border_color = "#4a2028" if is_selected else COLORS["border_medium"]
             if is_selected:
                 bg_hex = COLORS.get("tile_hover", COLORS["bg_highest"])
             else:
@@ -501,16 +524,17 @@ class ClassFeaturesStep(WizardStep):
                 
             # Bind events for everything
             click_func = lambda e, w=weapon_name: on_toggle(w)
-            tile_border.bind("<Button-1>", click_func)
-            tile.bind("<Button-1>", click_func)
-            title_lbl.bind("<Button-1>", click_func)
-            
-            if stats_lbl:
-                stats_lbl.bind("<Button-1>", click_func)
-            if mastery_desc:
-                sep.bind("<Button-1>", click_func)
-                mastery_title.bind("<Button-1>", click_func)
-                mastery_lbl.bind("<Button-1>", click_func)
+            enter_func = lambda e, w=weapon_name: on_enter_tile(w)
+            leave_func = lambda e, w=weapon_name: on_leave_tile(w)
+
+            def bind_recursive(widget):
+                widget.bind("<Button-1>", click_func, add="+")
+                widget.bind("<Enter>", enter_func, add="+")
+                widget.bind("<Leave>", leave_func, add="+")
+                for child in widget.winfo_children():
+                    bind_recursive(child)
+
+            bind_recursive(tile_border)
 
 
 
