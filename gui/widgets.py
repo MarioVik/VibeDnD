@@ -667,6 +667,135 @@ class SearchableListbox(ttk.Frame):
                 break
 
 
+class UseSpellSlotDialog:
+    """A modal dialog to select and use a spell slot."""
+
+    def __init__(self, parent, character, data, on_refresh=None):
+        self.parent = parent
+        self.character = character
+        self.data = data
+        self.on_refresh = on_refresh
+
+        self.dialog = tk.Toplevel(parent)
+        self.dialog.title("Use Spell Slot")
+        self.dialog.resizable(False, False)
+        self.dialog.configure(bg=COLORS["bg"])
+
+        configure_modal_dialog(self.dialog, parent)
+
+        # Build UI
+        self._build_ui()
+        center_dialog_over_parent(self.dialog, parent)
+
+    def _build_ui(self):
+        main_frame = tk.Frame(self.dialog, bg=COLORS["bg"], padx=20, pady=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        tk.Label(
+            main_frame,
+            text="USE A SPELL SLOT",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["gold"],
+            bg=COLORS["bg"],
+        ).pack(pady=(0, 15))
+
+        # Get slots
+        c = self.character
+        cls = c.character_class or {}
+        spell_slots = {}
+        if cls:
+            spell_slots = cls.get("spell_slots", {})
+            if not spell_slots and self.data:
+                level_data = self.data.get_level_data(cls.get("slug", ""), c.level)
+                if level_data:
+                    spell_slots = level_data.get("spell_slots", {})
+
+        # Pact Magic slots
+        pact_slots = 0
+        pact_level = 0
+        if cls.get("caster_type") == "pact" and self.data:
+            level_data = self.data.get_level_data(cls.get("slug", ""), c.level)
+            if level_data:
+                pact_slots = level_data.get("pact_slots", 0)
+                pact_level = level_data.get("pact_slot_level", 0)
+
+        found_any = False
+
+        # Regular slots
+        for lvl, total in sorted(spell_slots.items(), key=lambda x: str(x[0])):
+            if total <= 0:
+                continue
+            used = c.used_spell_slots.get(str(lvl), 0)
+            avail = max(0, total - used)
+            self._add_slot_row(main_frame, f"Level {lvl}", str(lvl), avail, total)
+            found_any = True
+
+        # Pact slots
+        if pact_slots > 0:
+            used = c.used_pact_slots
+            avail = max(0, pact_slots - used)
+            self._add_slot_row(main_frame, f"Pact (Level {pact_level})", "pact", avail, pact_slots)
+            found_any = True
+
+        if not found_any:
+            tk.Label(
+                main_frame,
+                text="No spell slots available.",
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg"],
+            ).pack(pady=10)
+
+        # Close button
+        btn_frame = tk.Frame(main_frame, bg=COLORS["bg"])
+        btn_frame.pack(fill=tk.X, pady=(20, 0))
+        
+        from tkinter import ttk
+        ttk.Button(
+            btn_frame,
+            text="CANCEL",
+            command=self.dialog.destroy,
+            style="TButton"
+        ).pack(side=tk.RIGHT)
+
+    def _add_slot_row(self, parent, label_text, level_key, available, total):
+        row = tk.Frame(parent, bg=COLORS["bg_surface"], padx=10, pady=8)
+        row.pack(fill=tk.X, pady=2)
+
+        tk.Label(
+            row,
+            text=label_text.upper(),
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack(side=tk.LEFT)
+
+        count_text = f"{available} / {total}"
+        tk.Label(
+            row,
+            text=count_text,
+            font=FONTS["body_bold"],
+            fg=COLORS["accent_text"] if available > 0 else COLORS["fg_disabled"],
+            bg=COLORS["bg_surface"],
+        ).pack(side=tk.LEFT, padx=15)
+
+        from tkinter import ttk
+        btn = ttk.Button(
+            row,
+            text="USE SLOT",
+            style="Compact.TButton",
+            state=tk.NORMAL if available > 0 else tk.DISABLED,
+            command=lambda: self._use_slot(level_key)
+        )
+        btn.pack(side=tk.RIGHT)
+
+    def _use_slot(self, level_key):
+        self.character.use_spell_slot(level_key)
+        if self.on_refresh:
+            self.on_refresh()
+        self.dialog.destroy()
+
+
 class HoverTooltip:
     """Small hover tooltip attached to one or more widgets."""
 

@@ -146,6 +146,25 @@ def _get_feature_keys(character, rest_type: str) -> list[tuple[str, dict, list[s
     return feature_keys
 
 
+def _is_warlock_pact_caster(character) -> bool:
+    """Return True if the character has levels in Warlock (Pact Magic)."""
+    for cl in character.class_levels:
+        if cl.class_slug == "warlock":
+            return True
+    return False
+
+
+def _has_arcane_recovery(character) -> bool:
+    """Return True if the character has Arcane/Natural Recovery (Wizard or Land Druid)."""
+    for cl in character.class_levels:
+        if cl.class_slug == "wizard":
+            return True
+        # Note: 2024 Land Druid has 'Natural Recovery'
+        if cl.class_slug == "druid" and cl.subclass_slug == "circle-of-the-land":
+            return True
+    return False
+
+
 # ══════════════════════════════════════════════════════════════════════
 # RestDialog
 # ══════════════════════════════════════════════════════════════════════
@@ -197,6 +216,11 @@ class RestDialog(tk.Toplevel):
         self._has_hit_dice: bool = False
         self._zhentarim_expertise_vars: dict[str, tk.BooleanVar] = {}
         self._zhentarim_expertise_options: list[str] = []
+
+        # Recovery state (short rest)
+        self._recovery_vars: dict[str, tk.IntVar] = {}  # slot_level -> IntVar
+        self._recovery_max_points = 0
+        self._recovery_current_points = tk.IntVar(value=0)
 
         if rest_type == "short":
             self._build_short_rest_ui(title)
@@ -402,6 +426,10 @@ class RestDialog(tk.Toplevel):
             else:
                 effects.append("You may swap one prepared spell")
 
+        # Spell slot restoration
+        if self.character.is_caster or _is_warlock_pact_caster(self.character):
+            effects.append("All spell slots and pact slots are fully restored")
+
         if has_zhentarim_refresh:
             effects.append("You must choose your Zhentarim Tactics Expertise again")
 
@@ -545,6 +573,12 @@ class RestDialog(tk.Toplevel):
                 self._build_feature_section(scroll.inner, key, config, known)
             self._append_rest_step("swap_features", swap_frame)
 
+        # Step 4 (or 3): Arcane/Natural Recovery
+        if _has_arcane_recovery(self.character) and not self.character.arcane_recovery_used:
+            recovery_frame = ttk.Frame(self)
+            self._build_recovery_step(recovery_frame)
+            self._append_rest_step("recovery", recovery_frame)
+
         self._total_steps = len(self._step_frames)
         self._build_footer()
         self._show_rest_step(1)
@@ -585,7 +619,19 @@ class RestDialog(tk.Toplevel):
             effects.append(f"You may swap one {label}")
 
         if not feature_keys and self.character.total_hit_dice_remaining == 0:
-            effects.append("There is nothing else to do on this rest")
+            if not _is_warlock_pact_caster(self.character) and not _has_arcane_recovery(self.character):
+                effects.append("There is nothing else to do on this rest")
+
+        # Spell slots (Warlock)
+        if _is_warlock_pact_caster(self.character):
+            effects.append("All pact slots are fully restored")
+        
+        # Arcane Recovery
+        if _has_arcane_recovery(self.character):
+            if self.character.arcane_recovery_used:
+                effects.append("Arcane/Natural Recovery has already been used today")
+            else:
+                effects.append("You may use Arcane/Natural Recovery to restore spell slots")
 
         for i, text in enumerate(effects):
             ttk.Label(
@@ -772,6 +818,69 @@ class RestDialog(tk.Toplevel):
             footer, text="Cancel", command=self.destroy,
         ).pack(side=tk.LEFT)
 
+    def _build_recovery_step(self, parent):
+        """Build the manual spell slot recovery step (Arcane/Natural Recovery)."""
+        parent.columnconfigure(0, weight=1)
+
+        ttk.Label(
+            parent, text="Arcane / Natural Recovery",
+            font=FONTS["heading"], foreground=COLORS["accent"],
+        ).grid(row=0, column=0, sticky="w", padx=12, pady=(8, 2))
+
+        # Calculate max points (half level rounded up)
+        wizard_lvl = self.character.class_level_in("wizard")
+        druid_lvl = self.character.class_level_in("druid") if self.character.current_subclass == "circle-of-the-land" else 0
+        # In 2024, it's half your level in that class
+        self._recovery_max_points = (max(wizard_lvl, druid_lvl) + 1) // 2
+
+        ttk.Label(
+            parent,
+            text=f"You can recover spell slots with a combined level up to {self._recovery_max_points}. "
+                 "None of the slots can be level 6 or higher.",
+            foreground=COLORS["fg_dim"],
+            wraplength=600,
+        ).grid(row=1, column=0, sticky="w", padx=12, pady=(0, 12))
+
+        # List spent slots that can be recovered
+        slots_frame = ttk.Frame(parent)
+        slots_frame.grid(row=2, column=0, sticky="ew", padx=12)
+
+        row_i = 0
+        for lvl_str, spent in sorted(self.character.used_spell_slots.items(), key=lambda x: int(x[0])):
+            lvl = int(lvl_str)
+            if lvl >= 6 or spent <= 0:
+                continue
+            
+            var = tk.IntVar(value=0)
+            self._recovery_vars[lvl_str] = var
+            
+            s_row = ttk.Frame(slots_frame)
+            s_row.grid(row=row_i, column=0, sticky="ew", pady=2)
+            
+            ttk.Label(s_row, text=f"Level {lvl} Slot:", width=15).pack(side=tk.LEFT)
+            spin = ttk.Spinbox(s_row, from_=0, to=spent, textvariable=var, width=5, command=self._update_recovery_summary)
+            spin.pack(side=tk.LEFT, padx=10)
+            ttk.Label(s_row, text=f"(Spent: {spent})", foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
+            
+            var.trace_add("write", lambda *_: self._update_recovery_summary())
+            row_i += 1
+
+        if row_i == 0:
+            ttk.Label(parent, text="No eligible spent spell slots to recover.", foreground=COLORS["fg_dim"]).grid(row=2, column=0, sticky="w", padx=12)
+
+        self._recovery_summary_label = ttk.Label(parent, text="Points Used: 0 / " + str(self._recovery_max_points))
+        self._recovery_summary_label.grid(row=3, column=0, sticky="w", padx=12, pady=10)
+
+    def _update_recovery_summary(self):
+        total = 0
+        for lvl_str, var in self._recovery_vars.items():
+            try:
+                total += int(lvl_str) * var.get()
+            except: pass
+        self._recovery_current_points.set(total)
+        color = COLORS["fg"] if total <= self._recovery_max_points else COLORS["negative"]
+        self._recovery_summary_label.config(text=f"Points Used: {total} / {self._recovery_max_points}", foreground=color)
+
     def _show_rest_step(self, step: int):
         """Show the given step and update navigation buttons."""
         self._current_step = step
@@ -799,6 +908,13 @@ class RestDialog(tk.Toplevel):
 
     def _validate_current_step(self) -> bool:
         step_id = self._current_step_id()
+        if step_id == "recovery":
+            points = self._recovery_current_points.get()
+            if points > self._recovery_max_points:
+                AlertDialog(self, "Too Many Slots", f"You can only recover up to {self._recovery_max_points} points worth of slots.")
+                return False
+            return True
+
         if step_id != "zhentarim_expertise":
             return True
 
@@ -1087,6 +1203,8 @@ class RestDialog(tk.Toplevel):
             self.character.current_hit_points = None  # reset to full
             self.character.temp_hit_points = 0
             self.character.spent_hit_dice.clear()
+            self.character.reset_spell_slots()
+            self.character.arcane_recovery_used = False
             changed = True
 
         # ── Short Rest: hit dice spending ─────────────────────────
@@ -1179,6 +1297,26 @@ class RestDialog(tk.Toplevel):
                         con_mod=con_mod, total_dice=total_dice,
                         healed=healed, old_hp=cur, new_hp=new_hp, max_hp=max_hp,
                     )
+
+        # ── Short Rest: Spell/Pact Recovery ───────────────────────
+        if self.rest_type == "short":
+            # Warlock Pact Magic
+            if _is_warlock_pact_caster(self.character):
+                if self.character.used_pact_slots > 0:
+                    self.character.used_pact_slots = 0
+                    changed = True
+            
+            # Arcane Recovery
+            if self._recovery_vars:
+                recovered_any = False
+                for lvl_str, var in self._recovery_vars.items():
+                    count = var.get()
+                    if count > 0:
+                        self.character.recover_spell_slots(lvl_str, count)
+                        recovered_any = True
+                if recovered_any:
+                    self.character.arcane_recovery_used = True
+                    changed = True
 
         # ── Feature swaps ─────────────────────────────────────────
         for key, swap_data in self._swaps.items():

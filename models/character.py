@@ -127,6 +127,14 @@ class Character:
     spent_hit_dice: dict[str, int] = field(default_factory=dict)
     # Maps class_slug -> count spent. e.g. {"fighter": 2, "rogue": 1}
 
+    # Spell slot tracking (persisted)
+    used_spell_slots: dict[str, int] = field(default_factory=dict)
+    # Maps slot_level -> count spent. e.g. {"1": 2, "2": 0}
+    # For Warlocks (Pact Magic), we use "pact" as a prefix or separate key.
+    # Actually, let's use "pact" key for pact magic slots.
+    used_pact_slots: int = 0
+    arcane_recovery_used: bool = False
+
     @property
     def effective_current_hp(self) -> int:
         """Current HP, defaulting to max if not explicitly set."""
@@ -546,3 +554,24 @@ class Character:
             mc_parts = [f"{slug.title()} {n}" for slug, n in counts.items()]
             return f"Level {self.level} {self.species_name} ({'/'.join(mc_parts)})"
         return f"Level {self.level} " + " ".join(parts) if parts else "No selections"
+
+    # Spell Slot Management
+    def use_spell_slot(self, level: str):
+        """Consume a spell slot of the given level ('1'-'9' or 'pact')."""
+        if level == "pact":
+            self.used_pact_slots += 1
+        else:
+            self.used_spell_slots[level] = self.used_spell_slots.get(level, 0) + 1
+
+    def recover_spell_slots(self, level: str, count: int):
+        """Recover spent spell slots."""
+        if level == "pact":
+            self.used_pact_slots = max(0, self.used_pact_slots - count)
+        else:
+            current = self.used_spell_slots.get(level, 0)
+            self.used_spell_slots[level] = max(0, current - count)
+
+    def reset_spell_slots(self):
+        """Fully restore all spell slots (e.g. Long Rest)."""
+        self.used_spell_slots.clear()
+        self.used_pact_slots = 0

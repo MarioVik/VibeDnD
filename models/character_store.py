@@ -74,6 +74,9 @@ def character_to_save_dict(character: Character) -> dict:
         "current_hit_points": c.current_hit_points,
         "temp_hit_points": c.temp_hit_points,
         "spent_hit_dice": dict(c.spent_hit_dice),
+        "used_spell_slots": dict(c.used_spell_slots),
+        "used_pact_slots": int(c.used_pact_slots),
+        "arcane_recovery_used": bool(c.arcane_recovery_used),
         "chosen_languages": list(c.chosen_languages),
     }
 
@@ -210,6 +213,9 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.current_hit_points = data.get("current_hit_points", None)
     c.temp_hit_points = int(data.get("temp_hit_points", 0))
     c.spent_hit_dice = data.get("spent_hit_dice", {})
+    c.used_spell_slots = data.get("used_spell_slots", {})
+    c.used_pact_slots = int(data.get("used_pact_slots", 0))
+    c.arcane_recovery_used = bool(data.get("arcane_recovery_used", False))
     c.chosen_languages = data.get("chosen_languages", [])
 
     # Load class_levels (v2) or construct from v1 data

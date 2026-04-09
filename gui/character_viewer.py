@@ -1553,16 +1553,52 @@ class CharacterViewer(ttk.Frame):
                 if level_data:
                     spell_slots = level_data.get("spell_slots", {})
 
-        if not spell_slots:
+        # Pact Magic slots
+        pact_slots = 0
+        pact_level = 0
+        if cls.get("caster_type") == "pact" and self.data:
+            level_data = self.data.get_level_data(cls.get("slug", ""), c.level)
+            if level_data:
+                pact_slots = level_data.get("pact_slots", 0)
+                pact_level = level_data.get("pact_slot_level", 0)
+
+        if not spell_slots and pact_slots <= 0:
             return
 
         slots_card = CardFrame(parent, pad=SPACING["lg"])
         slots_card.pack(side=tk.LEFT, fill=tk.Y, padx=(SPACING["card_gap"], 0))
         slots_frame = slots_card.inner
 
-        for slot_level, count in sorted(spell_slots.items(), key=lambda x: x[0]):
-            if count <= 0:
+        # Add "Use Slot" button at the top of the card
+        from gui.widgets import UseSpellSlotDialog
+        header_row = tk.Frame(slots_frame, bg=COLORS["bg_surface"])
+        header_row.pack(fill=tk.X, pady=(0, 8))
+
+        from tkinter import ttk
+        ttk.Button(
+            header_row,
+            text="\u2726 USE SLOT",
+            style="Compact.TButton",
+            command=lambda: UseSpellSlotDialog(
+                self,
+                c,
+                self.data,
+                on_refresh=lambda: (
+                    self._on_sheet_changed(),
+                    self._mark_all_dirty(),
+                    self._show_view(self._current_view),
+                ),
+            )
+        ).pack(side=tk.LEFT)
+
+        # Regular slots
+        for slot_level, total in sorted(spell_slots.items(), key=lambda x: str(x[0])):
+            if total <= 0:
                 continue
+            
+            used = c.used_spell_slots.get(str(slot_level), 0)
+            available = max(0, total - used)
+
             row = tk.Frame(slots_frame, bg=COLORS["bg_surface"])
             row.pack(fill=tk.X, pady=3)
 
@@ -1580,16 +1616,16 @@ class CharacterViewer(ttk.Frame):
 
             tk.Label(
                 row,
-                text=f"{count} / {count}",
+                text=f"{available} / {total}",
                 font=FONTS["heading_serif_sm"],
-                fg=COLORS["accent_text"],
+                fg=COLORS["accent_text"] if available > 0 else COLORS["fg_disabled"],
                 bg=COLORS["bg_surface"],
             ).pack(side=tk.RIGHT)
 
-            # Slot indicator dots (rounded via Canvas)
+            # Slot indicator dots
             dots_frame = tk.Frame(row, bg=COLORS["bg_surface"])
             dots_frame.pack(side=tk.RIGHT, padx=(0, 8))
-            for j in range(count):
+            for j in range(total):
                 dot = tk.Canvas(
                     dots_frame,
                     width=12,
@@ -1597,7 +1633,48 @@ class CharacterViewer(ttk.Frame):
                     bg=COLORS["bg_surface"],
                     highlightthickness=0,
                 )
-                dot.create_oval(1, 1, 11, 11, fill=COLORS["accent_text"], outline="")
+                fill_color = COLORS["accent_text"] if j < available else COLORS["bg_deepest"]
+                outline_color = COLORS["accent_text"] if j < available else COLORS["outline_dim"]
+                dot.create_oval(1, 1, 11, 11, fill=fill_color, outline=outline_color)
+                dot.pack(side=tk.LEFT, padx=2)
+
+        # Pact slots
+        if pact_slots > 0:
+            used = c.used_pact_slots
+            available = max(0, pact_slots - used)
+
+            row = tk.Frame(slots_frame, bg=COLORS["bg_surface"])
+            row.pack(fill=tk.X, pady=3)
+
+            tk.Label(
+                row,
+                text=f"PACT (L{pact_level})",
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["gold"],
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT)
+
+            tk.Label(
+                row,
+                text=f"{available} / {pact_slots}",
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["gold"] if available > 0 else COLORS["fg_disabled"],
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.RIGHT)
+
+            dots_frame = tk.Frame(row, bg=COLORS["bg_surface"])
+            dots_frame.pack(side=tk.RIGHT, padx=(0, 8))
+            for j in range(pact_slots):
+                dot = tk.Canvas(
+                    dots_frame,
+                    width=12,
+                    height=12,
+                    bg=COLORS["bg_surface"],
+                    highlightthickness=0,
+                )
+                fill_color = COLORS["gold"] if j < available else COLORS["bg_deepest"]
+                outline_color = COLORS["gold"] if j < available else COLORS["gold_dark"]
+                dot.create_oval(1, 1, 11, 11, fill=fill_color, outline=outline_color)
                 dot.pack(side=tk.LEFT, padx=2)
 
     # ================================================================
