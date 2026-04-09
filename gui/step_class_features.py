@@ -342,93 +342,178 @@ class ClassFeaturesStep(WizardStep):
 
         current = list(self._choice_value("weapon_mastery", []))
         options = get_weapon_mastery_options(self.character, self.data)
-        card = self._card(
-            "Weapon Mastery",
-            (
-                "Choose the weapons whose mastery properties you can use at level 1. "
+
+        header_lbl = SectionHeader(self._content, text=f"Weapon Mastery ({len(current)} / {count})")
+        header_lbl.pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
+        )
+
+        WrappingLabel(
+            self._content,
+            text=(
+                f"Choose {count} weapons whose mastery properties you can use at level 1. "
                 "Each mastered weapon gives you its listed mastery effect when you "
                 "attack with it."
             ),
-        )
+            background=COLORS["bg"],
+            foreground=COLORS["fg_dim"],
+        ).pack(fill=tk.X, anchor="w", padx=SPACING["lg"], pady=(0, SPACING["md"]))
 
-        for idx in range(count):
-            current_value = current[idx] if idx < len(current) else ""
-            blocked = {
-                value
-                for other_idx, value in enumerate(current)
-                if other_idx != idx and value
-            }
-            slot_options = [
-                option
-                for option in options
-                if option == current_value or option not in blocked
-            ]
-            row = tk.Frame(card.inner, bg=COLORS["bg_surface"])
-            row.pack(fill=tk.X, pady=(0, SPACING["xs"]))
-            tk.Label(
-                row,
-                text=f"Weapon {idx + 1}",
+        grid_frame = tk.Frame(self._content, bg=COLORS["bg"])
+        grid_frame.pack(fill=tk.BOTH, expand=True, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
+
+        columns = 2
+        for i in range(columns):
+            grid_frame.columnconfigure(i, weight=1)
+
+        tile_refs = {}
+
+        def update_tiles(current_selection: list[str]):
+            for wp_name, widgets in tile_refs.items():
+                is_sel = wp_name in current_selection
+                border_c = COLORS["accent"] if is_sel else COLORS["border_medium"]
+                bg_hex = COLORS.get("tile_hover", COLORS["bg_highest"]) if is_sel else COLORS.get("tile_bg", COLORS["bg_surface"])
+                fg_title = COLORS["accent_text"] if is_sel else COLORS["fg"]
+                
+                widgets["border"].configure(bg=border_c)
+                widgets["tile"].configure(bg=bg_hex)
+                widgets["title"].configure(bg=bg_hex, fg=fg_title)
+                
+                if widgets.get("stats"):
+                    widgets["stats"].configure(background=bg_hex)
+                if widgets.get("sep"):
+                    widgets["sep"].configure(bg=COLORS["border_subtle"])
+                if widgets.get("mastery_title"):
+                    widgets["mastery_title"].configure(bg=bg_hex)
+                if widgets.get("mastery_lbl"):
+                    widgets["mastery_lbl"].configure(background=bg_hex)
+
+        def on_toggle(weapon_name: str):
+            curr = list(self._choice_value("weapon_mastery", []))
+            if weapon_name in curr:
+                curr.remove(weapon_name)
+            else:
+                curr.append(weapon_name)
+
+            if len(curr) > count:
+                curr.pop(0)
+
+            # Manually update state without triggering full rebuild
+            if not isinstance(self.character.level1_class_choices, dict):
+                self.character.level1_class_choices = {}
+                
+            if curr:
+                self.character.level1_class_choices["weapon_mastery"] = curr
+            else:
+                self.character.level1_class_choices.pop("weapon_mastery", None)
+
+            # Update count label naturally if possible
+            for child in header_lbl.winfo_children():
+                if isinstance(child, tk.Label) or isinstance(child, ttk.Label):
+                    child.configure(text=f"Weapon Mastery ({len(curr)} / {count})")
+                    break
+
+            update_tiles(curr)
+            self.notify_change()
+
+        import re
+        from models.level1_class_rules import get_weapon_mastery_detail
+
+        for idx, weapon_name in enumerate(options):
+            is_selected = weapon_name in current
+            weapon_item = self.data.items_by_name.get(weapon_name, {})
+            desc = str(weapon_item.get("description", "")).strip()
+
+            mastery_detail = get_weapon_mastery_detail(self.data, weapon_name)
+            mastery_desc = mastery_detail.get("description", "")
+            mastery_name = mastery_detail.get("mastery", "")
+
+            # Extract the raw stats, excluding the mastery text which we present separately
+            stats_text = re.sub(r";?\s*Mastery:\s*[^;]+", "", desc, flags=re.IGNORECASE).strip("; ")
+
+            row = idx // columns
+            col = idx % columns
+
+            border_color = COLORS["accent"] if is_selected else COLORS["border_medium"]
+            if is_selected:
+                bg_hex = COLORS.get("tile_hover", COLORS["bg_highest"])
+            else:
+                bg_hex = COLORS.get("tile_bg", COLORS["bg_surface"])
+
+            tile_border = tk.Frame(grid_frame, bg=border_color, cursor="hand2")
+            tile_border.grid(row=row, column=col, sticky="nsew", padx=SPACING["xs"], pady=SPACING["xs"])
+            
+            tile = tk.Frame(tile_border, bg=bg_hex, cursor="hand2")
+            tile.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
+
+            title_lbl = tk.Label(
+                tile,
+                text=weapon_name,
                 font=FONTS["body_bold"],
-                fg=COLORS["fg"],
-                bg=COLORS["bg_surface"],
-                width=16,
-                anchor="w",
-            ).pack(side=tk.LEFT)
-            var = tk.StringVar(value=current_value)
-            combo = ttk.Combobox(
-                row,
-                textvariable=var,
-                values=slot_options,
-                state="readonly",
-                width=36,
+                fg=COLORS["fg"] if not is_selected else COLORS["accent_text"],
+                bg=bg_hex,
+                cursor="hand2"
             )
-            combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
-            combo.bind(
-                "<<ComboboxSelected>>",
-                lambda _event, i=idx, v=var: self._set_slotted_choice(
-                    "weapon_mastery", i, count, v.get()
-                ),
-            )
+            title_lbl.pack(anchor="w", padx=SPACING["sm"], pady=(SPACING["sm"], 0))
 
-        details = get_selected_weapon_mastery_details(self.character, self.data)
-        if not details:
-            return
-
-        tk.Frame(card.inner, bg=COLORS["border_subtle"], height=1).pack(
-            fill=tk.X,
-            pady=(SPACING["sm"], SPACING["sm"]),
-        )
-
-        for detail in details:
-            mastery = str(detail.get("mastery", "") or "").strip()
-            description = str(detail.get("description", "") or "").strip()
-            weapon_name = str(detail.get("weapon_name", "") or "").strip()
-            if not weapon_name:
-                continue
-
-            block = tk.Frame(card.inner, bg=COLORS["bg_surface"])
-            block.pack(fill=tk.X, anchor="w", pady=(0, SPACING["sm"]))
-
-            title = weapon_name
-            if mastery:
-                title = f"{weapon_name} - {mastery}"
-            tk.Label(
-                block,
-                text=title,
-                font=FONTS["body_bold"],
-                fg=COLORS["gold"],
-                bg=COLORS["bg_surface"],
-                anchor="w",
-                justify=tk.LEFT,
-            ).pack(anchor="w")
-
-            if description:
-                WrappingLabel(
-                    block,
-                    text=description,
-                    background=COLORS["bg_surface"],
+            stats_lbl = None
+            if stats_text:
+                stats_lbl = WrappingLabel(
+                    tile,
+                    text=stats_text,
+                    background=bg_hex,
                     foreground=COLORS["fg_dim"],
-                ).pack(fill=tk.X, anchor="w", pady=(SPACING["xs"], 0))
+                    cursor="hand2"
+                )
+                stats_lbl.pack(fill=tk.X, anchor="w", padx=SPACING["sm"], pady=(0, SPACING["xs"]))
+
+            sep = None
+            mastery_title = None
+            mastery_lbl = None
+            if mastery_desc:
+                sep = tk.Frame(tile, bg=COLORS["border_subtle"], height=1)
+                sep.pack(fill=tk.X, padx=SPACING["sm"], pady=4)
+                
+                mastery_title = tk.Label(
+                    tile,
+                    text=f"Mastery: {mastery_name}" if mastery_name else "Mastery",
+                    font=FONTS["body_bold"],
+                    fg=COLORS["gold"],
+                    bg=bg_hex,
+                    cursor="hand2"
+                )
+                mastery_title.pack(anchor="w", padx=SPACING["sm"])
+
+                mastery_lbl = WrappingLabel(
+                    tile,
+                    text=mastery_desc,
+                    background=bg_hex,
+                    foreground=COLORS["fg_dim"],
+                    cursor="hand2"
+                )
+                mastery_lbl.pack(fill=tk.X, anchor="w", padx=SPACING["sm"], pady=(0, SPACING["sm"]))
+            tile_refs[weapon_name] = {
+                "border": tile_border,
+                "tile": tile,
+                "title": title_lbl,
+                "stats": stats_lbl,
+                "sep": sep,
+                "mastery_title": mastery_title,
+                "mastery_lbl": mastery_lbl
+            }
+                
+            # Bind events for everything
+            click_func = lambda e, w=weapon_name: on_toggle(w)
+            tile_border.bind("<Button-1>", click_func)
+            tile.bind("<Button-1>", click_func)
+            title_lbl.bind("<Button-1>", click_func)
+            
+            if stats_lbl:
+                stats_lbl.bind("<Button-1>", click_func)
+            if mastery_desc:
+                sep.bind("<Button-1>", click_func)
+                mastery_title.bind("<Button-1>", click_func)
+                mastery_lbl.bind("<Button-1>", click_func)
 
     def _build_invocation_feat_toggles(self, parent):
         self._feat_toggle_vars.clear()
