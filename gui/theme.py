@@ -391,9 +391,9 @@ def apply_theme(root: tk.Tk):
         foreground=COLORS["fg"],
         padding=[12, 6],
         font=FONTS["body"],
-        bordercolor=COLORS["outline_dim"],
+        bordercolor=COLORS["bg_highest"],
         lightcolor=COLORS["bg_highest"],
-        darkcolor=COLORS["bg_surface"],
+        darkcolor=COLORS["bg_highest"],
     )
     style.map(
         "TButton",
@@ -402,9 +402,12 @@ def apply_theme(root: tk.Tk):
             ("disabled", COLORS["bg_high"]),
         ],
         foreground=[("disabled", COLORS["fg_dim"])],
-        bordercolor=[("active", COLORS["outline"]), ("disabled", COLORS["outline_dim"])],
+        bordercolor=[
+            ("active", COLORS["bg_high"]),
+            ("disabled", COLORS["bg_high"]),
+        ],
         lightcolor=[("active", COLORS["bg_high"])],
-        darkcolor=[("active", COLORS["bg_surface"])],
+        darkcolor=[("active", COLORS["bg_high"])],
     )
 
     style.configure(
@@ -413,9 +416,9 @@ def apply_theme(root: tk.Tk):
         foreground=COLORS["fg"],
         padding=[12, 6],
         font=FONTS["body"],
-        bordercolor=COLORS["outline_dim"],
+        bordercolor=COLORS["bg_highest"],
         lightcolor=COLORS["bg_highest"],
-        darkcolor=COLORS["bg_surface"],
+        darkcolor=COLORS["bg_highest"],
     )
     style.map(
         "Footer.TButton",
@@ -424,9 +427,12 @@ def apply_theme(root: tk.Tk):
             ("disabled", COLORS["bg_high"]),
         ],
         foreground=[("disabled", COLORS["fg_dim"])],
-        bordercolor=[("active", COLORS["outline"]), ("disabled", COLORS["outline_dim"])],
+        bordercolor=[
+            ("active", COLORS["bg_high"]),
+            ("disabled", COLORS["bg_high"]),
+        ],
         lightcolor=[("active", COLORS["bg_high"])],
-        darkcolor=[("active", COLORS["bg_surface"])],
+        darkcolor=[("active", COLORS["bg_high"])],
     )
 
     style.configure(
@@ -499,15 +505,15 @@ def apply_theme(root: tk.Tk):
         background=COLORS["bg_highest"],
         foreground=COLORS["gold_on_dark"],
         font=FONTS["body"],
-        bordercolor=COLORS["outline_dim"],
+        bordercolor=COLORS["bg_highest"],
         lightcolor=COLORS["bg_highest"],
-        darkcolor=COLORS["bg_surface"],
+        darkcolor=COLORS["bg_highest"],
     )
     style.map(
         "Gold.TButton",
         background=[("active", COLORS["bg_high"])],
         foreground=[("active", COLORS["gold"])],
-        bordercolor=[("active", COLORS["outline"])],
+        bordercolor=[("active", COLORS["bg_high"])],
         lightcolor=[("active", COLORS["bg_high"])],
         darkcolor=[("active", COLORS["bg_high"])],
     )
@@ -518,9 +524,9 @@ def apply_theme(root: tk.Tk):
         foreground=COLORS["fg"],
         padding=[6, 1],
         font=FONTS["body"],
-        bordercolor=COLORS["outline_dim"],
+        bordercolor=COLORS["bg_highest"],
         lightcolor=COLORS["bg_highest"],
-        darkcolor=COLORS["bg_surface"],
+        darkcolor=COLORS["bg_highest"],
     )
     style.map(
         "Compact.TButton",
@@ -529,9 +535,12 @@ def apply_theme(root: tk.Tk):
             ("disabled", COLORS["bg_high"]),
         ],
         foreground=[("disabled", COLORS["fg_dim"])],
-        bordercolor=[("active", COLORS["outline"]), ("disabled", COLORS["outline_dim"])],
+        bordercolor=[
+            ("active", COLORS["bg_high"]),
+            ("disabled", COLORS["bg_high"]),
+        ],
         lightcolor=[("active", COLORS["bg_high"])],
-        darkcolor=[("active", COLORS["bg_surface"])],
+        darkcolor=[("active", COLORS["bg_high"])],
     )
 
     style.configure(
@@ -540,14 +549,14 @@ def apply_theme(root: tk.Tk):
         foreground=COLORS["fg"],
         padding=[14, 10],
         font=FONTS["label_upper_bold"],
-        bordercolor=COLORS["outline_dim"],
+        bordercolor=COLORS["bg_high"],
         lightcolor=COLORS["bg_high"],
-        darkcolor=COLORS["bg_surface"],
+        darkcolor=COLORS["bg_high"],
     )
     style.map(
         "HomeLoad.TButton",
         background=[("active", COLORS["bg_highest"])],
-        bordercolor=[("active", COLORS["outline"])],
+        bordercolor=[("active", COLORS["bg_highest"])],
         lightcolor=[("active", COLORS["bg_highest"])],
         darkcolor=[("active", COLORS["bg_high"])],
     )
@@ -576,17 +585,17 @@ def apply_theme(root: tk.Tk):
         foreground=COLORS["fg_dim"],
         padding=[8, 3],
         font=FONTS["body_small"],
-        bordercolor=COLORS["outline_dim"],
+        bordercolor=COLORS["bg_container"],
         lightcolor=COLORS["bg_container"],
-        darkcolor=COLORS["bg_surface"],
+        darkcolor=COLORS["bg_container"],
     )
     style.map(
         "HomeDelete.TButton",
         background=[("active", COLORS["bg_high"])],
         foreground=[("active", COLORS["fg"])],
-        bordercolor=[("active", COLORS["outline"])],
+        bordercolor=[("active", COLORS["bg_high"])],
         lightcolor=[("active", COLORS["bg_high"])],
-        darkcolor=[("active", COLORS["bg_surface"])],
+        darkcolor=[("active", COLORS["bg_high"])],
     )
 
     # ------------------------------------------------------------------
