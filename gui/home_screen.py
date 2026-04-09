@@ -173,16 +173,6 @@ class HomeScreen:
         # Secondary action column (vertical stack)
         self._secondary_action_col = tk.Frame(self._landing_action_row, bg=COLORS["bg"])
 
-        self._settings_card = self._build_compact_action_card(
-            self._secondary_action_col,
-            title="System Settings",
-            icon="\u2699",
-            accent=COLORS["outline_dim"],
-            label="THE ORRERY",
-            command=self.app.show_settings,
-        )
-        self._settings_card.pack(fill=tk.X, pady=(0, 12))
-
         self._comp_card = self._build_compact_action_card(
             self._secondary_action_col,
             title="Coming soon...",
@@ -192,7 +182,17 @@ class HomeScreen:
             command=lambda: None,
             disabled=True,
         )
-        self._comp_card.pack(fill=tk.X)
+        self._comp_card.pack(fill=tk.X, pady=(0, 12))
+
+        self._settings_card = self._build_compact_action_card(
+            self._secondary_action_col,
+            title="System Settings",
+            icon="\u2699",
+            accent=COLORS["outline_dim"],
+            label="THE ORRERY",
+            command=self.app.show_settings,
+        )
+        self._settings_card.pack(fill=tk.X)
 
         # Compendium Tooltip
         def _show_comp_tip(e):
@@ -454,29 +454,37 @@ class HomeScreen:
         disabled: bool = False,
     ) -> tk.Frame:
         """Smaller stacked cards for secondary actions (Settings, Compendium)."""
+        card_bg = COLORS["bg_container"] if disabled else COLORS["bg_highest"]
+        border_color = COLORS["border_subtle_bg"] if disabled else COLORS["border_medium"]
+        token_bg = COLORS["control_disabled"] if disabled else accent
+        token_fg = COLORS["fg_disabled"] if disabled else (accent_text or COLORS["accent_text"])
+        icon_fg = COLORS["fg_disabled"] if disabled else COLORS["fg"]
+        title_fg = COLORS["fg_disabled"] if disabled else COLORS["fg"]
+        accent_bar_color = COLORS["control_disabled"] if disabled else accent
+
         card = tk.Frame(
             parent,
             width=self._SECONDARY_CARD_WIDTH,
             height=self._SECONDARY_CARD_HEIGHT,
-            bg=COLORS["bg_highest"],
-            highlightbackground=COLORS["border_medium"],
+            bg=card_bg,
+            highlightbackground=border_color,
             highlightthickness=1,
             cursor="hand2" if not disabled else "arrow",
         )
         card.pack_propagate(False)
 
-        inner = tk.Frame(card, bg=COLORS["bg_highest"], padx=24, pady=16)
+        inner = tk.Frame(card, bg=card_bg, padx=24, pady=16)
         inner.pack(fill=tk.BOTH, expand=True)
 
-        header = tk.Frame(inner, bg=COLORS["bg_highest"])
+        header = tk.Frame(inner, bg=card_bg)
         header.pack(fill=tk.X)
 
         token = tk.Label(
             header,
             text=label,
             font=FONTS["label_upper_bold"],
-            fg=accent_text or COLORS["accent_text"],
-            bg=accent,
+            fg=token_fg,
+            bg=token_bg,
             padx=8,
             pady=4,
         )
@@ -487,20 +495,20 @@ class HomeScreen:
                 header,
                 text=icon,
                 font=FONTS["heading_serif_sm"],
-                fg=COLORS["fg_dim"] if disabled else COLORS["fg"],
-                bg=COLORS["bg_highest"],
+                fg=icon_fg,
+                bg=card_bg,
             ).pack(side=tk.RIGHT)
 
         tk.Label(
             inner,
             text=title,
             font=FONTS["heading_serif_sm"],
-            fg=COLORS["fg_dim"] if disabled else COLORS["fg"],
-            bg=COLORS["bg_highest"],
+            fg=title_fg,
+            bg=card_bg,
             anchor="w",
         ).pack(side=tk.BOTTOM, fill=tk.X)
 
-        accent_bar = tk.Frame(card, bg=accent, height=3)
+        accent_bar = tk.Frame(card, bg=accent_bar_color, height=3)
         accent_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
         if not disabled:

@@ -1483,6 +1483,8 @@ class NavButton(tk.Frame):
             wraplength=190,
         )
         self._subtitle.pack(fill=tk.X)
+        self._subtitle_visible = True
+        self._update_subtitle_visibility(subtitle or "")
 
         # Keep icon ref for backward compat but don't display
         self._icon = None
@@ -1527,8 +1529,10 @@ class NavButton(tk.Frame):
             self._subtitle.configure(fg=sub_fg)
 
     def set_subtitle(self, text: str):
+        text = text or ""
         if self._subtitle.cget("text") != text:
             self._subtitle.configure(text=text)
+        self._update_subtitle_visibility(text)
 
     def set_text(self, text: str):
         if self._label.cget("text") != text:
@@ -1579,6 +1583,15 @@ class NavButton(tk.Frame):
             self.set_status(active=True)
         else:
             self.set_status(active=False, completed=self._completed, locked=self._locked)
+
+    def _update_subtitle_visibility(self, text: str):
+        has_text = bool(text.strip())
+        if has_text and not self._subtitle_visible:
+            self._subtitle.pack(fill=tk.X)
+            self._subtitle_visible = True
+        elif not has_text and self._subtitle_visible:
+            self._subtitle.pack_forget()
+            self._subtitle_visible = False
 
 
 class WizardNavButton(tk.Frame):

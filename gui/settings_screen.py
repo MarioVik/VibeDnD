@@ -128,13 +128,13 @@ class SettingsScreen:
         
         ttk.Button(
             btn_inner,
-            text="Cancel Changes",
+            text="Cancel",
             command=self.app.show_home
         ).pack(side=tk.LEFT, padx=(0, 12))
         
         ttk.Button(
             btn_inner,
-            text="Save & Continue",
+            text="Save",
             style="WizardAccent.TButton",
             command=self._save_and_close
         ).pack(side=tk.LEFT)
