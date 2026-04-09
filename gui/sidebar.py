@@ -232,10 +232,12 @@ class Sidebar(tk.Frame):
             back_btn = tk.Label(
                 row,
                 text="\u25c0",
-                font=FONTS["heading_serif"],
+                font=FONTS["archive_back"],
                 fg=COLORS["fg"],
                 bg=COLORS["bg_surface"],
                 cursor="hand2",
+                highlightthickness=0,
+                bd=0,
             )
             back_btn.pack(side=tk.LEFT, padx=(0, 8))
             back_btn.bind("<Button-1>", lambda _event: self._on_back())
@@ -277,10 +279,12 @@ class Sidebar(tk.Frame):
             back_btn = tk.Label(
                 row,
                 text="\u25c0",
-                font=FONTS["heading_serif_sm"],
+                font=FONTS["archive_back"],
                 fg=COLORS["fg_dim"],
                 bg=COLORS["bg_surface"],
                 cursor="hand2",
+                highlightthickness=0,
+                bd=0,
             )
             back_btn.pack(side=tk.LEFT, padx=(0, 10))
             back_btn.bind("<Button-1>", lambda e: self._on_back())
