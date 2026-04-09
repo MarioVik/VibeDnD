@@ -17,6 +17,7 @@ from models.spell_grant_utils import (
     format_spellbook_entry_label,
     get_spellbook_entries,
 )
+from models.item_effects import get_effective_ability_score, get_effective_modifier as _eff_mod
 from models.standard_actions import build_standard_actions
 from models.inventory_service import cp_to_coins, current_wealth_cp
 
@@ -563,7 +564,6 @@ class CharacterSheetPDF(FPDF):
             if pa:
                 primary_ability = pa[0]
 
-        from models.item_effects import get_effective_ability_score, get_effective_modifier as _eff_mod
         primary_score = get_effective_ability_score(c, primary_ability)
         primary_mod = _eff_mod(c, primary_ability)
         passive_perception = 10 + c.skill_modifier("Perception")
@@ -937,7 +937,7 @@ class CharacterSheetPDF(FPDF):
                                     f.get("name", ""),
                                     f.get("description", ""),
                                     c,
-                                    game_data,
+                                    None,
                                 ),
                             }
                         )
@@ -951,7 +951,7 @@ class CharacterSheetPDF(FPDF):
                                         name,
                                         "",
                                         c,
-                                        game_data,
+                                        None,
                                     ),
                                 }
                             )
@@ -1591,7 +1591,7 @@ class CharacterSheetPDF(FPDF):
         self._redraw_title(slots_x, y, slots_w, "SPELL SLOTS")
 
         sy = y + 6 + 2
-        spell_slots = c.character_class.get("spell_slots", {})
+        spell_slots = (c.character_class or {}).get("spell_slots") or {}
         slot_key_map = {
             i: f"{i}{'st' if i == 1 else 'nd' if i == 2 else 'rd' if i == 3 else 'th'}"
             for i in range(1, 10)

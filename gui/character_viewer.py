@@ -221,8 +221,17 @@ class CharacterViewer(ttk.Frame):
         self._show_view(key)
 
     def destroy(self):
-        self._dispose_hover_tooltips()
-        super().destroy()
+        if getattr(self, "_destroyed", False):
+            return
+        self._destroyed = True
+        try:
+            self._dispose_hover_tooltips()
+        except Exception:
+            pass
+        try:
+            super().destroy()
+        except tk.TclError:
+            pass
 
     def _show_view(self, key: str):
         self.sidebar.set_active(key)
