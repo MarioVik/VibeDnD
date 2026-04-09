@@ -1541,26 +1541,8 @@ class CharacterViewer(ttk.Frame):
         if not cls:
             return
 
-        # Get spell slots from class data
-        spell_slots = cls.get("spell_slots", {})
-        if not spell_slots:
-            # Try progression data
-            if self.data:
-                level_data = self.data.get_level_data(
-                    cls.get("slug", ""),
-                    c.level,
-                )
-                if level_data:
-                    spell_slots = level_data.get("spell_slots", {})
-
-        # Pact Magic slots
-        pact_slots = 0
-        pact_level = 0
-        if cls.get("caster_type") == "pact" and self.data:
-            level_data = self.data.get_level_data(cls.get("slug", ""), c.level)
-            if level_data:
-                pact_slots = level_data.get("pact_slots", 0)
-                pact_level = level_data.get("pact_slot_level", 0)
+        spell_slots = c.current_spell_slots(self.data)
+        pact_slots, pact_level = c.current_pact_magic(self.data)
 
         if not spell_slots and pact_slots <= 0:
             return

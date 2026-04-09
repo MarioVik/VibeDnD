@@ -1591,7 +1591,7 @@ class CharacterSheetPDF(FPDF):
         self._redraw_title(slots_x, y, slots_w, "SPELL SLOTS")
 
         sy = y + 6 + 2
-        spell_slots = (c.character_class or {}).get("spell_slots") or {}
+        spell_slots = c.current_spell_slots(self._get_game_data())
         slot_key_map = {
             i: f"{i}{'st' if i == 1 else 'nd' if i == 2 else 'rd' if i == 3 else 'th'}"
             for i in range(1, 10)

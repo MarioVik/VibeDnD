@@ -555,6 +555,56 @@ class Character:
             return f"Level {self.level} {self.species_name} ({'/'.join(mc_parts)})"
         return f"Level {self.level} " + " ".join(parts) if parts else "No selections"
 
+    def primary_class_level(self) -> int:
+        """Return the current level in the character's primary class."""
+        cls = self.character_class or {}
+        slug = str(cls.get("slug", "") or "").strip()
+        if not slug:
+            return self.level
+        class_level = self.class_level_in(slug)
+        if class_level > 0:
+            return class_level
+        return self.level
+
+    def current_spell_slots(self, game_data=None) -> dict[str, int]:
+        """Return the current primary-class spell-slot table for the character level."""
+        cls = self.character_class or {}
+        if not cls:
+            return {}
+
+        fallback_slots = dict(cls.get("spell_slots") or {})
+        slug = str(cls.get("slug", "") or "").strip()
+        if not game_data or not slug:
+            return fallback_slots
+
+        level_data = game_data.get_level_data(slug, self.primary_class_level())
+        if not level_data:
+            return fallback_slots
+
+        progression_slots = level_data.get("spell_slots")
+        if progression_slots is None:
+            return fallback_slots
+        return dict(progression_slots)
+
+    def current_pact_magic(self, game_data=None) -> tuple[int, int]:
+        """Return (pact_slots, pact_slot_level) for the primary class."""
+        cls = self.character_class or {}
+        if cls.get("caster_type") != "pact":
+            return 0, 0
+
+        slug = str(cls.get("slug", "") or "").strip()
+        if not game_data or not slug:
+            return 0, 0
+
+        level_data = game_data.get_level_data(slug, self.primary_class_level())
+        if not level_data:
+            return 0, 0
+
+        return (
+            int(level_data.get("pact_slots", 0) or 0),
+            int(level_data.get("pact_slot_level", 0) or 0),
+        )
+
     # Spell Slot Management
     def use_spell_slot(self, level: str):
         """Consume a spell slot of the given level ('1'-'9' or 'pact')."""

@@ -719,22 +719,8 @@ class UseSpellSlotDialog:
         # Get slots
         c = self.character
         cls = c.character_class or {}
-        spell_slots = {}
-        if cls:
-            spell_slots = cls.get("spell_slots", {})
-            if not spell_slots and self.data:
-                level_data = self.data.get_level_data(cls.get("slug", ""), c.level)
-                if level_data:
-                    spell_slots = level_data.get("spell_slots", {})
-
-        # Pact Magic slots
-        pact_slots = 0
-        pact_level = 0
-        if cls.get("caster_type") == "pact" and self.data:
-            level_data = self.data.get_level_data(cls.get("slug", ""), c.level)
-            if level_data:
-                pact_slots = level_data.get("pact_slots", 0)
-                pact_level = level_data.get("pact_slot_level", 0)
+        spell_slots = c.current_spell_slots(self.data) if cls else {}
+        pact_slots, pact_level = c.current_pact_magic(self.data) if cls else (0, 0)
 
         found_any = False
 
