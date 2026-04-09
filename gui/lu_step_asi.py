@@ -19,8 +19,6 @@ from gui.source_config import (
     SECTION_ORDER,
     UA_CATEGORY,
     group_by_category,
-    handle_ua_toggle,
-    save_settings,
 )
 from models.level_up_logic import (
     ALL_ABILITIES,
@@ -76,14 +74,7 @@ class LuAsiStep(LevelUpStep):
         content.columnconfigure(1, weight=1)
         content.rowconfigure(1, weight=1)
 
-        # Source filter toggles
-        self._toggle_frame = tk.Frame(content, bg=COLORS["bg"])
-        self._toggle_frame.grid(
-            row=0, column=0, columnspan=2, sticky="ew",
-            padx=SPACING["lg"], pady=(SPACING["sm"], 0),
-        )
-        self._toggle_vars: dict[str, tk.BooleanVar] = {}
-        self._ua_prev_enabled = False
+
 
         # Left: feat list
         list_frame = tk.Frame(content, bg=COLORS["bg"], width=280)
@@ -99,7 +90,7 @@ class LuAsiStep(LevelUpStep):
             list_frame,
             on_select=self._on_feat_select,
         )
-        self._feat_list.grid(row=0, column=0, sticky="nsew")
+        self._feat_list.grid(row=0, column=0, rowspan=2, sticky="nsew")
 
         # Right: detail panel
         detail_outer = tk.Frame(content, bg=COLORS["bg"])
@@ -119,44 +110,13 @@ class LuAsiStep(LevelUpStep):
         self._detail_scroll.grid(row=1, column=0, sticky="nsew")
 
     def on_enter(self):
-        self._build_toggles()
         self._populate_feats()
         # Restore previous selection
         if self.ctx.feat_name:
             self._feat_list.select_item(self.ctx.feat_name)
             self._show_feat_detail(self.ctx.feat_name)
 
-    def _build_toggles(self):
-        for w in self._toggle_frame.winfo_children():
-            w.destroy()
-        self._toggle_vars.clear()
 
-        filters = self.data.source_filters.get("feats", {})
-        sections = SECTION_ORDER.get("feats", [])
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-            cb = ttk.Checkbutton(
-                self._toggle_frame,
-                text=label,
-                variable=var,
-                command=self._on_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, SPACING["xs"]))
-            self._toggle_vars[cat] = var
-
-    def _on_toggle_change(self):
-        ua_var = self._toggle_vars.get(UA_CATEGORY)
-        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
-        if not proceed:
-            return
-        filters = {cat: var.get() for cat, var in self._toggle_vars.items()}
-        self.data.source_filters["feats"] = filters
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-        save_settings(self.data.source_filters)
-        self._populate_feats()
 
     def _populate_feats(self):
         filters = self.data.source_filters.get("feats", {})

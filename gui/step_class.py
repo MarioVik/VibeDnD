@@ -30,8 +30,6 @@ from gui.source_config import (
     UA_CATEGORY,
     group_by_category,
     get_category,
-    handle_ua_toggle,
-    save_settings,
 )
 from paths import images_dir
 
@@ -153,11 +151,7 @@ class ClassStep(WizardStep):
             justify=tk.LEFT,
         ).pack(anchor="w", pady=(SPACING["sm"], 0))
 
-        # Keep filter state plumbing available, but the class screen no longer
-        # exposes filter controls in the character creator UI.
-        self._grid_toggle_frame = tk.Frame(self._grid_frame, bg=COLORS["bg"])
-        self.toggle_vars: dict[str, tk.BooleanVar] = {}
-        self._ua_prev_enabled = False
+
 
         # Tile grid
         self._tile_grid = TileGrid(
@@ -175,51 +169,10 @@ class ClassStep(WizardStep):
         self._populate_tiles()
 
     def _visible_class_categories(self) -> set[str]:
-        return {cat for cat in SECTION_ORDER["classes"] if cat != UA_CATEGORY}
-
-    def _build_toggles(self):
-        """Build source filter checkboxes for classes and subclasses."""
-        for w in self._grid_toggle_frame.winfo_children():
-            w.destroy()
-        self.toggle_vars.clear()
-
         filters = self.data.source_filters.get("classes", {})
-        sections = SECTION_ORDER["classes"]
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
+        return {cat for cat, on in filters.items() if on}
 
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-            cb = ttk.Checkbutton(
-                self._grid_toggle_frame,
-                text=label,
-                variable=var,
-                command=self._on_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, 6))
-            self.toggle_vars[cat] = var
 
-        # Keep subclass filters fully in sync
-        self.data.source_filters["subclasses"] = {
-            cat: filters.get(cat, cat != UA_CATEGORY) for cat in sections
-        }
-
-    def _on_toggle_change(self):
-        """Update filters and rebuild tiles/list when a toggle changes."""
-        ua_var = self.toggle_vars.get(UA_CATEGORY)
-        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
-        if not proceed:
-            return
-
-        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
-        self.data.source_filters["classes"] = filters
-        self.data.source_filters["subclasses"] = dict(filters)
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-        save_settings(self.data.source_filters)
-        self._populate_tiles()
-        if self.character.character_class and hasattr(self, "_subclass_combo"):
-            class_name = self.character.character_class.get("name", "")
-            self._refresh_subclass_preview_options(class_name)
 
     def _get_class_level1_features(self, cls: dict) -> list[str]:
         """Get all unique level 1 feature names for class tiles."""

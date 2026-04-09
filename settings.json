@@ -3,13 +3,14 @@
     "species": {
       "Common": true,
       "Eberron": true,
-      "Exotic": true
+      "Exotic": true,
+      "Legacy": true
     },
     "backgrounds": {
       "Common": true,
       "Eberron": true,
       "Faerun": true,
-      "Exotic": false
+      "Exotic": true
     },
     "feats": {
       "Common": true,

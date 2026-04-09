@@ -30,8 +30,7 @@ from models.spell_grant_utils import character_has_spell_step_content
 from models.language_utils import compute_language_sources
 from models.skill_utils import compute_skill_sources
 
-from gui.home_screen import HomeScreen
-from gui.character_viewer import CharacterViewer
+# Screens are imported lazily inside methods to avoid circular dependencies
 
 # Level-up wizard steps and logic
 from gui.lu_step_class import LuClassStep
@@ -141,7 +140,11 @@ class CharacterCreatorApp:
         self.container.pack(fill=tk.BOTH, expand=True)
 
         # Screen references
+        from gui.home_screen import HomeScreen
+        from gui.settings_screen import SettingsScreen
+        
         self.home_screen = HomeScreen(self.container, self)
+        self.settings_screen = SettingsScreen(self.container, self)
         self.wizard_frame = None
         self.viewer_frame = None
         self.lu_frame = None
@@ -160,6 +163,12 @@ class CharacterCreatorApp:
         self._hide_all()
         self.home_screen.show_landing()
         self.home_screen.frame.pack(fill=tk.BOTH, expand=True)
+
+    def show_settings(self):
+        """Switch to the system settings screen."""
+        self._hide_all()
+        self.home_screen.refresh() # In case sources changed
+        self.settings_screen.frame.pack(fill=tk.BOTH, expand=True)
 
     def show_archive(self):
         """Switch to the saved-character archive."""
@@ -198,6 +207,8 @@ class CharacterCreatorApp:
                 self.viewer_frame.destroy()
             except tk.TclError:
                 pass
+        
+        from gui.character_viewer import CharacterViewer
         self.viewer_frame = CharacterViewer(
             self.container, character, save_path, self.data, self
         )
@@ -225,6 +236,7 @@ class CharacterCreatorApp:
             self.viewer_frame.pack_forget()
         if self.lu_frame:
             self.lu_frame.pack_forget()
+        self.settings_screen.frame.pack_forget()
 
     # ── Wizard builder ──────────────────────────────────────────
 

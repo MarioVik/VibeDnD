@@ -135,10 +135,10 @@ else:
 
 FONTS = {
     # Serif headings (Newsreader equivalent)
-    "heading_serif_lg": (_SERIF, 28, "bold italic"),
-    "heading_serif": (_SERIF, 20, "italic"),
-    "heading_serif_sm": (_SERIF, 14, "italic"),
-    "hero_eyebrow": (_SERIF, 14, "italic"),
+    "heading_serif_lg": (_SERIF, 28, "bold"),
+    "heading_serif": (_SERIF, 20),
+    "heading_serif_sm": (_SERIF, 14),
+    "hero_eyebrow": (_SERIF, 14),
     "hero_title": (_SERIF, 48, "bold"),
     "hero_title_italic": (_SERIF, 56, "bold italic"),
     "archive_title": (_SERIF, 28),

@@ -19,8 +19,6 @@ from gui.source_config import (
     SECTION_ORDER,
     UA_CATEGORY,
     group_by_category,
-    handle_ua_toggle,
-    save_settings,
 )
 from models.level1_class_rules import (
     get_available_fighting_styles,
@@ -51,8 +49,7 @@ class ClassFeaturesStep(WizardStep):
         self._invocation_vars: dict[str, dict] = {}
         self._invocation_checkbuttons: dict[str, ttk.Checkbutton] = {}
         self._invocation_detail_text: tk.Text | None = None
-        self._feat_ua_prev_enabled = False
-        self._feat_toggle_vars: dict[str, tk.BooleanVar] = {}
+
         self._invocation_feat_list: SectionedListbox | None = None
         self._invocation_feat_label: tk.Label | None = None
         self._invocation_feat_source: tk.Label | None = None
@@ -515,36 +512,7 @@ class ClassFeaturesStep(WizardStep):
                 mastery_title.bind("<Button-1>", click_func)
                 mastery_lbl.bind("<Button-1>", click_func)
 
-    def _build_invocation_feat_toggles(self, parent):
-        self._feat_toggle_vars.clear()
 
-        filters = self.data.source_filters.get("feats", {})
-        sections = SECTION_ORDER["feats"]
-        self._feat_ua_prev_enabled = filters.get(UA_CATEGORY, False)
-
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-            cb = ttk.Checkbutton(
-                parent,
-                text=label,
-                variable=var,
-                command=self._on_invocation_feat_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, 4))
-            self._feat_toggle_vars[cat] = var
-
-    def _on_invocation_feat_toggle_change(self):
-        ua_var = self._feat_toggle_vars.get(UA_CATEGORY)
-        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._feat_ua_prev_enabled)
-        if not proceed:
-            return
-
-        filters = {cat: var.get() for cat, var in self._feat_toggle_vars.items()}
-        self.data.source_filters["feats"] = filters
-        self._feat_ua_prev_enabled = filters.get(UA_CATEGORY, False)
-        save_settings(self.data.source_filters)
-        self._populate_invocation_origin_feats()
 
     def _populate_invocation_origin_feats(self):
         if self._invocation_feat_list is None:
@@ -671,15 +639,11 @@ class ClassFeaturesStep(WizardStep):
             bg=COLORS["bg"],
         ).grid(row=0, column=0, sticky="w", pady=(0, 2))
 
-        toggle_frame = tk.Frame(list_frame, bg=COLORS["bg"])
-        toggle_frame.grid(row=1, column=0, sticky="ew", pady=(0, SPACING["xs"]))
-        self._build_invocation_feat_toggles(toggle_frame)
-
         self._invocation_feat_list = SectionedListbox(
             list_frame,
             on_select=self._on_invocation_feat_select,
         )
-        self._invocation_feat_list.grid(row=2, column=0, sticky="nsew")
+        self._invocation_feat_list.grid(row=1, column=0, rowspan=2, sticky="nsew")
 
         detail_scroll = tk.Frame(section, bg=COLORS["bg"])
         detail_scroll.grid(row=1, column=1, sticky="nsew", padx=0, pady=0)

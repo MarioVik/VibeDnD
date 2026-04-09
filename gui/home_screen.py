@@ -13,7 +13,12 @@ except ImportError:  # pragma: no cover
     ImageTk = None
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import ScrollableFrame, ConfirmDialog, AlertDialog
+from gui.widgets import (
+    ScrollableFrame,
+    ConfirmDialog,
+    AlertDialog,
+    CardFrame,
+)
 from models.character_store import list_saved_characters, delete_character
 from paths import characters_dir
 
@@ -28,6 +33,8 @@ class HomeScreen:
     _ARCHIVE_CARD_GAP = 18
     _ARCHIVE_OVERLAY_HEIGHT = 140
     _MAX_ARCHIVE_COLUMNS = 3
+    _SECONDARY_CARD_HEIGHT = 113  # Half of _ACTION_CARD_HEIGHT (238) minus gap spacing
+    _SECONDARY_CARD_WIDTH = 240   # Narrower than main action cards (380)
 
     def __init__(self, parent, app):
         self.app = app
@@ -162,6 +169,57 @@ class HomeScreen:
             command=self.app.show_archive,
             accent_text=COLORS["gold"],
         )
+
+        # Secondary action column (vertical stack)
+        self._secondary_action_col = tk.Frame(self._landing_action_row, bg=COLORS["bg"])
+
+        self._settings_card = self._build_compact_action_card(
+            self._secondary_action_col,
+            title="System Settings",
+            icon="\u2699",
+            accent=COLORS["outline_dim"],
+            label="THE ORRERY",
+            command=self.app.show_settings,
+        )
+        self._settings_card.pack(fill=tk.X, pady=(0, 12))
+
+        self._comp_card = self._build_compact_action_card(
+            self._secondary_action_col,
+            title="Coming soon...",
+            icon="\U0001f4d6",
+            accent=COLORS["outline_dim"],
+            label="THE COMPENDIUM",
+            command=lambda: None,
+            disabled=True,
+        )
+        self._comp_card.pack(fill=tk.X)
+
+        # Compendium Tooltip
+        def _show_comp_tip(e):
+            if hasattr(self, "_comp_tip_win") and self._comp_tip_win:
+                return
+            x = e.widget.winfo_rootx() + 20
+            y = e.widget.winfo_rooty() + e.widget.winfo_height() + 5
+            self._comp_tip_win = tk.Toplevel(self._landing_view)
+            self._comp_tip_win.wm_overrideredirect(True)
+            self._comp_tip_win.wm_geometry(f"+{x}+{y}")
+            self._comp_tip_win.attributes("-topmost", True)
+            lbl = tk.Label(
+                self._comp_tip_win, text="Coming soon...",
+                bg=COLORS["bg_highest"], fg=COLORS["fg"],
+                font=FONTS["body"], relief="solid", borderwidth=1, padx=8, pady=4
+            )
+            lbl.pack()
+            lbl.configure(highlightbackground=COLORS["border_medium"], highlightthickness=1, borderwidth=0)
+
+        def _hide_comp_tip(e):
+            if hasattr(self, "_comp_tip_win") and self._comp_tip_win:
+                self._comp_tip_win.destroy()
+                self._comp_tip_win = None
+
+        self._comp_card.bind("<Enter>", _show_comp_tip)
+        self._comp_card.bind("<Leave>", _hide_comp_tip)
+
         self._refresh_landing_layout()
         self._landing_view.bind("<Configure>", self._on_landing_configure)
 
@@ -264,13 +322,16 @@ class HomeScreen:
             self._landing_actions_vertical = vertical
             self._create_card.pack_forget()
             self._load_card.pack_forget()
+            self._secondary_action_col.pack_forget()
 
             if vertical:
                 self._create_card.pack(fill=tk.X, pady=(0, 16))
-                self._load_card.pack(fill=tk.X)
+                self._load_card.pack(fill=tk.X, pady=(0, 16))
+                self._secondary_action_col.pack(fill=tk.X)
             else:
                 self._create_card.pack(side=tk.LEFT, padx=(0, 16))
-                self._load_card.pack(side=tk.LEFT)
+                self._load_card.pack(side=tk.LEFT, padx=(0, 16))
+                self._secondary_action_col.pack(side=tk.LEFT)
 
         self._landing_body.configure(wraplength=min(max(width - 260, 540), 820))
 
@@ -379,6 +440,77 @@ class HomeScreen:
                     widget.configure(bg=COLORS["bg_highest"])
 
         self._bind_clickable(card, command, on_enter, on_leave)
+        return card
+
+    def _build_compact_action_card(
+        self,
+        parent,
+        title: str,
+        label: str,
+        accent: str,
+        command,
+        icon: str = "",
+        accent_text: str | None = None,
+        disabled: bool = False,
+    ) -> tk.Frame:
+        """Smaller stacked cards for secondary actions (Settings, Compendium)."""
+        card = tk.Frame(
+            parent,
+            width=self._SECONDARY_CARD_WIDTH,
+            height=self._SECONDARY_CARD_HEIGHT,
+            bg=COLORS["bg_highest"],
+            highlightbackground=COLORS["border_medium"],
+            highlightthickness=1,
+            cursor="hand2" if not disabled else "arrow",
+        )
+        card.pack_propagate(False)
+
+        inner = tk.Frame(card, bg=COLORS["bg_highest"], padx=24, pady=16)
+        inner.pack(fill=tk.BOTH, expand=True)
+
+        header = tk.Frame(inner, bg=COLORS["bg_highest"])
+        header.pack(fill=tk.X)
+
+        token = tk.Label(
+            header,
+            text=label,
+            font=FONTS["label_upper_bold"],
+            fg=accent_text or COLORS["accent_text"],
+            bg=accent,
+            padx=8,
+            pady=4,
+        )
+        token.pack(side=tk.LEFT)
+
+        if icon:
+            tk.Label(
+                header,
+                text=icon,
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["fg_dim"] if disabled else COLORS["fg"],
+                bg=COLORS["bg_highest"],
+            ).pack(side=tk.RIGHT)
+
+        tk.Label(
+            inner,
+            text=title,
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["fg_dim"] if disabled else COLORS["fg"],
+            bg=COLORS["bg_highest"],
+            anchor="w",
+        ).pack(side=tk.BOTTOM, fill=tk.X)
+
+        accent_bar = tk.Frame(card, bg=accent, height=3)
+        accent_bar.pack(side=tk.BOTTOM, fill=tk.X)
+
+        if not disabled:
+            self._bind_clickable(
+                card, 
+                command, 
+                on_enter=lambda _e: card.configure(highlightbackground=COLORS["accent"]),
+                on_leave=lambda _e: card.configure(highlightbackground=COLORS["border_medium"])
+            )
+
         return card
 
     # ------------------------------------------------------------------
@@ -938,24 +1070,32 @@ class HomeScreen:
     # ------------------------------------------------------------------
 
     def _bind_clickable(self, widget, command, on_enter=None, on_leave=None):
+        """Bind click and hover events to a widget and its children for a robust 'card' behavior."""
+        
         def handle_leave(event):
             if on_leave is None:
                 return
+            
+            # Check if the mouse is truly outside the widget
             try:
-                pointer_x, pointer_y = widget.winfo_pointerxy()
-                hovered = widget.winfo_containing(pointer_x, pointer_y)
+                # Use current cursor position relative to screen
+                px, py = widget.winfo_pointerxy()
+                # Find which widget is at those coordinates
+                target = widget.winfo_containing(px, py)
+                
+                # If we are STILL inside this widget or any of its children, ignore the leave
+                curr = target
+                while curr:
+                    if curr == widget:
+                        return
+                    curr = getattr(curr, "master", None)
             except tk.TclError:
-                hovered = None
-
-            current = hovered
-            while current is not None:
-                if current is widget:
-                    return
-                current = getattr(current, "master", None)
-
+                pass
+                
             on_leave(event)
 
         def handle_click(event):
+            # Block clicking on specifically tagged items (like delete buttons)
             current_widget = event.widget
             if isinstance(current_widget, tk.Canvas):
                 current_items = current_widget.find_withtag("current")
@@ -967,15 +1107,20 @@ class HomeScreen:
             command()
             return "break"
 
-        def recurse(current):
-            current.configure(cursor="hand2")
-            current.bind("<Button-1>", handle_click)
-            current.bind("<Enter>", on_enter or (lambda _event: None))
-            current.bind("<Leave>", handle_leave)
-            for child in current.winfo_children():
-                recurse(child)
+        # 1. Hover events ONLY on the root widget (recursive bind on children causes flicker)
+        if on_enter:
+            widget.bind("<Enter>", on_enter, add="+")
+        if on_leave:
+            widget.bind("<Leave>", handle_leave, add="+")
 
-        recurse(widget)
+        # 2. Recursive click binding to all current and future children
+        def bind_click_recursive(current):
+            current.configure(cursor="hand2")
+            current.bind("<Button-1>", handle_click, add="+")
+            for child in current.winfo_children():
+                bind_click_recursive(child)
+
+        bind_click_recursive(widget)
 
     def _animate_label_color(self, widget: tk.Label, target_color: str, steps: int = 6, delay: int = 18):
         current_job = getattr(widget, "_color_anim_job", None)

@@ -26,8 +26,6 @@ from gui.source_config import (
     SECTION_ORDER,
     UA_CATEGORY,
     group_by_category,
-    handle_ua_toggle,
-    save_settings,
 )
 from paths import images_dir
 
@@ -160,11 +158,7 @@ class SpeciesStep(WizardStep):
             justify=tk.LEFT,
         ).pack(anchor="w", pady=(SPACING["sm"], 0))
 
-        # Keep filter state plumbing available, but the species screen no longer
-        # exposes filter controls in the character creator UI.
-        self._grid_toggle_frame = tk.Frame(self._grid_frame, bg=COLORS["bg"])
-        self.toggle_vars: dict[str, tk.BooleanVar] = {}
-        self._ua_prev_enabled = False
+
 
         # Tile grid
         self._tile_grid = TileGrid(
@@ -181,46 +175,18 @@ class SpeciesStep(WizardStep):
 
         self._populate_tiles()
 
-    def _build_toggles(self):
-        """Build source filter checkboxes."""
-        for w in self._grid_toggle_frame.winfo_children():
-            w.destroy()
-        self.toggle_vars.clear()
 
-        filters = self.data.source_filters.get("species", {})
-        sections = SECTION_ORDER["species"]
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-            cb = ttk.Checkbutton(
-                self._grid_toggle_frame,
-                text=label,
-                variable=var,
-                command=self._on_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, 6))
-            self.toggle_vars[cat] = var
-
-    def _on_toggle_change(self):
-        """Update filters and rebuild tiles when a toggle changes."""
-        ua_var = self.toggle_vars.get(UA_CATEGORY)
-        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
-        if not proceed:
-            return
-
-        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
-        self.data.source_filters["species"] = filters
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-        save_settings(self.data.source_filters)
-        self._populate_tiles()
 
     def _populate_tiles(self):
+        filters = self.data.source_filters.get("species", {})
+        enabled = {cat for cat, on in filters.items() if on}
+
         grouped = group_by_category(self.data.species, "species")
 
         sections = []
         for cat, items in grouped:
+            if cat not in enabled:
+                continue
             cat_tiles = []
             for sp in items:
                 trait_choice = self.TRAIT_OPTION_CHOICES.get(sp.get("name", ""))

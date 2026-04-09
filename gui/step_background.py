@@ -18,8 +18,6 @@ from gui.source_config import (
     SECTION_ORDER,
     UA_CATEGORY,
     group_by_category,
-    handle_ua_toggle,
-    save_settings,
 )
 from models.ability_bonus_utils import (
     apply_background_ability_bonuses,
@@ -107,12 +105,7 @@ class BackgroundStep(WizardStep):
             justify=tk.LEFT,
         ).pack(anchor="w", pady=(SPACING["sm"], 0))
 
-        # Source filter toggles
-        self._grid_toggle_frame = tk.Frame(self._grid_frame, bg=COLORS["bg"])
-        self._grid_toggle_frame.pack(fill=tk.X, padx=SPACING["xl"], pady=(SPACING["md"], 0))
-        self.toggle_vars: dict[str, tk.BooleanVar] = {}
-        self._ua_prev_enabled = False
-        self._build_toggles()
+
 
         # Tile grid (no images for backgrounds, narrower tiles)
         self._tile_grid = TileGrid(
@@ -130,39 +123,7 @@ class BackgroundStep(WizardStep):
 
         self._populate_tiles()
 
-    def _build_toggles(self):
-        """Build source filter checkboxes."""
-        for w in self._grid_toggle_frame.winfo_children():
-            w.destroy()
-        self.toggle_vars.clear()
 
-        filters = self.data.source_filters.get("backgrounds", {})
-        sections = SECTION_ORDER["backgrounds"]
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-            cb = ttk.Checkbutton(
-                self._grid_toggle_frame,
-                text=label,
-                variable=var,
-                command=self._on_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, 6))
-            self.toggle_vars[cat] = var
-
-    def _on_toggle_change(self):
-        ua_var = self.toggle_vars.get(UA_CATEGORY)
-        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
-        if not proceed:
-            return
-
-        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
-        self.data.source_filters["backgrounds"] = filters
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-        save_settings(self.data.source_filters)
-        self._populate_tiles()
 
     def _populate_tiles(self):
         filters = self.data.source_filters.get("backgrounds", {})

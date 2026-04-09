@@ -16,8 +16,6 @@ from gui.source_config import (
     SECTION_ORDER,
     UA_CATEGORY,
     group_by_category,
-    handle_ua_toggle,
-    save_settings,
 )
 from models.feat_utils import get_owned_feat_names
 
@@ -110,17 +108,13 @@ class FeatStep(WizardStep):
             bg=COLORS["bg"],
         ).grid(row=0, column=0, sticky="w", pady=(0, 2))
 
-        self.feat_toggle_frame = tk.Frame(self.sp_list_frame, bg=COLORS["bg"])
-        self.feat_toggle_frame.grid(row=1, column=0, sticky="ew", pady=(0, SPACING["xs"]))
-        self.feat_toggle_vars: dict[str, tk.BooleanVar] = {}
-        self._ua_prev_enabled = False
-        self._build_feat_toggles()
+
 
         self.origin_feat_list = SectionedListbox(
             self.sp_list_frame,
             on_select=self._on_species_feat_select,
         )
-        self.origin_feat_list.grid(row=2, column=0, sticky="nsew")
+        self.origin_feat_list.grid(row=1, column=0, rowspan=2, sticky="nsew")
 
         self.sp_detail_scroll = tk.Frame(self.sp_section, bg=COLORS["bg"])
         self.sp_detail_scroll.grid(row=1, column=1, sticky="nsew", padx=0, pady=0)
@@ -154,39 +148,7 @@ class FeatStep(WizardStep):
         )
         self.sp_benefits_frame.pack(fill=tk.X, pady=(SPACING["xs"], 0))
 
-    def _build_feat_toggles(self):
-        """Build source filter checkboxes for origin feats."""
-        for w in self.feat_toggle_frame.winfo_children():
-            w.destroy()
-        self.feat_toggle_vars.clear()
 
-        filters = self.data.source_filters.get("feats", {})
-        sections = SECTION_ORDER["feats"]
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-            cb = ttk.Checkbutton(
-                self.feat_toggle_frame,
-                text=label,
-                variable=var,
-                command=self._on_feat_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, 4))
-            self.feat_toggle_vars[cat] = var
-
-    def _on_feat_toggle_change(self):
-        ua_var = self.feat_toggle_vars.get(UA_CATEGORY)
-        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
-        if not proceed:
-            return
-
-        filters = {cat: var.get() for cat, var in self.feat_toggle_vars.items()}
-        self.data.source_filters["feats"] = filters
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-        save_settings(self.data.source_filters)
-        self._populate_origin_feats()
 
     def _populate_origin_feats(self):
         filters = self.data.source_filters.get("feats", {})

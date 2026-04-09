@@ -9,8 +9,6 @@ from gui.source_config import (
     SECTION_ORDER,
     UA_CATEGORY,
     group_by_category,
-    handle_ua_toggle,
-    save_settings,
 )
 from gui.theme import COLORS, FONTS, SPACING
 from gui.widgets import (
@@ -76,11 +74,7 @@ class LuSubclassStep(LevelUpStep):
             pady=(0, SPACING["xl"]),
         )
 
-        # Source filter toggles
-        self._grid_toggle_frame = tk.Frame(self._grid_view, bg=COLORS["bg"])
-        self._grid_toggle_frame.grid(row=1, column=0, sticky="ew", padx=SPACING["xl"], pady=(SPACING["md"], 0))
-        self.toggle_vars: dict[str, tk.BooleanVar] = {}
-        self._ua_prev_enabled = False
+
 
         self._tile_grid = TileGrid(
             self._grid_view,
@@ -149,43 +143,10 @@ class LuSubclassStep(LevelUpStep):
     # ── Lifecycle ──
 
     def on_enter(self):
-        self._build_toggles()
         self._populate_tiles()
         self._show_current_substep()
 
-    def _build_toggles(self):
-        """Build source filter checkboxes for subclass sources."""
-        for w in self._grid_toggle_frame.winfo_children():
-            w.destroy()
-        self.toggle_vars.clear()
 
-        filters = self.data.source_filters.get("subclasses", {})
-        sections = SECTION_ORDER.get("subclasses", [])
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-
-        for cat in sections:
-            label = "UA" if cat == UA_CATEGORY else cat
-            var = tk.BooleanVar(value=filters.get(cat, cat != UA_CATEGORY))
-            cb = ttk.Checkbutton(
-                self._grid_toggle_frame,
-                text=label,
-                variable=var,
-                command=self._on_toggle_change,
-            )
-            cb.pack(side=tk.LEFT, padx=(0, 6))
-            self.toggle_vars[cat] = var
-
-    def _on_toggle_change(self):
-        ua_var = self.toggle_vars.get(UA_CATEGORY)
-        proceed, _ = handle_ua_toggle(self.frame, ua_var, self._ua_prev_enabled)
-        if not proceed:
-            return
-
-        filters = {cat: var.get() for cat, var in self.toggle_vars.items()}
-        self.data.source_filters["subclasses"] = filters
-        self._ua_prev_enabled = filters.get(UA_CATEGORY, False)
-        save_settings(self.data.source_filters)
-        self._populate_tiles()
 
     def _populate_tiles(self):
         subclasses = self.data.get_subclasses_for_class(self.ctx.class_slug)
