@@ -527,14 +527,12 @@ class ClassFeaturesStep(WizardStep):
             enter_func = lambda e, w=weapon_name: on_enter_tile(w)
             leave_func = lambda e, w=weapon_name: on_leave_tile(w)
 
-            def bind_recursive(widget):
-                widget.bind("<Button-1>", click_func, add="+")
-                widget.bind("<Enter>", enter_func, add="+")
-                widget.bind("<Leave>", leave_func, add="+")
-                for child in widget.winfo_children():
-                    bind_recursive(child)
-
-            bind_recursive(tile_border)
+            widgets_to_bind = [tile_border, tile, title_lbl, stats_lbl, sep, mastery_title, mastery_lbl]
+            for widget in widgets_to_bind:
+                if widget:
+                    widget.bind("<Button-1>", click_func, add="+")
+                    widget.bind("<Enter>", enter_func, add="+")
+                    widget.bind("<Leave>", leave_func, add="+")
 
 
 

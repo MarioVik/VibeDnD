@@ -493,31 +493,36 @@ class CharacterCreatorApp:
         idx = self._current_step_idx
         visible_keys = self._visible_step_keys()
         current_key = self._step_keys[idx]
-        self._wizard_sidebar.update_step_states(
-            visible_keys,
-            current_key,
-            self._reached_step_keys,
-        )
+        
         deferred_choice_steps = {"species", "class", "background"}
         if self._feat_selection_required():
             deferred_choice_steps.add("feat")
 
         visible_key_set = set(visible_keys)
+        selections = {}
         for step_key in self._step_keys:
-            if (
-                step_key not in visible_key_set
-                or step_key not in self._reached_step_keys
-            ):
-                self._wizard_sidebar.set_selection(step_key, "")
+            if step_key not in visible_key_set:
+                selections[step_key] = ""
                 continue
+                
+            if step_key not in self._reached_step_keys:
+                selections[step_key] = "-"
+                continue
+
             value = self._get_sidebar_selection_text(step_key)
-            if step_key == current_key and step_key in deferred_choice_steps:
-                value = "Currently Editing"
-            elif step_key == current_key and not value:
-                value = "Currently Editing"
+            if step_key == current_key:
+                if step_key in deferred_choice_steps or not value:
+                    value = "Currently Editing"
             elif not value:
-                value = "Selection Required"
-            self._wizard_sidebar.set_selection(step_key, value)
+                value = "-"
+            selections[step_key] = value
+
+        self._wizard_sidebar.update_step_states(
+            visible_keys,
+            current_key,
+            self._reached_step_keys,
+            selections=selections
+        )
 
     def _get_sidebar_selection_text(self, key: str) -> str:
         """Return the sidebar subtitle for a wizard step."""

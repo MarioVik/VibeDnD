@@ -1336,8 +1336,7 @@ class NavButton(tk.Frame):
             justify=tk.LEFT,
             wraplength=190,
         )
-        if subtitle:
-            self._subtitle.pack(fill=tk.X)
+        self._subtitle.pack(fill=tk.X)
 
         # Keep icon ref for backward compat but don't display
         self._icon = None
@@ -1360,30 +1359,41 @@ class NavButton(tk.Frame):
 
     def _on_enter(self, _event=None):
         if not self._active and not self._locked:
-            bg = COLORS["bg_container"]
-            self.configure(bg=bg)
-            for child in self.winfo_children():
-                self._set_bg_recursive(child, bg)
+            self._set_colors(COLORS["bg_container"])
 
     def _on_leave(self, _event=None):
         if not self._active and not self._locked:
-            bg = COLORS["bg_surface"]
+            self._set_colors(COLORS["bg_surface"])
+
+    def _set_colors(self, bg: str, fg: str | None = None, sub_fg: str | None = None):
+        """Batch update colors only if they have changed."""
+        if self.cget("bg") != bg:
             self.configure(bg=bg)
-            for child in self.winfo_children():
-                self._set_bg_recursive(child, bg)
+            self._indicator.configure(bg=bg)
+            self._inner.configure(bg=bg)
+            self._text_col.configure(bg=bg)
+            self._label.configure(bg=bg)
+            self._subtitle.configure(bg=bg)
+        
+        if fg and self._label.cget("fg") != fg:
+            self._label.configure(fg=fg)
+        if sub_fg and self._subtitle.cget("fg") != sub_fg:
+            self._subtitle.configure(fg=sub_fg)
 
     def set_subtitle(self, text: str):
-        self._subtitle.configure(text=text)
-        if text:
-            self._subtitle.pack(fill=tk.X)
-        else:
-            self._subtitle.pack_forget()
+        if self._subtitle.cget("text") != text:
+            self._subtitle.configure(text=text)
 
     def set_text(self, text: str):
-        self._label.configure(text=text)
+        if self._label.cget("text") != text:
+            self._label.configure(text=text)
 
     def set_status(self, active: bool = False, completed: bool = False, locked: bool = False):
         """Update visual state: active, completed, or locked."""
+        # Change-check for status to avoid redundant redraws
+        if (self._active == active and self._completed == completed and self._locked == locked):
+            return
+
         self._active = active
         self._locked = locked
         self._completed = completed
@@ -1413,12 +1423,9 @@ class NavButton(tk.Frame):
             indicator_bg = COLORS["bg_surface"]
             self.configure(cursor="hand2")
 
-        self._indicator.configure(bg=indicator_bg)
-        self.configure(bg=bg)
-        for child in self.winfo_children():
-            self._set_bg_recursive(child, bg)
-        self._label.configure(fg=fg)
-        self._subtitle.configure(fg=sub_fg)
+        self._set_colors(bg, fg, sub_fg)
+        if self._indicator.cget("bg") != indicator_bg:
+            self._indicator.configure(bg=indicator_bg)
 
     def set_active(self, active: bool):
         """Backward-compatible: set active state only."""
@@ -1426,15 +1433,6 @@ class NavButton(tk.Frame):
             self.set_status(active=True)
         else:
             self.set_status(active=False, completed=self._completed, locked=self._locked)
-
-    @staticmethod
-    def _set_bg_recursive(widget, bg):
-        try:
-            widget.configure(bg=bg)
-        except tk.TclError:
-            pass
-        for child in widget.winfo_children():
-            NavButton._set_bg_recursive(child, bg)
 
 
 class WizardNavButton(tk.Frame):
@@ -1502,8 +1500,7 @@ class WizardNavButton(tk.Frame):
             justify=tk.LEFT,
             wraplength=180,
         )
-        if subtitle:
-            self._subtitle.pack(fill=tk.X, pady=(2, 0))
+        self._subtitle.pack(fill=tk.X, pady=(2, 0))
 
         self._icon = None
         self._bind_all_children()
@@ -1524,31 +1521,42 @@ class WizardNavButton(tk.Frame):
 
     def _on_enter(self, _event=None):
         if not self._active and not self._locked:
-            bg = COLORS["bg_container"]
-            self.configure(bg=bg)
-            for child in self.winfo_children():
-                self._set_bg_recursive(child, bg)
+            self._set_colors(COLORS["bg_container"])
             self._redraw_indicator()
 
     def _on_leave(self, _event=None):
         if not self._active and not self._locked:
-            bg = COLORS["bg_surface"]
-            self.configure(bg=bg)
-            for child in self.winfo_children():
-                self._set_bg_recursive(child, bg)
+            self._set_colors(COLORS["bg_surface"])
             self._redraw_indicator()
 
+    def _set_colors(self, bg: str, fg: str | None = None, sub_fg: str | None = None):
+        """Batch update colors only if they have changed."""
+        if self.cget("bg") != bg:
+            self.configure(bg=bg)
+            self._indicator.configure(bg=bg)
+            self._inner.configure(bg=bg)
+            self._text_col.configure(bg=bg)
+            self._label.configure(bg=bg)
+            self._subtitle.configure(bg=bg)
+        
+        if fg and self._label.cget("fg") != fg:
+            self._label.configure(fg=fg)
+        if sub_fg and self._subtitle.cget("fg") != sub_fg:
+            self._subtitle.configure(fg=sub_fg)
+
     def set_subtitle(self, text: str):
-        self._subtitle.configure(text=text)
-        if text:
-            self._subtitle.pack(fill=tk.X, pady=(2, 0))
-        else:
-            self._subtitle.pack_forget()
+        if self._subtitle.cget("text") != text:
+            self._subtitle.configure(text=text)
 
     def set_text(self, text: str):
-        self._label.configure(text=text)
+        if self._label.cget("text") != text:
+            self._label.configure(text=text)
 
     def set_status(self, active: bool = False, completed: bool = False, locked: bool = False):
+        # Change-check for status to avoid redundant redraws
+        if (self._active == active and self._completed == completed and self._locked == locked):
+            return
+
         self._active = active
         self._locked = locked
         self._completed = completed
@@ -1574,11 +1582,7 @@ class WizardNavButton(tk.Frame):
             sub_fg = COLORS["sidebar_locked_fg"]
             self.configure(cursor="hand2")
 
-        self.configure(bg=bg)
-        for child in self.winfo_children():
-            self._set_bg_recursive(child, bg)
-        self._label.configure(fg=fg)
-        self._subtitle.configure(fg=sub_fg)
+        self._set_colors(bg, fg, sub_fg)
         self._redraw_indicator()
 
     def set_active(self, active: bool):

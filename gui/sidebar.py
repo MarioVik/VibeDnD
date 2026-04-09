@@ -181,6 +181,7 @@ class Sidebar(tk.Frame):
         visible_keys: list[str],
         current_key: str,
         reached_keys: set[str],
+        selections: dict[str, str] | None = None,
     ):
         """Update all nav buttons to reflect current, completed, and locked states."""
         visible_positions = {key: idx for idx, key in enumerate(visible_keys)}
@@ -206,7 +207,11 @@ class Sidebar(tk.Frame):
                 btn.set_status(completed=True)
             else:
                 btn.set_status(locked=True)
-                btn.set_subtitle("Locked")
+                btn.set_subtitle("-")
+
+            # Apply batch selection text if provided
+            if selections and key in selections:
+                btn.set_subtitle(selections[key])
 
     # ---- Selection ----
 
