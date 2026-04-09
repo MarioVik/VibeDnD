@@ -678,21 +678,19 @@ class CharacterSheetPDF(FPDF):
         return y + row_h
 
     def _draw_ability_scores(self, x, y, w):
-        """Draw ability score blocks vertically stacked with saves & skills in a unified card."""
+        """Draw ability score blocks vertically with saves & skills, grouped in backdrop boxes."""
         c = self.c
         col_y = y
         profs = c.all_skill_proficiencies
 
-        # Card geometry
-        card_w = 48  # Taking up most of the 55 width column
-        card_x = x + (w - card_w) / 2
-        card_pad_top = 2.5
-        card_pad_bottom = 2.5
-        row_h = 4.8
-        
-        # Inner ability box geometry
-        ab_w = 20
-        ab_h = 24
+        ab_w = 19
+        ab_h = 23
+        group_pad_left = 1.5
+        group_pad_right = 1.5
+        group_pad_top = 1.5
+        group_pad_bottom = 1.5
+        row_h = 4.5
+        ab_box_x = x + group_pad_left
 
         for ability in ABILITIES:
             total = get_effective_ability_score(c, ability)
@@ -703,52 +701,49 @@ class CharacterSheetPDF(FPDF):
             self._serif("B", 7)
             self.set_text_color(*C_ACCENT)
             self.set_xy(x, col_y)
-            self.cell(w, 4, ability.upper(), align="C")
+            self.cell(w, 4, ability, align="C")
             col_y += 4
 
-            # Calculate total card height
+            # Calculate group box height based on content
             num_rows = 1 + len(skills)  # saving throw + skills
-            skills_h = num_rows * row_h
-            # Height = Top padding + Ability Box + Space + Skills + Bottom padding
-            card_h = card_pad_top + ab_h + 3 + skills_h + card_pad_bottom
+            skills_content_h = group_pad_top + num_rows * row_h + group_pad_bottom
+            group_h = max(ab_h + group_pad_top + group_pad_bottom, skills_content_h)
 
-            # ── Unified Card Backdrop ──
-            self._shadow_rect(card_x, col_y, card_w, card_h, R_MD, 0.4)
+            # ── Group backdrop box ──
+            self._shadow_rect(x, col_y, w, group_h, R_MD, 0.4)
             self.set_fill_color(*C_FILL_GRAY)
-            self._rounded_rect(card_x, col_y, card_w, card_h, R_MD, "F")
+            self._rounded_rect(x, col_y, w, group_h, R_MD, "F")
             self.set_draw_color(*C_LIGHT_GRAY)
             self.set_line_width(0.3)
-            self._rounded_rect(card_x, col_y, card_w, card_h, R_MD, "D")
+            self._rounded_rect(x, col_y, w, group_h, R_MD, "D")
 
-            # ── Core Ability Box (Top Center) ──
-            ab_x = card_x + (card_w - ab_w) / 2
-            ab_y = col_y + card_pad_top
-            
-            self._shadow_rect(ab_x, ab_y, ab_w, ab_h, R_SM, 0.4)
+            # ── Ability score box (inside group, left side) ──
+            ab_box_y = col_y + (group_h - ab_h) / 2
+            self._shadow_rect(ab_box_x, ab_box_y, ab_w, ab_h, R_SM, 0.4)
             self.set_fill_color(*C_WHITE)
-            self._rounded_rect(ab_x, ab_y, ab_w, ab_h, R_SM, "F")
-            self.set_draw_color(*C_ACCENT)
-            self.set_line_width(0.4)
-            self._rounded_rect(ab_x, ab_y, ab_w, ab_h, R_SM, "D")
+            self._rounded_rect(ab_box_x, ab_box_y, ab_w, ab_h, R_SM, "F")
+            self.set_draw_color(*C_LIGHT_GRAY)
+            self.set_line_width(0.3)
+            self._rounded_rect(ab_box_x, ab_box_y, ab_w, ab_h, R_SM, "D")
 
             # Large modifier
             mod_str = self._modifier_str(mod)
-            self._sans("B", 18)
+            self._sans("B", 17)
             self.set_text_color(*C_BLACK)
-            self.set_xy(ab_x, ab_y + 1)
-            self.cell(ab_w, 10, mod_str, align="C")
+            self.set_xy(ab_box_x, ab_box_y + 1)
+            self.cell(ab_w, 9, mod_str, align="C")
 
             # "MODIFIER" label
-            self._sans("", 4.5)
+            self._sans("", 4)
             self.set_text_color(*C_MED_GRAY)
-            self.set_xy(ab_x, ab_y + 11)
+            self.set_xy(ab_box_x, ab_box_y + 10)
             self.cell(ab_w, 3, "MODIFIER", align="C")
 
             # Score in small inner box
-            score_w = 13
-            score_h = 7
-            score_x = ab_x + (ab_w - score_w) / 2
-            score_y = ab_y + ab_h - score_h - 1.5
+            score_w = 12
+            score_h = 6.5
+            score_x = ab_box_x + (ab_w - score_w) / 2
+            score_y = ab_box_y + ab_h - score_h - 1.5
             self.set_fill_color(*C_WHITE)
             self._rounded_rect(score_x, score_y, score_w, score_h, 1.2, "F")
             self.set_draw_color(*C_ACCENT_LIGHT)
@@ -759,69 +754,54 @@ class CharacterSheetPDF(FPDF):
             self.set_xy(score_x, score_y + 0.3)
             self.cell(score_w, score_h, str(total), align="C")
 
-            # ── Vertical Skills List (Bottom section) ──
-            skills_start_y = ab_y + ab_h + 3
-            
-            # Content layout within the skills section
-            content_left = card_x + 3
-            content_w = card_w - 6
+            # ── Saving throw & skills (right side of group box) ──
+            skills_x = ab_box_x + ab_w + 2
+            sk_y = col_y + group_pad_top
+
+            # Thin separator line between ability box and skills area
+            sep_x = ab_box_x + ab_w + 1
+            self.set_draw_color(*C_LIGHT_GRAY)
+            self.set_line_width(0.15)
+            self.line(sep_x, col_y + 3, sep_x, col_y + group_h - 3)
 
             # Saving throw
             save_prof = c.is_proficient_save(ability)
             save_mod = c.saving_throw_modifier(ability)
 
-            sk_y = skills_start_y
-            
-            # White background strip for the row (optional subtle stripe)
-            self.set_fill_color(*C_WHITE)
-            self._rounded_rect(content_left - 1, sk_y, content_w + 2, row_h - 0.5, 1, "F")
-            
-            self._small_circle(content_left + 2.5, sk_y + row_h/2, r=1.4, filled=save_prof)
-            self._sans("B" if save_prof else "", 7.5)
+            self._small_circle(skills_x + 1.5, sk_y + 1.8, r=1.3, filled=save_prof)
+            self._sans("B" if save_prof else "", 7)
             self.set_text_color(*C_BLACK)
-            self.set_xy(content_left + 6, sk_y + 0.5)
-            self.cell(8, row_h - 1, self._modifier_str(save_mod), align="L")
-            self._sans("B", 6)
-            self.set_text_color(*C_BLACK)
-            self.set_xy(content_left + 15, sk_y + 0.5)
-            self.cell(22, row_h - 1, "Saving Throw")
+            self.set_xy(skills_x + 4, sk_y)
+            self.cell(8, 3.5, self._modifier_str(save_mod), align="L")
+            self._sans("", 5.5)
+            self.set_text_color(*C_MED_GRAY)
+            self.set_xy(skills_x + 12, sk_y + 0.3)
+            self.cell(22, 3, "Saving Throw")
             sk_y += row_h
 
-            # Divider line
+            # Divider between saving throw and skills
             if skills:
                 self.set_draw_color(*C_LIGHT_GRAY)
                 self.set_line_width(0.15)
-                self.line(content_left, sk_y, card_x + card_w - 3, sk_y)
+                self.line(skills_x, sk_y - 0.5, x + w - group_pad_right, sk_y - 0.5)
 
             # Skills
-            for idx, skill_name in enumerate(skills):
+            for skill_name in skills:
                 is_prof = skill_name in profs
                 sk_mod = c.skill_modifier(skill_name)
-                
-                # Alternating stripe background for readability
-                if idx % 2 == 0:
-                    self.set_fill_color(*C_WHITE)
-                    self._rounded_rect(content_left - 1, sk_y + 0.5, content_w + 2, row_h - 1, 1, "F")
 
-                self._small_circle(content_left + 2.5, sk_y + row_h/2 + 0.2, r=1.4, filled=is_prof)
-                self._sans("B" if is_prof else "", 7.5)
+                self._small_circle(skills_x + 1.5, sk_y + 1.8, r=1.3, filled=is_prof)
+                self._sans("B" if is_prof else "", 7)
                 self.set_text_color(*C_BLACK if is_prof else C_DARK_GRAY)
-                self.set_xy(content_left + 6, sk_y + 0.5)
-                self.cell(8, row_h - 1, self._modifier_str(sk_mod), align="L")
-                self._sans("" if is_prof else "", 6)
-                self.set_text_color(*C_BLACK if is_prof else C_DARK_GRAY)
-                self.set_xy(content_left + 15, sk_y + 0.5)
-                self.cell(22, row_h - 1, skill_name)
-                
-                # Subtle separator line between skills
-                if idx < len(skills) - 1:
-                    self.set_draw_color(*C_LIGHT_GRAY)
-                    self.set_line_width(0.1)
-                    self.line(content_left + 14, sk_y + row_h, card_x + card_w - 4, sk_y + row_h)
-                    
+                self.set_xy(skills_x + 4, sk_y)
+                self.cell(8, 3.5, self._modifier_str(sk_mod), align="L")
+                self._sans("I" if is_prof else "", 5.5)
+                self.set_text_color(*C_DARK_GRAY)
+                self.set_xy(skills_x + 12, sk_y + 0.3)
+                self.cell(22, 3, skill_name)
                 sk_y += row_h
 
-            col_y += card_h + 3
+            col_y += group_h + 2
 
         return col_y
 
