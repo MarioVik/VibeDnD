@@ -4284,3 +4284,91 @@ class TileGrid(tk.Frame):
             if col >= self._cols:
                 col = 0
                 row += 1
+
+
+class LoadingSpinner(tk.Canvas):
+    """An animated spinning golden arc."""
+    def __init__(self, parent, size=60, **kwargs):
+        kwargs.setdefault("bg", COLORS["bg"])
+        kwargs.setdefault("highlightthickness", 0)
+        super().__init__(parent, width=size, height=size, **kwargs)
+        
+        self._size = size
+        self._angle = 0
+        self._running = False
+        
+        # Draw the base arc
+        padding = 6
+        self._arc = self.create_arc(
+            padding, padding, size-padding, size-padding,
+            start=0, extent=120,
+            outline=COLORS["gold"], width=4, style=tk.ARC
+        )
+        
+    def start(self):
+        if not self._running:
+            self._running = True
+            self._animate()
+            
+    def stop(self):
+        self._running = False
+        
+    def _animate(self):
+        if not self._running:
+            return
+        
+        import time
+        # 360 degrees per second
+        self._angle = int(time.time() * -360) % 360
+        self.itemconfig(self._arc, start=self._angle)
+        self.after(20, self._animate)
+
+
+class LoadingOverlay(tk.Frame):
+    """Full-screen translucent overlay with spinner and incantations."""
+    INCANTATIONS = [
+        "Forging the Legend...",
+        "Consulting the Orrery...",
+        "Incanting the Forge...",
+        "Summoning the Ancestors...",
+        "Consulting the Stars...",
+        "Binding the Elements...",
+        "Weaving the Tapestry...",
+        "Reshaping the Aether...",
+    ]
+
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, bg=COLORS["bg"], **kwargs)
+        
+        # Center container
+        self._container = tk.Frame(self, bg=COLORS["bg"])
+        self._container.place(relx=0.5, rely=0.45, anchor="center")
+        
+        # Spinner
+        self._spinner = LoadingSpinner(self._container, size=80)
+        self._spinner.pack(pady=20)
+        
+        # Flavor text
+        import random
+        text = random.choice(self.INCANTATIONS)
+        self._label = tk.Label(
+            self._container,
+            text=text,
+            fg=COLORS["gold"],
+            bg=COLORS["bg"],
+            font=FONTS["heading_serif_sm"]
+        )
+        self._label.pack()
+        
+        self._spinner.start()
+
+    def show(self):
+        """Display the overlay and prevent interaction below."""
+        self.place(relx=0, rely=0, relwidth=1, relheight=1)
+        self.lift()
+        self.update_idletasks()
+
+    def dismiss(self):
+        """Remove and destroy the overlay."""
+        self._spinner.stop()
+        self.destroy()

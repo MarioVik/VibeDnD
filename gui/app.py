@@ -178,14 +178,23 @@ class CharacterCreatorApp:
 
     def show_wizard(self, character=None, save_path=None):
         """Switch to the character creation wizard."""
-        self._hide_all()
-
+        from gui.widgets import LoadingOverlay
+        overlay = LoadingOverlay(self.root)
+        overlay.show()
+        
         if character is None:
             from models.character import Character
-
             character = Character()
+            
         self.character = character
         self.current_save_path = save_path
+        
+        # Defer building so the loading spinner can start animating
+        self.root.after(50, lambda: self._complete_show_wizard(character, save_path, overlay))
+
+    def _complete_show_wizard(self, character, save_path, overlay):
+        """Build the actual wizard frame and dismiss the loader."""
+        self._hide_all()
 
         # Rebuild wizard each time (steps bind to a specific Character)
         if self.wizard_frame:
@@ -196,11 +205,44 @@ class CharacterCreatorApp:
         self.wizard_frame = self._build_wizard(character, save_path)
         self.wizard_frame.pack(fill=tk.BOTH, expand=True)
 
+        # ---------------------------------------------------------
+        # Warming Pass: Force-render all visible steps in the background
+        # ---------------------------------------------------------
+        visible_keys = self._visible_step_keys()
+        for key in visible_keys:
+            step_idx = self._step_keys.index(key)
+            step = self.wizard_steps[step_idx]
+            # Pack it momentarily so Tkinter evaluates its geometry
+            step.frame.pack(fill=tk.BOTH, expand=True)
+            self.root.update_idletasks() # Layout geometry
+            self.root.update()           # Allow spinner to animate
+            step.frame.pack_forget()
+            
+        # Restore the initial step
+        initial_key = visible_keys[0]
+        self._show_step(self._step_keys.index(initial_key))
+        
+        # Final paint of the composed UI
+        self.root.update_idletasks()
+        self.root.update()
+        
+        overlay.dismiss()
+
     def show_viewer(self, character, save_path):
         """Switch to the read-only character viewer."""
-        self._hide_all()
+        from gui.widgets import LoadingOverlay
+        overlay = LoadingOverlay(self.root)
+        overlay.show()
+        
         self.character = character
         self.current_save_path = save_path
+        
+        # Defer building so the loading spinner can start animating
+        self.root.after(50, lambda: self._complete_show_viewer(character, save_path, overlay))
+
+    def _complete_show_viewer(self, character, save_path, overlay):
+        """Build the actual viewer frame and dismiss the loader."""
+        self._hide_all()
 
         if self.viewer_frame:
             try:
@@ -213,6 +255,12 @@ class CharacterCreatorApp:
             self.container, character, save_path, self.data, self
         )
         self.viewer_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Force full layout and paint before showing the result
+        self.root.update_idletasks()
+        self.root.update()
+        
+        overlay.dismiss()
 
     def show_level_up_wizard(self, character, save_path):
         """Switch to the level-up wizard screen."""
