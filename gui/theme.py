@@ -49,9 +49,9 @@ COLORS = {
     "bg_high": "#2a2a2a",
     "bg_highest": "#353535",
     # Primary accent — crimson
-    "accent": "#9B1B30",
+    "accent": "#4a2028",
     "accent_text": "#ffb3b5",
-    "accent_on": "#680018",
+    "accent_on": "#35161c",
     # Secondary accent — gold
     "gold": "#e9c176",
     "gold_dark": "#604403",
@@ -96,7 +96,7 @@ COLORS = {
     "bg_light": "#2a2a2a",      # → bg_high
     "bg_card": "#1b1b1b",       # → bg_surface
     "fg_bright": "#e5e2e1",     # → fg
-    "accent_dark": "#9B1B30",   # → accent
+    "accent_dark": "#4a2028",   # → accent
     "border": "#584141",        # → outline_dim
 }
 

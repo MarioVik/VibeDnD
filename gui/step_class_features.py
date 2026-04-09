@@ -368,7 +368,7 @@ class ClassFeaturesStep(WizardStep):
         def update_tiles(current_selection: list[str]):
             for wp_name, widgets in tile_refs.items():
                 is_sel = wp_name in current_selection
-                border_c = "#4a2028" if is_sel else COLORS["border_medium"]
+                border_c = COLORS["accent"] if is_sel else COLORS["border_medium"]
                 bg_hex = COLORS.get("tile_hover", COLORS["bg_highest"]) if is_sel else COLORS.get("tile_bg", COLORS["bg_surface"])
                 fg_title = COLORS["accent_text"] if is_sel else COLORS["fg"]
                 
@@ -392,7 +392,7 @@ class ClassFeaturesStep(WizardStep):
             is_sel = wp_name in list(self._choice_value("weapon_mastery", []))
             
             # Use darker accent highlight from the header
-            widgets["border"].configure(bg="#4a2028")
+            widgets["border"].configure(bg=COLORS["accent"])
             widgets["tile"].configure(bg=COLORS["bg_high"])
             widgets["title"].configure(bg=COLORS["bg_high"])
             if widgets.get("stats"):
@@ -454,7 +454,7 @@ class ClassFeaturesStep(WizardStep):
             row = idx // columns
             col = idx % columns
 
-            border_color = "#4a2028" if is_selected else COLORS["border_medium"]
+            border_color = COLORS["accent"] if is_selected else COLORS["border_medium"]
             if is_selected:
                 bg_hex = COLORS.get("tile_hover", COLORS["bg_highest"])
             else:

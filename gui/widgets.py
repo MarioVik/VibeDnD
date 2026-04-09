@@ -2011,7 +2011,7 @@ class GradientHeader(tk.Frame):
         self.inner.pack(fill=tk.X, side=tk.TOP)
 
         # Subtle accent bottom border (muted crimson, 2px)
-        accent_line = tk.Frame(self, bg="#4a2028", height=2)
+        accent_line = tk.Frame(self, bg=COLORS["accent"], height=2)
         accent_line.pack(fill=tk.X, side=tk.TOP)
         accent_line.pack_propagate(False)
 
