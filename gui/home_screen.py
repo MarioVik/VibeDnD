@@ -194,32 +194,6 @@ class HomeScreen:
         )
         self._settings_card.pack(fill=tk.X)
 
-        # Compendium Tooltip
-        def _show_comp_tip(e):
-            if hasattr(self, "_comp_tip_win") and self._comp_tip_win:
-                return
-            x = e.widget.winfo_rootx() + 20
-            y = e.widget.winfo_rooty() + e.widget.winfo_height() + 5
-            self._comp_tip_win = tk.Toplevel(self._landing_view)
-            self._comp_tip_win.wm_overrideredirect(True)
-            self._comp_tip_win.wm_geometry(f"+{x}+{y}")
-            self._comp_tip_win.attributes("-topmost", True)
-            lbl = tk.Label(
-                self._comp_tip_win, text="Coming soon...",
-                bg=COLORS["bg_highest"], fg=COLORS["fg"],
-                font=FONTS["body"], relief="solid", borderwidth=1, padx=8, pady=4
-            )
-            lbl.pack()
-            lbl.configure(highlightbackground=COLORS["border_medium"], highlightthickness=1, borderwidth=0)
-
-        def _hide_comp_tip(e):
-            if hasattr(self, "_comp_tip_win") and self._comp_tip_win:
-                self._comp_tip_win.destroy()
-                self._comp_tip_win = None
-
-        self._comp_card.bind("<Enter>", _show_comp_tip)
-        self._comp_card.bind("<Leave>", _hide_comp_tip)
-
         self._refresh_landing_layout()
         self._landing_view.bind("<Configure>", self._on_landing_configure)
 
