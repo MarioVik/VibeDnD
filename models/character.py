@@ -574,6 +574,7 @@ class Character:
 
         fallback_slots = dict(cls.get("spell_slots") or {})
         slug = str(cls.get("slug", "") or "").strip()
+        caster_type = str(cls.get("caster_type") or "").strip().lower()
         if not game_data or not slug:
             return fallback_slots
 
@@ -583,6 +584,8 @@ class Character:
 
         progression_slots = level_data.get("spell_slots")
         if progression_slots is None:
+            if caster_type == "pact":
+                return {}
             return fallback_slots
         return dict(progression_slots)
 

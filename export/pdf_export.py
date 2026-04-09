@@ -1591,7 +1591,9 @@ class CharacterSheetPDF(FPDF):
         self._redraw_title(slots_x, y, slots_w, "SPELL SLOTS")
 
         sy = y + 6 + 2
-        spell_slots = c.current_spell_slots(self._get_game_data())
+        game_data = self._get_game_data()
+        spell_slots = c.current_spell_slots(game_data)
+        pact_slots, pact_slot_level = c.current_pact_magic(game_data)
         slot_key_map = {
             i: f"{i}{'st' if i == 1 else 'nd' if i == 2 else 'rd' if i == 3 else 'th'}"
             for i in range(1, 10)
@@ -1606,6 +1608,8 @@ class CharacterSheetPDF(FPDF):
             total = (
                 spell_slots.get(slot_key_map[level]) or spell_slots.get(str(level)) or 0
             )
+            if pact_slots > 0 and level == pact_slot_level:
+                total = pact_slots
 
             self.set_text_color(*C_MED_GRAY)
             self._sans("", 5.5)
