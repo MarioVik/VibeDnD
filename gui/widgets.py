@@ -386,20 +386,37 @@ def center_dialog_over_parent(dialog: tk.Toplevel, parent):
     if top is None:
         return
 
-    top.update_idletasks()
-    dialog.update_idletasks()
+    try:
+        top.update_idletasks()
+        dialog.update_idletasks()
 
-    width = dialog.winfo_width() or dialog.winfo_reqwidth()
-    height = dialog.winfo_height() or dialog.winfo_reqheight()
+        width = dialog.winfo_width() or dialog.winfo_reqwidth()
+        height = dialog.winfo_height() or dialog.winfo_reqheight()
 
-    parent_x = top.winfo_rootx()
-    parent_y = top.winfo_rooty()
-    parent_w = top.winfo_width()
-    parent_h = top.winfo_height()
+        parent_x = top.winfo_rootx()
+        parent_y = top.winfo_rooty()
+        parent_w = top.winfo_width()
+        parent_h = top.winfo_height()
 
-    x = parent_x + max(0, (parent_w - width) // 2)
-    y = parent_y + max(0, (parent_h - height) // 2)
-    dialog.geometry(f"{width}x{height}+{x}+{y}")
+        x = parent_x + ((parent_w - width) // 2)
+        y = parent_y + ((parent_h - height) // 2)
+
+        screen_x = dialog.winfo_vrootx()
+        screen_y = dialog.winfo_vrooty()
+        screen_w = dialog.winfo_vrootwidth() or dialog.winfo_screenwidth()
+        screen_h = dialog.winfo_vrootheight() or dialog.winfo_screenheight()
+    except tk.TclError:
+        return
+
+    if width <= screen_w:
+        x = max(screen_x, min(x, screen_x + screen_w - width))
+    if height <= screen_h:
+        y = max(screen_y, min(y, screen_y + screen_h - height))
+
+    try:
+        dialog.geometry(f"{width}x{height}{x:+d}{y:+d}")
+    except tk.TclError:
+        return
 
 
 class WrappingLabel(ttk.Label):

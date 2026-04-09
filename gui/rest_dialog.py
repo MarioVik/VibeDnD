@@ -9,7 +9,12 @@ import tkinter as tk
 from tkinter import ttk
 
 from gui.theme import COLORS, FONTS
-from gui.widgets import ScrollableFrame, AlertDialog, configure_modal_dialog
+from gui.widgets import (
+    ScrollableFrame,
+    AlertDialog,
+    center_dialog_over_parent,
+    configure_modal_dialog,
+)
 from gui.spell_swap_panel import SpellSwapPanel, MultiSpellSwapPanel
 from models.item_effects import get_effective_modifier
 from models.skill_utils import (
@@ -235,15 +240,10 @@ class RestDialog(tk.Toplevel):
         else:
             width, height = 1400, 1000
             min_w, min_h = 1000, 750
-        top = parent.winfo_toplevel()
-        px = top.winfo_rootx()
-        py = top.winfo_rooty()
-        pw = top.winfo_width()
-        ph = top.winfo_height()
-        x = max(0, px + (pw - width) // 2)
-        y = max(0, py + (ph - height) // 2)
-        self.geometry(f"{width}x{height}+{x}+{y}")
+        self.geometry(f"{width}x{height}")
         self.minsize(min_w, min_h)
+        center_dialog_over_parent(self, parent)
+        self.after_idle(lambda: center_dialog_over_parent(self, parent))
 
     # ══════════════════════════════════════════════════════════════════
     # Long Rest UI (unchanged logic, refactored slightly)
@@ -1476,13 +1476,8 @@ def _show_short_rest_result_auto(
         command=dlg.destroy,
     ).pack(pady=(4, 0))
 
-    # Center over parent
-    dlg.update_idletasks()
-    w, h = dlg.winfo_reqwidth() + 40, dlg.winfo_reqheight() + 20
-    top = parent.winfo_toplevel()
-    px, py = top.winfo_rootx(), top.winfo_rooty()
-    pw, ph = top.winfo_width(), top.winfo_height()
-    dlg.geometry(f"+{max(0, px + (pw - w) // 2)}+{max(0, py + (ph - h) // 2)}")
+    center_dialog_over_parent(dlg, parent)
+    dlg.after_idle(lambda: center_dialog_over_parent(dlg, parent))
 
 
 def _show_short_rest_result_manual(parent, *, healed, old_hp, new_hp, max_hp):
@@ -1513,12 +1508,8 @@ def _show_short_rest_result_manual(parent, *, healed, old_hp, new_hp, max_hp):
         command=dlg.destroy,
     ).pack(pady=(4, 0))
 
-    dlg.update_idletasks()
-    w, h = dlg.winfo_reqwidth() + 40, dlg.winfo_reqheight() + 20
-    top = parent.winfo_toplevel()
-    px, py = top.winfo_rootx(), top.winfo_rooty()
-    pw, ph = top.winfo_width(), top.winfo_height()
-    dlg.geometry(f"+{max(0, px + (pw - w) // 2)}+{max(0, py + (ph - h) // 2)}")
+    center_dialog_over_parent(dlg, parent)
+    dlg.after_idle(lambda: center_dialog_over_parent(dlg, parent))
 
 
 # ══════════════════════════════════════════════════════════════════════
