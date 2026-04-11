@@ -1602,52 +1602,67 @@ class CharacterViewer(ttk.Frame):
             )
         ).pack(side=tk.LEFT)
 
-        # Regular slots
-        for slot_level, total in sorted(spell_slots.items(), key=lambda x: str(x[0])):
-            if total <= 0:
-                continue
-            
-            used = c.used_spell_slots.get(str(slot_level), 0)
-            available = max(0, total - used)
+        # Regular slots — multi-column grid (1-3, 4-6, 7-9)
+        active_slots = [
+            (slot_level, total)
+            for slot_level, total in sorted(spell_slots.items(), key=lambda x: str(x[0]))
+            if total > 0
+        ]
 
-            row = tk.Frame(slots_frame, bg=COLORS["bg_surface"])
-            row.pack(fill=tk.X, pady=3)
+        if active_slots:
+            slots_grid = tk.Frame(slots_frame, bg=COLORS["bg_surface"])
+            slots_grid.pack(fill=tk.BOTH, expand=True)
 
-            tk.Label(
-                row,
-                text=f"LEVEL {slot_level}".replace("st", "")
-                .replace("nd", "")
-                .replace("rd", "")
-                .replace("th", "")
-                .upper(),
-                font=FONTS["label_upper_bold"],
-                fg=COLORS["fg"],
-                bg=COLORS["bg_surface"],
-            ).pack(side=tk.LEFT)
+            # Determine number of columns needed (max 3 rows per column)
+            num_cols = (len(active_slots) + 2) // 3
+            for ci in range(num_cols):
+                slots_grid.columnconfigure(ci, weight=1)
 
-            tk.Label(
-                row,
-                text=f"{available} / {total}",
-                font=FONTS["heading_serif_sm"],
-                fg=COLORS["accent_text"] if available > 0 else COLORS["fg_disabled"],
-                bg=COLORS["bg_surface"],
-            ).pack(side=tk.RIGHT)
+            for idx, (slot_level, total) in enumerate(active_slots):
+                col = idx // 3
+                row_in_col = idx % 3
 
-            # Slot indicator dots
-            dots_frame = tk.Frame(row, bg=COLORS["bg_surface"])
-            dots_frame.pack(side=tk.RIGHT, padx=(0, 8))
-            for j in range(total):
-                dot = tk.Canvas(
-                    dots_frame,
-                    width=12,
-                    height=12,
+                used = c.used_spell_slots.get(str(slot_level), 0)
+                available = max(0, total - used)
+
+                row = tk.Frame(slots_grid, bg=COLORS["bg_surface"])
+                row.grid(row=row_in_col, column=col, sticky="ew", pady=3, padx=(0, 12 if col < num_cols - 1 else 0))
+
+                tk.Label(
+                    row,
+                    text=f"LEVEL {slot_level}".replace("st", "")
+                    .replace("nd", "")
+                    .replace("rd", "")
+                    .replace("th", "")
+                    .upper(),
+                    font=FONTS["label_upper_bold"],
+                    fg=COLORS["fg"],
                     bg=COLORS["bg_surface"],
-                    highlightthickness=0,
-                )
-                fill_color = COLORS["accent_text"] if j < available else COLORS["bg_deepest"]
-                outline_color = COLORS["accent_text"] if j < available else COLORS["outline_dim"]
-                dot.create_oval(1, 1, 11, 11, fill=fill_color, outline=outline_color)
-                dot.pack(side=tk.LEFT, padx=2)
+                ).pack(side=tk.LEFT)
+
+                tk.Label(
+                    row,
+                    text=f"{available} / {total}",
+                    font=FONTS["heading_serif_sm"],
+                    fg=COLORS["accent_text"] if available > 0 else COLORS["fg_disabled"],
+                    bg=COLORS["bg_surface"],
+                ).pack(side=tk.RIGHT)
+
+                # Slot indicator dots
+                dots_frame = tk.Frame(row, bg=COLORS["bg_surface"])
+                dots_frame.pack(side=tk.RIGHT, padx=(0, 8))
+                for j in range(total):
+                    dot = tk.Canvas(
+                        dots_frame,
+                        width=12,
+                        height=12,
+                        bg=COLORS["bg_surface"],
+                        highlightthickness=0,
+                    )
+                    fill_color = COLORS["accent_text"] if j < available else COLORS["bg_deepest"]
+                    outline_color = COLORS["accent_text"] if j < available else COLORS["outline_dim"]
+                    dot.create_oval(1, 1, 11, 11, fill=fill_color, outline=outline_color)
+                    dot.pack(side=tk.LEFT, padx=2)
 
         # Pact slots
         if pact_slots > 0:
@@ -1744,7 +1759,8 @@ class CharacterViewer(ttk.Frame):
 
             for label, value, sub in stat_specs:
                 stat_cf = CardFrame(stats_frame, pad=SPACING["md"])
-                stat_cf.pack(side=tk.LEFT, padx=(0, SPACING["card_gap"]))
+                stat_cf.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
+                stat_cf.inner.pack(expand=True, fill=tk.BOTH)
 
                 tk.Label(
                     stat_cf.inner,
@@ -1754,7 +1770,10 @@ class CharacterViewer(ttk.Frame):
                     bg=COLORS["bg_surface"],
                 ).pack(anchor="w")
 
-                val_row = tk.Frame(stat_cf.inner, bg=COLORS["bg_surface"])
+                _cnt = tk.Frame(stat_cf.inner, bg=COLORS["bg_surface"])
+                _cnt.pack(expand=True)
+
+                val_row = tk.Frame(_cnt, bg=COLORS["bg_surface"])
                 val_row.pack(anchor="w")
 
                 tk.Label(
@@ -1774,7 +1793,8 @@ class CharacterViewer(ttk.Frame):
 
             if free_spell_entries:
                 free_cf = CardFrame(stats_frame, pad=SPACING["md"])
-                free_cf.pack(side=tk.LEFT, padx=(0, SPACING["card_gap"]))
+                free_cf.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
+                free_cf.inner.pack(expand=True, fill=tk.BOTH)
 
                 tk.Label(
                     free_cf.inner,
@@ -1784,9 +1804,12 @@ class CharacterViewer(ttk.Frame):
                     bg=COLORS["bg_surface"],
                 ).pack(anchor="w")
 
+                _fcnt = tk.Frame(free_cf.inner, bg=COLORS["bg_surface"])
+                _fcnt.pack(expand=True)
+
                 for entry in free_spell_entries:
                     tk.Label(
-                        free_cf.inner,
+                        _fcnt,
                         text=f"{entry['label']} - {entry['cadence']}",
                         font=FONTS["body"],
                         fg=COLORS["fg"],
@@ -1797,7 +1820,8 @@ class CharacterViewer(ttk.Frame):
 
             if cast_ability:
                 stat_cf = CardFrame(stats_frame, pad=SPACING["md"])
-                stat_cf.pack(side=tk.LEFT, padx=(0, SPACING["card_gap"]))
+                stat_cf.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
+                stat_cf.inner.pack(expand=True, fill=tk.BOTH)
 
                 tk.Label(
                     stat_cf.inner,
@@ -1807,7 +1831,10 @@ class CharacterViewer(ttk.Frame):
                     bg=COLORS["bg_surface"],
                 ).pack(anchor="w")
 
-                val_row = tk.Frame(stat_cf.inner, bg=COLORS["bg_surface"])
+                _acnt = tk.Frame(stat_cf.inner, bg=COLORS["bg_surface"])
+                _acnt.pack(expand=True)
+
+                val_row = tk.Frame(_acnt, bg=COLORS["bg_surface"])
                 val_row.pack(anchor="w")
 
                 tk.Label(
