@@ -12,6 +12,7 @@ from gui.theme import COLORS, FONTS, SPACING
 from gui.widgets import (
     CardFrame,
     GradientHeader,
+    HPBar,
     SectionHeader,
     ScrollableFrame,
     AlertDialog,
@@ -881,21 +882,60 @@ class RestDialog(tk.Toplevel):
     # ══════════════════════════════════════════════════════════════════
 
     def _build_footer(self):
-        footer = tk.Frame(self, bg=COLORS["bg"])
-        footer.grid(row=99, column=0, sticky="ew", padx=SPACING["card_pad"], pady=(SPACING["sm"], SPACING["lg"]))
+        nav_bar = tk.Frame(
+            self,
+            bg=COLORS["bg_surface"],
+            highlightbackground=COLORS["border_subtle"],
+            highlightcolor=COLORS["border_subtle"],
+            highlightthickness=1,
+        )
+        nav_bar.grid(row=99, column=0, sticky="ew")
 
-        self._back_btn = ttk.Button(footer, text="\u25C0 Back", command=self._go_back)
-        self._next_btn = ttk.Button(
-            footer, text="Next \u25B6", command=self._go_next,
-        )
-        self._finish_btn = ttk.Button(
-            footer, text="Finish Rest", style="Accent.TButton",
-            command=self._on_confirm,
-        )
+        nav_inner = tk.Frame(nav_bar, bg=COLORS["bg_surface"])
+        nav_inner.pack(fill=tk.X, padx=SPACING["lg"], pady=10)
+
+        # Left section: Cancel / Back
+        left_frame = tk.Frame(nav_inner, bg=COLORS["bg_surface"])
+        left_frame.pack(side=tk.LEFT)
+
         self._cancel_btn = ttk.Button(
-            footer, text="Cancel", command=self.destroy,
+            left_frame, text="Cancel", command=self.destroy,
+        )
+        self._back_btn = ttk.Button(
+            left_frame, text="\u25C0  Back", command=self._go_back,
         )
         self._cancel_btn.pack(side=tk.LEFT)
+
+        # Center section: Step counter + progress bar
+        center_frame = tk.Frame(nav_inner, bg=COLORS["bg_surface"])
+        center_frame.pack(side=tk.LEFT, expand=True)
+
+        center_inner = tk.Frame(center_frame, bg=COLORS["bg_surface"])
+        center_inner.pack()
+
+        self._step_label = tk.Label(
+            center_inner,
+            text=f"Step 1 of {self._total_steps}",
+            font=FONTS["step_counter"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        )
+        self._step_label.pack(side=tk.LEFT, padx=(0, SPACING["md"]))
+
+        self._progress_bar = HPBar(center_inner, width=160, height=6)
+        self._progress_bar.pack(side=tk.LEFT)
+
+        # Right section: Next / Finish
+        right_frame = tk.Frame(nav_inner, bg=COLORS["bg_surface"])
+        right_frame.pack(side=tk.RIGHT)
+
+        self._next_btn = ttk.Button(
+            right_frame, text="Next  \u25B6", command=self._go_next,
+        )
+        self._finish_btn = ttk.Button(
+            right_frame, text="Finish Rest", style="Accent.TButton",
+            command=self._on_confirm,
+        )
 
     def _build_recovery_step(self, parent):
         """Build the manual spell slot recovery step (Arcane/Natural Recovery) with card theming."""
@@ -1017,14 +1057,21 @@ class RestDialog(tk.Toplevel):
         if 0 <= idx < len(self._step_frames):
             self._step_frames[idx].grid(row=1, column=0, sticky="nsew")
 
+        # Left: Cancel on step 1, Back on later steps
         if step > 1:
             self._back_btn.pack(side=tk.LEFT)
         else:
             self._cancel_btn.pack(side=tk.LEFT)
+
+        # Right: Next or Finish
         if step < self._total_steps:
-            self._next_btn.pack(side=tk.RIGHT, padx=(4, 0))
+            self._next_btn.pack(side=tk.RIGHT)
         else:
-            self._finish_btn.pack(side=tk.RIGHT, padx=(4, 0))
+            self._finish_btn.pack(side=tk.RIGHT)
+
+        # Center: Step counter and progress bar
+        self._step_label.configure(text=f"Step {step} of {self._total_steps}")
+        self._progress_bar.set_hp(step, self._total_steps)
 
     def _validate_current_step(self) -> bool:
         step_id = self._current_step_id()
