@@ -493,7 +493,8 @@ class CharacterViewer(ttk.Frame):
         sub_hero_row.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
         sub_hero_row.columnconfigure(0, weight=0)
         sub_hero_row.columnconfigure(1, weight=0)
-        sub_hero_row.columnconfigure(2, weight=1)
+        sub_hero_row.columnconfigure(2, weight=0)
+        sub_hero_row.columnconfigure(3, weight=1)
 
         # Build hit dice pool data
         _hd_pool = c.hit_dice_pool
@@ -536,9 +537,40 @@ class CharacterViewer(ttk.Frame):
         # Invisible spacer to match the die badge height in the Hit Dice box
         tk.Frame(_prof_center, bg=COLORS["bg_surface"], height=24).pack()
 
+        # Total HP box — square (width = height)
+        hp_frame = tk.Frame(sub_hero_row, bg=COLORS["bg_surface"])
+        hp_frame.grid(row=0, column=1, padx=(3, 3), sticky="ns")
+        hp_frame.pack_propagate(False)
+        hp_frame.grid_propagate(False)
+
+        def _keep_hp_square(event, f=hp_frame):
+            if event.height > 1:
+                f.configure(width=event.height)
+
+        hp_frame.bind("<Configure>", _keep_hp_square)
+
+        tk.Label(
+            hp_frame,
+            text="MAX HP",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(side=tk.TOP, pady=(6, 0))
+        _hp_center = tk.Frame(hp_frame, bg=COLORS["bg_surface"])
+        _hp_center.pack(expand=True)
+        tk.Label(
+            _hp_center,
+            text=str(c.hit_points),
+            font=FONTS["stat_large"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack()
+        # Invisible spacer to match the die badge height in the Hit Dice box
+        tk.Frame(_hp_center, bg=COLORS["bg_surface"], height=24).pack()
+
         # Hit Dice box — stacked: remaining/total on top, die type below (like ability scores)
         hd_frame = tk.Frame(sub_hero_row, bg=COLORS["bg_surface"])
-        hd_frame.grid(row=0, column=1, padx=(3, 3), sticky="ns")
+        hd_frame.grid(row=0, column=2, padx=(3, 3), sticky="ns")
         hd_frame.pack_propagate(False)
         hd_frame.grid_propagate(False)
 
@@ -621,7 +653,7 @@ class CharacterViewer(ttk.Frame):
 
         # Saving Throws box
         saves_cf = CardFrame(sub_hero_row, pad=SPACING["sm"])
-        saves_cf.grid(row=0, column=2, padx=(3, 0), sticky="nsew")
+        saves_cf.grid(row=0, column=3, padx=(3, 0), sticky="nsew")
 
         tk.Label(
             saves_cf.inner,
