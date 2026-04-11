@@ -830,7 +830,7 @@ class HomeScreen:
             return None
         try:
             raw = base64.b64decode(image_data)
-            source = Image.open(io.BytesIO(raw)).convert("RGB")
+            source = Image.open(io.BytesIO(raw)).convert("RGBA")
         except Exception:
             return None
 
