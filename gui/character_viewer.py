@@ -331,7 +331,7 @@ class CharacterViewer(ttk.Frame):
                 w, h = pil_img.size
                 side = min(w, h)
                 left = (w - side) // 2
-                top = (h - side) // 2
+                top = 0
                 self._dash_portrait_pil = pil_img.crop(
                     (left, top, left + side, top + side)
                 )

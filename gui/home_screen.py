@@ -176,7 +176,7 @@ class HomeScreen:
         self._comp_card = self._build_compact_action_card(
             self._secondary_action_col,
             title="Coming soon...",
-            icon="\U0001f4d6",
+            icon="\u2630",
             accent=COLORS["outline_dim"],
             label="THE COMPENDIUM",
             command=lambda: None,
