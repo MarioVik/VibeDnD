@@ -8,8 +8,11 @@ import random
 import tkinter as tk
 from tkinter import ttk
 
-from gui.theme import COLORS, FONTS
+from gui.theme import COLORS, FONTS, SPACING
 from gui.widgets import (
+    CardFrame,
+    GradientHeader,
+    SectionHeader,
     ScrollableFrame,
     AlertDialog,
     center_dialog_over_parent,
@@ -268,12 +271,20 @@ class RestDialog(tk.Toplevel):
     def _build_long_rest_ui(self, title: str):
         self.columnconfigure(0, weight=1)
 
-        # Header
-        header = ttk.Frame(self)
-        header.grid(row=0, column=0, sticky="ew", padx=12, pady=(8, 2))
-        ttk.Label(
-            header, text=title, font=FONTS["heading"], foreground=COLORS["accent"],
-        ).pack(anchor="w")
+        # Hero header with gradient styling
+        header = GradientHeader(self, min_height=56)
+        header.grid(row=0, column=0, sticky="ew")
+
+        hero_row = tk.Frame(header.inner, bg=COLORS["bg_hero"])
+        hero_row.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(SPACING["lg"], SPACING["lg"]))
+
+        tk.Label(
+            hero_row,
+            text=title,
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_hero"],
+        ).pack(side=tk.LEFT)
 
         feature_keys = _get_feature_keys(self.character, "long")
         zhentarim_grant = self._get_zhentarim_rest_grant()
@@ -307,14 +318,14 @@ class RestDialog(tk.Toplevel):
                 cantrip_step.columnconfigure(0, weight=1)
                 s_row = 0
                 if has_features:
-                    scroll = ScrollableFrame(cantrip_step)
-                    scroll.grid(row=s_row, column=0, sticky="nsew", padx=8, pady=2)
+                    scroll = ScrollableFrame(cantrip_step, auto_hide_scrollbar=True)
+                    scroll.grid(row=s_row, column=0, sticky="nsew", padx=SPACING["lg"], pady=SPACING["xs"])
                     for key, config, known in feature_keys:
                         self._build_feature_section(scroll.inner, key, config, known)
                     s_row += 1
                 cantrip_step.rowconfigure(s_row, weight=1)
                 cf = ttk.Frame(cantrip_step)
-                cf.grid(row=s_row, column=0, sticky="nsew", padx=8, pady=2)
+                cf.grid(row=s_row, column=0, sticky="nsew", padx=SPACING["lg"], pady=SPACING["xs"])
                 self._build_cantrip_section(cf)
                 self._append_rest_step("swap_cantrips", cantrip_step)
 
@@ -323,7 +334,7 @@ class RestDialog(tk.Toplevel):
                 spell_step.columnconfigure(0, weight=1)
                 spell_step.rowconfigure(0, weight=1)
                 sf = ttk.Frame(spell_step)
-                sf.grid(row=0, column=0, sticky="nsew", padx=8, pady=2)
+                sf.grid(row=0, column=0, sticky="nsew", padx=SPACING["lg"], pady=SPACING["xs"])
                 self._build_spell_section(sf)
                 self._append_rest_step("swap_spells", spell_step)
             else:
@@ -332,20 +343,20 @@ class RestDialog(tk.Toplevel):
                 swap_frame.columnconfigure(0, weight=1)
                 sf_row = 0
                 if has_features:
-                    scroll = ScrollableFrame(swap_frame)
-                    scroll.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
+                    scroll = ScrollableFrame(swap_frame, auto_hide_scrollbar=True)
+                    scroll.grid(row=sf_row, column=0, sticky="nsew", padx=SPACING["lg"], pady=SPACING["xs"])
                     for key, config, known in feature_keys:
                         self._build_feature_section(scroll.inner, key, config, known)
                     sf_row += 1
                 if has_cantrip_swap:
                     cf = ttk.Frame(swap_frame)
-                    cf.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
+                    cf.grid(row=sf_row, column=0, sticky="nsew", padx=SPACING["lg"], pady=SPACING["xs"])
                     self._build_cantrip_section(cf)
                     sf_row += 1
                 if has_spells:
                     swap_frame.rowconfigure(sf_row, weight=1)
                     sf = ttk.Frame(swap_frame)
-                    sf.grid(row=sf_row, column=0, sticky="nsew", padx=8, pady=2)
+                    sf.grid(row=sf_row, column=0, sticky="nsew", padx=SPACING["lg"], pady=SPACING["xs"])
                     self._build_spell_section(sf)
                     sf_row += 1
                 self._append_rest_step("swap_all", swap_frame)
@@ -368,18 +379,17 @@ class RestDialog(tk.Toplevel):
         has_spells,
         has_zhentarim_refresh,
     ):
-        """Build the long rest info summary."""
+        """Build the long rest info summary with card-based theming."""
         parent.columnconfigure(0, weight=1)
         parent.rowconfigure(0, weight=1)
 
-        inner = ttk.Frame(parent)
-        inner.grid(row=0, column=0, sticky="nsew", padx=24, pady=12)
-        inner.columnconfigure(0, weight=1)
+        scroll = ScrollableFrame(parent, auto_hide_scrollbar=True)
+        scroll.grid(row=0, column=0, sticky="nsew", padx=SPACING["lg"], pady=SPACING["lg"])
+        inner = scroll.inner
 
-        ttk.Label(
-            inner, text="When you complete this rest:",
-            font=FONTS["heading"], foreground=COLORS["fg"],
-        ).grid(row=0, column=0, sticky="w", pady=(0, 12))
+        SectionHeader(inner, text="Rest Effects").pack(
+            fill=tk.X, padx=0, pady=(0, SPACING["md"])
+        )
 
         effects: list[str] = []
 
@@ -433,65 +443,85 @@ class RestDialog(tk.Toplevel):
         if has_zhentarim_refresh:
             effects.append("You must choose your Zhentarim Tactics Expertise again")
 
+        card = CardFrame(inner, pad=SPACING["lg"])
+        card.pack(fill=tk.X, expand=True)
+        card_inner = card.inner
+
         for i, text in enumerate(effects):
-            ttk.Label(
-                inner, text=f"\u2022  {text}",
-                foreground=COLORS["fg"], wraplength=500,
-            ).grid(row=i + 1, column=0, sticky="w", padx=(12, 0), pady=2)
+            tk.Label(
+                card_inner,
+                text=f"\u2022  {text}",
+                font=FONTS["body"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_surface"],
+                wraplength=520,
+                justify=tk.LEFT,
+            ).pack(anchor=tk.W, pady=SPACING["xs"])
 
     def _build_zhentarim_expertise_step(self, parent, grant: dict):
-        """Build the Zhentarim Tactics Expertise reselection step."""
+        """Build the Zhentarim Tactics Expertise reselection step with card theming."""
         parent.columnconfigure(0, weight=1)
         parent.rowconfigure(0, weight=1)
 
-        inner = ttk.Frame(parent)
-        inner.grid(row=0, column=0, sticky="nsew", padx=24, pady=12)
-        inner.columnconfigure(1, weight=1)
+        scroll = ScrollableFrame(parent, auto_hide_scrollbar=True)
+        scroll.grid(row=0, column=0, sticky="nsew", padx=SPACING["lg"], pady=SPACING["lg"])
+        inner = scroll.inner
 
-        ttk.Label(
-            inner,
-            text="Zhentarim Expertise",
-            font=FONTS["heading"],
-            foreground=COLORS["accent"],
-        ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 6))
-        ttk.Label(
-            inner,
+        SectionHeader(inner, text="Zhentarim Expertise").pack(
+            fill=tk.X, padx=0, pady=(0, SPACING["md"])
+        )
+
+        card = CardFrame(inner, pad=SPACING["lg"])
+        card.pack(fill=tk.X, expand=True)
+        card_inner = card.inner
+
+        tk.Label(
+            card_inner,
             text=(
                 "Zhentarim Tactics lets you choose one proficient skill to gain "
                 "Expertise in until your next Long Rest."
             ),
-            foreground=COLORS["fg_dim"],
-            wraplength=560,
-        ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(0, 10))
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+            wraplength=520,
+            justify=tk.LEFT,
+        ).pack(anchor=tk.W, pady=(0, SPACING["sm"]))
 
         previous = get_feat_expertise_skill(self.character, ZHENTARIM_TACTICS)
         if previous:
-            ttk.Label(
-                inner,
+            tk.Label(
+                card_inner,
                 text=f"Previous selection: {previous}",
-                foreground=COLORS["fg_dim"],
-            ).grid(row=2, column=0, columnspan=2, sticky="w", pady=(0, 8))
+                font=FONTS["body_small"],
+                fg=COLORS["accent"],
+                bg=COLORS["bg_surface"],
+            ).pack(anchor=tk.W, pady=(0, SPACING["sm"]))
 
         slot = grant["slots"][0] if grant.get("slots") else {"options": [], "current": ""}
         self._zhentarim_expertise_options = list(slot["options"])
         self._zhentarim_expertise_vars = {}
 
-        ttk.Label(
-            inner,
-            text="New Expertise Skill",
-            foreground=COLORS["fg"],
-        ).grid(row=3, column=0, sticky="w", padx=(0, 12))
-
         if not self._zhentarim_expertise_options:
-            ttk.Label(
-                inner,
+            tk.Label(
+                card_inner,
                 text="No eligible proficient skills are currently available.",
-                foreground=COLORS["fg_dim"],
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
                 wraplength=520,
-            ).grid(row=4, column=0, columnspan=2, sticky="w", pady=(8, 0))
+            ).pack(anchor=tk.W, pady=SPACING["sm"])
         else:
-            options_frame = ttk.Frame(inner)
-            options_frame.grid(row=3, column=1, sticky="w")
+            tk.Label(
+                card_inner,
+                text="Select New Expertise Skill",
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_surface"],
+            ).pack(anchor=tk.W, pady=(SPACING["sm"], SPACING["xs"]))
+
+            options_frame = tk.Frame(card_inner, bg=COLORS["bg_surface"])
+            options_frame.pack(fill=tk.X, pady=SPACING["xs"])
 
             for idx, skill_name in enumerate(self._zhentarim_expertise_options):
                 var = tk.BooleanVar(value=False)
@@ -509,12 +539,14 @@ class RestDialog(tk.Toplevel):
                 row = idx // 3
                 cb.grid(row=row, column=col, sticky="w", padx=8, pady=1)
 
-            ttk.Label(
-                inner,
+            tk.Label(
+                card_inner,
                 text="Choose one skill to continue. You may keep the same one or pick a new one.",
-                foreground=COLORS["fg_dim"],
+                font=FONTS["body_small"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
                 wraplength=520,
-            ).grid(row=4, column=0, columnspan=2, sticky="w", pady=(8, 0))
+            ).pack(anchor=tk.W, pady=(SPACING["sm"], 0))
 
     def _selected_zhentarim_expertise(self) -> str:
         for skill_name, var in self._zhentarim_expertise_vars.items():
@@ -537,12 +569,20 @@ class RestDialog(tk.Toplevel):
     def _build_short_rest_ui(self, title: str):
         self.columnconfigure(0, weight=1)
 
-        # Header
-        header = ttk.Frame(self)
-        header.grid(row=0, column=0, sticky="ew", padx=12, pady=(8, 2))
-        ttk.Label(
-            header, text=title, font=FONTS["heading"], foreground=COLORS["accent"],
-        ).pack(anchor="w")
+        # Hero header with gradient styling
+        header = GradientHeader(self, min_height=56)
+        header.grid(row=0, column=0, sticky="ew")
+
+        hero_row = tk.Frame(header.inner, bg=COLORS["bg_hero"])
+        hero_row.pack(fill=tk.X, padx=SPACING["card_pad"], pady=(SPACING["lg"], SPACING["lg"]))
+
+        tk.Label(
+            hero_row,
+            text=title,
+            font=FONTS["heading_serif_lg"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_hero"],
+        ).pack(side=tk.LEFT)
 
         feature_keys = _get_feature_keys(self.character, "short")
         has_features = bool(feature_keys)
@@ -566,8 +606,8 @@ class RestDialog(tk.Toplevel):
         if has_features:
             swap_frame = ttk.Frame(self)
             swap_frame.columnconfigure(0, weight=1)
-            scroll = ScrollableFrame(swap_frame)
-            scroll.grid(row=0, column=0, sticky="nsew", padx=8, pady=2)
+            scroll = ScrollableFrame(swap_frame, auto_hide_scrollbar=True)
+            scroll.grid(row=0, column=0, sticky="nsew", padx=SPACING["lg"], pady=SPACING["xs"])
             swap_frame.rowconfigure(0, weight=1)
             for key, config, known in feature_keys:
                 self._build_feature_section(scroll.inner, key, config, known)
@@ -584,18 +624,17 @@ class RestDialog(tk.Toplevel):
         self._show_rest_step(1)
 
     def _build_short_rest_info_step(self, parent, *, feature_keys):
-        """Build the short rest info summary."""
+        """Build the short rest info summary with card-based theming."""
         parent.columnconfigure(0, weight=1)
         parent.rowconfigure(0, weight=1)
 
-        inner = ttk.Frame(parent)
-        inner.grid(row=0, column=0, sticky="nsew", padx=24, pady=12)
-        inner.columnconfigure(0, weight=1)
+        scroll = ScrollableFrame(parent, auto_hide_scrollbar=True)
+        scroll.grid(row=0, column=0, sticky="nsew", padx=SPACING["lg"], pady=SPACING["lg"])
+        inner = scroll.inner
 
-        ttk.Label(
-            inner, text="When you complete this rest:",
-            font=FONTS["heading"], foreground=COLORS["fg"],
-        ).grid(row=0, column=0, sticky="w", pady=(0, 12))
+        SectionHeader(inner, text="Rest Effects").pack(
+            fill=tk.X, padx=0, pady=(0, SPACING["md"])
+        )
 
         effects: list[str] = []
 
@@ -625,7 +664,7 @@ class RestDialog(tk.Toplevel):
         # Spell slots (Warlock)
         if _is_warlock_pact_caster(self.character):
             effects.append("All pact slots are fully restored")
-        
+
         # Arcane Recovery
         if _has_arcane_recovery(self.character):
             if self.character.arcane_recovery_used:
@@ -633,35 +672,53 @@ class RestDialog(tk.Toplevel):
             else:
                 effects.append("You may use Arcane/Natural Recovery to restore spell slots")
 
+        card = CardFrame(inner, pad=SPACING["lg"])
+        card.pack(fill=tk.X, expand=True)
+        card_inner = card.inner
+
         for i, text in enumerate(effects):
-            ttk.Label(
-                inner, text=f"\u2022  {text}",
-                foreground=COLORS["fg"], wraplength=500,
-            ).grid(row=i + 1, column=0, sticky="w", padx=(12, 0), pady=2)
+            tk.Label(
+                card_inner,
+                text=f"\u2022  {text}",
+                font=FONTS["body"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_surface"],
+                wraplength=520,
+                justify=tk.LEFT,
+            ).pack(anchor=tk.W, pady=SPACING["xs"])
 
     def _build_hit_dice_step(self, parent):
-        """Build the hit dice spending step for short rest."""
+        """Build the hit dice spending step for short rest with card theming."""
         parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(0, weight=1)
 
-        ttk.Label(
-            parent, text="Spend Hit Dice",
-            font=FONTS["heading"], foreground=COLORS["accent"],
-        ).grid(row=0, column=0, sticky="w", padx=12, pady=(8, 2))
+        scroll = ScrollableFrame(parent, auto_hide_scrollbar=True)
+        scroll.grid(row=0, column=0, sticky="nsew", padx=SPACING["lg"], pady=SPACING["lg"])
+        inner = scroll.inner
+
+        SectionHeader(inner, text="Spend Hit Dice").pack(
+            fill=tk.X, padx=0, pady=(0, SPACING["md"])
+        )
 
         con_mod = get_effective_modifier(self.character, "Constitution")
         sign = "+" if con_mod >= 0 else ""
-        ttk.Label(
-            parent,
-            text=f"Choose how many hit dice to spend. Each die heals: roll {sign}{con_mod} CON (minimum 0 HP per die).",
-            foreground=COLORS["fg_dim"],
-        ).grid(row=1, column=0, sticky="w", padx=12, pady=(0, 8))
 
-        # Per-class die selectors
+        # Per-class die selectors card
         pool = self.character.hit_dice_pool
-        selector_frame = ttk.Frame(parent)
-        selector_frame.grid(row=2, column=0, sticky="ew", padx=12)
+        dice_card = CardFrame(inner, pad=SPACING["lg"])
+        dice_card.pack(fill=tk.X, pady=(0, SPACING["md"]))
+        dice_inner = dice_card.inner
 
-        row_i = 0
+        tk.Label(
+            dice_inner,
+            text=f"Choose how many hit dice to spend. Each die heals: roll {sign}{con_mod} CON (minimum 0 HP per die).",
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+            wraplength=520,
+            justify=tk.LEFT,
+        ).pack(anchor=tk.W, pady=(0, SPACING["sm"]))
+
         for slug in sorted(pool, key=lambda s: pool[s][2], reverse=True):
             rem, total, die = pool[slug]
             if rem == 0:
@@ -671,62 +728,83 @@ class RestDialog(tk.Toplevel):
             var = tk.IntVar(value=0)
             self._hd_spend_vars[slug] = var
 
-            die_row = ttk.Frame(selector_frame)
-            die_row.grid(row=row_i, column=0, sticky="ew", pady=4)
+            die_row = tk.Frame(dice_inner, bg=COLORS["bg_surface"])
+            die_row.pack(fill=tk.X, pady=SPACING["xs"])
 
-            ttk.Label(
+            tk.Label(
                 die_row, text=f"d{die} ({class_name}):",
-                font=FONTS["body"], foreground=COLORS["fg"],
-            ).pack(side=tk.LEFT, padx=(0, 8))
+                font=FONTS["body"], fg=COLORS["fg"],
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT, padx=(0, SPACING["sm"]))
 
             # Spinbox for count selection
             spin = ttk.Spinbox(
                 die_row, from_=0, to=rem, textvariable=var,
                 width=4, command=self._update_hd_summary,
             )
-            spin.pack(side=tk.LEFT, padx=(0, 8))
+            spin.pack(side=tk.LEFT, padx=(0, SPACING["sm"]))
             # Also update on keyboard input
             var.trace_add("write", lambda *_: self._update_hd_summary())
 
-            ttk.Label(
+            tk.Label(
                 die_row, text=f"(max {rem})",
-                foreground=COLORS["fg_dim"],
+                font=FONTS["body_small"], fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
             ).pack(side=tk.LEFT)
 
-            row_i += 1
-
         # Summary label
-        self._hd_summary_label = ttk.Label(
-            parent, text="No dice selected", foreground=COLORS["fg_dim"],
+        self._hd_summary_label = tk.Label(
+            dice_inner,
+            text="No dice selected",
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
         )
-        self._hd_summary_label.grid(row=3, column=0, sticky="w", padx=12, pady=(8, 4))
+        self._hd_summary_label.pack(anchor=tk.W, pady=(SPACING["sm"], 0))
 
-        # Roll mode selection
-        mode_frame = ttk.LabelFrame(parent, text="How to roll")
-        mode_frame.grid(row=4, column=0, sticky="ew", padx=12, pady=(4, 4))
+        # Roll mode selection card
+        mode_card = CardFrame(inner, pad=SPACING["lg"])
+        mode_card.pack(fill=tk.X)
+        mode_inner = mode_card.inner
+
+        tk.Label(
+            mode_inner,
+            text="How to roll",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor=tk.W, pady=(0, SPACING["sm"]))
 
         ttk.Radiobutton(
-            mode_frame, text="Roll for me (app rolls the dice)",
+            mode_inner,
+            text="Roll for me (app rolls the dice)",
             variable=self._hd_roll_mode, value="auto",
             command=self._update_manual_entry_state,
-        ).pack(anchor="w", padx=8, pady=2)
+            style="Card.TRadiobutton",
+        ).pack(anchor=tk.W, pady=SPACING["xs"])
 
-        manual_row = ttk.Frame(mode_frame)
-        manual_row.pack(anchor="w", padx=8, pady=2)
+        manual_row = tk.Frame(mode_inner, bg=COLORS["bg_surface"])
+        manual_row.pack(fill=tk.X, pady=SPACING["xs"])
 
         ttk.Radiobutton(
-            manual_row, text="I rolled myself, total rolled:",
+            manual_row,
+            text="I rolled myself, total rolled:",
             variable=self._hd_roll_mode, value="manual",
             command=self._update_manual_entry_state,
+            style="Card.TRadiobutton",
         ).pack(side=tk.LEFT)
 
         self._hd_manual_entry = ttk.Entry(
             manual_row, textvariable=self._hd_manual_var, width=6, state="disabled",
         )
-        self._hd_manual_entry.pack(side=tk.LEFT, padx=(4, 4))
+        self._hd_manual_entry.pack(side=tk.LEFT, padx=(SPACING["xs"], SPACING["xs"]))
 
-        self._hd_manual_hint = ttk.Label(
-            manual_row, text="", foreground=COLORS["fg_dim"],
+        self._hd_manual_hint = tk.Label(
+            manual_row,
+            text="",
+            font=FONTS["body_small"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
         )
         self._hd_manual_hint.pack(side=tk.LEFT)
         self._hd_manual_var.trace_add("write", lambda *_: self._update_manual_hint())
@@ -750,12 +828,12 @@ class RestDialog(tk.Toplevel):
             if parts:
                 self._hd_summary_label.config(
                     text=f"Spending: {' + '.join(parts)} ({total_count} dice total)",
-                    foreground=COLORS["fg"],
+                    fg=COLORS["fg"],
                 )
             else:
                 self._hd_summary_label.config(
                     text="No dice selected",
-                    foreground=COLORS["fg_dim"],
+                    fg=COLORS["fg_dim"],
                 )
 
         self._update_manual_hint()
@@ -803,8 +881,8 @@ class RestDialog(tk.Toplevel):
     # ══════════════════════════════════════════════════════════════════
 
     def _build_footer(self):
-        footer = ttk.Frame(self)
-        footer.grid(row=99, column=0, sticky="ew", padx=12, pady=(4, 8))
+        footer = tk.Frame(self, bg=COLORS["bg"])
+        footer.grid(row=99, column=0, sticky="ew", padx=SPACING["card_pad"], pady=(SPACING["sm"], SPACING["lg"]))
 
         self._back_btn = ttk.Button(footer, text="\u25C0 Back", command=self._go_back)
         self._next_btn = ttk.Button(
@@ -814,18 +892,23 @@ class RestDialog(tk.Toplevel):
             footer, text="Finish Rest", style="Accent.TButton",
             command=self._on_confirm,
         )
-        ttk.Button(
+        self._cancel_btn = ttk.Button(
             footer, text="Cancel", command=self.destroy,
-        ).pack(side=tk.LEFT)
+        )
+        self._cancel_btn.pack(side=tk.LEFT)
 
     def _build_recovery_step(self, parent):
-        """Build the manual spell slot recovery step (Arcane/Natural Recovery)."""
+        """Build the manual spell slot recovery step (Arcane/Natural Recovery) with card theming."""
         parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(0, weight=1)
 
-        ttk.Label(
-            parent, text="Arcane / Natural Recovery",
-            font=FONTS["heading"], foreground=COLORS["accent"],
-        ).grid(row=0, column=0, sticky="w", padx=12, pady=(8, 2))
+        scroll = ScrollableFrame(parent, auto_hide_scrollbar=True)
+        scroll.grid(row=0, column=0, sticky="nsew", padx=SPACING["lg"], pady=SPACING["lg"])
+        inner = scroll.inner
+
+        SectionHeader(inner, text="Arcane / Natural Recovery").pack(
+            fill=tk.X, padx=0, pady=(0, SPACING["md"])
+        )
 
         # Calculate max points (half level rounded up)
         wizard_lvl = self.character.class_level_in("wizard")
@@ -833,43 +916,77 @@ class RestDialog(tk.Toplevel):
         # In 2024, it's half your level in that class
         self._recovery_max_points = (max(wizard_lvl, druid_lvl) + 1) // 2
 
-        ttk.Label(
-            parent,
+        card = CardFrame(inner, pad=SPACING["lg"])
+        card.pack(fill=tk.X, expand=True)
+        card_inner = card.inner
+
+        tk.Label(
+            card_inner,
             text=f"You can recover spell slots with a combined level up to {self._recovery_max_points}. "
                  "None of the slots can be level 6 or higher.",
-            foreground=COLORS["fg_dim"],
-            wraplength=600,
-        ).grid(row=1, column=0, sticky="w", padx=12, pady=(0, 12))
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+            wraplength=520,
+            justify=tk.LEFT,
+        ).pack(anchor=tk.W, pady=(0, SPACING["md"]))
 
         # List spent slots that can be recovered
-        slots_frame = ttk.Frame(parent)
-        slots_frame.grid(row=2, column=0, sticky="ew", padx=12)
+        slots_frame = tk.Frame(card_inner, bg=COLORS["bg_surface"])
+        slots_frame.pack(fill=tk.X)
 
         row_i = 0
         for lvl_str, spent in sorted(self.character.used_spell_slots.items(), key=lambda x: int(x[0])):
             lvl = int(lvl_str)
             if lvl >= 6 or spent <= 0:
                 continue
-            
+
             var = tk.IntVar(value=0)
             self._recovery_vars[lvl_str] = var
-            
-            s_row = ttk.Frame(slots_frame)
-            s_row.grid(row=row_i, column=0, sticky="ew", pady=2)
-            
-            ttk.Label(s_row, text=f"Level {lvl} Slot:", width=15).pack(side=tk.LEFT)
+
+            s_row = tk.Frame(slots_frame, bg=COLORS["bg_surface"])
+            s_row.pack(fill=tk.X, pady=SPACING["xs"])
+
+            tk.Label(
+                s_row,
+                text=f"Level {lvl} Slot:",
+                font=FONTS["body"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_surface"],
+                width=15,
+            ).pack(side=tk.LEFT)
+
             spin = ttk.Spinbox(s_row, from_=0, to=spent, textvariable=var, width=5, command=self._update_recovery_summary)
-            spin.pack(side=tk.LEFT, padx=10)
-            ttk.Label(s_row, text=f"(Spent: {spent})", foreground=COLORS["fg_dim"]).pack(side=tk.LEFT)
-            
+            spin.pack(side=tk.LEFT, padx=SPACING["sm"])
+
+            tk.Label(
+                s_row,
+                text=f"(Spent: {spent})",
+                font=FONTS["body_small"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(side=tk.LEFT)
+
             var.trace_add("write", lambda *_: self._update_recovery_summary())
             row_i += 1
 
         if row_i == 0:
-            ttk.Label(parent, text="No eligible spent spell slots to recover.", foreground=COLORS["fg_dim"]).grid(row=2, column=0, sticky="w", padx=12)
+            tk.Label(
+                card_inner,
+                text="No eligible spent spell slots to recover.",
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(anchor=tk.W, pady=SPACING["sm"])
 
-        self._recovery_summary_label = ttk.Label(parent, text="Points Used: 0 / " + str(self._recovery_max_points))
-        self._recovery_summary_label.grid(row=3, column=0, sticky="w", padx=12, pady=10)
+        self._recovery_summary_label = tk.Label(
+            card_inner,
+            text="Points Used: 0 / " + str(self._recovery_max_points),
+            font=FONTS["body"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        )
+        self._recovery_summary_label.pack(anchor=tk.W, pady=(SPACING["sm"], 0))
 
     def _update_recovery_summary(self):
         total = 0
@@ -879,7 +996,7 @@ class RestDialog(tk.Toplevel):
             except: pass
         self._recovery_current_points.set(total)
         color = COLORS["fg"] if total <= self._recovery_max_points else COLORS["negative"]
-        self._recovery_summary_label.config(text=f"Points Used: {total} / {self._recovery_max_points}", foreground=color)
+        self._recovery_summary_label.config(text=f"Points Used: {total} / {self._recovery_max_points}", fg=color)
 
     def _show_rest_step(self, step: int):
         """Show the given step and update navigation buttons."""
@@ -890,6 +1007,7 @@ class RestDialog(tk.Toplevel):
             frame.grid_forget()
 
         # Hide nav buttons
+        self._cancel_btn.pack_forget()
         self._back_btn.pack_forget()
         self._next_btn.pack_forget()
         self._finish_btn.pack_forget()
@@ -901,6 +1019,8 @@ class RestDialog(tk.Toplevel):
 
         if step > 1:
             self._back_btn.pack(side=tk.LEFT)
+        else:
+            self._cancel_btn.pack(side=tk.LEFT)
         if step < self._total_steps:
             self._next_btn.pack(side=tk.RIGHT, padx=(4, 0))
         else:
@@ -957,17 +1077,28 @@ class RestDialog(tk.Toplevel):
         choice_label = config.get("choice_label", "Choice")
         options = config.get("options", [])
 
-        frame = ttk.LabelFrame(parent, text=f"Swap {choice_plural}")
-        frame.pack(fill=tk.X, pady=(8, 0), padx=4)
+        card = CardFrame(parent, pad=SPACING["md"])
+        card.pack(fill=tk.X, pady=(0, SPACING["md"]))
+        frame = card.inner
 
-        ttk.Label(
+        tk.Label(
+            frame,
+            text=f"Swap {choice_plural}",
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", pady=(0, SPACING["sm"]))
+
+        tk.Label(
             frame,
             text=f"You may replace one {choice_label} with a different one.",
-            foreground=COLORS["fg_dim"],
-        ).pack(anchor="w", padx=8, pady=(4, 8))
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", pady=(0, SPACING["sm"]))
 
-        cols = ttk.Frame(frame)
-        cols.pack(fill=tk.X, padx=8, pady=(0, 8))
+        cols = tk.Frame(frame, bg=COLORS["bg_surface"])
+        cols.pack(fill=tk.X)
         cols.columnconfigure(0, weight=1)
         cols.columnconfigure(1, weight=1)
 
@@ -977,12 +1108,21 @@ class RestDialog(tk.Toplevel):
         sub_sels = _get_all_known_sub_selections(self.character, key)
 
         # Left: Remove
-        remove_lf = ttk.LabelFrame(cols, text="Remove")
-        remove_lf.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+        remove_lf = tk.Frame(cols, bg=COLORS["bg_surface"])
+        remove_lf.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["xs"]))
+
+        tk.Label(
+            remove_lf,
+            text="Remove",
+            font=FONTS["label_upper"],
+            fg=COLORS["accent"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", pady=(0, SPACING["xs"]))
 
         ttk.Radiobutton(
             remove_lf, text="Don\u2019t replace", variable=remove_var, value="",
-        ).pack(anchor="w", padx=8, pady=2)
+            style="Card.TRadiobutton",
+        ).pack(anchor="w", pady=SPACING["xs"])
 
         for name in sorted(known):
             sub = sub_sels.get(name, "")
@@ -995,15 +1135,25 @@ class RestDialog(tk.Toplevel):
                 display = name
             ttk.Radiobutton(
                 remove_lf, text=display, variable=remove_var, value=name,
-            ).pack(anchor="w", padx=(16, 8), pady=1)
+                style="Card.TRadiobutton",
+            ).pack(anchor="w", padx=(SPACING["sm"], 0), pady=SPACING["xs"])
 
         # Right: Replace with
-        add_lf = ttk.LabelFrame(cols, text="Replace with")
-        add_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
+        add_lf = tk.Frame(cols, bg=COLORS["bg_surface"])
+        add_lf.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0))
+
+        tk.Label(
+            add_lf,
+            text="Replace with",
+            font=FONTS["label_upper"],
+            fg=COLORS["accent"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", pady=(0, SPACING["xs"]))
 
         ttk.Radiobutton(
             add_lf, text="\u2014", variable=replace_var, value="",
-        ).pack(anchor="w", padx=8, pady=2)
+            style="Card.TRadiobutton",
+        ).pack(anchor="w", pady=SPACING["xs"])
 
         available = [o for o in options if o["name"] not in known]
 
@@ -1021,12 +1171,17 @@ class RestDialog(tk.Toplevel):
         for opt in sorted(available, key=lambda o: o["name"]):
             ttk.Radiobutton(
                 add_lf, text=opt["name"], variable=replace_var, value=opt["name"],
-            ).pack(anchor="w", padx=(16, 8), pady=1)
+                style="Card.TRadiobutton",
+            ).pack(anchor="w", padx=(SPACING["sm"], 0), pady=SPACING["xs"])
 
         if not available:
-            ttk.Label(
-                add_lf, text="No other options available.", foreground=COLORS["fg_dim"],
-            ).pack(anchor="w", padx=8, pady=4)
+            tk.Label(
+                add_lf,
+                text="No other options available.",
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg_surface"],
+            ).pack(anchor="w", pady=SPACING["xs"])
 
     def _max_spell_level(self) -> int:
         """Compute the highest spell slot level available to this character."""
@@ -1054,18 +1209,29 @@ class RestDialog(tk.Toplevel):
         }
 
     def _build_cantrip_section(self, parent):
+        """Build the cantrip swap section with card theming."""
         parent.columnconfigure(0, weight=1)
-        parent.rowconfigure(2, weight=1)
+        parent.rowconfigure(0, weight=1)
 
-        ttk.Label(
-            parent, text="Swap Cantrip",
-            font=FONTS["heading"], foreground=COLORS["accent"],
-        ).grid(row=0, column=0, sticky="w", padx=4, pady=(2, 0))
-        ttk.Label(
-            parent,
+        scroll = ScrollableFrame(parent, auto_hide_scrollbar=True)
+        scroll.grid(row=0, column=0, sticky="nsew")
+        inner = scroll.inner
+
+        SectionHeader(inner, text="Swap Cantrip").pack(
+            fill=tk.X, padx=0, pady=(0, SPACING["sm"])
+        )
+
+        card = CardFrame(inner, pad=SPACING["md"])
+        card.pack(fill=tk.BOTH, expand=True)
+        card_inner = card.inner
+
+        tk.Label(
+            card_inner,
             text="You may replace one cantrip with another from your class spell list.",
-            foreground=COLORS["fg_dim"],
-        ).grid(row=1, column=0, sticky="w", padx=4, pady=(0, 4))
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor=tk.W, pady=(0, SPACING["sm"]))
 
         swap_classes = self._cantrip_swap_classes()
         forget_cantrips = self._collect_cantrip_dicts(
@@ -1075,8 +1241,8 @@ class RestDialog(tk.Toplevel):
             set(self.character.selected_cantrips), swap_classes
         )
 
-        content = ttk.Frame(parent)
-        content.grid(row=2, column=0, sticky="nsew")
+        content = tk.Frame(card_inner, bg=COLORS["bg_surface"])
+        content.pack(fill=tk.BOTH, expand=True)
 
         self._cantrip_panel = SpellSwapPanel(
             content,
@@ -1114,8 +1280,13 @@ class RestDialog(tk.Toplevel):
         return result
 
     def _build_spell_section(self, parent):
+        """Build the spell swap section with card theming."""
         parent.columnconfigure(0, weight=1)
-        parent.rowconfigure(2, weight=1)
+        parent.rowconfigure(0, weight=1)
+
+        scroll = ScrollableFrame(parent, auto_hide_scrollbar=True)
+        scroll.grid(row=0, column=0, sticky="nsew")
+        inner = scroll.inner
 
         mode = self._spell_swap_mode or "one"
 
@@ -1126,21 +1297,29 @@ class RestDialog(tk.Toplevel):
             heading = "Swap Prepared Spell"
             desc = "You may replace one prepared spell with another from your class spell list."
 
-        ttk.Label(
-            parent, text=heading,
-            font=FONTS["heading"], foreground=COLORS["accent"],
-        ).grid(row=0, column=0, sticky="w", padx=4, pady=(2, 0))
-        ttk.Label(
-            parent, text=desc, foreground=COLORS["fg_dim"],
-        ).grid(row=1, column=0, sticky="w", padx=4, pady=(0, 4))
+        SectionHeader(inner, text=heading).pack(
+            fill=tk.X, padx=0, pady=(0, SPACING["sm"])
+        )
+
+        card = CardFrame(inner, pad=SPACING["md"])
+        card.pack(fill=tk.BOTH, expand=True)
+        card_inner = card.inner
+
+        tk.Label(
+            card_inner,
+            text=desc,
+            font=FONTS["body"],
+            fg=COLORS["fg_dim"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor=tk.W, pady=(0, SPACING["sm"]))
 
         known_set = set(self.character.selected_spells)
         forget_spells = self._collect_spell_dicts(known_set)
         max_lvl = self._max_spell_level()
         learn_spells = self._collect_available_spell_dicts(known_set, max_lvl)
 
-        content = ttk.Frame(parent)
-        content.grid(row=2, column=0, sticky="nsew")
+        content = tk.Frame(card_inner, bg=COLORS["bg_surface"])
+        content.pack(fill=tk.BOTH, expand=True)
 
         if mode == "all":
             self._multi_spell_panel = MultiSpellSwapPanel(
@@ -1432,13 +1611,21 @@ def _show_short_rest_result_auto(
 
     configure_modal_dialog(dlg, parent)
 
-    frame = ttk.Frame(dlg)
-    frame.pack(padx=20, pady=16)
+    # Hero header
+    hero = GradientHeader(dlg, min_height=40)
+    hero.pack(fill=tk.X)
+    tk.Label(
+        hero.inner,
+        text="Hit Dice Roll Results",
+        font=FONTS["heading_serif_lg"],
+        fg=COLORS["fg"],
+        bg=COLORS["bg_hero"],
+    ).pack(padx=SPACING["card_pad"], pady=(SPACING["md"], SPACING["md"]))
 
-    ttk.Label(
-        frame, text="Hit Dice Roll Results",
-        font=FONTS["heading"], foreground=COLORS["accent"],
-    ).pack(anchor="w", pady=(0, 8))
+    # Card body
+    card = CardFrame(dlg, pad=SPACING["lg"])
+    card.pack(fill=tk.X, padx=SPACING["lg"], pady=SPACING["lg"])
+    frame = card.inner
 
     # Per-class rolls
     for slug in sorted(rolls_by_class, key=lambda s: pool[s][2], reverse=True):
@@ -1446,11 +1633,13 @@ def _show_short_rest_result_auto(
         _, _, die = pool[slug]
         class_name = slug.replace("-", " ").title()
         roll_str = ", ".join(str(r) for r in rolls)
-        ttk.Label(
+        tk.Label(
             frame,
             text=f"{class_name} (d{die}): {roll_str}",
-            foreground=COLORS["fg"],
-        ).pack(anchor="w", padx=(8, 0), pady=1)
+            font=FONTS["body"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+        ).pack(anchor="w", pady=SPACING["xs"])
 
     raw_total = sum(r for rolls in rolls_by_class.values() for r in rolls)
 
@@ -1460,21 +1649,27 @@ def _show_short_rest_result_auto(
         con_text = f"+ {con_total} CON ({total_dice} \u00d7 +{con_mod})"
     else:
         con_text = f"\u2212 {abs(con_total)} CON ({total_dice} \u00d7 {con_mod})"
-    ttk.Label(
-        frame, text=con_text, foreground=COLORS["fg_dim"],
-    ).pack(anchor="w", padx=(8, 0), pady=(4, 4))
+    tk.Label(
+        frame,
+        text=con_text,
+        font=FONTS["body_small"],
+        fg=COLORS["fg_dim"],
+        bg=COLORS["bg_surface"],
+    ).pack(anchor="w", pady=(SPACING["sm"], SPACING["sm"]))
 
     # Total
-    ttk.Label(
+    tk.Label(
         frame,
         text=f"{healed} HP restored ({old_hp}/{max_hp} \u2192 {new_hp}/{max_hp})",
-        font=FONTS["heading"], foreground=COLORS["fg"],
-    ).pack(anchor="w", pady=(4, 8))
+        font=FONTS["heading"],
+        fg=COLORS["fg"],
+        bg=COLORS["bg_surface"],
+    ).pack(anchor="w", pady=(0, SPACING["sm"]))
 
     ttk.Button(
-        frame, text="OK", style="Accent.TButton",
+        dlg, text="OK", style="Accent.TButton",
         command=dlg.destroy,
-    ).pack(pady=(4, 0))
+    ).pack(pady=(0, SPACING["lg"]))
 
     center_dialog_over_parent(dlg, parent)
     dlg.after_idle(lambda: center_dialog_over_parent(dlg, parent))
@@ -1489,24 +1684,33 @@ def _show_short_rest_result_manual(parent, *, healed, old_hp, new_hp, max_hp):
 
     configure_modal_dialog(dlg, parent)
 
-    frame = ttk.Frame(dlg)
-    frame.pack(padx=20, pady=16)
+    # Hero header
+    hero = GradientHeader(dlg, min_height=40)
+    hero.pack(fill=tk.X)
+    tk.Label(
+        hero.inner,
+        text="Short Rest Results",
+        font=FONTS["heading_serif_lg"],
+        fg=COLORS["fg"],
+        bg=COLORS["bg_hero"],
+    ).pack(padx=SPACING["card_pad"], pady=(SPACING["md"], SPACING["md"]))
 
-    ttk.Label(
-        frame, text="Short Rest Results",
-        font=FONTS["heading"], foreground=COLORS["accent"],
-    ).pack(anchor="w", pady=(0, 8))
+    # Card body
+    card = CardFrame(dlg, pad=SPACING["lg"])
+    card.pack(fill=tk.X, padx=SPACING["lg"], pady=SPACING["lg"])
 
-    ttk.Label(
-        frame,
+    tk.Label(
+        card.inner,
         text=f"{healed} HP restored ({old_hp}/{max_hp} \u2192 {new_hp}/{max_hp})",
-        font=FONTS["heading"], foreground=COLORS["fg"],
-    ).pack(anchor="w", pady=(4, 8))
+        font=FONTS["heading"],
+        fg=COLORS["fg"],
+        bg=COLORS["bg_surface"],
+    ).pack(anchor="w")
 
     ttk.Button(
-        frame, text="OK", style="Accent.TButton",
+        dlg, text="OK", style="Accent.TButton",
         command=dlg.destroy,
-    ).pack(pady=(4, 0))
+    ).pack(pady=(0, SPACING["lg"]))
 
     center_dialog_over_parent(dlg, parent)
     dlg.after_idle(lambda: center_dialog_over_parent(dlg, parent))
