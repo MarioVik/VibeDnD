@@ -100,7 +100,32 @@ class SummaryStep(WizardStep):
             bg=_hero_bg,
         ).pack(anchor="w")
 
-        # ── Sub-hero row: Proficiency, Hit Dice, Saving Throws ──
+        # ── Ability Scores ──────────────────────────────────────
+        from models.item_effects import get_effective_ability_score, get_effective_modifier
+
+        ab_row = tk.Frame(inner, bg=COLORS["bg"])
+        ab_row.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
+        ab_row.columnconfigure(list(range(6)), weight=1)
+
+        for i, ability_name in enumerate(
+            [
+                "Strength",
+                "Dexterity",
+                "Constitution",
+                "Intelligence",
+                "Wisdom",
+                "Charisma",
+            ]
+        ):
+            total = get_effective_ability_score(c, ability_name)
+            mod_val = get_effective_modifier(c, ability_name)
+            mod_str = f"+{mod_val}" if mod_val >= 0 else str(mod_val)
+            card = StatCard(
+                ab_row, label=ability_name, value=mod_str, modifier=str(total)
+            )
+            card.grid(row=0, column=i, padx=3, sticky="nsew")
+
+        # ── Proficiency, Hit Dice, Saving Throws ──────────────
         sub_hero_row = tk.Frame(inner, bg=COLORS["bg"])
         sub_hero_row.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
         sub_hero_row.columnconfigure(0, weight=0)
@@ -240,34 +265,6 @@ class SummaryStep(WizardStep):
                 fg=color,
                 bg=COLORS["bg_surface"],
             ).pack(side=tk.RIGHT)
-
-        # ── Ability Scores ──────────────────────────────────────
-        SectionHeader(inner, text="Ability Scores").pack(
-            fill=tk.X, pady=(0, SPACING["sm"])
-        )
-
-        ab_row = tk.Frame(inner, bg=COLORS["bg"])
-        ab_row.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
-        ab_row.columnconfigure(list(range(6)), weight=1)
-
-        for i, ability_name in enumerate(
-            [
-                "Strength",
-                "Dexterity",
-                "Constitution",
-                "Intelligence",
-                "Wisdom",
-                "Charisma",
-            ]
-        ):
-            from models.item_effects import get_effective_ability_score, get_effective_modifier
-            total = get_effective_ability_score(c, ability_name)
-            mod_val = get_effective_modifier(c, ability_name)
-            mod_str = f"+{mod_val}" if mod_val >= 0 else str(mod_val)
-            card = StatCard(
-                ab_row, label=ability_name, value=mod_str, modifier=str(total)
-            )
-            card.grid(row=0, column=i, padx=3, sticky="nsew")
 
         # ── Skills ──────────────────────────────────────────────
         SectionHeader(
