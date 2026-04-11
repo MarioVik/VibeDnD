@@ -236,16 +236,45 @@ class RestDialog(tk.Toplevel):
         else:
             self._build_long_rest_ui(title)
 
-        # Center over parent — done after build so we can size based on step count
+        # Size the dialog to fit the largest step without cutting off content.
+        # Temporarily show every step so Tk can compute its natural size,
+        # then pick the maximum required width and height across all steps.
         self.update_idletasks()
-        if self._total_steps == 1:
-            width, height = 600, 400
-            min_w, min_h = 500, 350
-        else:
-            width, height = 1400, 1000
-            min_w, min_h = 1000, 750
+
+        max_w, max_h = 0, 0
+        for frame in self._step_frames:
+            frame.grid(row=1, column=0, sticky="nsew")
+            frame.update_idletasks()
+            max_w = max(max_w, frame.winfo_reqwidth())
+            max_h = max(max_h, frame.winfo_reqheight())
+            frame.grid_forget()
+
+        # Re-show step 1 after measurement
+        self._show_rest_step(1)
+
+        # Account for header (row 0) and footer nav bar (row 99)
+        header_h = 0
+        for child in self.grid_slaves(row=0):
+            child.update_idletasks()
+            header_h = max(header_h, child.winfo_reqheight())
+        footer_h = 0
+        for child in self.grid_slaves(row=99):
+            child.update_idletasks()
+            footer_h = max(footer_h, child.winfo_reqheight())
+
+        # Add padding for chrome
+        width = max_w + SPACING["lg"] * 2
+        height = max_h + header_h + footer_h + SPACING["lg"] * 2
+
+        # Clamp to screen bounds (leave some margin); minimum 600 wide so
+        # the bottom bar with buttons and progress indicator isn't squeezed.
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+        width = max(600, min(width, int(screen_w * 0.85)))
+        height = max(350, min(height, int(screen_h * 0.85)))
+
         self.geometry(f"{width}x{height}")
-        self.minsize(min_w, min_h)
+        self.minsize(600, 350)
         center_dialog_over_parent(self, parent)
         self.after_idle(lambda: center_dialog_over_parent(self, parent))
 
