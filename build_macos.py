@@ -12,6 +12,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -72,6 +73,61 @@ def run(cmd: list[str], cwd: Path | None = None) -> None:
     result = subprocess.run(cmd, cwd=cwd or ROOT)
     if result.returncode != 0:
         sys.exit(result.returncode)
+
+
+def wait_for_process_exit(process_name: str, timeout_seconds: float) -> None:
+    """Best-effort wait for transient macOS scanners to release the app bundle."""
+    if shutil.which("pgrep") is None:
+        return
+
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
+        result = subprocess.run(
+            ["pgrep", "-x", process_name],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            return
+        print(f"Waiting for {process_name} to finish...")
+        time.sleep(2)
+
+
+def run_hdiutil_create(cmd: list[str], dmg_path: Path, attempts: int = 5) -> None:
+    """Retry around flaky `hdiutil create` failures seen on GitHub macOS runners."""
+    for process_name in ("XProtect", "XProtectService"):
+        wait_for_process_exit(process_name, timeout_seconds=10)
+
+    for attempt in range(1, attempts + 1):
+        suffix = f" (attempt {attempt}/{attempts})" if attempts > 1 else ""
+        print("Running:", " ".join(cmd) + suffix)
+        result = subprocess.run(
+            cmd,
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+
+        if result.stdout:
+            print(result.stdout, end="")
+        if result.stderr:
+            print(result.stderr, end="", file=sys.stderr)
+
+        if result.returncode == 0:
+            return
+
+        retryable = "Resource busy" in result.stdout or "Resource busy" in result.stderr
+        if not retryable or attempt == attempts:
+            sys.exit(result.returncode)
+
+        if dmg_path.exists():
+            dmg_path.unlink()
+
+        delay_seconds = attempt * 5
+        print(f"`hdiutil create` reported Resource busy; retrying in {delay_seconds}s...")
+        for process_name in ("XProtect", "XProtectService"):
+            wait_for_process_exit(process_name, timeout_seconds=delay_seconds)
+        time.sleep(delay_seconds)
 
 
 def check_prereqs() -> None:
@@ -243,7 +299,7 @@ def create_dmg(app_path: Path) -> Path:
     if dmg_path.exists():
         dmg_path.unlink()
 
-    run(
+    run_hdiutil_create(
         [
             "hdiutil",
             "create",
@@ -255,7 +311,8 @@ def create_dmg(app_path: Path) -> Path:
             "-format",
             "UDZO",
             str(dmg_path),
-        ]
+        ],
+        dmg_path,
     )
 
     # Ad-hoc sign the DMG container so Gatekeeper doesn't flag the disk image
