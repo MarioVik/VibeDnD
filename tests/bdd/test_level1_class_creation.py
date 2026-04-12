@@ -31,14 +31,18 @@ from models.spell_grant_utils import (
     apply_default_spell_grant_abilities,
     character_has_spell_step_content,
     format_spellbook_entry_label,
+    get_active_free_cast_resources,
     get_active_spell_grant_sources,
     get_free_spell_summary_entries,
+    get_spendable_free_cast_resources,
     get_selectable_class_cantrip_options,
     get_selectable_class_spell_options,
     get_spell_grant_choice_value,
     get_spell_grant_requirements,
     get_spellbook_entries,
+    restore_free_casts,
     scrub_spell_grant_choices,
+    spend_free_cast,
     set_spell_grant_choice_value,
 )
 from models.standard_actions import build_standard_actions
@@ -113,6 +117,20 @@ def _source_by_label(character: Character, game_data: GameData, label: str) -> d
         if source["source_label"] == label:
             return source
     raise AssertionError(f"Unknown active spell grant source: {label}")
+
+
+def _active_free_cast_resource_by_label(character: Character, game_data: GameData, label: str) -> dict:
+    for resource in get_active_free_cast_resources(character, game_data):
+        if resource["label"] == label:
+            return resource
+    raise AssertionError(f"Unknown active free-cast resource: {label}")
+
+
+def _spendable_free_cast_resource_by_label(character: Character, game_data: GameData, label: str) -> dict:
+    for resource in get_spendable_free_cast_resources(character, game_data):
+        if resource["label"] == label:
+            return resource
+    raise AssertionError(f"Unknown spendable free-cast resource: {label}")
 
 
 def _refresh_spell_grants(character: Character, game_data: GameData):
@@ -580,6 +598,24 @@ def when_spell_grant_source_list_selected(
     _refresh_spell_grants(character, game_data)
 
 
+@when(parsers.parse("the free cast {label} is spent"))
+def when_free_cast_spent(character: Character, game_data: GameData, label: str):
+    resource = _spendable_free_cast_resource_by_label(character, game_data, label)
+    assert spend_free_cast(character, game_data, resource["resource_id"])
+
+
+@when(parsers.parse("the character restores free casts on a {rest_type} rest"))
+def when_free_casts_restored(character: Character, game_data: GameData, rest_type: str):
+    assert rest_type in {"short", "long"}
+    restore_free_casts(character, game_data, rest_type)
+
+
+@when(parsers.parse("the character changes species to {species_name}"))
+def when_character_changes_species(character: Character, game_data: GameData, species_name: str):
+    _set_species(character, game_data, species_name)
+    _refresh_spell_grants(character, game_data)
+
+
 @then("the markdown specification documents every level 1 class feature")
 def then_markdown_documents_every_feature(catalog: list[dict]):
     doc_rows = _feature_matrix_rows()
@@ -827,7 +863,54 @@ def then_free_spell_summary_includes(
     label: str,
     cadence: str,
 ):
-    assert {"label": label, "cadence": cadence} in get_free_spell_summary_entries(character, game_data)
+    assert any(
+        entry["label"] == label and entry["cadence"] == cadence
+        for entry in get_free_spell_summary_entries(character, game_data)
+    )
+
+
+@then(parsers.parse("the free spell summary does not include {label}"))
+def then_free_spell_summary_excludes(character: Character, game_data: GameData, label: str):
+    assert label not in {
+        entry["label"] for entry in get_free_spell_summary_entries(character, game_data)
+    }
+
+
+@then(parsers.parse("the shared free cast {label} applies to {spell_name}"))
+def then_shared_free_cast_applies_to_spell(
+    character: Character,
+    game_data: GameData,
+    label: str,
+    spell_name: str,
+):
+    resource = _active_free_cast_resource_by_label(character, game_data, label)
+    assert resource["kind"] == "shared_pool"
+    assert spell_name in resource["eligible_spell_names"]
+
+
+@then(parsers.parse("the spellbook entry for {spell_name} lists free casting {detail}"))
+def then_spellbook_entry_lists_free_cast_detail(
+    character: Character,
+    game_data: GameData,
+    spell_name: str,
+    detail: str,
+):
+    entry = next(
+        item for item in get_spellbook_entries(character, game_data) if item["spell_name"] == spell_name
+    )
+    assert detail in (entry.get("free_casts", []) or [])
+
+
+@then(parsers.parse("{label} is not a spendable free cast"))
+def then_free_cast_not_spendable(character: Character, game_data: GameData, label: str):
+    assert label not in {
+        resource["label"] for resource in get_spendable_free_cast_resources(character, game_data)
+    }
+
+
+@then("no free casts are marked as spent")
+def then_no_free_casts_marked_as_spent(character: Character):
+    assert getattr(character, "used_free_casts", {}) == {}
 
 
 @then(parsers.parse("{spell_name} is tagged as a Dragonmark spell"))

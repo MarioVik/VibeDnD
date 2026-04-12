@@ -76,8 +76,17 @@ Feature: Level 1 spell grants integrate with character creation
     And the character is the species Gnome with the Forest Gnome lineage
     And the character has the species origin feat Mark Of Handling
     When spell grant defaults are applied
-    Then the free spell summary includes Speak with Animals (Forest Gnome) - 2 / Long Rest
-    And the free spell summary includes Speak with Animals (Mark Of Handling) - 1 / Long Rest
+    Then the free spell summary includes Speak with Animals (Forest Gnome) - 2/2 (Long Rest resets)
+    And the free spell summary includes Speak with Animals (Mark Of Handling) - 1/1 (Long Rest resets)
+
+  Scenario: Same-spell free casts spend independently by source
+    Given a level 1 rogue character
+    And the character is the species Gnome with the Forest Gnome lineage
+    And the character has the species origin feat Mark Of Handling
+    When spell grant defaults are applied
+    And the free cast Speak with Animals (Forest Gnome) is spent
+    Then the free spell summary includes Speak with Animals (Forest Gnome) - 1/2 (Long Rest resets)
+    And the free spell summary includes Speak with Animals (Mark Of Handling) - 1/1 (Long Rest resets)
 
   Scenario: Potent Dragonmark tags mark spells and adds the dragonmark slot summary
     Given a level 1 wizard character
@@ -88,4 +97,44 @@ Feature: Level 1 spell grants integrate with character creation
     And the spellbook includes Identify granted by Mark Of Detection
     And Detect Magic is tagged as a Dragonmark spell
     And Identify is tagged as a Dragonmark spell
-    And the free spell summary includes 1 Dragonmark spell - 1 / Short or Long Rest
+    And the free spell summary includes 1 Dragonmark spell - 1/1 (Short or Long Rest resets)
+
+  Scenario: Shared Dragonmark pools stay shared across multiple eligible spells
+    Given a level 1 wizard character
+    And the character has the species origin feat Mark Of Detection
+    And the character has the background feat Potent Dragonmark
+    When spell grant defaults are applied
+    Then the shared free cast 1 Dragonmark spell applies to Detect Magic
+    And the shared free cast 1 Dragonmark spell applies to Identify
+    When the free cast 1 Dragonmark spell is spent
+    Then the free spell summary includes 1 Dragonmark spell - 0/1 (Short or Long Rest resets)
+    And the spellbook entry for Detect Magic lists free casting 1 Dragonmark spell: 0/1 (Short or Long Rest resets)
+    And the spellbook entry for Identify lists free casting 1 Dragonmark spell: 0/1 (Short or Long Rest resets)
+
+  Scenario: Free casts restore on the correct rest cadence
+    Given a level 1 wizard character
+    And the character has the species origin feat Mark Of Detection
+    And the character has the background feat Potent Dragonmark
+    When spell grant defaults are applied
+    And the free cast Detect Magic (Mark Of Detection) is spent
+    And the free cast 1 Dragonmark spell is spent
+    And the character restores free casts on a short rest
+    Then the free spell summary includes Detect Magic (Mark Of Detection) - 0/1 (Long Rest resets)
+    And the free spell summary includes 1 Dragonmark spell - 1/1 (Short or Long Rest resets)
+    When the character restores free casts on a long rest
+    Then the free spell summary includes Detect Magic (Mark Of Detection) - 1/1 (Long Rest resets)
+
+  Scenario: At Will free casts stay visible but are not spendable
+    Given a fully completed level 1 warlock character with the Armor of Shadows invocation
+    When spell grant defaults are applied
+    Then the free spell summary includes Mage Armor (Armor of Shadows) - At Will
+    And Mage Armor (Armor of Shadows) is not a spendable free cast
+
+  Scenario: Spent free casts are scrubbed when the underlying grant disappears
+    Given a level 1 rogue character
+    And the character is the species Gnome with the Forest Gnome lineage
+    When spell grant defaults are applied
+    And the free cast Speak with Animals (Forest Gnome) is spent
+    And the character changes species to Aasimar
+    Then the free spell summary does not include Speak with Animals (Forest Gnome)
+    And no free casts are marked as spent

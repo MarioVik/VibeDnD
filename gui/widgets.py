@@ -7,6 +7,7 @@ import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk
 from gui.theme import COLORS, FONTS
+from models.spell_grant_utils import get_spendable_free_cast_resources, spend_free_cast
 
 
 def _wheel_units(event, source_name: str = "MouseWheel") -> float:
@@ -796,6 +797,117 @@ class UseSpellSlotDialog:
         self.character.use_spell_slot(level_key)
         if self.on_refresh:
             self.on_refresh()
+        self.dialog.destroy()
+
+
+class UseFreeCastDialog:
+    """A modal dialog to spend limited-use free casts."""
+
+    def __init__(self, parent, character, data, on_refresh=None):
+        self.parent = parent
+        self.character = character
+        self.data = data
+        self.on_refresh = on_refresh
+
+        self.dialog = tk.Toplevel(parent)
+        self.dialog.title("Use Free Cast")
+        self.dialog.resizable(False, False)
+        self.dialog.configure(bg=COLORS["bg"])
+
+        configure_modal_dialog(self.dialog, parent)
+
+        self._build_ui()
+        center_dialog_over_parent(self.dialog, parent)
+
+    def _build_ui(self):
+        main_frame = tk.Frame(self.dialog, bg=COLORS["bg"], padx=20, pady=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        tk.Label(
+            main_frame,
+            text="USE A FREE CAST",
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["gold"],
+            bg=COLORS["bg"],
+        ).pack(pady=(0, 15))
+
+        resources = get_spendable_free_cast_resources(self.character, self.data)
+        if resources:
+            for resource in resources:
+                self._add_resource_row(main_frame, resource)
+        else:
+            tk.Label(
+                main_frame,
+                text="No limited free casts available.",
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg"],
+            ).pack(pady=10)
+
+        btn_frame = tk.Frame(main_frame, bg=COLORS["bg"])
+        btn_frame.pack(fill=tk.X, pady=(20, 0))
+
+        ttk.Button(
+            btn_frame,
+            text="CANCEL",
+            command=self.dialog.destroy,
+            style="TButton",
+        ).pack(side=tk.RIGHT)
+
+    def _add_resource_row(self, parent, resource: dict):
+        row = tk.Frame(parent, bg=COLORS["bg_surface"], padx=10, pady=8)
+        row.pack(fill=tk.X, pady=2)
+
+        text_col = tk.Frame(row, bg=COLORS["bg_surface"])
+        text_col.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        tk.Label(
+            text_col,
+            text=str(resource.get("label", "") or "").upper(),
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+            justify=tk.LEFT,
+        ).pack(anchor=tk.W)
+
+        tk.Label(
+            text_col,
+            text=str(resource.get("display_text", "") or ""),
+            font=FONTS["body_bold"],
+            fg=COLORS["accent_text"] if int(resource.get("remaining_uses", 0) or 0) > 0 else COLORS["fg_disabled"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+            justify=tk.LEFT,
+        ).pack(anchor=tk.W, pady=(2, 0))
+
+        if resource.get("kind") == "shared_pool":
+            eligible_spells = ", ".join(resource.get("eligible_spell_names", []) or [])
+            if eligible_spells:
+                tk.Label(
+                    text_col,
+                    text=f"Eligible spells: {eligible_spells}",
+                    font=FONTS["body_small"],
+                    fg=COLORS["fg_dim"],
+                    bg=COLORS["bg_surface"],
+                    anchor="w",
+                    justify=tk.LEFT,
+                    wraplength=320,
+                ).pack(anchor=tk.W, pady=(4, 0))
+
+        btn = ttk.Button(
+            row,
+            text="USE FREE CAST",
+            style="Compact.TButton",
+            state=tk.NORMAL if int(resource.get("remaining_uses", 0) or 0) > 0 else tk.DISABLED,
+            command=lambda rid=resource["resource_id"]: self._use_resource(rid),
+        )
+        btn.pack(side=tk.RIGHT, padx=(12, 0))
+
+    def _use_resource(self, resource_id: str):
+        if spend_free_cast(self.character, self.data, resource_id):
+            if self.on_refresh:
+                self.on_refresh()
         self.dialog.destroy()
 
 

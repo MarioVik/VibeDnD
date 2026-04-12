@@ -53,6 +53,7 @@ from models.level1_class_rules import (
 from models.spell_grant_utils import (
     format_spellbook_entry_label,
     get_free_spell_summary_entries,
+    get_spendable_free_cast_resources,
     get_spellbook_sections,
     has_spellbook_entries,
 )
@@ -1796,13 +1797,39 @@ class CharacterViewer(ttk.Frame):
                 free_cf.pack(side=tk.LEFT, fill=tk.Y, padx=(0, SPACING["card_gap"]))
                 free_cf.inner.pack(expand=True, fill=tk.BOTH)
 
+                header_row = tk.Frame(free_cf.inner, bg=COLORS["bg_surface"])
+                header_row.pack(fill=tk.X)
+
                 tk.Label(
-                    free_cf.inner,
+                    header_row,
                     text="FREE SPELLS",
                     font=FONTS["label_upper_bold"],
                     fg=COLORS["fg_dim"],
                     bg=COLORS["bg_surface"],
-                ).pack(anchor="w")
+                ).pack(side=tk.LEFT, anchor="w")
+
+                from gui.widgets import UseFreeCastDialog
+
+                ttk.Button(
+                    header_row,
+                    text="\u2726 USE FREE CAST",
+                    style="Compact.TButton",
+                    state=(
+                        tk.NORMAL
+                        if get_spendable_free_cast_resources(c, self.data)
+                        else tk.DISABLED
+                    ),
+                    command=lambda: UseFreeCastDialog(
+                        self,
+                        c,
+                        self.data,
+                        on_refresh=lambda: (
+                            self._on_sheet_changed(),
+                            self._mark_all_dirty(),
+                            self._show_view(self._current_view),
+                        ),
+                    ),
+                ).pack(side=tk.RIGHT)
 
                 _fcnt = tk.Frame(free_cf.inner, bg=COLORS["bg_surface"])
                 _fcnt.pack(expand=True)

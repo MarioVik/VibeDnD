@@ -133,6 +133,8 @@ class Character:
     # For Warlocks (Pact Magic), we use "pact" as a prefix or separate key.
     # Actually, let's use "pact" key for pact magic slots.
     used_pact_slots: int = 0
+    used_free_casts: dict[str, int] = field(default_factory=dict)
+    # Maps free-cast resource id -> count spent.
     arcane_recovery_used: bool = False
 
     @property

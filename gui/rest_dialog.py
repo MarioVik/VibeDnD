@@ -27,6 +27,7 @@ from models.skill_utils import (
     get_selectable_expertise_grants,
     set_feat_expertise_skill,
 )
+from models.spell_grant_utils import get_spendable_free_cast_resources, restore_free_casts
 
 # Load class choices data (same file as level_up_wizard)
 _CHOICES_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "class_choices.json")
@@ -131,6 +132,23 @@ def _spell_swap_mode(character) -> str | None:
 def can_long_rest(character) -> bool:
     """Return True — every character benefits from a Long Rest (HP restoration)."""
     return True
+
+
+def _restorable_free_cast_resources(character, game_data, rest_type: str) -> list[dict]:
+    resources = get_spendable_free_cast_resources(character, game_data)
+    if rest_type == "short":
+        return [
+            resource
+            for resource in resources
+            if resource.get("refresh_type") == "short_or_long"
+        ]
+    if rest_type == "long":
+        return [
+            resource
+            for resource in resources
+            if resource.get("refresh_type") in {"long", "short_or_long"}
+        ]
+    return []
 
 
 def _get_feature_keys(character, rest_type: str) -> list[tuple[str, dict, list[str]]]:
@@ -469,6 +487,8 @@ class RestDialog(tk.Toplevel):
         # Spell slot restoration
         if self.character.is_caster or _is_warlock_pact_caster(self.character):
             effects.append("All spell slots and pact slots are fully restored")
+        if _restorable_free_cast_resources(self.character, self.data, "long"):
+            effects.append("All limited free spell uses are fully restored")
 
         if has_zhentarim_refresh:
             effects.append("You must choose your Zhentarim Tactics Expertise again")
@@ -687,13 +707,20 @@ class RestDialog(tk.Toplevel):
             label = config.get("choice_label", "feature")
             effects.append(f"You may swap one {label}")
 
+        short_rest_free_casts = _restorable_free_cast_resources(self.character, self.data, "short")
         if not feature_keys and self.character.total_hit_dice_remaining == 0:
-            if not _is_warlock_pact_caster(self.character) and not _has_arcane_recovery(self.character):
+            if (
+                not _is_warlock_pact_caster(self.character)
+                and not _has_arcane_recovery(self.character)
+                and not short_rest_free_casts
+            ):
                 effects.append("There is nothing else to do on this rest")
 
         # Spell slots (Warlock)
         if _is_warlock_pact_caster(self.character):
             effects.append("All pact slots are fully restored")
+        if short_rest_free_casts:
+            effects.append("Limited free spell uses that refresh on a Short Rest are restored")
 
         # Arcane Recovery
         if _has_arcane_recovery(self.character):
@@ -1459,6 +1486,8 @@ class RestDialog(tk.Toplevel):
             self.character.temp_hit_points = 0
             self.character.spent_hit_dice.clear()
             self.character.reset_spell_slots()
+            if restore_free_casts(self.character, self.data, "long"):
+                changed = True
             self.character.arcane_recovery_used = False
             changed = True
 
@@ -1560,6 +1589,8 @@ class RestDialog(tk.Toplevel):
                 if self.character.used_pact_slots > 0:
                     self.character.used_pact_slots = 0
                     changed = True
+            if restore_free_casts(self.character, self.data, "short"):
+                changed = True
             
             # Arcane Recovery
             if self._recovery_vars:

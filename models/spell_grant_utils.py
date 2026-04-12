@@ -1119,7 +1119,11 @@ def get_active_spell_grant_sources(character, game_data) -> list[dict]:
                 if source["source_id"] != mark_source_id:
                     continue
                 source["resource_entries"].append(
-                    {"label": "1 Dragonmark spell", "cadence": "1 / Short or Long Rest"}
+                    {
+                        "label": "1 Dragonmark spell",
+                        "cadence": "1 / Short or Long Rest",
+                        "eligible_spell_names": [],
+                    }
                 )
                 source["expansion_spells"] = list(_MARK_FEAT_DATA[feat_name]["expansion_spells"])
                 for entry in source["granted_entries"]:
@@ -1150,6 +1154,15 @@ def get_active_spell_grant_sources(character, game_data) -> list[dict]:
                     for entry in expansion_entries:
                         if entry["spell_name"] not in existing:
                             source["granted_entries"].append(entry)
+                    eligible_names = [
+                        str(entry.get("spell_name", "")).strip()
+                        for entry in source["granted_entries"]
+                        if entry.get("dragonmark_eligible")
+                        and str(entry.get("spell_name", "")).strip()
+                    ]
+                    for resource_entry in source.get("resource_entries", []):
+                        if resource_entry.get("label") == "1 Dragonmark spell":
+                            resource_entry["eligible_spell_names"] = eligible_names
                     break
 
     for source in sources:
@@ -1294,13 +1307,275 @@ def scrub_spell_grant_choices(character, game_data) -> bool:
         character.selected_spells = cleaned_spells
         changed = True
 
+    changed = scrub_used_free_casts(character, game_data) or changed
     return changed
 
 
+def _free_cast_reset_label(refresh_type: str) -> str:
+    if refresh_type == "short_or_long":
+        return "Short or Long Rest"
+    if refresh_type == "long":
+        return "Long Rest"
+    return ""
+
+
+def _parse_free_cast_cadence(character, cadence: str) -> dict | None:
+    raw = str(cadence or "").strip()
+    if not raw:
+        return None
+    if raw == "At Will":
+        return {
+            "raw_cadence": raw,
+            "resolved_cadence": raw,
+            "total_uses": None,
+            "refresh_type": "none",
+            "spendable": False,
+            "display_text": "At Will",
+        }
+    if raw == "PB / Long Rest":
+        total = max(0, int(character.proficiency_bonus))
+        return {
+            "raw_cadence": raw,
+            "resolved_cadence": f"{total} / Long Rest",
+            "total_uses": total,
+            "refresh_type": "long",
+            "spendable": True,
+            "display_text": "",
+        }
+
+    match = re.fullmatch(r"(\d+)\s*/\s*(Long Rest|Short or Long Rest)", raw)
+    if not match:
+        return None
+
+    total = int(match.group(1))
+    refresh_text = match.group(2)
+    refresh_type = "short_or_long" if refresh_text == "Short or Long Rest" else "long"
+    return {
+        "raw_cadence": raw,
+        "resolved_cadence": f"{total} / {refresh_text}",
+        "total_uses": total,
+        "refresh_type": refresh_type,
+        "spendable": True,
+        "display_text": "",
+    }
+
+
+def _format_free_cast_display(total_uses: int | None, remaining_uses: int | None, refresh_type: str) -> str:
+    if total_uses is None or remaining_uses is None or refresh_type == "none":
+        return "At Will"
+    return f"{remaining_uses}/{total_uses} ({_free_cast_reset_label(refresh_type)} resets)"
+
+
 def _resolve_cadence(character, cadence: str) -> str:
-    if cadence != "PB / Long Rest":
-        return cadence
-    return f"{character.proficiency_bonus} / Long Rest"
+    info = _parse_free_cast_cadence(character, cadence)
+    if not info:
+        return str(cadence or "").strip()
+    return info["resolved_cadence"]
+
+
+def _free_cast_resource_id(source_id: str, label: str, cadence: str, kind: str) -> str:
+    return f"free_cast:{kind}:{source_id}:{_slugify(label)}:{_slugify(cadence)}"
+
+
+def _build_free_cast_resource(
+    character,
+    *,
+    source_id: str,
+    source_label: str,
+    kind: str,
+    label: str,
+    cadence: str,
+    spell_name: str = "",
+    eligible_spell_names: list[str] | None = None,
+) -> dict | None:
+    cadence_info = _parse_free_cast_cadence(character, cadence)
+    if not cadence_info:
+        return None
+
+    resource_id = _free_cast_resource_id(source_id, label, cadence, kind)
+    total_uses = cadence_info["total_uses"]
+    used_uses = 0
+    remaining_uses = None
+
+    if cadence_info["spendable"] and total_uses is not None:
+        raw_used = int((getattr(character, "used_free_casts", {}) or {}).get(resource_id, 0) or 0)
+        used_uses = max(0, min(raw_used, total_uses))
+        remaining_uses = max(0, total_uses - used_uses)
+
+    return {
+        "resource_id": resource_id,
+        "source_id": source_id,
+        "source_label": source_label,
+        "label": label,
+        "kind": kind,
+        "spell_name": spell_name,
+        "eligible_spell_names": list(eligible_spell_names or []),
+        "raw_cadence": cadence_info["raw_cadence"],
+        "resolved_cadence": cadence_info["resolved_cadence"],
+        "total_uses": total_uses,
+        "used_uses": used_uses,
+        "remaining_uses": remaining_uses,
+        "refresh_type": cadence_info["refresh_type"],
+        "spendable": cadence_info["spendable"],
+        "display_text": _format_free_cast_display(
+            total_uses,
+            remaining_uses,
+            cadence_info["refresh_type"],
+        ),
+    }
+
+
+def _free_cast_resource_sort_key(game_data, resource: dict) -> tuple:
+    kind = str(resource.get("kind", "") or "")
+    if kind == "spell":
+        return (
+            0,
+            *_spell_sort_key(game_data, resource.get("spell_name", "")),
+            str(resource.get("source_label", "") or "").casefold(),
+        )
+    return (
+        1,
+        str(resource.get("label", "") or "").casefold(),
+        str(resource.get("source_label", "") or "").casefold(),
+    )
+
+
+def _spell_free_cast_detail_text(resource: dict) -> str:
+    if resource.get("kind") == "shared_pool":
+        return f"{resource['label']}: {resource['display_text']}"
+    source_label = str(resource.get("source_label", "") or "").strip()
+    if source_label:
+        return f"{source_label}: {resource['display_text']}"
+    return str(resource.get("display_text", "") or "").strip()
+
+
+def get_active_free_cast_resources(character, game_data) -> list[dict]:
+    resources: list[dict] = []
+    for source in get_active_spell_grant_sources(character, game_data):
+        source_id = str(source.get("source_id", "") or "").strip()
+        source_label = str(source.get("source_label", "") or "").strip()
+
+        for spell_entry in source.get("granted_entries", []):
+            if spell_entry.get("kind") == "cantrip":
+                continue
+            spell_name = str(spell_entry.get("spell_name", "") or "").strip()
+            cadence = str(spell_entry.get("free_cast", "") or "").strip()
+            if not spell_name or not cadence:
+                continue
+            resource = _build_free_cast_resource(
+                character,
+                source_id=source_id,
+                source_label=source_label,
+                kind="spell",
+                label=f"{spell_name} ({source_label})" if source_label else spell_name,
+                cadence=cadence,
+                spell_name=spell_name,
+            )
+            if resource is not None:
+                resources.append(resource)
+
+        for resource_entry in source.get("resource_entries", []):
+            label = str(resource_entry.get("label", "") or "").strip()
+            cadence = str(resource_entry.get("cadence", "") or "").strip()
+            if not label or not cadence:
+                continue
+            resource = _build_free_cast_resource(
+                character,
+                source_id=source_id,
+                source_label=source_label,
+                kind="shared_pool",
+                label=label,
+                cadence=cadence,
+                eligible_spell_names=[
+                    spell_name
+                    for spell_name in resource_entry.get("eligible_spell_names", []) or []
+                    if str(spell_name or "").strip()
+                ],
+            )
+            if resource is not None:
+                resources.append(resource)
+
+    resources.sort(key=lambda resource: _free_cast_resource_sort_key(game_data, resource))
+    return resources
+
+
+def get_spendable_free_cast_resources(character, game_data) -> list[dict]:
+    return [
+        resource
+        for resource in get_active_free_cast_resources(character, game_data)
+        if resource.get("spendable")
+    ]
+
+
+def spend_free_cast(character, game_data, resource_id: str) -> bool:
+    for resource in get_spendable_free_cast_resources(character, game_data):
+        if resource["resource_id"] != resource_id:
+            continue
+        remaining = int(resource.get("remaining_uses", 0) or 0)
+        if remaining <= 0:
+            return False
+        used_free_casts = getattr(character, "used_free_casts", None)
+        if not isinstance(used_free_casts, dict):
+            used_free_casts = {}
+            character.used_free_casts = used_free_casts
+        used_free_casts[resource_id] = int(used_free_casts.get(resource_id, 0) or 0) + 1
+        return True
+    return False
+
+
+def restore_free_casts(character, game_data, rest_type: str) -> bool:
+    if rest_type not in {"short", "long"}:
+        return False
+
+    changed = False
+    used_free_casts = getattr(character, "used_free_casts", None)
+    if not isinstance(used_free_casts, dict) or not used_free_casts:
+        return False
+
+    for resource in get_spendable_free_cast_resources(character, game_data):
+        refresh_type = str(resource.get("refresh_type", "") or "")
+        if rest_type == "short" and refresh_type != "short_or_long":
+            continue
+        if rest_type == "long" and refresh_type not in {"long", "short_or_long"}:
+            continue
+        if resource["resource_id"] in used_free_casts:
+            used_free_casts.pop(resource["resource_id"], None)
+            changed = True
+    return changed
+
+
+def scrub_used_free_casts(character, game_data) -> bool:
+    used_free_casts = getattr(character, "used_free_casts", None)
+    if not isinstance(used_free_casts, dict):
+        character.used_free_casts = {}
+        return False
+
+    changed = False
+    active_resources = {
+        resource["resource_id"]: resource
+        for resource in get_spendable_free_cast_resources(character, game_data)
+    }
+
+    for resource_id in list(used_free_casts.keys()):
+        resource = active_resources.get(resource_id)
+        if resource is None:
+            used_free_casts.pop(resource_id, None)
+            changed = True
+            continue
+
+        total_uses = int(resource.get("total_uses", 0) or 0)
+        current = int(used_free_casts.get(resource_id, 0) or 0)
+        clamped = max(0, min(current, total_uses))
+        if clamped <= 0:
+            if resource_id in used_free_casts:
+                used_free_casts.pop(resource_id, None)
+                changed = True
+            continue
+        if clamped != current:
+            used_free_casts[resource_id] = clamped
+            changed = True
+
+    return changed
 
 
 def get_spell_grant_requirements(character, game_data) -> list[dict]:
@@ -1439,30 +1714,22 @@ def get_selectable_class_spell_options(character, game_data, *, level: int = 1) 
 
 
 def get_free_spell_summary_entries(character, game_data) -> list[dict]:
-    entries: list[dict] = []
-    for source in get_active_spell_grant_sources(character, game_data):
-        source_label = source["source_label"]
-        for spell_entry in source.get("granted_entries", []):
-            free_cast = str(spell_entry.get("free_cast", "") or "").strip()
-            if not free_cast:
-                continue
-            if spell_entry.get("kind") == "cantrip":
-                continue
-            spell_name = str(spell_entry.get("spell_name", "") or "").strip()
-            entries.append(
-                {
-                    "label": f"{spell_name} ({source_label})",
-                    "cadence": _resolve_cadence(character, free_cast),
-                }
-            )
-        for resource_entry in source.get("resource_entries", []):
-            entries.append(
-                {
-                    "label": resource_entry["label"],
-                    "cadence": resource_entry["cadence"],
-                }
-            )
-    return entries
+    return [
+        {
+            "resource_id": resource["resource_id"],
+            "label": resource["label"],
+            "cadence": resource["display_text"],
+            "kind": resource["kind"],
+            "spendable": resource["spendable"],
+            "source_label": resource["source_label"],
+            "spell_name": resource["spell_name"],
+            "eligible_spell_names": list(resource.get("eligible_spell_names", []) or []),
+            "remaining_uses": resource["remaining_uses"],
+            "total_uses": resource["total_uses"],
+            "refresh_type": resource["refresh_type"],
+        }
+        for resource in get_active_free_cast_resources(character, game_data)
+    ]
 
 
 def get_spellbook_entries(character, game_data) -> list[dict]:
@@ -1519,11 +1786,6 @@ def get_spellbook_entries(character, game_data) -> list[dict]:
             label = str(entry.get("source_label", "") or "").strip()
             if label and label not in row["source_labels"]:
                 row["source_labels"].append(label)
-            free_cast = str(entry.get("free_cast", "") or "").strip()
-            if free_cast:
-                resolved = _resolve_cadence(character, free_cast)
-                if resolved not in row["free_casts"]:
-                    row["free_casts"].append(resolved)
             if entry.get("ritual_only"):
                 row["ritual_only"] = True
             if entry.get("dragonmark_eligible"):
@@ -1531,6 +1793,25 @@ def get_spellbook_entries(character, game_data) -> list[dict]:
             note = str(entry.get("detail_note", "") or "").strip()
             if note and note not in row["detail_notes"]:
                 row["detail_notes"].append(note)
+
+    free_casts_by_spell: dict[str, list[str]] = {}
+    for resource in get_active_free_cast_resources(character, game_data):
+        detail_text = _spell_free_cast_detail_text(resource)
+        if resource.get("kind") == "shared_pool":
+            for spell_name in resource.get("eligible_spell_names", []) or []:
+                rows = free_casts_by_spell.setdefault(str(spell_name).strip(), [])
+                if detail_text not in rows:
+                    rows.append(detail_text)
+            continue
+
+        spell_name = str(resource.get("spell_name", "") or "").strip()
+        if spell_name:
+            rows = free_casts_by_spell.setdefault(spell_name, [])
+            if detail_text not in rows:
+                rows.append(detail_text)
+
+    for spell_name, row in merged.items():
+        row["free_casts"] = list(free_casts_by_spell.get(spell_name, []))
 
     result = list(merged.values())
     result.sort(key=lambda row: (row["level"], row["spell_name"].casefold()))

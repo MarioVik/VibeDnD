@@ -21,6 +21,7 @@ No Python or technical setup required.
 - **Strict Level 1 Class Requirements**: Character creation now blocks completion until every class-granted level 1 choice has been explicitly resolved, including skills, spell picks, weapon masteries, orders, fighting styles, invocations, and class equipment
 - **Skill Expertise Support**: Choose creation-time Expertise on the Skills step for Rogue and supported feats, with automatic modifier updates and Zhentarim long-rest reselection
 - **Leveling & Multiclass**: Level up to 20 with multiclass support, subclass selection, HP rolling, ASI/Feat choices, and spell swapping
+- **Tracked Spell Resources**: Spend and restore spell slots plus limited free casts from species, feats, and class features, while still surfacing At Will magic in the spellbook
 - **Inventory Management**: Browse the full D&D 2024 item database, filter by category and cost, and track your wealth
 - **Source Filtering**: Toggle content from Common (PHB), Eberron, Faerun, Exotic, and Unearthed Arcana sources
 - **Cinematic Home & Archive**: Start from a dedicated landing screen, then browse, import, load, and delete characters from a separate archive view
