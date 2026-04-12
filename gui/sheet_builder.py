@@ -132,6 +132,135 @@ def _container_contents(item_text: str) -> tuple[str, list[str]] | None:
     return None
 
 
+def _format_choice_history_name(choice_name: str, sub_selection: str) -> str:
+    """Format a class-choice entry exactly as the shared sheet shows it."""
+    if sub_selection and "|" in sub_selection:
+        primary, secondary = sub_selection.split("|", 1)
+        return f"{choice_name} ({primary} \u2014 {secondary})"
+    if sub_selection:
+        return f"{choice_name} ({sub_selection})"
+    return choice_name
+
+
+def get_level_feature_history(character, game_data) -> list[dict]:
+    """Return the level-by-level feature history shown on the shared sheet."""
+    entries: list[dict] = []
+    for cl in character.class_levels:
+        level_data = None
+        if game_data:
+            level_data = game_data.get_level_data(cl.class_slug, cl.class_level)
+
+        feature_details = []
+        if level_data:
+            feature_details = [
+                f
+                for f in level_data.get("feature_details", [])
+                if isinstance(f, dict)
+                and f.get("name") not in ("-", "Ability Score Improvement")
+            ]
+            if not feature_details:
+                for name in level_data.get("features", []):
+                    if name not in ("-", "Ability Score Improvement"):
+                        feature_details.append({"name": name, "description": ""})
+
+        extra = []
+        if cl.feat_choice:
+            asi_desc = ""
+            if cl.asi_increases:
+                asi_desc = ", ".join(f"{a} +{v}" for a, v in cl.asi_increases.items())
+            extra.append({"name": f"Feat: {cl.feat_choice}", "description": asi_desc})
+        if cl.subclass_slug:
+            extra.append(
+                {
+                    "name": f"Subclass: {cl.subclass_slug.replace('-', ' ').title()}",
+                    "description": "",
+                }
+            )
+        for choice_name in cl.new_choices:
+            sub = cl.choice_sub_selections.get(choice_name, "")
+            extra.append(
+                {
+                    "name": _format_choice_history_name(choice_name, sub),
+                    "description": "",
+                }
+            )
+
+        all_items = feature_details + extra
+        if not all_items:
+            continue
+
+        prefix = f"{cl.class_slug.title()} " if character.is_multiclass else ""
+        entries.append(
+            {
+                "level_label": f"{prefix}Level {cl.class_level}",
+                "items": all_items,
+            }
+        )
+    return entries
+
+
+def get_subclass_feature_sections(character, game_data) -> dict | None:
+    """Return the subclass section data shown on the shared character sheet."""
+    if not character.current_subclass:
+        return None
+
+    sub_name = character.current_subclass.replace("-", " ").title()
+    subclass_data = None
+    if game_data:
+        primary_slug = (
+            character.character_class.get("slug", "") if character.character_class else ""
+        )
+        subclasses_for_class = game_data.get_subclasses_for_class(primary_slug)
+        subclass_data = next(
+            (
+                s
+                for s in subclasses_for_class
+                if s.get("slug") == character.current_subclass
+            ),
+            None,
+        )
+
+    if not subclass_data:
+        return {"subclass_name": sub_name, "intro": "", "levels": []}
+
+    desc = (subclass_data.get("description") or "").strip()
+    intro = ""
+    if desc:
+        intro = re.split(r"\bLevel\s+\d+\s*:", desc, maxsplit=1)[0].strip()
+
+    levels = []
+    features_by_level = subclass_data.get("features", {})
+    for lvl in sorted(
+        features_by_level.keys(),
+        key=lambda x: int(x) if str(x).isdigit() else 99,
+    ):
+        try:
+            lvl_int = int(lvl)
+        except (ValueError, TypeError):
+            continue
+        if lvl_int > character.level:
+            continue
+
+        levels.append(
+            {
+                "level": lvl_int,
+                "features": [
+                    {
+                        "name": feat.get("name", ""),
+                        "description": feat.get("description", ""),
+                    }
+                    for feat in features_by_level.get(lvl, [])
+                ],
+            }
+        )
+
+    return {
+        "subclass_name": sub_name,
+        "intro": intro,
+        "levels": levels,
+    }
+
+
 def _parse_item_qty(text: str) -> tuple[str, int]:
     m = re.match(r"^\s*(\d+)\s+(.+)$", str(text or "").strip())
     if not m:
@@ -157,63 +286,15 @@ def _show_level_features(parent: tk.Widget, character, game_data=None):
                 foreground=COLORS["fg_dim"],
             ).pack(fill=tk.X, anchor="w", padx=16, pady=(0, 2))
 
-    for cl in character.class_levels:
-        level_data = None
-        if game_data:
-            level_data = game_data.get_level_data(cl.class_slug, cl.class_level)
-
-        feature_details = []
-        if level_data:
-            feature_details = [
-                f
-                for f in level_data.get("feature_details", [])
-                if isinstance(f, dict)
-                and f.get("name") not in ("-", "Ability Score Improvement")
-            ]
-            # Fall back to name-only list if no details available
-            if not feature_details:
-                for name in level_data.get("features", []):
-                    if name not in ("-", "Ability Score Improvement"):
-                        feature_details.append({"name": name, "description": ""})
-
-        extra = []
-        if cl.feat_choice:
-            asi_desc = ""
-            if cl.asi_increases:
-                asi_desc = ", ".join(f"{a} +{v}" for a, v in cl.asi_increases.items())
-            extra.append({"name": f"Feat: {cl.feat_choice}", "description": asi_desc})
-        if cl.subclass_slug:
-            extra.append(
-                {
-                    "name": f"Subclass: {cl.subclass_slug.replace('-', ' ').title()}",
-                    "description": "",
-                }
-            )
-        # Show class choices (magic item plans, invocations, maneuvers, etc.)
-        for choice_name in cl.new_choices:
-            sub = cl.choice_sub_selections.get(choice_name, "")
-            if sub and "|" in sub:
-                parts = sub.split("|", 1)
-                display = f"{choice_name} ({parts[0]} \u2014 {parts[1]})"
-            elif sub:
-                display = f"{choice_name} ({sub})"
-            else:
-                display = choice_name
-            extra.append({"name": display, "description": ""})
-
-        all_items = feature_details + extra
-        if not all_items:
-            continue
-
-        prefix = f"{cl.class_slug.title()} " if character.is_multiclass else ""
+    for entry in get_level_feature_history(character, game_data):
         ttk.Label(
             parent,
-            text=f"  {prefix}Level {cl.class_level}",
+            text=f"  {entry['level_label']}",
             foreground=COLORS["accent"],
             font=FONTS["subheading"],
         ).pack(anchor="w", padx=8, pady=(6, 2))
 
-        for feat in all_items:
+        for feat in entry["items"]:
             feat_name = feat.get("name", "")
             feat_desc = augment_level1_feature_description(
                 feat_name,
@@ -490,54 +571,25 @@ def build_character_sheet(
 
     # ── Subclass ──────────────────────────────────────────────
     if _show("subclass") and c.current_subclass:
-        sub_name = c.current_subclass.replace("-", " ").title()
+        section = get_subclass_feature_sections(c, game_data)
+        sub_name = section["subclass_name"] if section else c.current_subclass.replace("-", " ").title()
         sub_frame = ttk.LabelFrame(parent, text=f"Subclass: {sub_name}")
         sub_frame.pack(fill=tk.X, pady=section_pady)
 
-        # Resolve subclass data and show features by level
-        subclass_data = None
-        if game_data:
-            primary_slug = (
-                c.character_class.get("slug", "") if c.character_class else ""
-            )
-            subclasses_for_class = game_data.get_subclasses_for_class(primary_slug)
-            subclass_data = next(
-                (
-                    s
-                    for s in subclasses_for_class
-                    if s.get("slug") == c.current_subclass
-                ),
-                None,
-            )
+        if section and section["levels"]:
+            if section["intro"]:
+                FormattedDescription(
+                    sub_frame, text=section["intro"], foreground=COLORS["fg_dim"]
+                ).pack(fill=tk.X, anchor="w", padx=8, pady=(4, 0))
 
-        if subclass_data:
-            desc = (subclass_data.get("description") or "").strip()
-            if desc:
-                intro = re.split(r"\bLevel\s+\d+\s*:", desc, maxsplit=1)[0].strip()
-                if intro:
-                    FormattedDescription(
-                        sub_frame, text=intro, foreground=COLORS["fg_dim"]
-                    ).pack(fill=tk.X, anchor="w", padx=8, pady=(4, 0))
-
-            features_by_level = subclass_data.get("features", {})
-            for lvl in sorted(
-                features_by_level.keys(),
-                key=lambda x: int(x) if str(x).isdigit() else 99,
-            ):
-                # Only show features up to character's current level
-                try:
-                    lvl_int = int(lvl)
-                except (ValueError, TypeError):
-                    continue
-                if lvl_int > c.level:
-                    continue
+            for level_entry in section["levels"]:
                 ttk.Label(
                     sub_frame,
-                    text=f"  Level {lvl}",
+                    text=f"  Level {level_entry['level']}",
                     foreground=COLORS["accent"],
                     font=FONTS["subheading"],
                 ).pack(anchor="w", padx=8, pady=(6, 2))
-                for feat in features_by_level.get(lvl, []):
+                for feat in level_entry["features"]:
                     feat_name = feat.get("name", "")
                     feat_desc = feat.get("description", "")
                     ttk.Label(

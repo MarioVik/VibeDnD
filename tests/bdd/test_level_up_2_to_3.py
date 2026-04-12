@@ -5,9 +5,11 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from gui.data_loader import GameData
+from gui.sheet_builder import get_level_feature_history, get_subclass_feature_sections
 from models.character import Character
 from models.class_level import ClassLevel
 from models.level_up_logic import (
+    DAMAGE_TYPES,
     LevelUpContext,
     build_class_level,
     apply_level_up,
@@ -18,6 +20,7 @@ from models.level_up_logic import (
     has_class_choices,
     get_choices_config,
     get_available_options,
+    get_sub_choice_options,
     has_swap_step,
     has_language_step,
     validate_class_step,
@@ -38,6 +41,7 @@ scenarios("features/levelup3_choices.feature")
 scenarios("features/levelup3_swap.feature")
 scenarios("features/levelup3_validation.feature")
 scenarios("features/levelup3_apply.feature")
+scenarios("features/levelup3_subclass_matrix.feature")
 
 # ── Shared fixtures ─────────────────────────────────────────────────────────
 
@@ -124,7 +128,70 @@ def _fill_required_choices3(ctx, char, gd):
     if config:
         required = config.get("gains_by_level", {}).get(str(ctx.new_class_level), 0)
         options = get_available_options(config, ctx, char)
-        ctx.selected_new_choices = {o["name"] for o in options[:required]}
+        assert len(options) >= required, (
+            f"Need {required} choice option(s) for {ctx.class_slug}/{ctx.subclass_slug}, "
+            f"got {len(options)}"
+        )
+        selected = options[:required]
+        ctx.selected_new_choices = {o["name"] for o in selected}
+        for opt in selected:
+            sub_choice = opt.get("sub_choice")
+            if not sub_choice:
+                continue
+            sub_options = get_sub_choice_options(sub_choice, gd)
+            assert sub_options, f"No sub-choice options for {opt['name']}"
+            if sub_choice.get("type") == "armor_and_damage_type":
+                ctx.choice_sub_selections[opt["name"]] = f"{sub_options[0]}|{DAMAGE_TYPES[0]}"
+            else:
+                ctx.choice_sub_selections[opt["name"]] = sub_options[0]
+
+
+def _class_name_for_slug(game_data: GameData, class_slug: str) -> str:
+    for cls in game_data.classes:
+        if cls.get("slug") == class_slug:
+            return cls["name"]
+    raise AssertionError(f"Unknown class slug: {class_slug}")
+
+
+def _apply_level3_subclass_case(game_data: GameData, subclass: dict) -> dict:
+    class_name = _class_name_for_slug(game_data, subclass["class_slug"])
+    character = _build_level2_character(game_data, class_name)
+    ctx = _build_lu_ctx3(character)
+    ctx.subclass_slug = subclass["slug"]
+    ctx.subclass_name = subclass["name"]
+    ctx.hp_mode = "average"
+
+    _fill_required_spells3(ctx, game_data)
+    _fill_required_choices3(ctx, character, game_data)
+
+    choice_config = get_choices_config(ctx, character, game_data)
+    if choice_config:
+        ok, title, message = validate_choices_step(ctx, character, game_data)
+        assert ok, f"{subclass['name']} choices invalid: {title} {message}".strip()
+
+    cl = build_class_level(ctx, character, game_data)
+    apply_level_up(character, cl, ctx, game_data)
+
+    return {
+        "class_name": class_name,
+        "class_slug": subclass["class_slug"],
+        "subclass": subclass,
+        "character": character,
+        "ctx": ctx,
+        "class_level": character.class_levels[-1],
+        "choice_config": choice_config,
+        "selected_choices": set(ctx.selected_new_choices),
+        "sheet_history": get_level_feature_history(character, game_data),
+        "sheet_subclass": get_subclass_feature_sections(character, game_data),
+    }
+
+
+def _all_level3_subclass_cases(game_data: GameData) -> list[dict]:
+    subclasses = sorted(
+        game_data.subclasses,
+        key=lambda sc: (sc.get("class_slug", ""), sc.get("name", "")),
+    )
+    return [_apply_level3_subclass_case(game_data, subclass) for subclass in subclasses]
 
 
 # ── GIVEN ───────────────────────────────────────────────────────────────────
@@ -152,6 +219,11 @@ def given_subclass_selected(lu3, subclass_name: str):
     assert slug, f"Unknown subclass: {subclass_name}"
     lu3["ctx"].subclass_slug = slug
     lu3["ctx"].subclass_name = subclass_name
+
+
+@given("the full level-3 subclass matrix", target_fixture="subclass_matrix")
+def given_full_level3_subclass_matrix(game_data: GameData):
+    return {"game_data": game_data, "cases": []}
 
 
 # ── WHEN: Step visibility ───────────────────────────────────────────────────
@@ -231,6 +303,19 @@ def when_l3_with_subclass_choices(lu3):
     _fill_required_choices3(ctx, char, gd)
     cl = build_class_level(ctx, char, gd)
     apply_level_up(char, cl, ctx, gd)
+
+
+@when("each subclass is applied at level 3 with valid defaults")
+def when_each_subclass_applied(subclass_matrix):
+    subclass_matrix["cases"] = _all_level3_subclass_cases(subclass_matrix["game_data"])
+
+
+@when("each subclass with level-3 choices is applied using valid subclass choices")
+def when_each_choice_subclass_applied(subclass_matrix):
+    all_cases = _all_level3_subclass_cases(subclass_matrix["game_data"])
+    subclass_matrix["cases"] = [
+        case for case in all_cases if case["choice_config"] is not None
+    ]
 
 
 # ── THEN: Step visibility ──────────────────────────────────────────────────
@@ -413,3 +498,109 @@ def then_l3_progression_details(lu3):
     assert level_data, f"No level 3 data for {ctx.class_slug}"
     details = level_data.get("feature_details", [])
     assert details, f"No feature_details for {ctx.class_slug} level 3"
+
+
+# ── THEN: Exhaustive subclass matrix ───────────────────────────────────────
+
+
+@then(parsers.parse("the matrix contains {expected:d} level-3 subclasses"))
+def then_subclass_matrix_count(subclass_matrix, expected: int):
+    assert len(subclass_matrix["cases"]) == expected
+
+
+@then("every subclass has level-3 features with names and descriptions")
+def then_every_subclass_has_complete_level3_features(subclass_matrix):
+    for case in subclass_matrix["cases"]:
+        features = case["subclass"].get("features", {}).get("3", [])
+        assert features, f"{case['subclass']['name']} has no level-3 features"
+        for feat in features:
+            assert feat.get("name"), f"{case['subclass']['name']} has a level-3 feature with no name"
+            assert (feat.get("description") or "").strip(), (
+                f"{case['subclass']['name']}::{feat.get('name', '<unnamed>')} "
+                "has no description"
+            )
+
+
+@then("every subclass level-up records its subclass slug")
+def then_every_subclass_level_up_records_slug(subclass_matrix):
+    for case in subclass_matrix["cases"]:
+        recorded = case["class_level"].subclass_slug
+        expected = case["subclass"]["slug"]
+        assert recorded == expected, (
+            f"{case['subclass']['name']} recorded subclass slug {recorded!r}, "
+            f"expected {expected!r}"
+        )
+
+
+@then("every level-3 subclass feature appears in the shared character sheet subclass section")
+def then_every_subclass_feature_appears_in_sheet_section(subclass_matrix):
+    for case in subclass_matrix["cases"]:
+        section = case["sheet_subclass"]
+        assert section, f"No subclass section for {case['subclass']['name']}"
+        level_entry = next(
+            (entry for entry in section["levels"] if entry["level"] == 3),
+            None,
+        )
+        assert level_entry, f"No level-3 subclass section for {case['subclass']['name']}"
+
+        expected = [
+            (
+                feat.get("name", ""),
+                (feat.get("description") or "").strip(),
+            )
+            for feat in case["subclass"].get("features", {}).get("3", [])
+        ]
+        actual = [
+            (
+                feat.get("name", ""),
+                (feat.get("description") or "").strip(),
+            )
+            for feat in level_entry["features"]
+        ]
+        assert actual == expected, (
+            f"Subclass sheet mismatch for {case['subclass']['name']}\n"
+            f"expected={expected}\nactual={actual}"
+        )
+
+
+@then(parsers.parse("exactly {expected:d} subclasses grant level-3 class choices"))
+def then_exact_choice_subclass_count(subclass_matrix, expected: int):
+    assert len(subclass_matrix["cases"]) == expected
+
+
+@then("every level-3 subclass choice config can satisfy its required picks")
+def then_every_choice_config_can_satisfy_required_picks(subclass_matrix):
+    for case in subclass_matrix["cases"]:
+        config = case["choice_config"]
+        assert config, f"No choice config for {case['subclass']['name']}"
+        required = config.get("gains_by_level", {}).get("3", 0)
+        assert required > 0, f"{case['subclass']['name']} has no level-3 choice gain"
+        assert len(case["selected_choices"]) == required, (
+            f"{case['subclass']['name']} selected {len(case['selected_choices'])} "
+            f"choice(s), expected {required}"
+        )
+
+
+@then("every selected level-3 subclass choice is persisted on the class level")
+def then_every_selected_choice_is_persisted(subclass_matrix):
+    for case in subclass_matrix["cases"]:
+        recorded = set(case["class_level"].new_choices)
+        assert recorded == case["selected_choices"], (
+            f"{case['subclass']['name']} persisted {recorded}, "
+            f"expected {case['selected_choices']}"
+        )
+
+
+@then("every selected level-3 subclass choice appears in the shared character sheet history")
+def then_every_selected_choice_appears_in_sheet_history(subclass_matrix):
+    for case in subclass_matrix["cases"]:
+        displayed = {
+            item.get("name", "")
+            for entry in case["sheet_history"]
+            for item in entry["items"]
+        }
+        for choice_name in case["selected_choices"]:
+            assert any(
+                item == choice_name or item.startswith(f"{choice_name} (")
+                for item in displayed
+            ), f"{case['subclass']['name']} choice {choice_name!r} missing from sheet history"
