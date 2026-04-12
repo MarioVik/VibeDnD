@@ -1382,6 +1382,8 @@ def character_has_spell_step_content(character, game_data) -> bool:
             or get_effective_prepared_spells(character) > 0
         ):
             return True
+    if get_spellbook_entries(character, game_data):
+        return True
     if get_spell_grant_followup_sources(character, game_data):
         return True
     return False

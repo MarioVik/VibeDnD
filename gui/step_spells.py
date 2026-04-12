@@ -256,7 +256,9 @@ class SpellsStep(WizardStep):
                     pady=(SPACING["sm"], SPACING["sm"]),
                 )
 
-        if getattr(self.character, "is_caster", False):
+        if getattr(self.character, "is_caster", False) or get_spellbook_entries(
+            self.character, self.data
+        ):
             self._build_spell_list_area(outer, row=1)
 
     def _build_followup_only_view(self):
