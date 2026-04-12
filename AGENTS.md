@@ -348,9 +348,19 @@ Ubuntu requires system packages: `dpkg-dev python3-tk libjpeg-dev zlib1g-dev lib
 
 ---
 
-## No Test Suite
+## Testing Workflow
 
-There is no automated test framework. Testing is manual via running `python main.py`. When making changes, manually verify:
+This repository has an automated BDD suite under `tests/bdd`.
+
+When making code changes, rerun the relevant BDD tests before finishing:
+
+```bash
+PYTHONPATH=/absolute/path/to/VibeDnD ./.venv/bin/pytest tests/bdd -q
+```
+
+If your change is tightly scoped, you may run the affected BDD file first, but if the behavior changed across flows or shared helpers, rerun the full `tests/bdd` suite.
+
+BDD coverage does **not** replace manual verification. Also verify manually via running `python main.py` when relevant:
 - App launches without errors
 - Affected wizard step(s) behave correctly
 - Character saves and loads successfully

@@ -195,8 +195,14 @@ Subclasses in this repo come from parsed data and are selected/validated through
 2. **Logic Updates**: Most logic is in `models/` and `gui/`. Refer to those for behavior changes.
 3. **Data Updates**: Edit parsers in `parsers/`, not the JSON files in `data/` directly — they are regenerated.
 4. **Path Handling**: Always use `paths.py` to resolve file paths so they work in both IDE and packaged builds.
-5. **README Maintenance**: When adding or removing user-facing features, update the **Features** section in `README.md` to reflect the change.
-6. **Build Integrity**: Do not break the build process. The CI workflow (`.github/workflows/build-installers.yml`) produces installers for Windows, macOS, and Ubuntu on every push to `main`. It runs `build.py --onefile` + Inno Setup for Windows, `build_macos.py` for macOS, and `build_ubuntu.py` for Ubuntu. After making changes, ensure these build scripts and `installer.iss` still work and that the resulting installers run correctly.
-7. **Data Bundling**: When adding new data files, ensure they are included in the PyInstaller build. Files accessible via `python main.py` are **not** automatically available in the packaged installer. Update the `DATA_FILES` list in **all three** build scripts (`build.py`, `build_macos.py`, `build_ubuntu.py`) and use `paths.py` to resolve paths.
-8. **Dependencies**: `pyproject.toml` is the source of truth for dependencies. `requirements.txt` is auto-generated from it (via `uv export`). Edit `pyproject.toml`, not `requirements.txt`. Build-time deps like PyInstaller are in the `[build]` extra and are excluded from the packaged app.
-9. **Dialog Z-Order Rule**: All dialogs (`tk.Toplevel`) must open in front of the current app window. Use `gui.widgets.configure_modal_dialog(dialog, parent)` instead of manually calling `transient/grab_set/focus` in each dialog.
+5. **BDD Test Runs Are Required After Code Changes**: This repo has an automated BDD suite under `tests/bdd`. After making code changes, rerun the relevant BDD tests before finishing. Default command:
+   ```bash
+   PYTHONPATH=/absolute/path/to/VibeDnD ./.venv/bin/pytest tests/bdd -q
+   ```
+   If the change is tightly scoped, running the affected BDD file first is fine, but if shared helpers or multiple flows changed, rerun the full `tests/bdd` suite.
+6. **Manual Verification Still Matters**: BDD coverage does not replace manual verification. Run `python main.py` when relevant and confirm the affected flow works in the UI.
+7. **README Maintenance**: When adding or removing user-facing features, update the **Features** section in `README.md` to reflect the change.
+8. **Build Integrity**: Do not break the build process. The CI workflow (`.github/workflows/build-installers.yml`) produces installers for Windows, macOS, and Ubuntu on every push to `main`. It runs `build.py --onefile` + Inno Setup for Windows, `build_macos.py` for macOS, and `build_ubuntu.py` for Ubuntu. After making changes, ensure these build scripts and `installer.iss` still work and that the resulting installers run correctly.
+9. **Data Bundling**: When adding new data files, ensure they are included in the PyInstaller build. Files accessible via `python main.py` are **not** automatically available in the packaged installer. Update the `DATA_FILES` list in **all three** build scripts (`build.py`, `build_macos.py`, `build_ubuntu.py`) and use `paths.py` to resolve paths.
+10. **Dependencies**: `pyproject.toml` is the source of truth for dependencies. `requirements.txt` is auto-generated from it (via `uv export`). Edit `pyproject.toml`, not `requirements.txt`. Build-time deps like PyInstaller are in the `[build]` extra and are excluded from the packaged app.
+11. **Dialog Z-Order Rule**: All dialogs (`tk.Toplevel`) must open in front of the current app window. Use `gui.widgets.configure_modal_dialog(dialog, parent)` instead of manually calling `transient/grab_set/focus` in each dialog.
