@@ -27,6 +27,10 @@ from models.skill_utils import (
     get_selectable_expertise_grants,
     set_feat_expertise_skill,
 )
+from models.feature_resource_utils import (
+    get_restorable_feature_resources,
+    restore_feature_resources,
+)
 from models.spell_grant_utils import get_spendable_free_cast_resources, restore_free_casts
 
 # Load class choices data (same file as level_up_wizard)
@@ -489,6 +493,8 @@ class RestDialog(tk.Toplevel):
             effects.append("All spell slots and pact slots are fully restored")
         if _restorable_free_cast_resources(self.character, self.data, "long"):
             effects.append("All limited free spell uses are fully restored")
+        if get_restorable_feature_resources(self.character, self.data, "long"):
+            effects.append("All tracked feature uses and pools are fully restored")
 
         if has_zhentarim_refresh:
             effects.append("You must choose your Zhentarim Tactics Expertise again")
@@ -708,11 +714,13 @@ class RestDialog(tk.Toplevel):
             effects.append(f"You may swap one {label}")
 
         short_rest_free_casts = _restorable_free_cast_resources(self.character, self.data, "short")
+        short_rest_features = get_restorable_feature_resources(self.character, self.data, "short")
         if not feature_keys and self.character.total_hit_dice_remaining == 0:
             if (
                 not _is_warlock_pact_caster(self.character)
                 and not _has_arcane_recovery(self.character)
                 and not short_rest_free_casts
+                and not short_rest_features
             ):
                 effects.append("There is nothing else to do on this rest")
 
@@ -721,6 +729,14 @@ class RestDialog(tk.Toplevel):
             effects.append("All pact slots are fully restored")
         if short_rest_free_casts:
             effects.append("Limited free spell uses that refresh on a Short Rest are restored")
+        if short_rest_features:
+            if any(
+                resource.get("refresh_type") == "partial_short_full_long"
+                for resource in short_rest_features
+            ):
+                effects.append("Tracked feature uses refresh, including partial Short Rest recoveries")
+            else:
+                effects.append("Tracked feature uses and pools that refresh on a Short Rest are restored")
 
         # Arcane Recovery
         if _has_arcane_recovery(self.character):
@@ -1488,6 +1504,8 @@ class RestDialog(tk.Toplevel):
             self.character.reset_spell_slots()
             if restore_free_casts(self.character, self.data, "long"):
                 changed = True
+            if restore_feature_resources(self.character, self.data, "long"):
+                changed = True
             self.character.arcane_recovery_used = False
             changed = True
 
@@ -1590,6 +1608,8 @@ class RestDialog(tk.Toplevel):
                     self.character.used_pact_slots = 0
                     changed = True
             if restore_free_casts(self.character, self.data, "short"):
+                changed = True
+            if restore_feature_resources(self.character, self.data, "short"):
                 changed = True
             
             # Arcane Recovery

@@ -46,6 +46,15 @@ from models.inventory_service import (
     cp_to_coins,
 )
 from models.enums import ALL_SKILLS
+from models.feature_resource_utils import (
+    class_feature_card_id,
+    feat_card_id,
+    get_feature_card_counter_text,
+    get_feature_card_linked_resources,
+    get_feature_card_resources,
+    species_trait_card_id,
+    subclass_feature_card_id,
+)
 from models.language_utils import all_languages
 from models.level1_class_rules import (
     augment_level1_feature_description,
@@ -2115,6 +2124,79 @@ class CharacterViewer(ttk.Frame):
         inner = scroll.inner
         c = self.character
 
+        def _render_feature_header(card_parent, *, title: str, badge_text: str | None, card_id: str):
+            header = tk.Frame(card_parent, bg=COLORS["bg_container"])
+            header.pack(fill=tk.X)
+
+            left = tk.Frame(header, bg=COLORS["bg_container"])
+            left.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+            tk.Label(
+                left,
+                text=title,
+                font=FONTS["heading_serif_sm"],
+                fg=COLORS["fg"],
+                bg=COLORS["bg_container"],
+            ).pack(side=tk.LEFT)
+
+            if badge_text:
+                PillBadge(
+                    left,
+                    text=str(badge_text).upper(),
+                    bg_color=COLORS["badge_glass_dim"],
+                    fg_color=COLORS["gold"],
+                ).pack(side=tk.LEFT, padx=(8, 0))
+
+            resources = get_feature_card_resources(c, self.data, card_id)
+            if not resources:
+                return
+
+            right = tk.Frame(header, bg=COLORS["bg_container"])
+            right.pack(side=tk.RIGHT)
+
+            counter_text = get_feature_card_counter_text(c, self.data, card_id)
+            remaining = int(resources[0].get("remaining_amount", 0) or 0)
+            tk.Label(
+                right,
+                text=counter_text,
+                font=FONTS["body_bold"],
+                fg=COLORS["accent_text"] if remaining > 0 else COLORS["fg_disabled"],
+                bg=COLORS["bg_container"],
+            ).pack(side=tk.LEFT, padx=(0, 10))
+
+            from gui.widgets import UseFeatureDialog
+
+            ttk.Button(
+                right,
+                text="USE FEATURE",
+                style="Compact.TButton",
+                state=tk.NORMAL if remaining > 0 else tk.DISABLED,
+                command=lambda cid=card_id, card_title=title: UseFeatureDialog(
+                    self,
+                    self.character,
+                    self.data,
+                    cid,
+                    card_title,
+                    on_refresh=lambda: self._show_view(self._current_view),
+                ),
+            ).pack(side=tk.LEFT)
+
+        def _render_linked_feature_resources(card_parent, card_id: str):
+            linked_resources = get_feature_card_linked_resources(c, self.data, card_id)
+            if not linked_resources:
+                return
+            for linked in linked_resources:
+                tk.Label(
+                    card_parent,
+                    text=f"Uses {linked['label']}: {linked['display_text']}",
+                    font=FONTS["body_small"],
+                    fg=COLORS["accent_text"],
+                    bg=COLORS["bg_container"],
+                    wraplength=440,
+                    justify=tk.LEFT,
+                    anchor="w",
+                ).pack(anchor="w", pady=(6, 0))
+
         feat_hero = GradientHeader(inner, min_height=60)
         feat_hero.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
         tk.Label(
@@ -2137,6 +2219,7 @@ class CharacterViewer(ttk.Frame):
             traits_grid.columnconfigure(0, weight=1)
             traits_grid.columnconfigure(1, weight=1)
             for i, trait in enumerate(get_species_trait_cards(c.species)):
+                card_id = species_trait_card_id(c.species_name, trait.get("name", ""))
                 card = CardFrame(
                     traits_grid,
                     bg=COLORS["bg_container"],
@@ -2144,13 +2227,13 @@ class CharacterViewer(ttk.Frame):
                     pad=SPACING["lg"],
                 )
                 card.grid(row=i // 2, column=i % 2, padx=4, pady=4, sticky="nsew")
-                tk.Label(
+                _render_feature_header(
                     card.inner,
-                    text=trait["name"],
-                    font=FONTS["heading_serif_sm"],
-                    fg=COLORS["fg"],
-                    bg=COLORS["bg_container"],
-                ).pack(anchor="w")
+                    title=trait["name"],
+                    badge_text=None,
+                    card_id=card_id,
+                )
+                _render_linked_feature_resources(card.inner, card_id)
                 if trait.get("description"):
                     FormattedDescription(
                         card.inner,
@@ -2254,21 +2337,14 @@ class CharacterViewer(ttk.Frame):
                         pady=4,
                         sticky="nsew",
                     )
-                    header = tk.Frame(card.inner, bg=COLORS["bg_container"])
-                    header.pack(fill=tk.X)
-                    tk.Label(
-                        header,
-                        text=feat_name,
-                        font=FONTS["heading_serif_sm"],
-                        fg=COLORS["fg"],
-                        bg=COLORS["bg_container"],
-                    ).pack(side=tk.LEFT)
-                    PillBadge(
-                        header,
-                        text=level_label.upper(),
-                        bg_color=COLORS["badge_glass_dim"],
-                        fg_color=COLORS["gold"],
-                    ).pack(side=tk.RIGHT)
+                    card_id = class_feature_card_id(cl.class_slug, cl.class_level, feat_name)
+                    _render_feature_header(
+                        card.inner,
+                        title=feat_name,
+                        badge_text=level_label,
+                        card_id=card_id,
+                    )
+                    _render_linked_feature_resources(card.inner, card_id)
                     if feat_desc:
                         FormattedDescription(
                             card.inner,
@@ -2325,6 +2401,13 @@ class CharacterViewer(ttk.Frame):
                     if lvl_int > c.level:
                         continue
                     for feat in features_by_level.get(lvl, []):
+                        feat_name = feat.get("name", "")
+                        card_id = subclass_feature_card_id(
+                            primary_slug,
+                            c.current_subclass,
+                            lvl_int,
+                            feat_name,
+                        )
                         card = CardFrame(
                             sub_grid,
                             bg=COLORS["bg_container"],
@@ -2338,21 +2421,13 @@ class CharacterViewer(ttk.Frame):
                             pady=4,
                             sticky="nsew",
                         )
-                        header = tk.Frame(card.inner, bg=COLORS["bg_container"])
-                        header.pack(fill=tk.X)
-                        tk.Label(
-                            header,
-                            text=feat.get("name", ""),
-                            font=FONTS["heading_serif_sm"],
-                            fg=COLORS["fg"],
-                            bg=COLORS["bg_container"],
-                        ).pack(side=tk.LEFT)
-                        PillBadge(
-                            header,
-                            text=f"LEVEL {lvl}",
-                            bg_color=COLORS["badge_glass_dim"],
-                            fg_color=COLORS["gold"],
-                        ).pack(side=tk.RIGHT)
+                        _render_feature_header(
+                            card.inner,
+                            title=feat_name,
+                            badge_text=f"Level {lvl}",
+                            card_id=card_id,
+                        )
+                        _render_linked_feature_resources(card.inner, card_id)
                         if feat.get("description"):
                             FormattedDescription(
                                 card.inner,
@@ -2391,21 +2466,14 @@ class CharacterViewer(ttk.Frame):
                     pady=4,
                     sticky="nsew",
                 )
-                header = tk.Frame(card.inner, bg=COLORS["bg_container"])
-                header.pack(fill=tk.X)
-                tk.Label(
-                    header,
-                    text=feat_name,
-                    font=FONTS["heading_serif_sm"],
-                    fg=COLORS["fg"],
-                    bg=COLORS["bg_container"],
-                ).pack(side=tk.LEFT)
-                PillBadge(
-                    header,
-                    text="BACKGROUND",
-                    bg_color=COLORS["badge_glass_dim"],
-                    fg_color=COLORS["gold"],
-                ).pack(side=tk.RIGHT)
+                card_id = feat_card_id("background", feat_name)
+                _render_feature_header(
+                    card.inner,
+                    title=feat_name,
+                    badge_text="BACKGROUND",
+                    card_id=card_id,
+                )
+                _render_linked_feature_resources(card.inner, card_id)
                 benefits = [
                     f"{b['name']}: {b.get('description', '')}"
                     for b in c.feat.get("benefits", [])
@@ -2434,21 +2502,15 @@ class CharacterViewer(ttk.Frame):
                     pady=4,
                     sticky="nsew",
                 )
-                header = tk.Frame(card.inner, bg=COLORS["bg_container"])
-                header.pack(fill=tk.X)
-                tk.Label(
-                    header,
-                    text=c.species_origin_feat["name"],
-                    font=FONTS["heading_serif_sm"],
-                    fg=COLORS["fg"],
-                    bg=COLORS["bg_container"],
-                ).pack(side=tk.LEFT)
-                PillBadge(
-                    header,
-                    text=sp_name.upper(),
-                    bg_color=COLORS["badge_glass_dim"],
-                    fg_color=COLORS["gold"],
-                ).pack(side=tk.RIGHT)
+                feat_name = c.species_origin_feat["name"]
+                card_id = feat_card_id("species_origin", feat_name)
+                _render_feature_header(
+                    card.inner,
+                    title=feat_name,
+                    badge_text=sp_name,
+                    card_id=card_id,
+                )
+                _render_linked_feature_resources(card.inner, card_id)
                 benefits = [
                     f"{b['name']}: {b.get('description', '')}"
                     for b in c.species_origin_feat.get("benefits", [])

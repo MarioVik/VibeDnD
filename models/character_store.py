@@ -77,6 +77,7 @@ def character_to_save_dict(character: Character) -> dict:
         "used_spell_slots": dict(c.used_spell_slots),
         "used_pact_slots": int(c.used_pact_slots),
         "used_free_casts": dict(getattr(c, "used_free_casts", {}) or {}),
+        "spent_feature_resources": dict(getattr(c, "spent_feature_resources", {}) or {}),
         "arcane_recovery_used": bool(c.arcane_recovery_used),
         "chosen_languages": list(c.chosen_languages),
     }
@@ -217,6 +218,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
     c.used_spell_slots = data.get("used_spell_slots", {})
     c.used_pact_slots = int(data.get("used_pact_slots", 0))
     c.used_free_casts = data.get("used_free_casts", {}) or {}
+    c.spent_feature_resources = data.get("spent_feature_resources", {}) or {}
     c.arcane_recovery_used = bool(data.get("arcane_recovery_used", False))
     c.chosen_languages = data.get("chosen_languages", [])
 

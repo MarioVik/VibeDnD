@@ -135,6 +135,8 @@ class Character:
     used_pact_slots: int = 0
     used_free_casts: dict[str, int] = field(default_factory=dict)
     # Maps free-cast resource id -> count spent.
+    spent_feature_resources: dict[str, int] = field(default_factory=dict)
+    # Maps feature resource id -> spent count or spent pool value.
     arcane_recovery_used: bool = False
 
     @property

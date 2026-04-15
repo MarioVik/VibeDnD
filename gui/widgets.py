@@ -7,6 +7,10 @@ import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk
 from gui.theme import COLORS, FONTS
+from models.feature_resource_utils import (
+    get_feature_card_resources,
+    spend_feature_resource,
+)
 from models.spell_grant_utils import get_spendable_free_cast_resources, spend_free_cast
 
 
@@ -906,6 +910,141 @@ class UseFreeCastDialog:
 
     def _use_resource(self, resource_id: str):
         if spend_free_cast(self.character, self.data, resource_id):
+            if self.on_refresh:
+                self.on_refresh()
+        self.dialog.destroy()
+
+
+class UseFeatureDialog:
+    """A modal dialog to spend limited-use feature resources for one card."""
+
+    def __init__(self, parent, character, data, card_id: str, card_title: str, on_refresh=None):
+        self.parent = parent
+        self.character = character
+        self.data = data
+        self.card_id = card_id
+        self.card_title = card_title
+        self.on_refresh = on_refresh
+        self._pool_vars: dict[str, tk.IntVar] = {}
+
+        self.dialog = tk.Toplevel(parent)
+        self.dialog.title("Use Feature")
+        self.dialog.resizable(False, False)
+        self.dialog.configure(bg=COLORS["bg"])
+
+        configure_modal_dialog(self.dialog, parent)
+
+        self._build_ui()
+        center_dialog_over_parent(self.dialog, parent)
+
+    def _build_ui(self):
+        main_frame = tk.Frame(self.dialog, bg=COLORS["bg"], padx=20, pady=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        tk.Label(
+            main_frame,
+            text=str(self.card_title or "USE FEATURE").upper(),
+            font=FONTS["heading_serif_sm"],
+            fg=COLORS["gold"],
+            bg=COLORS["bg"],
+        ).pack(pady=(0, 15))
+
+        resources = get_feature_card_resources(self.character, self.data, self.card_id)
+        if resources:
+            for resource in resources:
+                self._add_resource_row(main_frame, resource)
+        else:
+            tk.Label(
+                main_frame,
+                text="No tracked feature uses available for this card.",
+                font=FONTS["body"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg"],
+            ).pack(pady=10)
+
+        btn_frame = tk.Frame(main_frame, bg=COLORS["bg"])
+        btn_frame.pack(fill=tk.X, pady=(20, 0))
+
+        ttk.Button(
+            btn_frame,
+            text="CANCEL",
+            command=self.dialog.destroy,
+            style="TButton",
+        ).pack(side=tk.RIGHT)
+
+    def _add_resource_row(self, parent, resource: dict):
+        row = tk.Frame(parent, bg=COLORS["bg_surface"], padx=10, pady=8)
+        row.pack(fill=tk.X, pady=2)
+
+        text_col = tk.Frame(row, bg=COLORS["bg_surface"])
+        text_col.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        tk.Label(
+            text_col,
+            text=str(resource.get("resource_label", "") or "").upper(),
+            font=FONTS["label_upper_bold"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+            justify=tk.LEFT,
+        ).pack(anchor=tk.W)
+
+        remaining = int(resource.get("remaining_amount", 0) or 0)
+        tk.Label(
+            text_col,
+            text=str(resource.get("display_text", "") or ""),
+            font=FONTS["body_bold"],
+            fg=COLORS["accent_text"] if remaining > 0 else COLORS["fg_disabled"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+            justify=tk.LEFT,
+        ).pack(anchor=tk.W, pady=(2, 0))
+
+        action_col = tk.Frame(row, bg=COLORS["bg_surface"])
+        action_col.pack(side=tk.RIGHT, padx=(12, 0))
+
+        if resource.get("resource_kind") == "pool":
+            amount_var = tk.IntVar(value=1 if remaining > 0 else 0)
+            self._pool_vars[resource["resource_id"]] = amount_var
+            spin = ttk.Spinbox(
+                action_col,
+                from_=1,
+                to=max(1, remaining),
+                width=5,
+                textvariable=amount_var,
+                state="readonly" if remaining > 0 else tk.DISABLED,
+            )
+            spin.pack(side=tk.LEFT, padx=(0, 8))
+            ttk.Button(
+                action_col,
+                text="SPEND",
+                style="Compact.TButton",
+                state=tk.NORMAL if remaining > 0 else tk.DISABLED,
+                command=lambda rid=resource["resource_id"]: self._use_pool_resource(rid),
+            ).pack(side=tk.LEFT)
+            return
+
+        ttk.Button(
+            action_col,
+            text="USE FEATURE",
+            style="Compact.TButton",
+            state=tk.NORMAL if remaining > 0 else tk.DISABLED,
+            command=lambda rid=resource["resource_id"]: self._use_count_resource(rid),
+        ).pack(side=tk.LEFT)
+
+    def _use_count_resource(self, resource_id: str):
+        if spend_feature_resource(self.character, self.data, resource_id, 1):
+            if self.on_refresh:
+                self.on_refresh()
+        self.dialog.destroy()
+
+    def _use_pool_resource(self, resource_id: str):
+        var = self._pool_vars.get(resource_id)
+        try:
+            amount = int(var.get()) if var is not None else 1
+        except (TypeError, ValueError, tk.TclError):
+            amount = 1
+        if spend_feature_resource(self.character, self.data, resource_id, amount):
             if self.on_refresh:
                 self.on_refresh()
         self.dialog.destroy()
