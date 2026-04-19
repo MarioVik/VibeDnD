@@ -134,6 +134,16 @@ def _resolve_formula(character, game_data, formula: str, context: dict) -> int:
         return max(0, int(character.proficiency_bonus))
     if formula == "charisma_mod_min_1":
         return max(1, _ability_modifier(character, "Charisma"))
+    if formula == "intelligence_mod_min_1":
+        return max(1, _ability_modifier(character, "Intelligence"))
+    if formula == "wisdom_mod_min_1":
+        return max(1, _ability_modifier(character, "Wisdom"))
+    if formula == "strength_mod_min_1":
+        return max(1, _ability_modifier(character, "Strength"))
+    if formula == "dexterity_mod_min_1":
+        return max(1, _ability_modifier(character, "Dexterity"))
+    if formula == "constitution_mod_min_1":
+        return max(1, _ability_modifier(character, "Constitution"))
     if formula == "paladin_level_x5":
         return max(0, _character_class_level(character, "paladin") * 5)
     if formula == "fighter_action_surge_uses":
@@ -332,6 +342,13 @@ def _build_feature_cards(character, game_data) -> list[dict]:
 
 
 _CLASS_RESOURCE_SPECS = {
+    ("artificer", "tinker's magic"): {
+        "resource_label": "Tinker's Magic",
+        "resource_kind": "count",
+        "unit_label": _COUNT_UNIT,
+        "max_formula": "intelligence_mod_min_1",
+        "refresh_type": "long",
+    },
     ("barbarian", "rage"): {
         "resource_label": "Rage",
         "resource_kind": "count",
@@ -459,9 +476,10 @@ def _resource_spec_for_card(character, card: dict) -> dict | None:
     return None
 
 
-_GENERIC_COUNT_PB_PATTERN = re.compile(
-    r"You can use this (?:trait|feature|benefit|ability) a number of times equal to your Proficiency Bonus,"
-    r"\s*and you regain all expended uses when you finish a (Long Rest|Short or Long Rest)\.",
+_GENERIC_COUNT_FLEXIBLE_PATTERN = re.compile(
+    r"You can use this (?:trait|feature|benefit|ability|Bonus Action|Reaction)[^.]*a number of times equal to (?:your )?"
+    r"(Proficiency Bonus|Intelligence modifier|Wisdom modifier|Charisma modifier|Strength modifier|Dexterity modifier|Constitution modifier)\b.*?"
+    r"(?:You|and you) regain(?: all)? expended uses .*?finish a (Long Rest|Short or Long Rest)\.",
     _RESOURCE_PATTERN_FLAGS,
 )
 
@@ -476,11 +494,31 @@ _GENERIC_COUNT_TWICE_PATTERN = re.compile(
     _RESOURCE_PATTERN_FLAGS,
 )
 
-_GENERIC_POOL_PB_PATTERN = re.compile(
-    r"You have a number of ([A-Za-z'’ ]+?) equal to your Proficiency Bonus and can spend the points.*?"
-    r"You regain (?:your|all) expended \1 when you finish a (Long Rest|Short or Long Rest)\.",
+_GENERIC_POOL_FLEXIBLE_PATTERN = re.compile(
+    r"You have a number of ([A-Za-z'’ ]+?) equal to your "
+    r"(Proficiency Bonus|Intelligence modifier|Wisdom modifier|Charisma modifier|Strength modifier|Dexterity modifier|Constitution modifier)\b.*?"
+    r"you regain (?:your|all) expended \1 when you finish a (Long Rest|Short or Long Rest)\.",
     _RESOURCE_PATTERN_FLAGS,
 )
+
+
+def _formula_from_match_text(text: str) -> str:
+    cleaned = str(text or "").strip().lower()
+    if "proficiency bonus" in cleaned:
+        return "proficiency_bonus"
+    if "intelligence" in cleaned:
+        return "intelligence_mod_min_1"
+    if "wisdom" in cleaned:
+        return "wisdom_mod_min_1"
+    if "charisma" in cleaned:
+        return "charisma_mod_min_1"
+    if "strength" in cleaned:
+        return "strength_mod_min_1"
+    if "dexterity" in cleaned:
+        return "dexterity_mod_min_1"
+    if "constitution" in cleaned:
+        return "constitution_mod_min_1"
+    return "proficiency_bonus"
 
 
 def _generic_resource_spec_for_card(card: dict) -> dict | None:
@@ -488,26 +526,28 @@ def _generic_resource_spec_for_card(card: dict) -> dict | None:
     if not text or _spell_grant_like_text(text):
         return None
 
-    pool_match = _GENERIC_POOL_PB_PATTERN.search(text)
+    pool_match = _GENERIC_POOL_FLEXIBLE_PATTERN.search(text)
     if pool_match:
         resource_label = str(pool_match.group(1) or "").replace("\u2019", "'").strip()
-        refresh_text = str(pool_match.group(2) or "").strip()
+        formula_text = str(pool_match.group(2) or "").strip()
+        refresh_text = str(pool_match.group(3) or "").strip()
         return {
             "resource_label": resource_label,
             "resource_kind": "pool",
             "unit_label": _POOL_UNIT,
-            "max_formula": "proficiency_bonus",
+            "max_formula": _formula_from_match_text(formula_text),
             "refresh_type": "short_or_long" if refresh_text == "Short or Long Rest" else "long",
         }
 
-    count_pb_match = _GENERIC_COUNT_PB_PATTERN.search(text)
-    if count_pb_match:
-        refresh_text = str(count_pb_match.group(1) or "").strip()
+    count_match = _GENERIC_COUNT_FLEXIBLE_PATTERN.search(text)
+    if count_match:
+        formula_text = str(count_match.group(1) or "").strip()
+        refresh_text = str(count_match.group(2) or "").strip()
         return {
             "resource_label": str(card.get("title", "") or "").strip(),
             "resource_kind": "count",
             "unit_label": _COUNT_UNIT,
-            "max_formula": "proficiency_bonus",
+            "max_formula": _formula_from_match_text(formula_text),
             "refresh_type": "short_or_long" if refresh_text == "Short or Long Rest" else "long",
         }
 

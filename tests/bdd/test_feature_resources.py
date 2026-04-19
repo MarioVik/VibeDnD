@@ -12,6 +12,7 @@ from models.feature_resource_utils import (
     get_active_feature_resources,
     get_feature_card_counter_text,
     get_feature_card_linked_resources,
+    get_restorable_feature_resources,
     restore_feature_resources,
     scrub_feature_resource_state,
     species_trait_card_id,
@@ -67,6 +68,7 @@ def _build_character(game_data: GameData, class_slug: str, level: int) -> Charac
     ]
     character.ability_scores.set_base("Charisma", 16)
     character.ability_scores.set_base("Wisdom", 16)
+    character.ability_scores.set_base("Intelligence", 16)
     character.ability_scores.set_base("Constitution", 14)
     return character
 
@@ -76,6 +78,16 @@ def _resource_by_label(character: Character, game_data: GameData, label: str) ->
         if resource["resource_label"] == label:
             return resource
     raise AssertionError(f"Unknown feature resource: {label}")
+
+
+def _resource_by_label_or_none(character: Character, game_data: GameData, label: str) -> dict | None:
+    for resource in get_active_feature_resources(character, game_data):
+        if resource["resource_label"] == label:
+            return resource
+    return None
+
+
+# ── GIVEN ─────────────────────────────────────────────────────────────────
 
 
 @given(parsers.parse("a level {level:d} {class_slug} character"), target_fixture="character")
@@ -105,6 +117,9 @@ def character_subclass(character: Character, game_data: GameData, subclass_name:
             break
 
 
+# ── WHEN ─────────────────────────────────────────────────────────────────
+
+
 @when(parsers.parse("the feature resource {label} is spent"))
 def spend_feature(character: Character, game_data: GameData, label: str):
     resource = _resource_by_label(character, game_data, label)
@@ -122,10 +137,49 @@ def restore_feature_state(character: Character, game_data: GameData, rest_type: 
     assert restore_feature_resources(character, game_data, rest_type)
 
 
+@when(parsers.parse("the character takes a short rest without full feature restore"))
+def short_rest_no_full_restore(character: Character, game_data: GameData):
+    # Attempt a short rest restore — it may or may not change anything
+    restore_feature_resources(character, game_data, "short")
+
+
 @when(parsers.parse("the character changes species to {species_name}"))
 def change_species(character: Character, game_data: GameData, species_name: str):
     character.species = _species_by_name(game_data, species_name)
     scrub_feature_resource_state(character, game_data)
+
+
+@when(parsers.parse("the paladin levels up to {level:d}"))
+def paladin_level_up(character: Character, game_data: GameData, level: int):
+    cls = character.character_class
+    while len(character.class_levels) < level:
+        next_level = len(character.class_levels) + 1
+        character.class_levels.append(
+            ClassLevel(
+                class_slug=cls.get("slug", ""),
+                class_level=next_level,
+                hit_die=cls.get("hit_die", 10),
+            )
+        )
+    scrub_feature_resource_state(character, game_data)
+
+
+@when(parsers.parse("the sorcerer levels up to {level:d}"))
+def sorcerer_level_up(character: Character, game_data: GameData, level: int):
+    cls = character.character_class
+    while len(character.class_levels) < level:
+        next_level = len(character.class_levels) + 1
+        character.class_levels.append(
+            ClassLevel(
+                class_slug=cls.get("slug", ""),
+                class_level=next_level,
+                hit_die=cls.get("hit_die", 6),
+            )
+        )
+    scrub_feature_resource_state(character, game_data)
+
+
+# ── THEN ─────────────────────────────────────────────────────────────────
 
 
 @then(parsers.parse("the feature resource {label} shows {display_text}"))
@@ -208,3 +262,33 @@ def species_trait_removed(character: Character, game_data: GameData, trait_name:
 @then("no feature resources are marked as spent")
 def no_feature_resource_state(character: Character):
     assert getattr(character, "spent_feature_resources", {}) == {}
+
+
+@then(parsers.parse("spending the feature resource {label} again is rejected"))
+def spend_rejected(character: Character, game_data: GameData, label: str):
+    resource = _resource_by_label(character, game_data, label)
+    assert not spend_feature_resource(character, game_data, resource["resource_id"], 1)
+
+
+@then(parsers.parse("spending {amount:d} points of the feature resource {label} is rejected"))
+def spend_points_rejected(character: Character, game_data: GameData, amount: int, label: str):
+    resource = _resource_by_label(character, game_data, label)
+    assert not spend_feature_resource(character, game_data, resource["resource_id"], amount)
+
+
+@then(parsers.parse("long rest restorable resources include {label}"))
+def long_rest_includes(character: Character, game_data: GameData, label: str):
+    labels = {r["resource_label"] for r in get_restorable_feature_resources(character, game_data, "long")}
+    assert label in labels, f"Expected {label} in long rest restorables, got {labels}"
+
+
+@then(parsers.parse("short rest restorable resources do not include {label}"))
+def short_rest_excludes(character: Character, game_data: GameData, label: str):
+    labels = {r["resource_label"] for r in get_restorable_feature_resources(character, game_data, "short")}
+    assert label not in labels, f"Did not expect {label} in short rest restorables"
+
+
+@then("the character has no active feature resources")
+def no_active_resources(character: Character, game_data: GameData):
+    resources = get_active_feature_resources(character, game_data)
+    assert resources == [], f"Expected no feature resources, got {[r['resource_label'] for r in resources]}"
