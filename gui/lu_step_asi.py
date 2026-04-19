@@ -10,7 +10,7 @@ from gui.widgets import (
     FormattedDescription,
     GradientHeader,
     SectionHeader,
-    SectionedListbox,
+    ModernSectionedListbox,
     ScrollableFrame,
     WrappingLabel,
     register_mousewheel_target,
@@ -86,8 +86,9 @@ class LuAsiStep(LevelUpStep):
         list_frame.columnconfigure(0, weight=1)
         list_frame.rowconfigure(0, weight=1)
 
-        self._feat_list = SectionedListbox(
+        self._feat_list = ModernSectionedListbox(
             list_frame,
+            on_hover=self._show_feat_detail,
             on_select=self._on_feat_select,
         )
         self._feat_list.grid(row=0, column=0, rowspan=2, sticky="nsew")

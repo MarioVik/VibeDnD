@@ -7,7 +7,7 @@ from tkinter import ttk
 
 from gui.theme import COLORS, FONTS
 from gui.widgets import (
-    SectionedListbox,
+    ModernSectionedListbox,
     AlertDialog,
     configure_modal_dialog,
     center_dialog_over_parent,
@@ -217,7 +217,11 @@ class AddInventoryDialog(tk.Toplevel):
         left.rowconfigure(0, weight=1)
         left.columnconfigure(0, weight=1)
 
-        self.item_list = SectionedListbox(left, on_select=self._on_select_item)
+        self.item_list = ModernSectionedListbox(
+            left,
+            on_hover=self._on_item_hover,
+            on_select=self._on_select_item,
+        )
         self.item_list.grid(row=0, column=0, sticky="nsew")
 
         right = ttk.LabelFrame(body, text="Item Details")
@@ -463,13 +467,21 @@ class AddInventoryDialog(tk.Toplevel):
             self.log_text.insert("1.0", "\n".join(lines))
         self.log_text.configure(state=tk.DISABLED)
 
+    def _on_item_hover(self, name: str):
+        item = self.items_by_name.get(name)
+        if not item:
+            return
+        self._render_item_details(item)
+
     def _on_select_item(self, name: str):
         item = self.items_by_name.get(name)
         self.selected_item = item
         if not item:
             return
-        self.detail_title.configure(text=item.get("name", "Item"))
+        self._render_item_details(item)
 
+    def _render_item_details(self, item: dict):
+        self.detail_title.configure(text=item.get("name", "Item"))
         cost_cp = int(item.get("cost_cp", 0))
         cost_line = (
             f"Cost: {format_coins(cost_cp, compact=True)}"

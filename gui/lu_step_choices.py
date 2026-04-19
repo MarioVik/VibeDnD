@@ -10,6 +10,10 @@ from gui.widgets import (
     CardFrame,
     GradientHeader,
     SectionHeader,
+    ModernSectionedListbox,
+    ScrollableFrame,
+    WrappingLabel,
+    FormattedDescription,
     register_mousewheel_target,
 )
 from models.level_up_logic import (
@@ -63,8 +67,8 @@ class LuChoicesStep(LevelUpStep):
         self._content.grid(row=1, column=0, sticky="nsew")
 
         self._updating_choices = False
-        self._choice_vars: dict[str, tk.BooleanVar] = {}
-        self._choice_checkbuttons: dict[str, ttk.Checkbutton] = {}
+        self._choice_vars: dict[str, dict] = {}
+        self._choice_list: ModernSectionedListbox | None = None
         self._choice_options_by_name: dict[str, dict] = {}
 
     def on_enter(self):
@@ -74,7 +78,6 @@ class LuChoicesStep(LevelUpStep):
         for w in self._content.winfo_children():
             w.destroy()
         self._choice_vars.clear()
-        self._choice_checkbuttons.clear()
         self._choice_options_by_name.clear()
 
         config = get_choices_config(self.ctx, self.character, self.data)
@@ -136,21 +139,27 @@ class LuChoicesStep(LevelUpStep):
                 bg=COLORS["bg"],
             ).pack(anchor="w", padx=SPACING["xs"], pady=(0, SPACING["xs"]))
 
-        list_outer = tk.Frame(left, bg=COLORS["bg"])
-        list_outer.pack(fill=tk.BOTH, expand=True, pady=(SPACING["xs"], 0))
-        canvas, inner = self._make_scrollable_list(list_outer)
+        self._choice_list = ModernSectionedListbox(
+            left,
+            multiselect=True,
+            on_hover=self._show_choice_detail,
+            on_select=lambda name: self._on_choice_toggle_manual(name, new_count),
+        )
+        self._choice_list.pack(fill=tk.BOTH, expand=True, pady=(SPACING["xs"], 0))
 
-        self._section_header(inner, f"Available {choice_plural}")
-        for opt in sorted(available, key=lambda o: o["name"]):
-            var = tk.BooleanVar(value=opt["name"] in self.ctx.selected_new_choices)
-            var.trace_add(
-                "write", lambda *a, o=opt: self._on_choice_toggle(o, new_count)
-            )
-            self._choice_vars[opt["name"]] = var
-            cb = ttk.Checkbutton(inner, text=opt["name"], variable=var)
-            cb.pack(anchor="w", pady=1, padx=(SPACING["sm"], 0))
-            cb.bind("<Enter>", lambda e, o=opt: self._show_choice_detail(o))
-            self._choice_checkbuttons[opt["name"]] = cb
+        # Prepare sections
+        cat_names = [opt["name"] for opt in sorted(available, key=lambda o: o["name"])]
+        for opt in available:
+            self._choice_vars[opt["name"]] = {
+                "var": tk.BooleanVar(value=opt["name"] in self.ctx.selected_new_choices),
+                "opt": opt,
+            }
+
+        self._choice_list.set_sectioned_items([(f"Available {choice_plural}", cat_names)])
+        # Initial selection state
+        self._updating_choices = True
+        self._choice_list.set_selected_items(self.ctx.selected_new_choices)
+        self._updating_choices = False
 
         # Replace section
         self._replace_out_var = tk.StringVar(value=self.ctx.replace_out)
@@ -281,10 +290,7 @@ class LuChoicesStep(LevelUpStep):
         self._sub_split = tk.Frame(detail_card.inner, bg=COLORS["bg_surface"])
         # Not gridded yet — shown/hidden dynamically
         self._sub_split.columnconfigure(0, weight=1)
-        self._sub_split.columnconfigure(1, weight=2)
-        self._sub_split.rowconfigure(0, weight=0)  # label row
-        self._sub_split.rowconfigure(1, weight=1)  # list + desc row
-        self._sub_split.rowconfigure(2, weight=0)  # optional damage type row
+        self._sub_split.rowconfigure(1, weight=1)  # Card grid row
 
         self._sub_choice_for: str | None = None
         self._sub_choice_options: list[str] = []
@@ -303,57 +309,14 @@ class LuChoicesStep(LevelUpStep):
         self._sub_heading.grid(
             row=0,
             column=0,
-            columnspan=2,
             sticky="ew",
-            pady=(SPACING["xs"], SPACING["xs"]),
+            pady=(SPACING["xs"], SPACING["sm"]),
         )
 
-        # Left: scrollable item list
-        sub_list_frame = tk.Frame(self._sub_split, bg=COLORS["bg_high"])
-        sub_list_frame.grid(
-            row=1,
-            column=0,
-            sticky="nsew",
-            padx=(0, SPACING["xs"]),
-        )
-        self._sub_listbox = tk.Listbox(
-            sub_list_frame,
-            bg=COLORS["bg_high"],
-            fg=COLORS["fg"],
-            font=FONTS["body_small"],
-            selectbackground=COLORS["accent"],
-            selectforeground=COLORS["accent_text"],
-            highlightthickness=0,
-            borderwidth=0,
-            relief=tk.FLAT,
-            activestyle="none",
-            exportselection=False,
-        )
-        sub_scrollbar = ttk.Scrollbar(
-            sub_list_frame,
-            orient=tk.VERTICAL,
-            command=self._sub_listbox.yview,
-        )
-        self._sub_listbox.configure(yscrollcommand=sub_scrollbar.set)
-        sub_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self._sub_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self._sub_listbox.bind("<<ListboxSelect>>", self._on_sub_list_select)
-        register_mousewheel_target(sub_list_frame, self._sub_listbox)
-        register_mousewheel_target(self._sub_listbox, self._sub_listbox)
-
-        # Right: item description
-        self._sub_desc_text = tk.Text(
-            self._sub_split,
-            wrap=tk.WORD,
-            bg=COLORS["bg_high"],
-            fg=COLORS["fg"],
-            font=FONTS["body_small"],
-            borderwidth=0,
-            highlightthickness=0,
-            relief=tk.FLAT,
-            state=tk.DISABLED,
-        )
-        self._sub_desc_text.grid(row=1, column=1, sticky="nsew")
+        # Scrollable area for tiles
+        self._sub_scroll = ScrollableFrame(self._sub_split, inner_padding=0)
+        self._sub_scroll.grid(row=1, column=0, sticky="nsew")
+        self._sub_tile_refs = {}
 
         # Damage type row (for armor_and_damage_type)
         self._dmg_row = tk.Frame(self._sub_split, bg=COLORS["bg_surface"])
@@ -381,68 +344,34 @@ class LuChoicesStep(LevelUpStep):
         # Update count
         self._update_count(new_count)
 
-    def _section_header(self, parent, title):
-        tk.Label(
-            parent,
-            text=f"\u2500\u2500 {title} \u2500\u2500",
-            font=FONTS["body"],
-            fg=COLORS["accent"],
-            bg=COLORS["bg"],
-        ).pack(anchor="w", pady=(SPACING["sm"], SPACING["xs"]))
+    def _update_counts(self):
+        # Placeholder for sub-class logic if needed, but LuChoicesStep doesn't use it much
+        pass
 
-    def _make_scrollable_list(self, parent_frame):
-        canvas = tk.Canvas(
-            parent_frame,
-            bg=COLORS["bg"],
-            highlightthickness=0,
-            borderwidth=0,
-        )
-        scrollbar = ttk.Scrollbar(
-            parent_frame, orient=tk.VERTICAL, command=canvas.yview
-        )
-        inner = tk.Frame(canvas, bg=COLORS["bg"])
-
-        inner.bind(
-            "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-        cw = canvas.create_window((0, 0), window=inner, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.bind(
-            "<Configure>", lambda e, _cw=cw: canvas.itemconfig(_cw, width=e.width)
-        )
-
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        register_mousewheel_target(parent_frame, canvas)
-        register_mousewheel_target(canvas, canvas)
-        register_mousewheel_target(inner, canvas)
-
-        return canvas, inner
-
-    def _on_choice_toggle(self, opt: dict, max_count: int):
+    def _on_choice_toggle_manual(self, name: str, max_count: int):
         if self._updating_choices:
             return
         self._updating_choices = True
         try:
-            selected = [n for n, v in self._choice_vars.items() if v.get()]
-            if len(selected) > max_count:
-                self._choice_vars[opt["name"]].set(False)
-                selected = [n for n, v in self._choice_vars.items() if v.get()]
-            self.ctx.selected_new_choices = set(selected)
-            for name in list(self.ctx.choice_sub_selections):
-                if name not in self.ctx.selected_new_choices:
-                    self.ctx.choice_sub_selections.pop(name, None)
+            curr = list(self.ctx.selected_new_choices)
+            if name in curr:
+                curr.remove(name)
+            else:
+                if len(curr) < max_count:
+                    curr.append(name)
+                else:
+                    self._choice_list.deselect_item(name)
+                    return
+            
+            self.ctx.selected_new_choices = curr
             self._update_count(max_count)
-            at_max = len(selected) >= max_count
-            for name, cb in self._choice_checkbuttons.items():
-                cb.configure(
-                    state=tk.DISABLED if at_max and name not in selected else tk.NORMAL
-                )
-            if opt["name"] in self.ctx.selected_new_choices and opt.get("sub_choice"):
-                self._show_sub_choice_ui(opt["name"], opt["sub_choice"])
+            
+            opt = self._choice_options_by_name.get(name)
+            if opt and opt.get("sub_choice") and name in self.ctx.selected_new_choices:
+                self._show_sub_choice_ui(name, opt["sub_choice"])
             else:
                 self._hide_sub_choice_ui()
+
             self.notify_change()
         finally:
             self._updating_choices = False
@@ -456,11 +385,19 @@ class LuChoicesStep(LevelUpStep):
         self.ctx.replace_in = self._replace_in_var.get()
         self.notify_change()
 
-    def _show_choice_detail(self, opt: dict):
+    def _show_choice_detail(self, name: str):
+        if isinstance(name, dict): # Handle legacy calls if any
+            opt = name
+            name = opt.get("name", "")
+        else:
+            opt = self._choice_options_by_name.get(name)
+            if not opt:
+                return
+
         self._hide_sub_choice_ui()
         self._detail_text.configure(state=tk.NORMAL)
         self._detail_text.delete("1.0", tk.END)
-        lines = [opt.get("name", ""), ""]
+        lines = [name, ""]
         prereq = opt.get("prerequisite_level")
         if prereq:
             lines.append(f"Requires level {prereq}+")
@@ -515,6 +452,7 @@ class LuChoicesStep(LevelUpStep):
         self._sub_choice_options = []
         self._sub_choice_selected = ""
         self._sub_choice_type = ""
+        self._sub_tile_refs = {}
 
     def _show_sub_choice_ui(self, choice_name: str, sub_choice: dict):
         self._hide_sub_choice_ui()
@@ -537,11 +475,6 @@ class LuChoicesStep(LevelUpStep):
             label_text = "Select item:"
         self._sub_heading.configure(text=label_text)
 
-        # Populate listbox
-        self._sub_listbox.delete(0, tk.END)
-        for name in options:
-            self._sub_listbox.insert(tk.END, name)
-
         # Restore previous selection
         prev = self.ctx.choice_sub_selections.get(choice_name, "")
         if sc_type == "armor_and_damage_type" and "|" in prev:
@@ -552,16 +485,8 @@ class LuChoicesStep(LevelUpStep):
             self._sub_choice_selected = prev if prev in options else ""
             self._dmg_type_var.set("")
 
-        if self._sub_choice_selected in options:
-            idx = options.index(self._sub_choice_selected)
-            self._sub_listbox.selection_set(idx)
-            self._sub_listbox.see(idx)
-            self._show_sub_item_detail(self._sub_choice_selected)
-        else:
-            self._sub_desc_text.configure(state=tk.NORMAL)
-            self._sub_desc_text.delete("1.0", tk.END)
-            self._sub_desc_text.insert("1.0", "Select an item from the list.")
-            self._sub_desc_text.configure(state=tk.DISABLED)
+        # Render Tiles
+        self._render_sub_choice_tiles(options)
 
         # Show the split view
         self._sub_split.grid(
@@ -581,30 +506,128 @@ class LuChoicesStep(LevelUpStep):
                 pady=(SPACING["xs"], 0),
             )
 
-    def _on_sub_list_select(self, event):
-        """Handle click in the sub-choice listbox."""
-        sel = self._sub_listbox.curselection()
-        if not sel:
-            return
-        name = self._sub_choice_options[sel[0]]
-        self._sub_choice_selected = name
-        self._show_sub_item_detail(name)
-        self._on_sub_choice_changed()
+    def _render_sub_choice_tiles(self, options: list[str]):
+        """Render the sub-choice options as card tiles."""
+        for w in self._sub_scroll.inner.winfo_children():
+            w.destroy()
+        self._sub_tile_refs = {}
+        
+        for name in options:
+            self._create_sub_tile(name, self._sub_scroll.inner)
+        
+        self._update_sub_tile_styles()
 
-    def _show_sub_item_detail(self, item_name: str):
-        """Show the description of the selected sub-choice item."""
+    def _create_sub_tile(self, name: str, parent):
+        """Create a single interactive card tile for a sub-choice option."""
+        bg_hex = COLORS["bg_surface"]
+        
+        tile_border = tk.Frame(parent, bg=COLORS["border_medium"], cursor="hand2")
+        tile_border.pack(fill=tk.X, padx=SPACING["xs"], pady=SPACING["xs"])
+        
+        tile = tk.Frame(tile_border, bg=bg_hex, cursor="hand2")
+        tile.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
+
+        title_lbl = tk.Label(
+            tile,
+            text=name,
+            font=FONTS["body_bold"],
+            fg=COLORS["fg"],
+            bg=bg_hex,
+            cursor="hand2",
+            anchor="w"
+        )
+        title_lbl.pack(fill=tk.X, padx=SPACING["sm"], pady=(SPACING["sm"], 0))
+
+        # Metadata (Level, Attunement) if it's a magic item
+        meta_lbl = None
         desc = ""
         if self.data:
-            item = self.data.items_by_name.get(item_name)
+            item = self.data.items_by_name.get(name)
             if item:
+                meta_parts = []
+                min_lvl = item.get("min_level")
+                if min_lvl:
+                    meta_parts.append(f"Level {min_lvl}+")
+                
+                # Check for attunement in description or dedicated field
                 desc = item.get("full_description") or item.get("description") or ""
+                if "attunement" in desc.lower():
+                    if "no attunement" in desc.lower():
+                        meta_parts.append("No Attunement")
+                    else:
+                        meta_parts.append("Attunement Required")
+                
+                if meta_parts:
+                    meta_lbl = tk.Label(
+                        tile,
+                        text=" \u2022 ".join(meta_parts),
+                        font=FONTS["label_upper"],
+                        fg=COLORS["gold"],
+                        bg=bg_hex,
+                        cursor="hand2",
+                        anchor="w"
+                    )
+                    meta_lbl.pack(fill=tk.X, padx=SPACING["sm"], pady=0)
+        
         if not desc:
-            desc = item_name
+            desc = name
 
-        self._sub_desc_text.configure(state=tk.NORMAL)
-        self._sub_desc_text.delete("1.0", tk.END)
-        self._sub_desc_text.insert("1.0", f"{item_name}\n\n{desc}")
-        self._sub_desc_text.configure(state=tk.DISABLED)
+        desc_lbl = FormattedDescription(
+            tile,
+            text=desc,
+            font=FONTS["body_small"],
+            foreground=COLORS["fg_dim"],
+            background=bg_hex,
+            cursor="hand2"
+        )
+        desc_lbl.pack(fill=tk.X, padx=SPACING["sm"], pady=(SPACING["xs"], SPACING["sm"]))
+
+        self._sub_tile_refs[name] = {
+            "border": tile_border,
+            "tile": tile,
+            "title": title_lbl,
+            "meta": meta_lbl,
+            "desc": desc_lbl
+        }
+
+        # Bind events
+        def on_click(_e):
+            self._sub_choice_selected = name
+            self._update_sub_tile_styles()
+            self._on_sub_choice_changed()
+
+        def on_enter(_e):
+            if self._sub_choice_selected != name:
+                tile_border.configure(bg=COLORS["accent"])
+                tile.configure(bg=COLORS["bg_high"])
+                title_lbl.configure(bg=COLORS["bg_high"])
+                if meta_lbl: meta_lbl.configure(bg=COLORS["bg_high"])
+                desc_lbl.configure(background=COLORS["bg_high"])
+
+        def on_leave(_e):
+            if self._sub_choice_selected != name:
+                self._update_sub_tile_styles() # Restoration is easier this way
+
+        for w in [tile_border, tile, title_lbl, meta_lbl, desc_lbl]:
+            if w:
+                w.bind("<Button-1>", on_click)
+                w.bind("<Enter>", on_enter)
+                w.bind("<Leave>", on_leave)
+
+    def _update_sub_tile_styles(self):
+        """Update all tile visual states based on selection."""
+        for name, widgets in self._sub_tile_refs.items():
+            is_sel = (self._sub_choice_selected == name)
+            border_c = COLORS["accent"] if is_sel else COLORS["border_medium"]
+            bg_c = COLORS["bg_high"] if is_sel else COLORS["bg_surface"]
+            fg_title = COLORS["accent_text"] if is_sel else COLORS["fg"]
+            
+            widgets["border"].configure(bg=border_c)
+            widgets["tile"].configure(bg=bg_c)
+            widgets["title"].configure(bg=bg_c, fg=fg_title)
+            if widgets["meta"]:
+                widgets["meta"].configure(bg=bg_c)
+            widgets["desc"].configure(background=bg_c)
 
     def _on_sub_choice_changed(self):
         name = self._sub_choice_for

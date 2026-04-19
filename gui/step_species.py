@@ -89,6 +89,8 @@ class SpeciesStep(WizardStep):
         self._species_portrait_source = None
         self._species_portrait_photo = None
         self._species_portrait_pending = False
+        self._sub_choice_tiles = {} # item_name -> {border, tile, ...}
+        self._size_tiles = {}
 
         # Two containers: grid view (substep 0) and detail view (substep 1)
         self._grid_frame = tk.Frame(self.frame, bg=COLORS["bg"])
@@ -358,20 +360,19 @@ class SpeciesStep(WizardStep):
 
         if len(size_options) > 1:
             self.size_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
-
             SectionHeader(self.size_frame, text="Size").pack(fill=tk.X, pady=(0, SPACING["xs"]))
 
-            size_card = CardFrame(self.size_frame, pad=SPACING["md"])
-            size_card.pack(fill=tk.X)
+            self._size_tiles = {}
             for opt in size_options:
-                ttk.Radiobutton(
-                    size_card.inner,
-                    text=opt,
+                self._create_option_tile(
+                    parent=self.size_frame,
+                    name=opt,
+                    description="",
                     variable=self.size_var,
-                    value=opt,
-                    style=CARD_RADIO_STYLE,
-                ).pack(anchor="w", padx=SPACING["sm"])
-            self.size_var.set(size_options[0])
+                    tile_map=self._size_tiles,
+                    update_func=self._update_size_styles
+                )
+            self._update_size_styles()
 
         # Sub-choices
         for w in self.sub_frame.winfo_children():
@@ -383,80 +384,49 @@ class SpeciesStep(WizardStep):
             if choices and isinstance(choices[0], dict):
                 self.sub_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
                 self._requires_sub_choice = True
-
                 SectionHeader(self.sub_frame, text="Choose One (Required)").pack(
                     fill=tk.X, pady=(0, SPACING["xs"])
                 )
 
+                self._sub_choice_tiles = {}
                 for choice in choices:
                     cname = choice.get("name", "Unknown")
                     desc = choice.get("description", "")
-
-                    card = CardFrame(self.sub_frame, bg=COLORS["bg_container"],
-                                     border_color=COLORS["border_subtle"], pad=SPACING["md"])
-                    card.pack(fill=tk.X, pady=SPACING["xs"])
-
-                    ttk.Radiobutton(
-                        card.inner,
-                        text=cname,
+                    self._create_option_tile(
+                        parent=self.sub_frame,
+                        name=cname,
+                        description=desc,
                         variable=self.sub_var,
-                        value=cname,
-                        style=CONTAINER_RADIO_STYLE,
-                    ).pack(anchor="w")
-
-                    if desc:
-                        FormattedDescription(
-                            card.inner,
-                            text=desc,
-                            font=FONTS["body_small"],
-                            foreground=COLORS["fg_dim"],
-                            background=COLORS["bg_container"],
-                        ).pack(fill=tk.X, pady=(SPACING["xs"], 0))
+                        tile_map=self._sub_choice_tiles,
+                        update_func=self._update_sub_styles
+                    )
+                self._update_sub_styles()
 
         # Trait option choices (e.g. Gnome lineage, Goliath ancestry, Shifter form)
         if not sp.get("sub_choices"):
             trait_choice = self.TRAIT_OPTION_CHOICES.get(sp.get("name", ""))
             if trait_choice:
                 available = {t.get("name", "") for t in sp.get("traits", [])}
-                option_names = [
-                    opt for opt in trait_choice["options"] if opt in available
-                ]
+                option_names = [opt for opt in trait_choice["options"] if opt in available]
                 if option_names:
                     self.sub_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], 0))
                     self._requires_sub_choice = True
+                    SectionHeader(self.sub_frame, text=f"{trait_choice['label']} (Required)").pack(
+                        fill=tk.X, pady=(0, SPACING["xs"])
+                    )
 
-                    SectionHeader(
-                        self.sub_frame, text=f"{trait_choice['label']} (Required)"
-                    ).pack(fill=tk.X, pady=(0, SPACING["xs"]))
-
-                    # Find matching trait descriptions
-                    trait_descs = {
-                        t.get("name", ""): t.get("description", "")
-                        for t in sp.get("traits", [])
-                    }
-
+                    trait_descs = {t.get("name", ""): t.get("description", "") for t in sp.get("traits", [])}
+                    self._sub_choice_tiles = {}
                     for opt_name in option_names:
-                        card = CardFrame(self.sub_frame, bg=COLORS["bg_container"],
-                                         border_color=COLORS["border_subtle"], pad=SPACING["md"])
-                        card.pack(fill=tk.X, pady=SPACING["xs"])
-
-                        ttk.Radiobutton(
-                            card.inner,
-                            text=opt_name,
+                        self._create_option_tile(
+                            parent=self.sub_frame,
+                            name=opt_name,
+                            description=trait_descs.get(opt_name, ""),
                             variable=self.sub_var,
-                            value=opt_name,
-                            style=CONTAINER_RADIO_STYLE,
-                        ).pack(anchor="w")
-
-                        opt_desc = trait_descs.get(opt_name, "")
-                        if opt_desc:
-                            FormattedDescription(
-                                card.inner,
-                                text=opt_desc,
-                                font=FONTS["body_small"],
-                                foreground=COLORS["fg_dim"],
-                                background=COLORS["bg_container"],
-                            ).pack(fill=tk.X, pady=(SPACING["xs"], 0))
+                            tile_map=self._sub_choice_tiles,
+                            update_func=self._update_sub_styles
+                        )
+                    self._update_sub_styles()
 
         # Traits — exclude any that are shown as radio button sub-choices
         for w in self.traits_frame.winfo_children():
@@ -751,3 +721,86 @@ class SpeciesStep(WizardStep):
         if selected_size in size_options:
             return selected_size
         return size_options[0]
+
+    def _create_option_tile(self, parent, name, description, variable, tile_map, update_func):
+        """Create a premium clickable tile for a choice option."""
+        bg_hex = COLORS["bg_surface"]
+        
+        tile_border = tk.Frame(parent, bg=COLORS["border_medium"], cursor="hand2")
+        tile_border.pack(fill=tk.X, pady=SPACING["xs"])
+        
+        tile = tk.Frame(tile_border, bg=bg_hex, cursor="hand2")
+        tile.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
+
+        title_lbl = tk.Label(
+            tile,
+            text=name,
+            font=FONTS["body_bold"],
+            fg=COLORS["fg"],
+            bg=bg_hex,
+            cursor="hand2",
+            anchor="w"
+        )
+        title_lbl.pack(fill=tk.X, padx=SPACING["sm"], pady=(SPACING["sm"] if description else SPACING["xs"], 0))
+
+        desc_lbl = None
+        if description:
+            desc_lbl = FormattedDescription(
+                tile,
+                text=description,
+                font=FONTS["body_small"],
+                foreground=COLORS["fg_dim"],
+                background=bg_hex,
+                cursor="hand2"
+            )
+            desc_lbl.pack(fill=tk.X, padx=SPACING["sm"], pady=(SPACING["xs"], SPACING["sm"]))
+
+        tile_map[name] = {
+            "border": tile_border,
+            "tile": tile,
+            "title": title_lbl,
+            "desc": desc_lbl
+        }
+
+        # Bind events
+        def on_click(_e):
+            variable.set(name)
+            update_func()
+
+        def on_enter(_e):
+            if variable.get() != name:
+                tile_border.configure(bg=COLORS["accent"])
+                tile.configure(bg=COLORS["bg_high"])
+                title_lbl.configure(bg=COLORS["bg_high"])
+                if desc_lbl: desc_lbl.configure(background=COLORS["bg_high"])
+
+        def on_leave(_e):
+            if variable.get() != name:
+                update_func()
+
+        for w in [tile_border, tile, title_lbl, desc_lbl]:
+            if w:
+                w.bind("<Button-1>", on_click)
+                w.bind("<Enter>", on_enter)
+                w.bind("<Leave>", on_leave)
+
+    def _update_sub_styles(self):
+        self._update_option_tile_styles(self.sub_var, self._sub_choice_tiles)
+
+    def _update_size_styles(self):
+        self._update_option_tile_styles(self.size_var, self._size_tiles)
+
+    def _update_option_tile_styles(self, variable, tile_map):
+        """Update visual state of all tiles in a map based on a variable's value."""
+        current = variable.get()
+        for name, widgets in tile_map.items():
+            is_sel = (current == name)
+            border_c = COLORS["accent"] if is_sel else COLORS["border_medium"]
+            bg_c = COLORS["bg_high"] if is_sel else COLORS["bg_surface"]
+            fg_title = COLORS["accent_text"] if is_sel else COLORS["fg"]
+            
+            widgets["border"].configure(bg=border_c)
+            widgets["tile"].configure(bg=bg_c)
+            widgets["title"].configure(bg=bg_c, fg=fg_title)
+            if widgets["desc"]:
+                widgets["desc"].configure(background=bg_c)

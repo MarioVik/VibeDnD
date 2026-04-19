@@ -188,6 +188,15 @@ This app uses **2024 rules**: **backgrounds** grant ability score increases and 
 - **Never include** “Ability Score Increase” (or any **race/species ASI** text) in **legacy raw scrapes** (`dnd2014_data.json`, etc.). Omit those paragraphs when preparing data. Including them risks parsed traits or future code that **stacks** ASIs with backgrounds and makes characters **unbalanced**.
 - **Never include** “Languages” traits in species data. Under 2024 rules, language proficiencies come from **backgrounds**, not species. The species parser automatically strips any “Languages” traits.
 - Full policy: see **§0 in `AI_README.md`** and **§8 in `CLAUDE.md`**.
+
+### 9. Investigative Audit Requirement — Never Assume Consistency
+
+When asked to "unify," "migrate," or "update all instances" of a pattern, you **must** perform a deep, structural audit:
+
+- **Don't just keyword search:** Standard widgets (like `tk.Listbox`) might be replaced by custom logic (like `tk.Canvas` + manual `tk.Frame` rows). Search for the **structural pattern** (e.g., `_make_scrollable_list` or `row.pack()`) as well as keywords.
+- **Mandatory Inventory Phase:** Before modifying any files, use research tools to find every occurrence. List them in an artifact and present it to the user.
+- **The "Zero-State" Check:** Before finishing, run a global search for the legacy pattern. If any results remain, you are not finished.
+- **Challenge the prompt:** If a major screen (like Spellcasting or Artificer Infusions) appears to be an outlier, investigate its code directly to see if it uses a hidden manual implementation.
 ---
 
 ## Data Schemas

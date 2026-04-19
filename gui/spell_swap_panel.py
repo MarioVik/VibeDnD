@@ -6,8 +6,8 @@ import tkinter as tk
 from itertools import groupby
 from tkinter import ttk
 
-from gui.theme import COLORS, FONTS
-from gui.widgets import register_mousewheel_target
+from gui.theme import COLORS, FONTS, SPACING
+from gui.widgets import ModernSectionedListbox
 
 LEVEL_NAMES = {
     0: "Cantrips",
@@ -93,89 +93,48 @@ class SpellSwapPanel:
         # --- LEFT: Forget ---
         left_lf = ttk.LabelFrame(cols, text=left_label)
         left_lf.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
-        left_outer = ttk.Frame(left_lf)
-        left_outer.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
-        _, left_inner = _make_scrollable_list(left_outer)
-
-        ttk.Radiobutton(
-            left_inner,
-            text=no_swap_label,
-            variable=self.forget_var,
-            value="",
-        ).pack(anchor="w", pady=1)
-
-        # Cantrips to forget
-        if allow_cantrips and forget_cantrips:
-            _section_header(left_inner, "Cantrips")
-            for spell in sorted(forget_cantrips, key=lambda s: s["name"]):
-                rb = ttk.Radiobutton(
-                    left_inner,
-                    text=spell["name"],
-                    variable=self.forget_var,
-                    value=f"C:{spell['name']}",
-                )
-                rb.pack(anchor="w", pady=1, padx=8)
-                rb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
-
-        # Spells to forget (grouped by level)
-        if forget_spells:
-            forget_sorted = sorted(forget_spells, key=lambda s: (s["level"], s["name"]))
-            for lvl, group in groupby(forget_sorted, key=lambda s: s["level"]):
-                _section_header(left_inner, LEVEL_NAMES.get(lvl, f"Level {lvl}"))
-                for spell in group:
-                    val = f"S:{spell['name']}" if allow_cantrips else spell["name"]
-                    rb = ttk.Radiobutton(
-                        left_inner,
-                        text=spell["name"],
-                        variable=self.forget_var,
-                        value=val,
-                    )
-                    rb.pack(anchor="w", pady=1, padx=8)
-                    rb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
+        
+        self.left_list = ModernSectionedListbox(
+            left_lf,
+            on_hover=self._show_detail,
+            on_select=self._on_forget_select_modern,
+        )
+        self.left_list.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
 
         # --- RIGHT: Learn ---
         right_lf = ttk.LabelFrame(cols, text=right_label)
         right_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
-        right_outer = ttk.Frame(right_lf)
-        right_outer.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
-        _, right_inner = _make_scrollable_list(right_outer)
+        
+        self.right_list = ModernSectionedListbox(
+            right_lf,
+            on_hover=self._show_detail,
+            on_select=self._on_learn_select_modern,
+        )
+        self.right_list.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
 
-        # Available cantrips
+        # ── Data Preparation ──
+        forget_sections = []
+        if allow_cantrips and forget_cantrips:
+            forget_sections.append(("Cantrips", [s["name"] for s in sorted(forget_cantrips, key=lambda s: s["name"])]))
+        if forget_spells:
+            forget_sorted = sorted(forget_spells, key=lambda s: (s["level"], s["name"]))
+            for lvl, group in groupby(forget_sorted, key=lambda s: s["level"]):
+                forget_sections.append((LEVEL_NAMES.get(lvl, f"Level {lvl}"), [s["name"] for s in group]))
+        
+        self.left_list.set_sectioned_items(forget_sections + [("Action", [no_swap_label])])
+        
+        self._learn_sections = []
         if allow_cantrips and learn_cantrips:
-            _section_header(right_inner, "Cantrips")
-            for spell in sorted(learn_cantrips, key=lambda s: s["name"]):
-                rb = ttk.Radiobutton(
-                    right_inner,
-                    text=spell["name"],
-                    variable=self.learn_var,
-                    value=spell["name"],
-                )
-                rb.pack(anchor="w", pady=1, padx=8)
-                rb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
-                self._cantrip_rbs.append((rb, spell))
-
-        # Available spells (grouped by level)
+            self._learn_sections.append(("Cantrips", [s["name"] for s in sorted(learn_cantrips, key=lambda s: s["name"])]))
         if learn_spells:
             learn_sorted = sorted(learn_spells, key=lambda s: (s["level"], s["name"]))
             for lvl, group in groupby(learn_sorted, key=lambda s: s["level"]):
-                _section_header(right_inner, LEVEL_NAMES.get(lvl, f"Level {lvl}"))
-                for spell in group:
-                    rb = ttk.Radiobutton(
-                        right_inner,
-                        text=spell["name"],
-                        variable=self.learn_var,
-                        value=spell["name"],
-                    )
-                    rb.pack(anchor="w", pady=1, padx=8)
-                    rb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
-                    self._spell_rbs.append((rb, spell))
+                self._learn_sections.append((LEVEL_NAMES.get(lvl, f"Level {lvl}"), [s["name"] for s in group]))
+        
+        self.right_list.set_sectioned_items(self._learn_sections)
 
-        if not learn_spells and not (allow_cantrips and learn_cantrips):
-            ttk.Label(
-                right_inner,
-                text="No additional spells available.",
-                foreground=COLORS["fg_dim"],
-            ).pack(anchor="w", padx=8, pady=4)
+        self._all_spell_objects = {s["name"]: s for s in all_spells}
+        self._no_swap_label = no_swap_label
 
         # --- Shared Detail Panel ---
         all_spells = (
@@ -199,65 +158,56 @@ class SpellSwapPanel:
         )
         self._detail_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
-        # ── Wire up enable/disable logic ──
-        if allow_cantrips:
-            self.forget_var.trace_add("write", self._on_forget_change)
-            self.learn_var.trace_add("write", lambda *_: None)  # no extra logic needed
-            self._on_forget_change()
+    # ── Modern Selection Handlers ──
+
+    def _on_forget_select_modern(self, name: str):
+        if name == self._no_swap_label:
+            self.forget_var.set("")
         else:
-            # For prepared casters: no cantrip distinction, just disable learn when "don't swap"
-            self.forget_var.trace_add("write", self._on_forget_change_simple)
-            self._on_forget_change_simple()
+            spell = self._all_spell_objects.get(name)
+            if self._allow_cantrips and spell:
+                prefix = "C:" if spell["level"] == 0 else "S:"
+                self.forget_var.set(f"{prefix}{name}")
+            else:
+                self.forget_var.set(name)
+        
+        self._refresh_right_list_state()
+
+    def _on_learn_select_modern(self, name: str):
+        self.learn_var.set(name)
+
+    def _refresh_right_list_state(self):
+        val = self.forget_var.get()
+        if not val:
+            self.learn_var.set("")
+            self.right_list.set_sectioned_items([])
+        elif val.startswith("C:"):
+            # Only cantrips
+            cantrip_only = [self._learn_sections[0]] if self._learn_sections and self._learn_sections[0][0] == "Cantrips" else []
+            self.right_list.set_sectioned_items(cantrip_only)
+        elif val.startswith("S:"):
+            spells_only = [s for s in self._learn_sections if s[0] != "Cantrips"]
+            self.right_list.set_sectioned_items(spells_only)
+        else:
+            self.right_list.set_sectioned_items(self._learn_sections)
 
     # ── Detail panel ──
 
-    def _show_detail(self, spell: dict):
+    def _show_detail(self, name_or_spell: str | dict):
+        if isinstance(name_or_spell, str):
+            if name_or_spell == self._no_swap_label:
+                return
+            spell = self._all_spell_objects.get(name_or_spell)
+        else:
+            spell = name_or_spell
+            
+        if not spell:
+            return
+
         self._detail_text.configure(state=tk.NORMAL)
         self._detail_text.delete("1.0", tk.END)
         self._detail_text.insert("1.0", "\n".join(_spell_detail_lines(spell)))
         self._detail_text.configure(state=tk.DISABLED)
-
-    # ── Enable/disable logic (with cantrip distinction) ──
-
-    def _on_forget_change(self, *_):
-        val = self.forget_var.get()
-        if not val:
-            # "Don't swap" — disable all learn buttons
-            self.learn_var.set("")
-            for rb, _ in self._cantrip_rbs + self._spell_rbs:
-                rb.configure(state=tk.DISABLED)
-        elif val.startswith("C:"):
-            # Cantrip selected — only cantrip learns enabled
-            for rb, _ in self._cantrip_rbs:
-                rb.configure(state=tk.NORMAL)
-            for rb, _ in self._spell_rbs:
-                rb.configure(state=tk.DISABLED)
-            # Clear learn if it was a spell
-            if self.learn_var.get() and not any(
-                s["name"] == self.learn_var.get() for _, s in self._cantrip_rbs
-            ):
-                self.learn_var.set("")
-        else:  # S: prefix — spell selected
-            for rb, _ in self._cantrip_rbs:
-                rb.configure(state=tk.DISABLED)
-            for rb, _ in self._spell_rbs:
-                rb.configure(state=tk.NORMAL)
-            if self.learn_var.get() and not any(
-                s["name"] == self.learn_var.get() for _, s in self._spell_rbs
-            ):
-                self.learn_var.set("")
-
-    # ── Enable/disable logic (simple — no cantrips) ──
-
-    def _on_forget_change_simple(self, *_):
-        val = self.forget_var.get()
-        if not val:
-            self.learn_var.set("")
-            for rb, _ in self._spell_rbs:
-                rb.configure(state=tk.DISABLED)
-        else:
-            for rb, _ in self._spell_rbs:
-                rb.configure(state=tk.NORMAL)
 
 
 class MultiSpellSwapPanel:
@@ -278,9 +228,34 @@ class MultiSpellSwapPanel:
         left_label: str = "Unprepare",
         right_label: str = "Prepare instead",
     ):
-        self._forget_vars: dict[str, tk.BooleanVar] = {}
-        self._learn_vars: dict[str, tk.BooleanVar] = {}
-        self._learn_cbs: list[tuple[ttk.Checkbutton, dict]] = []
+        # ── Two-column split ──
+        cols = ttk.Frame(parent)
+        cols.pack(fill=tk.BOTH, expand=True, pady=4)
+        cols.columnconfigure(0, weight=1)
+        cols.columnconfigure(1, weight=1)
+        cols.rowconfigure(0, weight=1)
+
+        # --- LEFT: Forget ---
+        left_lf = ttk.LabelFrame(cols, text=left_label)
+        left_lf.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+        
+        self.left_list = ModernSectionedListbox(
+            left_lf,
+            on_hover=self._show_detail,
+            on_select=self._on_change,
+        )
+        self.left_list.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+
+        # --- RIGHT: Learn ---
+        right_lf = ttk.LabelFrame(cols, text=right_label)
+        right_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
+        
+        self.right_list = ModernSectionedListbox(
+            right_lf,
+            on_hover=self._show_detail,
+            on_select=self._on_change,
+        )
+        self.right_list.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
 
         # ── Counter label ──
         self._counter = ttk.Label(
@@ -290,65 +265,21 @@ class MultiSpellSwapPanel:
         )
         self._counter.pack(anchor="w", padx=4, pady=(0, 2))
 
-        # ── Two-column split ──
-        cols = ttk.Frame(parent)
-        cols.pack(fill=tk.BOTH, expand=True, pady=2)
-        cols.columnconfigure(0, weight=1)
-        cols.columnconfigure(1, weight=1)
-        cols.rowconfigure(0, weight=1)
-
-        # --- LEFT: Unprepare ---
-        left_lf = ttk.LabelFrame(cols, text=left_label)
-        left_lf.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
-        left_outer = ttk.Frame(left_lf)
-        left_outer.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
-        _, left_inner = _make_scrollable_list(left_outer)
-
+        forget_sections = []
         if forget_spells:
             forget_sorted = sorted(forget_spells, key=lambda s: (s["level"], s["name"]))
             for lvl, group in groupby(forget_sorted, key=lambda s: s["level"]):
-                _section_header(left_inner, LEVEL_NAMES.get(lvl, f"Level {lvl}"))
-                for spell in group:
-                    var = tk.BooleanVar(value=False)
-                    self._forget_vars[spell["name"]] = var
-                    cb = ttk.Checkbutton(
-                        left_inner,
-                        text=spell["name"],
-                        variable=var,
-                        command=self._on_change,
-                    )
-                    cb.pack(anchor="w", pady=1, padx=8)
-                    cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
+                forget_sections.append((LEVEL_NAMES.get(lvl, f"Level {lvl}"), [s["name"] for s in group]))
+        self.left_list.set_sectioned_items(forget_sections)
 
-        # --- RIGHT: Prepare ---
-        right_lf = ttk.LabelFrame(cols, text=right_label)
-        right_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
-        right_outer = ttk.Frame(right_lf)
-        right_outer.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
-        _, right_inner = _make_scrollable_list(right_outer)
-
+        learn_sections = []
         if learn_spells:
             learn_sorted = sorted(learn_spells, key=lambda s: (s["level"], s["name"]))
             for lvl, group in groupby(learn_sorted, key=lambda s: s["level"]):
-                _section_header(right_inner, LEVEL_NAMES.get(lvl, f"Level {lvl}"))
-                for spell in group:
-                    var = tk.BooleanVar(value=False)
-                    self._learn_vars[spell["name"]] = var
-                    cb = ttk.Checkbutton(
-                        right_inner,
-                        text=spell["name"],
-                        variable=var,
-                        command=self._on_change,
-                    )
-                    cb.pack(anchor="w", pady=1, padx=8)
-                    cb.bind("<Enter>", lambda e, s=spell: self._show_detail(s))
-                    self._learn_cbs.append((cb, spell))
-        else:
-            ttk.Label(
-                right_inner,
-                text="No additional spells available.",
-                foreground=COLORS["fg_dim"],
-            ).pack(anchor="w", padx=8, pady=4)
+                learn_sections.append((LEVEL_NAMES.get(lvl, f"Level {lvl}"), [s["name"] for s in group]))
+        self.right_list.set_sectioned_items(learn_sections)
+
+        self._all_spell_objects = {s["name"]: s for s in forget_spells + learn_spells}
 
         # --- Shared Detail Panel ---
         detail_h = _max_detail_height(forget_spells, learn_spells)
@@ -372,15 +303,18 @@ class MultiSpellSwapPanel:
 
     @property
     def forget_names(self) -> list[str]:
-        return [n for n, v in self._forget_vars.items() if v.get()]
+        return self.left_list.get_selected_names()
 
     @property
     def learn_names(self) -> list[str]:
-        return [n for n, v in self._learn_vars.items() if v.get()]
+        return self.right_list.get_selected_names()
 
     # ── Detail panel ──
 
-    def _show_detail(self, spell: dict):
+    def _show_detail(self, name: str):
+        spell = self._all_spell_objects.get(name)
+        if not spell:
+            return
         self._detail_text.configure(state=tk.NORMAL)
         self._detail_text.delete("1.0", tk.END)
         self._detail_text.insert("1.0", "\n".join(_spell_detail_lines(spell)))
@@ -388,7 +322,7 @@ class MultiSpellSwapPanel:
 
     # ── Logic ──
 
-    def _on_change(self):
+    def _on_change(self, *_):
         n_forget = len(self.forget_names)
         n_learn = len(self.learn_names)
 
@@ -415,42 +349,3 @@ class MultiSpellSwapPanel:
                     text=f"Unpreparing {n_forget}, preparing {n_learn} — deselect {-diff} on the right or select more on the left.",
                     foreground=COLORS["accent"],
                 )
-
-
-# ── Module-level helpers ──
-
-
-def _make_scrollable_list(parent_frame):
-    """Create a scrollable canvas with an inner frame. Returns (canvas, inner)."""
-    canvas = tk.Canvas(
-        parent_frame, bg=COLORS["bg"], highlightthickness=0, borderwidth=0
-    )
-    scrollbar = ttk.Scrollbar(parent_frame, orient=tk.VERTICAL, command=canvas.yview)
-    inner = ttk.Frame(canvas)
-
-    inner.bind(
-        "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-    )
-    cw = canvas.create_window((0, 0), window=inner, anchor="nw")
-    canvas.configure(yscrollcommand=scrollbar.set)
-
-    canvas.bind("<Configure>", lambda e, _cw=cw: canvas.itemconfig(_cw, width=e.width))
-
-    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-    register_mousewheel_target(parent_frame, canvas)
-    register_mousewheel_target(canvas, canvas)
-    register_mousewheel_target(inner, canvas)
-
-    return canvas, inner
-
-
-def _section_header(parent, title):
-    """Add a styled level-group header."""
-    ttk.Label(
-        parent,
-        text=f"\u2500\u2500 {title} \u2500\u2500",
-        foreground=COLORS["accent"],
-        font=FONTS["body"],
-    ).pack(anchor="w", pady=(6, 2))

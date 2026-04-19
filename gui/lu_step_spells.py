@@ -10,7 +10,7 @@ from gui.widgets import (
     CardFrame,
     GradientHeader,
     SectionHeader,
-    register_mousewheel_target,
+    ModernSectionedListbox,
 )
 from models.level_up_logic import spell_deltas, validate_spell_step
 
@@ -65,8 +65,7 @@ class LuSpellsStep(LevelUpStep):
         self._updating_spells = False
         self.cantrip_vars: dict[str, dict] = {}
         self.spell_vars: dict[str, dict] = {}
-        self.cantrip_checkbuttons: dict[str, ttk.Checkbutton] = {}
-        self.spell_checkbuttons: dict[str, ttk.Checkbutton] = {}
+        self._spells_list: ModernSectionedListbox | None = None
 
     def on_enter(self):
         self._rebuild()
@@ -131,46 +130,47 @@ class LuSpellsStep(LevelUpStep):
         else:
             self._spell_count = None
 
-        list_outer = tk.Frame(left, bg=COLORS["bg"])
-        list_outer.pack(fill=tk.BOTH, expand=True, pady=(SPACING["xs"], 0))
-        canvas, inner = self._make_scrollable_list(list_outer)
+        self._spells_list = ModernSectionedListbox(
+            left,
+            multiselect=True,
+            on_hover=self._show_spell_detail,
+            on_select=self._on_spell_select_modern,
+        )
+        self._spells_list.pack(fill=tk.BOTH, expand=True, pady=(SPACING["xs"], 0))
 
+        # ── Data Preparation ──
+        class_name = ""
+        for cls in self.data.classes:
+            if cls.get("slug") == self.ctx.class_slug:
+                class_name = cls.get("name", "")
+                break
+
+        sections = []
         # Cantrips
         if new_cantrips > 0:
-            self._section_header(inner, "Cantrips")
             all_cantrips = self.data.cantrips_for_class(class_name)
             known = set(self.character.selected_cantrips) | set(self.ctx.selected_new_cantrips)
             available = [s for s in all_cantrips if s["name"] not in known]
-
-            for spell in sorted(available, key=lambda s: s["name"]):
-                var = tk.BooleanVar(value=spell["name"] in self.ctx.selected_new_cantrips)
-                var.trace_add("write", lambda *a, s=spell: self._on_cantrip_toggle(s))
-                self.cantrip_vars[spell["name"]] = {"var": var, "spell": spell}
-                cb = ttk.Checkbutton(inner, text=spell["name"], variable=var)
-                cb.pack(anchor="w", pady=1, padx=(SPACING["sm"], 0))
-                cb.bind("<Enter>", lambda e, s=spell: self._show_spell_detail(s))
-                self.cantrip_checkbuttons[spell["name"]] = cb
+            cantrip_names = [s["name"] for s in sorted(available, key=lambda s: s["name"])]
+            for s in available:
+                self.cantrip_vars[s["name"]] = {"var": tk.BooleanVar(value=s["name"] in self.ctx.selected_new_cantrips), "spell": s}
+            sections.append(("Cantrips", cantrip_names))
 
         # Leveled spells
         if new_prepared > 0:
             all_spells = self.data.spells_for_class(class_name, max_level=max_spell_level)
             known = set(self.character.selected_spells) | set(self.ctx.selected_new_spells)
-            available = [
-                s for s in all_spells
-                if s["name"] not in known and s.get("level", 0) >= 1
-            ]
+            available = [s for s in all_spells if s["name"] not in known and s.get("level", 0) >= 1]
             available.sort(key=lambda s: (s["level"], s["name"]))
-
             for lvl, group in groupby(available, key=lambda s: s["level"]):
-                self._section_header(inner, _LEVEL_NAMES.get(lvl, f"Level {lvl}"))
-                for spell in group:
-                    var = tk.BooleanVar(value=spell["name"] in self.ctx.selected_new_spells)
-                    var.trace_add("write", lambda *a, s=spell: self._on_spell_toggle(s))
-                    self.spell_vars[spell["name"]] = {"var": var, "spell": spell}
-                    cb = ttk.Checkbutton(inner, text=spell["name"], variable=var)
-                    cb.pack(anchor="w", pady=1, padx=(SPACING["sm"], 0))
-                    cb.bind("<Enter>", lambda e, s=spell: self._show_spell_detail(s))
-                    self.spell_checkbuttons[spell["name"]] = cb
+                group_list = list(group)
+                names = [s["name"] for s in group_list]
+                for s in group_list:
+                    self.spell_vars[s["name"]] = {"var": tk.BooleanVar(value=s["name"] in self.ctx.selected_new_spells), "spell": s}
+                sections.append((_LEVEL_NAMES.get(lvl, f"Level {lvl}"), names))
+
+        self._spells_list.set_sectioned_items(sections)
+        self._all_spell_objects = {s["name"]: s for s in available + all_cantrips if s["name"] in self.cantrip_vars or s["name"] in self.spell_vars}
 
         # ── RIGHT: spell detail ──
         right = tk.Frame(self._content, bg=COLORS["bg"])
@@ -205,69 +205,65 @@ class LuSpellsStep(LevelUpStep):
         # Restore count labels
         self._update_counts()
 
-    def _section_header(self, parent, title):
-        tk.Label(
-            parent,
-            text=f"\u2500\u2500 {title} \u2500\u2500",
-            font=FONTS["body"],
-            fg=COLORS["accent"],
-            bg=COLORS["bg"],
-        ).pack(anchor="w", pady=(SPACING["sm"], SPACING["xs"]))
+    def _on_spell_select_modern(self, name: str):
+        # Determine if this was a cantrip or leveled spell
+        spell = self._all_spell_objects.get(name)
+        if not spell:
+            return
+            
+        if spell["level"] == 0:
+            # Sync to the ctx via the existing toggle logic
+            self._on_cantrip_toggle_manual(name)
+        else:
+            self._on_spell_toggle_manual(name)
 
-    def _make_scrollable_list(self, parent_frame):
-        canvas = tk.Canvas(
-            parent_frame, bg=COLORS["bg"], highlightthickness=0, borderwidth=0,
-        )
-        scrollbar = ttk.Scrollbar(parent_frame, orient=tk.VERTICAL, command=canvas.yview)
-        inner = tk.Frame(canvas, bg=COLORS["bg"])
-
-        inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        cw = canvas.create_window((0, 0), window=inner, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.bind("<Configure>", lambda e, _cw=cw: canvas.itemconfig(_cw, width=e.width))
-
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        register_mousewheel_target(parent_frame, canvas)
-        register_mousewheel_target(canvas, canvas)
-        register_mousewheel_target(inner, canvas)
-
-        return canvas, inner
-
-    def _on_cantrip_toggle(self, spell):
+    def _on_cantrip_toggle_manual(self, spell_name: str):
         if self._updating_cantrips:
             return
         self._updating_cantrips = True
         try:
             new_max, _, _ = spell_deltas(self.ctx.class_slug, self.ctx.new_class_level, self.data)
-            selected = [n for n, d in self.cantrip_vars.items() if d["var"].get()]
-            if len(selected) > new_max:
-                self.cantrip_vars[spell["name"]]["var"].set(False)
-                selected = [n for n, d in self.cantrip_vars.items() if d["var"].get()]
-            self.ctx.selected_new_cantrips = selected
+            current = self.ctx.selected_new_cantrips
+            if spell_name in current:
+                current.remove(spell_name)
+            else:
+                if len(current) < new_max:
+                    current.append(spell_name)
+                else:
+                    # Deselect in listbox if at cap?
+                    # ModernSectionedListbox handles the visual toggle, we just stay in sync.
+                    # If we refuse the add, we must deselect it.
+                    self._spells_list.deselect_item(spell_name)
+                    return
+            
+            self.ctx.selected_new_cantrips = current
             self._update_counts()
-            self._update_cantrip_states(new_max, selected)
             self.notify_change()
         finally:
             self._updating_cantrips = False
 
-    def _on_spell_toggle(self, spell):
+    def _on_spell_toggle_manual(self, spell_name: str):
         if self._updating_spells:
             return
         self._updating_spells = True
         try:
             _, new_max, _ = spell_deltas(self.ctx.class_slug, self.ctx.new_class_level, self.data)
-            selected = [n for n, d in self.spell_vars.items() if d["var"].get()]
-            if len(selected) > new_max:
-                self.spell_vars[spell["name"]]["var"].set(False)
-                selected = [n for n, d in self.spell_vars.items() if d["var"].get()]
-            self.ctx.selected_new_spells = selected
+            current = self.ctx.selected_new_spells
+            if spell_name in current:
+                current.remove(spell_name)
+            else:
+                if len(current) < new_max:
+                    current.append(spell_name)
+                else:
+                    self._spells_list.deselect_item(spell_name)
+                    return
+            
+            self.ctx.selected_new_spells = current
             self._update_counts()
-            self._update_spell_states(new_max, selected)
             self.notify_change()
         finally:
             self._updating_spells = False
+
 
     def _update_counts(self):
         new_cantrips, new_prepared, _ = spell_deltas(
@@ -282,17 +278,16 @@ class LuSpellsStep(LevelUpStep):
                 text=f"{len(self.ctx.selected_new_spells)} / {new_prepared} spells selected"
             )
 
-    def _update_cantrip_states(self, max_count, selected):
-        at_max = len(selected) >= max_count
-        for name, cb in self.cantrip_checkbuttons.items():
-            cb.configure(state=tk.DISABLED if at_max and name not in selected else tk.NORMAL)
 
-    def _update_spell_states(self, max_count, selected):
-        at_max = len(selected) >= max_count
-        for name, cb in self.spell_checkbuttons.items():
-            cb.configure(state=tk.DISABLED if at_max and name not in selected else tk.NORMAL)
+    def _show_spell_detail(self, name_or_spell: str | dict):
+        if isinstance(name_or_spell, str):
+            spell = self._all_spell_objects.get(name_or_spell)
+        else:
+            spell = name_or_spell
+            
+        if not spell:
+            return
 
-    def _show_spell_detail(self, spell):
         self._spell_detail_text.configure(state=tk.NORMAL)
         self._spell_detail_text.delete("1.0", tk.END)
         lines = [

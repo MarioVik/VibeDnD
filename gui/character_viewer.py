@@ -17,7 +17,7 @@ from gui.theme import COLORS, FONTS, SPACING
 from gui.widgets import (
     ScrollableFrame,
     AlertDialog,
-    SectionedListbox,
+    ModernSectionedListbox,
     StatCard,
     SectionHeader,
     Chip,
@@ -1910,7 +1910,11 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_surface"],
         ).pack(anchor="w", padx=8, pady=(8, 4))
 
-        self.spells_list = SectionedListbox(left, on_select=self._on_spell_select)
+        self.spells_list = ModernSectionedListbox(
+            left,
+            on_hover=self._on_spell_hover,
+            on_select=self._on_spell_select,
+        )
         self.spells_list.pack(fill=tk.BOTH, expand=True, padx=4, pady=(0, 8))
 
         # Right: spell details
@@ -3174,10 +3178,10 @@ class CharacterViewer(ttk.Frame):
             bg=COLORS["bg_surface"],
         ).pack(anchor="w", padx=8, pady=(8, 4))
 
-        self.inv_list = SectionedListbox(
+        self.inv_list = ModernSectionedListbox(
             left,
+            on_hover=self._on_inv_list_hover,
             on_select=self._on_inv_list_select,
-            on_sub_select=self._on_inv_sub_select,
         )
         self.inv_list.pack(fill=tk.BOTH, expand=True, padx=4, pady=(0, 4))
 
@@ -3391,16 +3395,31 @@ class CharacterViewer(ttk.Frame):
         if self._selected_inventory_name:
             for display, entry in self._inv_list_entries.items():
                 if entry.get("name") == self._selected_inventory_name:
-                    self._select_inv_list_item(display)
+                    self.inv_list.select_item(display)
                     self._on_inventory_select_entry(entry)
                     return
 
         # Select first item
         for display, entry in self._inv_list_entries.items():
-            self._select_inv_list_item(display)
+            self.inv_list.select_item(display)
             self._on_inventory_select_entry(entry)
             return
 
+    def _on_spell_hover(self, item_name: str):
+        self._on_spell_select(item_name)
+
+    def _on_inv_list_hover(self, item_name: str):
+        self._on_inv_list_select(item_name)
+
+    def _on_inv_list_select(self, item_name: str):
+        """Handle selection in the inventory SectionedListbox."""
+        entry = self._inv_list_entries.get(item_name)
+        if not entry:
+            return
+        self._selected_inventory_name = entry.get("name", "")
+        self._on_inventory_select_entry(entry)
+
+    def _clear_inventory_selection(self):
         self._selected_inventory_name = ""
         self.remove_one_btn.configure(state=tk.DISABLED)
         self.remove_all_btn.configure(state=tk.DISABLED)
@@ -3408,35 +3427,6 @@ class CharacterViewer(ttk.Frame):
         self._inv_attune_btn.pack_forget()
         self.inventory_detail_title.configure(text="No items")
         self._set_inventory_detail_text("No inventory items available.")
-
-    def _select_inv_list_item(self, display_name: str):
-        """Programmatically select an item in the inventory SectionedListbox."""
-        lb = self.inv_list.listbox
-        for i in range(lb.size()):
-            if lb.get(i) == display_name:
-                lb.selection_clear(0, tk.END)
-                lb.selection_set(i)
-                lb.see(i)
-                return
-
-    def _on_inv_list_select(self, item_name: str):
-        """Handle selection in the inventory SectionedListbox."""
-        entry = self._inv_list_entries.get(item_name)
-        if not entry:
-            return
-        self._on_inventory_select_entry(entry)
-
-    def _on_inv_sub_select(self, parent_item: str, sub_item: str):
-        """Handle sub-item selection (e.g. items inside a pack)."""
-        # sub_item text comes with the SUB_ITEM_PREFIX stripped by SectionedListbox
-        # Try to match against our entries
-        entry = self._inv_list_entries.get(sub_item)
-        if not entry:
-            # Try stripping leading whitespace/prefix
-            clean = sub_item.strip().lstrip("- ")
-            entry = self._inv_list_entries.get(clean)
-        if entry:
-            self._on_inventory_select_entry(entry)
 
     def _toggle_equip_selected(self):
         """Toggle equip on the currently selected inventory item."""

@@ -11,7 +11,8 @@ from gui.widgets import (
     GradientHeader,
     ScrollableFrame,
     SectionHeader,
-    SectionedListbox,
+    ModernSectionedListbox,
+    ScrollableFrame,
     WrappingLabel,
     register_mousewheel_target,
 )
@@ -50,10 +51,11 @@ class ClassFeaturesStep(WizardStep):
         self._invocation_checkbuttons: dict[str, ttk.Checkbutton] = {}
         self._invocation_detail_text: tk.Text | None = None
 
-        self._invocation_feat_list: SectionedListbox | None = None
+        self._invocation_feat_list: ModernSectionedListbox | None = None
         self._invocation_feat_label: tk.Label | None = None
         self._invocation_feat_source: tk.Label | None = None
         self._invocation_feat_benefits_frame: tk.Frame | None = None
+        self._warlock_feat_tiles: dict[str, dict] = {}
         self._updating_invocations = False
         super().__init__(parent_notebook, character, game_data)
 
@@ -233,64 +235,95 @@ class ClassFeaturesStep(WizardStep):
             bg=COLORS["bg_surface"],
         ).pack(anchor="w")
 
-    def _make_scrollable_list(self, parent_frame):
-        canvas = tk.Canvas(
-            parent_frame, bg=COLORS["bg"], highlightthickness=0, borderwidth=0
-        )
-        scrollbar = ttk.Scrollbar(
-            parent_frame, orient=tk.VERTICAL, command=canvas.yview
-        )
-        inner = tk.Frame(canvas, bg=COLORS["bg"])
-
-        inner.bind(
-            "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-        canvas_window = canvas.create_window((0, 0), window=inner, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.bind(
-            "<Configure>",
-            lambda e, cw=canvas_window: canvas.itemconfig(cw, width=e.width),
-        )
-
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        register_mousewheel_target(parent_frame, canvas)
-        register_mousewheel_target(canvas, canvas)
-        register_mousewheel_target(inner, canvas)
-
-        return canvas, inner
-
     def _build_radio_group(self, key: str, title: str, options: list[dict]):
         current = str(self._choice_value(key, "") or "")
-        card = self._card(title)
+        SectionHeader(self._content, text=title).pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
+        )
+
+        tile_map = {}
         var = tk.StringVar(value=current)
 
         for option in options:
             name = str(option.get("name", "")).strip()
             if not name:
                 continue
-            ttk.Radiobutton(
-                card.inner,
+            
+            bg_hex = COLORS["bg_surface"]
+            tile_border = tk.Frame(self._content, bg=COLORS["border_medium"], cursor="hand2")
+            tile_border.pack(fill=tk.X, padx=SPACING["lg"], pady=SPACING["xs"])
+            
+            tile = tk.Frame(tile_border, bg=bg_hex, cursor="hand2")
+            tile.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
+
+            title_lbl = tk.Label(
+                tile,
                 text=name,
-                variable=var,
-                value=name,
-                command=lambda n=name: self._set_choice(key, n),
-            ).pack(anchor="w", pady=(0, 2))
+                font=FONTS["body_bold"],
+                fg=COLORS["fg"],
+                bg=bg_hex,
+                cursor="hand2",
+                anchor="w"
+            )
+            title_lbl.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["md"], 0))
+
+            desc_lbl = None
             desc = str(option.get("description", "") or "").strip()
             if desc:
-                WrappingLabel(
-                    card.inner,
+                desc_lbl = FormattedDescription(
+                    tile,
                     text=desc,
-                    background=COLORS["bg_surface"],
+                    font=FONTS["body_small"],
                     foreground=COLORS["fg_dim"],
-                ).pack(
-                    fill=tk.X,
-                    anchor="w",
-                    padx=(SPACING["lg"], 0),
-                    pady=(0, SPACING["xs"]),
+                    background=bg_hex,
+                    cursor="hand2"
                 )
+                desc_lbl.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["xs"], SPACING["md"]))
+
+            tile_map[name] = {
+                "border": tile_border,
+                "tile": tile,
+                "title": title_lbl,
+                "desc": desc_lbl
+            }
+
+            # Binds
+            def on_click(_e, n=name):
+                var.set(n)
+                self._set_choice(key, n)
+
+            def on_enter(_e, n=name):
+                if var.get() != n:
+                    tile_border.configure(bg=COLORS["accent"])
+                    tile.configure(bg=COLORS["bg_high"])
+                    title_lbl.configure(bg=COLORS["bg_high"])
+                    if desc_lbl: desc_lbl.configure(background=COLORS["bg_high"])
+
+            def on_leave(_e, n=name):
+                if var.get() != n:
+                    _update_styles()
+
+            for w in [tile_border, tile, title_lbl, desc_lbl]:
+                if w:
+                    w.bind("<Button-1>", on_click)
+                    w.bind("<Enter>", on_enter)
+                    w.bind("<Leave>", on_leave)
+
+        def _update_styles():
+            curr = var.get()
+            for n, widgets in tile_map.items():
+                is_sel = (curr == n)
+                border_c = COLORS["accent"] if is_sel else COLORS["border_medium"]
+                bg_c = COLORS["bg_high"] if is_sel else COLORS["bg_surface"]
+                fg_title = COLORS["accent_text"] if is_sel else COLORS["fg"]
+                
+                widgets["border"].configure(bg=border_c)
+                widgets["tile"].configure(bg=bg_c)
+                widgets["title"].configure(bg=bg_c, fg=fg_title)
+                if widgets["desc"]:
+                    widgets["desc"].configure(background=bg_c)
+
+        _update_styles()
 
     def _build_combo_slots(
         self,
@@ -598,6 +631,11 @@ class ClassFeaturesStep(WizardStep):
                     background=background,
                 ).pack(fill=tk.X, anchor="w", padx=(SPACING["lg"], 0))
 
+    def _on_invocation_feat_hover(self, name: str):
+        feat = self.data.feats_by_name.get(name)
+        if feat:
+            self._show_invocation_feat_details(feat)
+
     def _on_invocation_feat_select(self, name: str):
         feat = self.data.feats_by_name.get(name)
         if not feat:
@@ -606,7 +644,7 @@ class ClassFeaturesStep(WizardStep):
         if not isinstance(self.character.level1_class_choices, dict):
             self.character.level1_class_choices = {}
         self.character.level1_class_choices["warlock_lessons_feat"] = feat["name"]
-        self._show_invocation_feat_details(feat)
+        self._update_warlock_feat_tile_styles()
         self.notify_change()
 
     def _show_invocation_feat_details(self, feat: dict):
@@ -624,83 +662,137 @@ class ClassFeaturesStep(WizardStep):
             self._render_feat_benefits(feat, self._invocation_feat_benefits_frame)
 
     def _build_warlock_origin_feat_picker(self):
-        section = tk.Frame(self._content, bg=COLORS["bg"])
-        section.pack(
-            fill=tk.X,
-            padx=SPACING["lg"],
-            pady=(SPACING["sm"], SPACING["sm"]),
-        )
-        section.columnconfigure(1, weight=1)
-        section.rowconfigure(1, weight=1)
-        section.columnconfigure(0, minsize=260)
-
-        SectionHeader(section, text="Invocation Feat (Lessons Of The First Ones)").grid(
-            row=0,
-            column=0,
-            columnspan=2,
-            sticky="ew",
-            pady=(0, SPACING["sm"]),
+        SectionHeader(self._content, text="Invocation Feat (Lessons Of The First Ones)").pack(
+            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
         )
 
-        list_frame = tk.Frame(section, bg=COLORS["bg"], width=260)
-        list_frame.grid(
-            row=1,
-            column=0,
-            sticky="nsew",
-            padx=(0, SPACING["xs"]),
-            pady=0,
-        )
-        list_frame.columnconfigure(0, weight=1)
-        list_frame.rowconfigure(2, weight=1)
+        filter_frame = tk.Frame(self._content, bg=COLORS["bg"])
+        filter_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
 
         tk.Label(
-            list_frame,
+            filter_frame,
             text="Choose an Origin Feat:",
             font=FONTS["body"],
             fg=COLORS["fg_dim"],
             bg=COLORS["bg"],
-        ).grid(row=0, column=0, sticky="w", pady=(0, 2))
+        ).pack(anchor="w")
 
-        self._invocation_feat_list = SectionedListbox(
-            list_frame,
-            on_select=self._on_invocation_feat_select,
-        )
-        self._invocation_feat_list.grid(row=1, column=0, rowspan=2, sticky="nsew")
+        self._warlock_feat_tiles = {}
+        
+        # Get feats
+        filters = self.data.source_filters.get("feats", {})
+        enabled = {cat for cat, on in filters.items() if on}
+        owned = get_owned_feat_names(self.character)
+        current_name = str((self._choice_value("warlock_lessons_feat", "") or "")).strip()
+        current_key = current_name.casefold() if current_name else ""
 
-        detail_scroll = tk.Frame(section, bg=COLORS["bg"])
-        detail_scroll.grid(row=1, column=1, sticky="nsew", padx=0, pady=0)
-        detail_scroll.columnconfigure(0, weight=1)
-        detail_scroll.rowconfigure(0, weight=1)
+        origin_feats = []
+        for feat in self.data.feats:
+            if feat.get("category") != "origin":
+                continue
+            name = str(feat.get("name", "") or "").strip()
+            key = name.casefold()
+            if key in owned and key != current_key:
+                continue
+            origin_feats.append(feat)
 
-        detail_card = CardFrame(detail_scroll, pad=SPACING["lg"])
-        detail_card.grid(row=0, column=0, sticky="nsew")
+        # Render cards
+        for feat in sorted(origin_feats, key=lambda f: f["name"]):
+            self._create_warlock_feat_tile(self._content, feat)
 
-        self._invocation_feat_label = tk.Label(
-            detail_card.inner,
-            text="Select a feat",
-            font=FONTS["heading_serif_sm"],
+        self._update_warlock_feat_tile_styles()
+
+    def _create_warlock_feat_tile(self, parent, feat):
+        name = feat["name"]
+        bg_hex = COLORS["bg_surface"]
+        
+        tile_border = tk.Frame(parent, bg=COLORS["border_medium"], cursor="hand2")
+        tile_border.pack(fill=tk.X, padx=SPACING["lg"], pady=SPACING["xs"])
+        
+        tile = tk.Frame(tile_border, bg=bg_hex, cursor="hand2")
+        tile.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
+
+        title_lbl = tk.Label(
+            tile,
+            text=name,
+            font=FONTS["body_bold"],
             fg=COLORS["fg"],
-            bg=COLORS["bg_surface"],
+            bg=bg_hex,
+            cursor="hand2",
+            anchor="w"
         )
-        self._invocation_feat_label.pack(anchor="w")
+        title_lbl.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["md"], 0))
 
-        self._invocation_feat_source = tk.Label(
-            detail_card.inner,
-            text="",
-            font=FONTS["label_upper_bold"],
+        source_lbl = tk.Label(
+            tile,
+            text=f"Source: {feat.get('source', 'Unknown')}",
+            font=FONTS["label_tiny"],
             fg=COLORS["fg_dim"],
-            bg=COLORS["bg_surface"],
+            bg=bg_hex,
+            cursor="hand2",
+            anchor="w"
         )
-        self._invocation_feat_source.pack(anchor="w")
+        source_lbl.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["xs"]))
 
-        self._invocation_feat_benefits_frame = tk.Frame(
-            detail_card.inner,
-            bg=COLORS["bg_surface"],
-        )
-        self._invocation_feat_benefits_frame.pack(fill=tk.X, pady=(SPACING["xs"], 0))
+        benefits_frame = tk.Frame(tile, bg=bg_hex)
+        benefits_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["md"]))
+        self._render_feat_benefits(feat, benefits_frame)
 
-        self._populate_invocation_origin_feats()
-        self._clear_invocation_feat_details()
+        self._warlock_feat_tiles[name] = {
+            "border": tile_border,
+            "tile": tile,
+            "title": title_lbl,
+            "source": source_lbl,
+            "benefits": benefits_frame
+        }
+
+        # Bindings
+        def on_click(_e):
+            self._on_invocation_feat_select(name)
+
+        def on_enter(_e):
+            if str(self._choice_value("warlock_lessons_feat", "")) != name:
+                tile_border.configure(bg=COLORS["accent"])
+                tile.configure(bg=COLORS["bg_high"])
+                title_lbl.configure(bg=COLORS["bg_high"])
+                source_lbl.configure(bg=COLORS["bg_high"])
+                for child in benefits_frame.winfo_children():
+                    child.configure(bg=COLORS["bg_high"])
+                    for subchild in child.winfo_children():
+                        if isinstance(subchild, (tk.Label, tk.Frame)):
+                            if not isinstance(subchild, FormattedDescription):
+                                subchild.configure(bg=COLORS["bg_high"])
+
+        def on_leave(_e):
+            if str(self._choice_value("warlock_lessons_feat", "")) != name:
+                self._update_warlock_feat_tile_styles()
+
+        for w in [tile_border, tile, title_lbl, source_lbl]:
+            w.bind("<Button-1>", on_click)
+            w.bind("<Enter>", on_enter)
+            w.bind("<Leave>", on_leave)
+
+    def _update_warlock_feat_tile_styles(self):
+        current = str(self._choice_value("warlock_lessons_feat", "") or "").strip()
+        for name, widgets in self._warlock_feat_tiles.items():
+            is_sel = (current == name)
+            border_c = COLORS["accent"] if is_sel else COLORS["border_medium"]
+            bg_c = COLORS["bg_high"] if is_sel else COLORS["bg_surface"]
+            fg_title = COLORS["accent_text"] if is_sel else COLORS["fg"]
+            
+            widgets["border"].configure(bg=border_c)
+            widgets["tile"].configure(bg=bg_c)
+            widgets["title"].configure(bg=bg_c, fg=fg_title)
+            widgets["source"].configure(bg=bg_c)
+            widgets["benefits"].configure(bg=bg_c)
+            for child in widgets["benefits"].winfo_children():
+                child.configure(bg=bg_c)
+                for subchild in child.winfo_children():
+                    if isinstance(subchild, (tk.Label, tk.Frame)):
+                        if not isinstance(subchild, FormattedDescription):
+                            subchild.configure(bg=bg_c)
+                        else:
+                            subchild.configure(background=bg_c)
 
         selected_name = str(self._choice_value("warlock_lessons_feat", "") or "").strip()
         if selected_name:
@@ -758,25 +850,26 @@ class ClassFeaturesStep(WizardStep):
             bg=COLORS["bg"],
         ).pack(anchor="w", padx=4, pady=(0, 1))
 
-        list_outer = tk.Frame(left, bg=COLORS["bg"], height=300)
+        list_outer = tk.Frame(left, bg=COLORS["bg"])
         list_outer.pack(fill=tk.BOTH, expand=True, pady=(2, 0))
-        list_outer.pack_propagate(False)
-        _canvas, inner = self._make_scrollable_list(list_outer)
 
-        selected_option = None
+        self._invocation_selector = ModernSectionedListbox(
+            list_outer,
+            multiselect=True,
+            on_hover=lambda name: self._show_invocation_detail(self._invocation_vars[name]["invocation"]),
+            on_select=lambda name: self._on_invocation_toggle(self._invocation_vars[name]["invocation"])
+        )
+        self._invocation_selector.pack(fill=tk.BOTH, expand=True)
+
         for option in sorted(invocation_options, key=lambda item: item["name"]):
             name = option["name"]
             if name == current_invocation:
                 selected_option = option
             var = tk.BooleanVar(value=(name == current_invocation))
-            var.trace_add("write", lambda *_args, o=option: self._on_invocation_toggle(o))
             self._invocation_vars[name] = {"var": var, "invocation": option}
-            cb = ttk.Checkbutton(inner, text=name, variable=var)
-            cb.pack(anchor="w", pady=1, padx=(8, 0))
-            cb.bind("<Enter>", lambda _event, o=option: self._show_invocation_detail(o))
-            self._invocation_checkbuttons[name] = cb
 
-        self._update_invocation_states()
+        sections = [("Eldritch Invocations", [o["name"] for o in sorted(invocation_options, key=lambda i: i["name"])])]
+        self._invocation_selector.set_sectioned_items(sections, [current_invocation] if current_invocation else [])
 
         right = tk.Frame(top_row, bg=COLORS["bg"])
         right.grid(row=0, column=1, sticky="nsew", padx=(SPACING["xs"], 0))

@@ -467,6 +467,9 @@ class FormattedDescription(tk.Text):
         bg = background or kwargs.pop("bg", COLORS["bg"])
         fg = foreground or kwargs.pop("fg", COLORS["fg_dim"])
         base_font = font or FONTS["body_small"]
+        
+        c = kwargs.pop("cursor", "")
+        # print(f"DEBUG: FormattedDescription cursor={c}, remaining_kwargs={list(kwargs.keys())}")
 
         super().__init__(
             master,
@@ -478,7 +481,7 @@ class FormattedDescription(tk.Text):
             bg=bg,
             fg=fg,
             font=base_font,
-            cursor="",
+            cursor=c,
             spacing3=4,  # space after each line/paragraph
             **kwargs,
         )
@@ -618,79 +621,6 @@ class FormattedDescription(tk.Text):
             self.configure(height=total_display_lines)
 
 
-class SearchableListbox(ttk.Frame):
-    """A listbox with a search/filter entry above it."""
-
-    def __init__(self, parent, items=None, on_select=None, **kwargs):
-        super().__init__(parent, **kwargs)
-        self.all_items = items or []
-        self.on_select = on_select
-
-        # Search entry
-        self.search_var = tk.StringVar()
-        self.search_var.trace_add("write", self._filter)
-        self.search_entry = ttk.Entry(self, textvariable=self.search_var)
-        self.search_entry.pack(fill=tk.X, padx=2, pady=(2, 4))
-
-        # Listbox with scrollbar
-        list_frame = ttk.Frame(self)
-        list_frame.pack(fill=tk.BOTH, expand=True)
-
-        self.listbox = tk.Listbox(
-            list_frame,
-            bg=COLORS["bg_light"],
-            fg=COLORS["fg"],
-            selectbackground=COLORS["select_bg"],
-            selectforeground=COLORS["select_fg"],
-            font=FONTS["body"],
-            borderwidth=0,
-            highlightthickness=0,
-            activestyle="none",
-        )
-        scrollbar = ttk.Scrollbar(
-            list_frame, orient=tk.VERTICAL, command=self.listbox.yview
-        )
-        self.listbox.configure(yscrollcommand=scrollbar.set)
-
-        self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        self.listbox.bind("<<ListboxSelect>>", self._on_select)
-        self._populate()
-
-    def set_items(self, items: list[str]):
-        self.all_items = items
-        self._populate()
-
-    def _populate(self):
-        self.listbox.delete(0, tk.END)
-        query = self.search_var.get().lower()
-        for item in self.all_items:
-            if not query or query in item.lower():
-                self.listbox.insert(tk.END, item)
-
-    def _filter(self, *args):
-        self._populate()
-
-    def _on_select(self, event):
-        sel = self.listbox.curselection()
-        if sel and self.on_select:
-            self.on_select(self.listbox.get(sel[0]))
-
-    def get_selection(self) -> str | None:
-        sel = self.listbox.curselection()
-        if sel:
-            return self.listbox.get(sel[0])
-        return None
-
-    def select_item(self, name: str):
-        """Programmatically select an item by name."""
-        for i in range(self.listbox.size()):
-            if self.listbox.get(i) == name:
-                self.listbox.selection_clear(0, tk.END)
-                self.listbox.selection_set(i)
-                self.listbox.see(i)
-                break
 
 
 class UseSpellSlotDialog:
@@ -1220,188 +1150,256 @@ class HoverTooltip:
         self._last_event = None
 
 
-class SectionedListbox(ttk.Frame):
-    """A listbox with search, grouped by sections with non-selectable headers.
 
-    Items can optionally have sub-items (displayed as indented, non-selectable
-    dim rows beneath each item).  Pass them via ``set_sectioned_items`` using
-    the ``sub_items`` dict mapping item names to lists of sub-item strings.
+
+class ModernSectionedListbox(tk.Frame):
+    """A premium, hover-driven listbox that replaces SectionedListbox.
+
+    Features:
+    - High-performance ScrollableFrame backend.
+    - Hover-based detail updates (instant preview).
+    - "Active row" highlighting with accent rail indicators.
+    - Supports both single-selection (click) and multi-selection (checkboxes).
+    - Stylized section headers (serif-italic with rule lines).
     """
-
-    HEADER_PREFIX = "\u2500\u2500 "  # ── prefix for section headers
-    HEADER_SUFFIX = " \u2500\u2500"
-    SUB_ITEM_PREFIX = "         - "
 
     def __init__(
         self,
         parent,
+        on_hover=None,
         on_select=None,
-        on_sub_select=None,
-        horizontal_scroll: bool = False,
+        multiselect: bool = False,
         **kwargs,
     ):
-        super().__init__(parent, **kwargs)
+        super().__init__(parent, bg=COLORS["bg"], **kwargs)
+        self.on_hover = on_hover
         self.on_select = on_select
-        self.on_sub_select = on_sub_select
-        self.sections: list[tuple[str, list[str]]] = []  # [(section_name, [items])]
-        self.sub_items: dict[str, list[str]] = {}  # item_name -> [sub-item texts]
-        self._header_indices: set[int] = set()  # listbox indices that are headers
-        self._sub_item_indices: set[int] = set()  # listbox indices that are sub-items
-        self._sub_leaf_indices: dict[int, tuple[str, str]] = {}
-        self._item_row_indices: dict[
-            int, str
-        ] = {}  # idx -> item name for selectable rows
-        self._horizontal_scroll = horizontal_scroll
+        self.multiselect = multiselect
 
-        # Search entry
+        self._active_name = tk.StringVar(value="")
+        self._row_widgets: dict[str, dict[str, tk.Widget]] = {}
+        self._vars: dict[str, tk.BooleanVar] = {}
+        self._fixed_names: set[str] = set()
+        self._disabled_names: set[str] = set()
+
+        # Search area
+        search_frame = tk.Frame(self, bg=COLORS["bg"])
+        search_frame.pack(fill=tk.X, padx=2, pady=(0, 4))
+        
         self.search_var = tk.StringVar()
-        self.search_var.trace_add("write", self._filter)
-        self.search_entry = ttk.Entry(self, textvariable=self.search_var)
-        self.search_entry.pack(fill=tk.X, padx=2, pady=(2, 4))
+        self.search_var.trace_add("write", lambda *_: self._filter())
+        self.search_entry = ttk.Entry(search_frame, textvariable=self.search_var)
+        self.search_entry.pack(fill=tk.X)
 
-        # Listbox with scrollbar
-        list_frame = ttk.Frame(self)
-        list_frame.pack(fill=tk.BOTH, expand=True)
+        # Main scrollable list
+        self.sf = ScrollableFrame(self, inner_padding=0)
+        self.sf.pack(fill=tk.BOTH, expand=True)
 
-        self.listbox = tk.Listbox(
-            list_frame,
-            bg=COLORS["bg_light"],
-            fg=COLORS["fg"],
-            selectbackground=COLORS["select_bg"],
-            selectforeground=COLORS["select_fg"],
-            font=FONTS["body"],
-            borderwidth=0,
-            highlightthickness=0,
-            activestyle="none",
-        )
-        scrollbar = ttk.Scrollbar(
-            list_frame, orient=tk.VERTICAL, command=self.listbox.yview
-        )
-        self.listbox.configure(yscrollcommand=scrollbar.set)
-
-        self.listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        if self._horizontal_scroll:
-            xscroll = ttk.Scrollbar(
-                self, orient=tk.HORIZONTAL, command=self.listbox.xview
-            )
-            self.listbox.configure(xscrollcommand=xscroll.set)
-            xscroll.pack(fill=tk.X, padx=2, pady=(2, 0))
-
-        self.listbox.bind("<<ListboxSelect>>", self._on_select)
+        self._raw_sections: list[tuple[str, list[str]]] = []
+        self._raw_data: dict[str, any] = {}
 
     def set_sectioned_items(
         self,
         sections: list[tuple[str, list[str]]],
-        sub_items: dict[str, list[str]] | None = None,
+        selected_names: list[str] = None,
+        sub_items: dict[str, list[str]] = None,
+        fixed_names: list[str] = None,
+        disabled_names: list[str] = None,
     ):
-        """Set items grouped by section.
+        """Populate the list with categorized items, optionally with sub-items or fixed/disabled states."""
+        self._raw_sections = sections
+        self._raw_sub_items = sub_items or {}
+        self._fixed_names = set(fixed_names or [])
+        self._disabled_names = set(disabled_names or [])
+        self._populate(selected_names or [])
 
-        Args:
-            sections: [(section_name, [item_names])]
-            sub_items: optional dict mapping item names to lists of sub-item
-                       display strings shown beneath that item when visible.
-        """
-        self.sections = sections
-        self.sub_items = sub_items or {}
-        self._populate()
-
-    def _populate(self):
-        self.listbox.delete(0, tk.END)
-        self._header_indices.clear()
-        self._sub_item_indices.clear()
-        self._sub_leaf_indices.clear()
-        self._item_row_indices.clear()
+    def _populate(self, selected_names: list[str]):
+        # Clear existing
+        for w in self.sf.inner.winfo_children():
+            w.destroy()
+        self._row_widgets.clear()
+        self._vars.clear()
+        
         query = self.search_var.get().lower()
-        idx = 0
-
-        for section_name, items in self.sections:
-            # Filter items by search query (also match on sub-item names)
-            visible = []
+        
+        for section_name, items in self._raw_sections:
+            # Filter items in this section
+            visible_items = []
             for it in items:
-                subs = self.sub_items.get(it, [])
-                if (
-                    not query
-                    or query in it.lower()
-                    or any(query in s.lower() for s in subs)
-                ):
-                    visible.append(it)
-            if not visible:
+                matches_item = not query or query in it.lower()
+                
+                # Check if sub-items match (if any)
+                subs = self._raw_sub_items.get(it, [])
+                matching_subs = [s for s in subs if not query or query in s.lower()]
+                
+                if matches_item or matching_subs:
+                    visible_items.append((it, matching_subs))
+
+            if not visible_items:
                 continue
 
-            # Insert section header
-            header_text = f"{self.HEADER_PREFIX}{section_name}{self.HEADER_SUFFIX}"
-            self.listbox.insert(tk.END, header_text)
-            self.listbox.itemconfig(
-                idx,
-                fg=COLORS["accent"],
-                selectbackground=COLORS["bg_light"],
-                selectforeground=COLORS["accent"],
+            # Section Header
+            hdr = SectionHeader(self.sf.inner, text=section_name)
+            hdr.pack(fill=tk.X, padx=(8, 8), pady=(12, 4))
+
+            for parent_name, subs in visible_items:
+                self._build_row(
+                    parent_name,
+                    parent_name in selected_names,
+                    is_fixed=parent_name in self._fixed_names,
+                    is_disabled=parent_name in self._disabled_names,
+                )
+                for sub_name in subs:
+                    self._build_row(
+                        sub_name,
+                        sub_name in selected_names,
+                        is_sub=True,
+                        is_fixed=sub_name in self._fixed_names,
+                        is_disabled=sub_name in self._disabled_names,
+                    )
+
+    def _build_row(
+        self,
+        name: str,
+        is_checked: bool,
+        is_sub: bool = False,
+        is_fixed: bool = False,
+        is_disabled: bool = False,
+    ):
+        row_frame = tk.Frame(
+            self.sf.inner,
+            bg=COLORS["bg"],
+            highlightthickness=1,
+            highlightbackground=COLORS["bg"],
+            cursor="hand2" if not is_disabled else "",
+        )
+        row_frame.pack(fill=tk.X, padx=(2, 0), pady=1)
+
+        # Indentation for sub-items
+        rail_padx = (20, 6) if is_sub else (0, 6)
+        
+        rail = tk.Frame(row_frame, width=6, bg=COLORS["bg"])
+        rail.pack(side=tk.LEFT, fill=tk.Y, padx=rail_padx)
+
+        display_name = f"└─ {name}" if is_sub else name
+        fg = COLORS["fg_disabled"] if is_disabled else (COLORS["fg_dim"] if is_sub else COLORS["fg"])
+
+        if self.multiselect and not is_fixed:
+            var = tk.BooleanVar(value=is_checked)
+            self._vars[name] = var
+            cb = ttk.Checkbutton(
+                row_frame,
+                text=display_name,
+                variable=var,
+                state="disabled" if is_disabled else "normal",
             )
-            self._header_indices.add(idx)
-            idx += 1
+            cb.pack(side=tk.LEFT, anchor="w", pady=4)
+            cb.bind("<Enter>", lambda _e, n=name: self._handle_hover(n))
+            var.trace_add("write", lambda *_, n=name: self._handle_select(n))
+            content_widget = cb
+        else:
+            lbl = tk.Label(
+                row_frame,
+                text=display_name,
+                font=FONTS["body_small"] if is_sub else FONTS["body"],
+                fg=fg,
+                bg=COLORS["bg"],
+                anchor="w",
+                justify=tk.LEFT,
+            )
+            lbl.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=4 if is_sub else 6, padx=(4, 0))
+            content_widget = lbl
 
-            # Insert items and optional sub-items
-            for item in visible:
-                self.listbox.insert(tk.END, f"  {item}")
-                self._item_row_indices[idx] = item
-                idx += 1
+        self._row_widgets[name] = {"row": row_frame, "rail": rail, "content": content_widget}
 
-                subs = self.sub_items.get(item, [])
-                if subs:
-                    for sub in subs:
-                        self.listbox.insert(tk.END, f"{self.SUB_ITEM_PREFIX}{sub}")
-                        self.listbox.itemconfig(
-                            idx,
-                            fg=COLORS["fg_dim"],
-                            selectbackground=COLORS["select_bg"],
-                            selectforeground=COLORS["select_fg"],
-                        )
-                        self._sub_item_indices.add(idx)
-                        self._sub_leaf_indices[idx] = (item, sub)
-                        idx += 1
+        # Bindings for hover and click (on the row and the content)
+        if not is_disabled:
+            row_frame.bind("<Enter>", lambda _e, n=name: self._handle_hover(n))
+            row_frame.bind("<Button-1>", lambda _e, n=name: self._toggle_or_select(n))
+            
+            if not self.multiselect or is_fixed:
+                content_widget.bind("<Enter>", lambda _e, n=name: self._handle_hover(n))
+                content_widget.bind("<Button-1>", lambda _e, n=name: self._toggle_or_select(n))
 
-    def _filter(self, *args):
-        self._populate()
+    def _handle_hover(self, name: str):
+        self._set_active(name)
+        if self.on_hover:
+            self.on_hover(name)
 
-    def _is_non_selectable(self, index: int) -> bool:
-        return index in self._header_indices or index in self._sub_item_indices
+    def _toggle_or_select(self, name: str):
+        if self.multiselect and name in self._vars and name not in self._disabled_names:
+            var = self._vars[name]
+            var.set(not var.get())
+        else:
+            self._handle_select(name)
 
-    def _on_select(self, event):
-        sel = self.listbox.curselection()
-        if not sel:
-            return
-        i = sel[0]
-
-        if i in self._sub_leaf_indices:
-            parent_item, sub_item = self._sub_leaf_indices[i]
-            if self.on_sub_select:
-                self.on_sub_select(parent_item, sub_item)
-            return
-
-        if self._is_non_selectable(i):
-            self.listbox.selection_clear(i)
-            return
-
+    def _handle_select(self, name: str):
+        self._set_active(name)
         if self.on_select:
-            name = self.listbox.get(i).strip()
             self.on_select(name)
 
-    def get_selection(self) -> str | None:
-        sel = self.listbox.curselection()
-        if sel and not self._is_non_selectable(sel[0]):
-            return self.listbox.get(sel[0]).strip()
-        return None
+    def _set_active(self, name: str):
+        prev = self._active_name.get()
+        if prev == name:
+            return
+        
+        if prev and prev in self._row_widgets:
+            self._apply_row_style(prev, active=False)
+        
+        self._active_name.set(name)
+        
+        if name and name in self._row_widgets:
+            self._apply_row_style(name, active=True)
+
+    def _apply_row_style(self, name: str, active: bool):
+        w = self._row_widgets[name]
+        bg = COLORS["bg_container"] if active else COLORS["bg"]
+        border = COLORS["accent"] if active else COLORS["bg"]
+        rail_bg = COLORS["accent_text"] if active else COLORS["bg"]
+        
+        w["row"].configure(bg=bg, highlightbackground=border)
+        w["rail"].configure(bg=rail_bg)
+        
+        # If it's a label, update its background too
+        if not self.multiselect:
+            w["content"].configure(bg=bg)
+
+    def _filter(self):
+        # When filtering, we keep the previous selection if possible
+        selected = []
+        if self.multiselect:
+            selected = [n for n, v in self._vars.items() if v.get()]
+        else:
+            selected = [self._active_name.get()]
+        
+        self._populate(selected)
 
     def select_item(self, name: str):
-        """Programmatically select an item by name."""
-        for i in range(self.listbox.size()):
-            if not self._is_non_selectable(i) and self.listbox.get(i).strip() == name:
-                self.listbox.selection_clear(0, tk.END)
-                self.listbox.selection_set(i)
-                self.listbox.see(i)
-                break
+        """Programmatically select and highlight an item."""
+        if name in self._row_widgets:
+            self._set_active(name)
+            # Ensure it's visible
+            # ScrollableFrame doesn't have a direct 'see' for widgets inside it
+            # but we could implement one. For now just set active.
+            if self.multiselect and name in self._vars:
+                if name not in self._disabled_names:
+                    self._vars[name].set(True)
+
+    def deselect_item(self, name: str):
+        """Programmatically deselect an item (only for multiselect)."""
+        if self.multiselect and name in self._vars:
+            self._vars[name].set(False)
+
+    def set_selected_items(self, names: list[str]):
+        """Bulk update selection state without triggering callbacks for every item."""
+        # Note: traces will still fire. To avoid re-entry loops, 
+        # callers should use the _updating_choices flag pattern.
+        for name, var in self._vars.items():
+            var.set(name in names)
+
+    def get_selection(self) -> str | None:
+        """Get the currently active/selected item."""
+        return self._active_name.get()
 
 
 class ScrollableFrame(ttk.Frame):

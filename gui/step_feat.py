@@ -5,7 +5,7 @@ from tkinter import ttk
 
 from gui.base_step import WizardStep
 from gui.widgets import (
-    SectionedListbox,
+    ModernSectionedListbox,
     FormattedDescription,
     GradientHeader,
     SectionHeader,
@@ -110,8 +110,9 @@ class FeatStep(WizardStep):
 
 
 
-        self.origin_feat_list = SectionedListbox(
+        self.origin_feat_list = ModernSectionedListbox(
             self.sp_list_frame,
+            on_hover=self._show_species_feat_detail,
             on_select=self._on_species_feat_select,
         )
         self.origin_feat_list.grid(row=1, column=0, rowspan=2, sticky="nsew")
@@ -275,12 +276,10 @@ class FeatStep(WizardStep):
                     pady=(SPACING["sm"], SPACING["sm"]),
                 )
 
-    def _on_species_feat_select(self, name: str):
+    def _show_species_feat_detail(self, name: str):
         feat = self.data.feats_by_name.get(name)
         if not feat:
             return
-
-        self.character.species_origin_feat = feat
 
         self.sp_feat_label.configure(text=feat["name"])
         self.sp_feat_source.configure(text=f"Source: {feat.get('source', 'Unknown')}")
@@ -288,6 +287,14 @@ class FeatStep(WizardStep):
         for w in self.sp_benefits_frame.winfo_children():
             w.destroy()
         self._render_benefits(feat, self.sp_benefits_frame)
+
+    def _on_species_feat_select(self, name: str):
+        feat = self.data.feats_by_name.get(name)
+        if not feat:
+            return
+
+        self.character.species_origin_feat = feat
+        self._show_species_feat_detail(name)
         self.notify_change()
 
     def _render_benefits(self, feat: dict, parent):
