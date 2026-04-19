@@ -479,7 +479,7 @@ def _resource_spec_for_card(character, card: dict) -> dict | None:
 _GENERIC_COUNT_FLEXIBLE_PATTERN = re.compile(
     r"You can use this (?:trait|feature|benefit|ability|Bonus Action|Reaction)[^.]*a number of times equal to (?:your )?"
     r"(Proficiency Bonus|Intelligence modifier|Wisdom modifier|Charisma modifier|Strength modifier|Dexterity modifier|Constitution modifier)\b.*?"
-    r"(?:You|and you) regain(?: all)? expended uses .*?finish a (Long Rest|Short or Long Rest)\.",
+    r"(?:You|and you|,)? ?(?:regain|regaining)(?: all)? expended uses .*?finish a (Long Rest|Short or Long Rest)(?:[.,]|\b)",
     _RESOURCE_PATTERN_FLAGS,
 )
 
@@ -497,7 +497,7 @@ _GENERIC_COUNT_TWICE_PATTERN = re.compile(
 _GENERIC_POOL_FLEXIBLE_PATTERN = re.compile(
     r"You have a number of ([A-Za-z'’ ]+?) equal to your "
     r"(Proficiency Bonus|Intelligence modifier|Wisdom modifier|Charisma modifier|Strength modifier|Dexterity modifier|Constitution modifier)\b.*?"
-    r"you regain (?:your|all) expended \1 when you finish a (Long Rest|Short or Long Rest)\.",
+    r"you regain (?:your|all) expended \1 when you finish a (Long Rest|Short or Long Rest)(?:[.,]|\b)",
     _RESOURCE_PATTERN_FLAGS,
 )
 
