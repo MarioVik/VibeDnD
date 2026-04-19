@@ -385,8 +385,12 @@ def configure_modal_dialog(dialog: tk.Toplevel, parent):
         dialog.focus_set()
 
 
-def center_dialog_over_parent(dialog: tk.Toplevel, parent):
-    """Center a dialog over the parent toplevel window."""
+def center_dialog_over_parent(dialog: tk.Toplevel, parent, width: int | None = None, height: int | None = None):
+    """Center a dialog over the parent toplevel window.
+    
+    If width and height are provided, they are used directly. Otherwise, the helper
+    attempts to measure the dialog's current or requested size.
+    """
     top = parent.winfo_toplevel() if parent is not None else None
     if top is None:
         return
@@ -395,16 +399,16 @@ def center_dialog_over_parent(dialog: tk.Toplevel, parent):
         top.update_idletasks()
         dialog.update_idletasks()
 
-        width = dialog.winfo_width() or dialog.winfo_reqwidth()
-        height = dialog.winfo_height() or dialog.winfo_reqheight()
+        final_w = width or dialog.winfo_width() or dialog.winfo_reqwidth()
+        final_h = height or dialog.winfo_height() or dialog.winfo_reqheight()
 
         parent_x = top.winfo_rootx()
         parent_y = top.winfo_rooty()
         parent_w = top.winfo_width()
         parent_h = top.winfo_height()
 
-        x = parent_x + ((parent_w - width) // 2)
-        y = parent_y + ((parent_h - height) // 2)
+        x = parent_x + ((parent_w - final_w) // 2)
+        y = parent_y + ((parent_h - final_h) // 2)
 
         screen_x = dialog.winfo_vrootx()
         screen_y = dialog.winfo_vrooty()
@@ -413,13 +417,13 @@ def center_dialog_over_parent(dialog: tk.Toplevel, parent):
     except tk.TclError:
         return
 
-    if width <= screen_w:
-        x = max(screen_x, min(x, screen_x + screen_w - width))
-    if height <= screen_h:
-        y = max(screen_y, min(y, screen_y + screen_h - height))
+    if final_w <= screen_w:
+        x = max(screen_x, min(x, screen_x + screen_w - final_w))
+    if final_h <= screen_h:
+        y = max(screen_y, min(y, screen_y + screen_h - final_h))
 
     try:
-        dialog.geometry(f"{width}x{height}{x:+d}{y:+d}")
+        dialog.geometry(f"{final_w}x{final_h}{x:+d}{y:+d}")
     except tk.TclError:
         return
 

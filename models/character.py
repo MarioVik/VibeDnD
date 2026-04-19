@@ -138,6 +138,19 @@ class Character:
     spent_feature_resources: dict[str, int] = field(default_factory=dict)
     # Maps feature resource id -> spent count or spent pool value.
     arcane_recovery_used: bool = False
+    feature_states: dict[str, Any] = field(default_factory=dict)
+    # Generic storage for feature-specific state (e.g. current selected biome or resistance)
+
+    def get_feature_state(self, feature_id: str, default: Any = None) -> Any:
+        """Retrieve persisted state for a specific feature."""
+        return self.feature_states.get(feature_id, default)
+
+    def set_feature_state(self, feature_id: str, state: Any) -> bool:
+        """Persist state for a specific feature. Returns True if changed."""
+        if self.feature_states.get(feature_id) == state:
+            return False
+        self.feature_states[feature_id] = state
+        return True
 
     @property
     def effective_current_hp(self) -> int:
