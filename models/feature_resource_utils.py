@@ -146,6 +146,26 @@ def _resolve_formula(character, game_data, formula: str, context: dict) -> int:
         return max(1, _ability_modifier(character, "Constitution"))
     if formula == "paladin_level_x5":
         return max(0, _character_class_level(character, "paladin") * 5)
+    if formula == "fighter_superiority_dice":
+        fl = _character_class_level(character, "fighter")
+        if fl >= 15:
+            return 6
+        if fl >= 7:
+            return 5
+        return 4
+    if formula == "rogue_psionic_dice":
+        rl = _character_class_level(character, "rogue")
+        if rl >= 17:
+            return 12
+        if rl >= 13:
+            return 10
+        if rl >= 9:
+            return 8
+        if rl >= 5:
+            return 6
+        return 4
+    if formula == "wizard_portent_dice":
+        return 3 if _character_class_level(character, "wizard") >= 14 else 2
     if formula == "fighter_action_surge_uses":
         fighter_level = _character_class_level(character, "fighter")
         return 2 if fighter_level >= 17 else 1
@@ -380,6 +400,13 @@ _CLASS_RESOURCE_SPECS = {
         "refresh_type": "partial_short_full_long",
         "short_restore_amount": 1,
     },
+    ("fighter", "combat superiority"): {
+        "resource_label": "Superiority Dice",
+        "resource_kind": "pool",
+        "unit_label": "dice",
+        "max_formula": "fighter_superiority_dice",
+        "refresh_type": "short_or_long",
+    },
     ("fighter", "second wind"): {
         "resource_label": "Second Wind",
         "resource_kind": "count",
@@ -431,6 +458,13 @@ _CLASS_RESOURCE_SPECS = {
         "refresh_type": "partial_short_full_long",
         "short_restore_amount": 1,
     },
+    ("rogue", "psionic power"): {
+        "resource_label": "Psionic Energy Dice",
+        "resource_kind": "pool",
+        "unit_label": "dice",
+        "max_formula": "rogue_psionic_dice",
+        "refresh_type": "long",
+    },
     ("ranger", "favored enemy"): {
         "resource_label": "Favored Enemy",
         "resource_kind": "count",
@@ -450,6 +484,13 @@ _CLASS_RESOURCE_SPECS = {
         "resource_kind": "pool",
         "unit_label": _POOL_UNIT,
         "extra_key": "Sorcery Points",
+        "refresh_type": "long",
+    },
+    ("wizard", "portent"): {
+        "resource_label": "Portent Dice",
+        "resource_kind": "pool",
+        "unit_label": "dice",
+        "max_formula": "wizard_portent_dice",
         "refresh_type": "long",
     },
 }
@@ -477,7 +518,7 @@ def _resource_spec_for_card(character, card: dict) -> dict | None:
 
 
 _GENERIC_COUNT_FLEXIBLE_PATTERN = re.compile(
-    r"You can use this (?:trait|feature|benefit|ability|Bonus Action|Reaction)[^.]*a number of times equal to (?:your )?"
+    r"(?:You can |You can use this )?(?:use this [A-Za-z\s'-]+|transform)[^.]*a number of times equal to (?:your )?"
     r"(Proficiency Bonus|Intelligence modifier|Wisdom modifier|Charisma modifier|Strength modifier|Dexterity modifier|Constitution modifier)\b.*?"
     r"(?:You|and you|,)? ?(?:regain|regaining)(?: all)? expended uses .*?finish a (Long Rest|Short or Long Rest)(?:[.,]|\b)",
     _RESOURCE_PATTERN_FLAGS,
