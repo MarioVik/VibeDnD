@@ -123,34 +123,26 @@ class LuFeaturesStep(LevelUpStep):
             pady=(SPACING["lg"], SPACING["sm"]),
         )
 
-        # Two-column grid for feature cards
-        grid = tk.Frame(parent, bg=COLORS["bg"])
-        grid.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
-        grid.columnconfigure(0, weight=1)
-        grid.columnconfigure(1, weight=1)
-        card_idx = 0
-
+        # Features list
         for feat_name in display_features:
             # Subclass feature — show subclass features
             sub_slug = self.character.subclass_for_class(self.ctx.class_slug)
             if feat_name == "Subclass Feature" and sub_slug:
-                card_idx = self._show_subclass_features(grid, card_idx)
+                self._show_subclass_features(parent)
                 continue
 
             desc = self._find_feature_description(feat_name, details)
 
             card = CardFrame(
-                grid,
+                parent,
                 bg=COLORS["bg_container"],
                 border_color=COLORS["border_subtle"],
                 pad=SPACING["lg"],
             )
-            card.grid(
-                row=card_idx // 2,
-                column=card_idx % 2,
-                padx=SPACING["xs"],
+            card.pack(
+                fill=tk.X,
+                padx=SPACING["lg"],
                 pady=SPACING["xs"],
-                sticky="nsew",
             )
             header = tk.Frame(card.inner, bg=COLORS["bg_container"])
             header.pack(fill=tk.X)
@@ -175,7 +167,6 @@ class LuFeaturesStep(LevelUpStep):
                     foreground=COLORS["fg_dim"],
                     background=COLORS["bg_container"],
                 ).pack(fill=tk.X, pady=(SPACING["xs"], 0))
-            card_idx += 1
 
         # Extra columns (e.g. Rage Damage, Martial Arts Die)
         extra = level_data.get("extra", {})
@@ -218,31 +209,29 @@ class LuFeaturesStep(LevelUpStep):
                         return d["description"]
         return ""
 
-    def _show_subclass_features(self, grid, card_idx):
+    def _show_subclass_features(self, parent):
         sub_slug = self.character.subclass_for_class(self.ctx.class_slug)
         subclass = self.data.get_subclass(self.ctx.class_slug, sub_slug)
         if not subclass:
-            return card_idx
+            return
 
         sub_features = subclass.get("features", {}).get(
             str(self.ctx.new_class_level), []
         )
         if not sub_features:
-            return card_idx
+            return
 
         for feat in sub_features:
             card = CardFrame(
-                grid,
+                parent,
                 bg=COLORS["bg_container"],
                 border_color=COLORS["border_subtle"],
                 pad=SPACING["lg"],
             )
-            card.grid(
-                row=card_idx // 2,
-                column=card_idx % 2,
-                padx=SPACING["xs"],
+            card.pack(
+                fill=tk.X,
+                padx=SPACING["lg"],
                 pady=SPACING["xs"],
-                sticky="nsew",
             )
             header = tk.Frame(card.inner, bg=COLORS["bg_container"])
             header.pack(fill=tk.X)
@@ -268,8 +257,6 @@ class LuFeaturesStep(LevelUpStep):
                     foreground=COLORS["fg_dim"],
                     background=COLORS["bg_container"],
                 ).pack(fill=tk.X, pady=(SPACING["xs"], 0))
-            card_idx += 1
-        return card_idx
 
     def _build_spell_summary(self, parent):
         parts = get_spell_summary(self.ctx, self.data)
