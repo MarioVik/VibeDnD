@@ -248,7 +248,6 @@ class ClassStep(WizardStep):
         right = ScrollableFrame(self._detail_frame)
         right.grid(row=0, column=0, sticky="nsew", padx=SPACING["sm"], pady=0)
         self.detail = right.inner
-        self._subclass_lookup_by_class: dict[str, dict[str, dict]] = {}
 
         self._detail_top = tk.Frame(self.detail, bg=COLORS["bg"])
         self._detail_top.pack(fill=tk.X, pady=(0, SPACING["section_gap"]))
@@ -326,125 +325,17 @@ class ClassStep(WizardStep):
         self.features_frame = tk.Frame(self.detail, bg=COLORS["bg"])
         self.features_frame.pack(fill=tk.X, pady=(SPACING["sm"], 0))
 
-        self.subclass_preview_frame = tk.Frame(self.detail, bg=COLORS["bg"])
-        self.subclass_preview_frame.pack(fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"]))
-
-        SectionHeader(self.subclass_preview_frame, text="Subclass Preview").pack(
-            fill=tk.X, pady=(0, SPACING["sm"])
-        )
-
-        subclass_card = CardFrame(self.subclass_preview_frame, pad=SPACING["md"])
-        subclass_card.pack(fill=tk.X)
-
-        tk.Label(
-            subclass_card.inner,
-            text="Preview level 3 subclasses without changing your chosen class.",
-            font=FONTS["body"],
-            fg=COLORS["fg_dim"],
-            bg=COLORS["bg_surface"],
-        ).pack(anchor="w", pady=(0, SPACING["xs"]))
-
-        self._subclass_var = tk.StringVar(value=self.CLASS_OVERVIEW_LABEL)
-        self._subclass_combo = ttk.Combobox(
-            subclass_card.inner,
-            textvariable=self._subclass_var,
-            state="readonly",
-            values=[self.CLASS_OVERVIEW_LABEL],
-        )
-        self._subclass_combo.pack(fill=tk.X)
-        self._subclass_combo.bind("<<ComboboxSelected>>", self._on_subclass_preview_change)
-
-        self.subclass_detail_frame = tk.Frame(self.detail, bg=COLORS["bg"])
 
     def _show_class_panels(self):
         """Show normal class detail sections."""
         self.equip_frame.pack_forget()
         self.traits_frame.pack_forget()
         self.features_frame.pack_forget()
-        self.subclass_preview_frame.pack_forget()
-        self.subclass_detail_frame.pack_forget()
 
         self.equip_frame.pack(fill=tk.X)
         self.traits_frame.pack(fill=tk.X)
         self.features_frame.pack(fill=tk.X, pady=(SPACING["sm"], 0))
-        self.subclass_preview_frame.pack(
-            fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
-        )
-        if self.subclass_detail_frame.winfo_children():
-            self.subclass_detail_frame.pack(
-                fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"])
-            )
 
-    def _subclass_summary(self, subclass: dict) -> str:
-        desc = (subclass.get("description") or "").strip()
-        if not desc:
-            return ""
-        parts = re.split(r"\bLevel\s+\d+\s*:", desc, maxsplit=1)
-        return parts[0].strip()
-
-    def on_enter(self):
-        """Pre-select class when editing an existing character."""
-        if not self._edit_initialized and self.character.character_class:
-            self._edit_initialized = True
-            name = self.character.character_class.get("name", "")
-            saved_skills = list(self.character.selected_skills)
-            self._on_select(name)
-            self.character.selected_skills = saved_skills
-            self.go_to_substep(1)
-
-    def _refresh_subclass_preview_options(self, class_name: str):
-        cls = self.data.classes_by_name.get(class_name)
-        values = [self.CLASS_OVERVIEW_LABEL]
-        lookup: dict[str, dict] = {}
-
-        if cls:
-            enabled_sub_cats = self._visible_class_categories()
-            subclasses = self.data.get_subclasses_for_class(cls.get("slug", ""))
-            for subclass in sorted(subclasses, key=lambda s: s["name"]):
-                category = get_category("subclasses", subclass.get("source", ""))
-                if category not in enabled_sub_cats:
-                    continue
-                label = subclass["name"]
-                if category == UA_CATEGORY:
-                    label = f"[UA] {label}"
-                values.append(label)
-                lookup[label] = subclass
-
-        self._subclass_lookup_by_class[class_name] = lookup
-        current_value = self._subclass_var.get()
-        self._subclass_combo.configure(values=values)
-
-        if current_value in values:
-            self._subclass_var.set(current_value)
-            return
-
-        self._subclass_var.set(self.CLASS_OVERVIEW_LABEL)
-        if self.character.character_class and self.character.character_class.get("name") == class_name:
-            self._on_select(class_name)
-
-    def _on_subclass_preview_change(self, _event=None):
-        current_cls = self.character.character_class or {}
-        class_name = current_cls.get("name", "")
-        if not class_name:
-            return
-
-        selected = self._subclass_var.get()
-        if selected == self.CLASS_OVERVIEW_LABEL:
-            self._clear_subclass_detail_frame()
-            return
-
-        self._on_sub_select(class_name, selected)
-
-    def _clear_detail_frames(self):
-        for f in [self.equip_frame, self.traits_frame, self.features_frame]:
-            for w in f.winfo_children():
-                w.destroy()
-
-    def _clear_subclass_detail_frame(self):
-        for w in self.subclass_detail_frame.winfo_children():
-            w.destroy()
-        if self.subclass_detail_frame.winfo_manager():
-            self.subclass_detail_frame.pack_forget()
 
     def _set_class_portrait(self, class_name: str):
         """Load the selected class portrait and schedule a redraw."""
@@ -574,113 +465,20 @@ class ClassStep(WizardStep):
         value = color.lstrip("#")
         return tuple(int(value[i:i + 2], 16) for i in (0, 2, 4))
 
-    def _on_sub_select(self, class_name: str, sub_label: str):
-        subclass = self._subclass_lookup_by_class.get(class_name, {}).get(sub_label)
-        if not subclass:
-            return
+    def _clear_detail_frames(self):
+        for f in [self.equip_frame, self.traits_frame, self.features_frame]:
+            for w in f.winfo_children():
+                w.destroy()
 
-        current_cls = self.character.character_class
-        if not current_cls or current_cls.get("name") != class_name:
-            self._on_select(class_name)
-
-        self._subclass_var.set(sub_label)
-        self._clear_subclass_detail_frame()
-        self.subclass_detail_frame.pack(
-            fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"])
-        )
-
-        SectionHeader(
-            self.subclass_detail_frame,
-            text=f"{subclass.get('name', 'Subclass')} Preview",
-        ).pack(fill=tk.X, pady=(0, SPACING["sm"]))
-
-        intro_card = CardFrame(self.subclass_detail_frame, pad=SPACING["md"])
-        intro_card.pack(fill=tk.X, pady=(0, SPACING["sm"]))
-
-        tk.Label(
-            intro_card.inner,
-            text=subclass.get("name", "Subclass"),
-            font=FONTS["heading_serif_sm"],
-            fg=COLORS["fg"],
-            bg=COLORS["bg_surface"],
-        ).pack(anchor="w")
-        tk.Label(
-            intro_card.inner,
-            text=f"Source: {subclass.get('source', 'Unknown')}",
-            font=FONTS["label_upper_bold"],
-            fg=COLORS["fg_dim"],
-            bg=COLORS["bg_surface"],
-        ).pack(anchor="w")
-
-        preview_note = "Preview only - your chosen class stays the same."
-        desc = self._subclass_summary(subclass)
-        intro_text = f"{preview_note}\n\n{desc}" if desc else preview_note
-        WrappingLabel(
-            intro_card.inner,
-            text=intro_text,
-            background=COLORS["bg_surface"],
-            foreground=COLORS["fg_dim"],
-        ).pack(fill=tk.X, anchor="w", pady=(SPACING["xs"], 0))
-
-        SectionHeader(self.subclass_detail_frame, text="Subclass Features").pack(
-            fill=tk.X, pady=(0, SPACING["sm"])
-        )
-
-        features_by_level = subclass.get("features", {})
-        if not features_by_level:
-            tk.Label(
-                self.subclass_detail_frame,
-                text="No detailed subclass features available.",
-                font=FONTS["body"],
-                fg=COLORS["fg_dim"],
-                bg=COLORS["bg"],
-            ).pack(anchor="w")
-            return
-
-        def _lvl_key(level_str: str):
-            try:
-                return int(level_str)
-            except (TypeError, ValueError):
-                return 99
-
-        feat_grid = tk.Frame(self.subclass_detail_frame, bg=COLORS["bg"])
-        feat_grid.pack(fill=tk.X)
-        feat_grid.columnconfigure(0, weight=1)
-        feat_grid.columnconfigure(1, weight=1)
-        card_idx = 0
-
-        for lvl in sorted(features_by_level.keys(), key=_lvl_key):
-            for feat in features_by_level.get(lvl, []):
-                card = CardFrame(feat_grid, bg=COLORS["bg_container"],
-                                 border_color=COLORS["border_subtle"], pad=SPACING["lg"])
-                card.grid(row=card_idx // 2, column=card_idx % 2, padx=4, pady=4, sticky="nsew")
-
-                header = tk.Frame(card.inner, bg=COLORS["bg_container"])
-                header.pack(fill=tk.X)
-                tk.Label(
-                    header,
-                    text=feat.get("name", "Feature"),
-                    font=FONTS["heading_serif_sm"],
-                    fg=COLORS["fg"],
-                    bg=COLORS["bg_container"],
-                ).pack(side=tk.LEFT)
-                PillBadge(
-                    header,
-                    text=f"LEVEL {lvl}",
-                    bg_color=COLORS["badge_glass_dim"],
-                    fg_color=COLORS["gold"],
-                ).pack(side=tk.RIGHT)
-
-                feat_desc = feat.get("description", "")
-                if feat_desc:
-                    FormattedDescription(
-                        card.inner,
-                        text=feat_desc,
-                        font=FONTS["body_small"],
-                        foreground=COLORS["fg_dim"],
-                        background=COLORS["bg_container"],
-                    ).pack(fill=tk.X, pady=(6, 0))
-                card_idx += 1
+    def on_enter(self):
+        """Pre-select class when editing an existing character."""
+        if not self._edit_initialized and self.character.character_class:
+            self._edit_initialized = True
+            name = self.character.character_class.get("name", "")
+            saved_skills = list(self.character.selected_skills)
+            self._on_select(name)
+            self.character.selected_skills = saved_skills
+            self.go_to_substep(1)
 
     def _on_select(self, name: str):
         cls = self.data.classes_by_name.get(name)
@@ -711,13 +509,10 @@ class ClassStep(WizardStep):
             self.character.class_levels = [
                 ClassLevel(class_slug=slug, class_level=1, hit_die=hit_die)
             ]
-        self._subclass_var.set(self.CLASS_OVERVIEW_LABEL)
-        self._refresh_subclass_preview_options(cls["name"])
         self.detail_name.configure(text=cls["name"])
         self.detail_source.configure(text=f"Source: {cls.get('source', 'Unknown')}")
         self.detail_desc.configure(text=cls.get("description", ""))
         self._set_class_portrait(cls.get("name", ""))
-        self._clear_subclass_detail_frame()
 
         self._clear_detail_frames()
 
