@@ -418,13 +418,12 @@ class CharacterCreatorApp:
         else:
             self._reached_step_keys = {self._step_keys[0]}
 
-        # Register callbacks
-        self.wizard_steps[0].on_change_callbacks.append(
-            self._update_optional_step_visibility
-        )
-        self.wizard_steps[1].on_change_callbacks.append(
-            self._update_optional_step_visibility
-        )
+        # Register callbacks – update optional step visibility when species,
+        # class, background, or feat changes (e.g. Magic Initiate adds the Spells tab).
+        for idx in (0, 1, 2, 3):  # species, class, background, feat
+            self.wizard_steps[idx].on_change_callbacks.append(
+                self._update_optional_step_visibility
+            )
         for step in self.wizard_steps:
             step.on_change_callbacks.append(self._update_nav_buttons)
 

@@ -395,6 +395,16 @@ class SpellsStep(WizardStep):
         if not cantrip_options and not spell_options:
             return
 
+        # Resolve spell name strings to full spell dicts
+        available_cantrips = [
+            s for name in cantrip_options
+            if (s := self._find_spell_by_name(name))
+        ]
+        available_spells = [
+            s for name in spell_options
+            if (s := self._find_spell_by_name(name))
+        ]
+
         selected_cantrips = list(
             get_spell_grant_choice_value(
                 self.character, source_id, "cantrips", []
@@ -428,13 +438,36 @@ class SpellsStep(WizardStep):
         area.columnconfigure(1, weight=1)
         area.rowconfigure(0, weight=1)
 
+        left = tk.Frame(area, bg=bg)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["xs"]))
+
+        # ── Count labels ──────────────────────────────────────
+        cantrip_count_lbl = None
+        spell_count_lbl = None
+        if cantrip_max > 0:
+            cantrip_count_lbl = tk.Label(
+                left,
+                text=f"{len(selected_cantrips)} / {cantrip_max} cantrips selected",
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg"],
+            )
+            cantrip_count_lbl.pack(anchor="w", padx=4, pady=(0, 1))
+        if spell_max > 0:
+            spell_count_lbl = tk.Label(
+                left,
+                text=f"{len(selected_spells)} / {spell_max} spell(s) selected",
+                font=FONTS["label_upper_bold"],
+                fg=COLORS["fg_dim"],
+                bg=COLORS["bg"],
+            )
+            spell_count_lbl.pack(anchor="w", padx=4, pady=(0, 1))
+
         self._followup_list = ModernSectionedListbox(
-            area,
+            left,
             multiselect=True,
-            on_hover=_show_detail,
-            on_select=lambda n: _on_toggle_manual(n),
         )
-        self._followup_list.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["xs"]))
+        self._followup_list.pack(fill=tk.BOTH, expand=True)
 
         # Data preparation
         sections = []
@@ -568,6 +601,10 @@ class SpellsStep(WizardStep):
                 
             self.notify_change()
             self._update_info_label()
+
+        # Wire up callbacks now that the closures are defined
+        self._followup_list.on_hover = _show_detail
+        self._followup_list.on_select = lambda n: _on_toggle_manual(n)
 
         # ── Toggle handlers ────────────────────────────────────
         updating_cantrips = [False]
