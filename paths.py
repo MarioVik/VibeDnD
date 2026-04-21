@@ -75,3 +75,13 @@ def characters_dir() -> str:
     if is_frozen():
         return os.path.join(_user_data_dir(), "characters")
     return os.path.join(_exe_dir(), "characters")
+
+
+def ui_diagnostics_path() -> str:
+    """Path to the startup UI diagnostics JSON file.
+
+    Use the user-data directory in both dev and frozen modes so runs can be
+    compared from one stable location.
+    """
+    mode = "frozen" if is_frozen() else "dev"
+    return os.path.join(_user_data_dir(), f"ui-diagnostics-{mode}.json")

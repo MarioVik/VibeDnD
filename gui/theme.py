@@ -1,8 +1,14 @@
 """TTK theme configuration — Mythic Modern dark design system."""
 
+import json
+import os
 import sys
 import tkinter as tk
+from datetime import datetime, UTC
 from tkinter import ttk
+import tkinter.font as tkfont
+
+from paths import is_frozen, ui_diagnostics_path
 
 
 def _clear_button_focus(event):
@@ -170,6 +176,141 @@ FONTS = {
     "step_counter": (_SANS, 10, "bold"),
     "nav_subtitle": (_SANS, 8),
 }
+
+
+def _safe_float(value) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError, tk.TclError):
+        return None
+
+
+def _parse_scale_override(raw_value: str | None) -> float | None:
+    if raw_value is None:
+        return None
+    text = raw_value.strip()
+    if not text:
+        return None
+    value = _safe_float(text)
+    if value is None or value <= 0:
+        return None
+    return round(value, 4)
+
+
+def _choose_tk_scaling(
+    current_scaling: float | None,
+    screen_dpi: float | None,
+    platform_name: str,
+    override: str | None = None,
+) -> float | None:
+    manual_override = _parse_scale_override(override)
+    if manual_override is not None:
+        return manual_override
+    if platform_name != "darwin":
+        return current_scaling
+    if screen_dpi is None or screen_dpi <= 0:
+        return current_scaling
+    return round(screen_dpi / 72.0, 4)
+
+
+def normalize_tk_runtime(root: tk.Tk) -> dict[str, object]:
+    """Normalize Tk scaling so point-sized fonts render consistently.
+
+    On macOS, frozen app bundles can start with a different Tk scaling factor
+    than the same interpreter in development, which makes fixed point fonts
+    look smaller and disrupts hand-tuned spacing. Normalize scaling from the
+    measured screen DPI before the widget tree is built.
+    """
+    current_scaling = _safe_float(root.tk.call("tk", "scaling"))
+    screen_dpi = _safe_float(root.winfo_fpixels("1i"))
+    override = os.environ.get("VIBEDND_UI_SCALE")
+    target_scaling = _choose_tk_scaling(current_scaling, screen_dpi, sys.platform, override)
+
+    applied = False
+    if (
+        current_scaling is not None
+        and target_scaling is not None
+        and 0.5 <= target_scaling <= 4.0
+        and abs(current_scaling - target_scaling) > 0.01
+    ):
+        root.tk.call("tk", "scaling", target_scaling)
+        applied = True
+
+    effective_scaling = _safe_float(root.tk.call("tk", "scaling"))
+    return {
+        "override": override.strip() if isinstance(override, str) else "",
+        "platform": sys.platform,
+        "screen_dpi": screen_dpi,
+        "initial_scaling": current_scaling,
+        "target_scaling": target_scaling,
+        "effective_scaling": effective_scaling,
+        "applied": applied,
+    }
+
+
+def _font_snapshot(root: tk.Misc, font_spec) -> dict[str, object]:
+    font = tkfont.Font(root=root, font=font_spec)
+    actual = font.actual()
+    metrics = font.metrics()
+    return {
+        "family": actual.get("family", ""),
+        "size": actual.get("size", ""),
+        "weight": actual.get("weight", ""),
+        "slant": actual.get("slant", ""),
+        "underline": actual.get("underline", 0),
+        "overstrike": actual.get("overstrike", 0),
+        "metrics": {
+            "linespace": metrics.get("linespace", 0),
+            "ascent": metrics.get("ascent", 0),
+            "descent": metrics.get("descent", 0),
+        },
+    }
+
+
+def write_ui_diagnostics(
+    root: tk.Tk,
+    scaling_snapshot: dict[str, object] | None = None,
+) -> str | None:
+    """Write a startup diagnostics report for comparing dev vs frozen UI."""
+    try:
+        families = set(tkfont.families(root=root))
+        path = ui_diagnostics_path()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        report = {
+            "generated_at_utc": datetime.now(UTC).isoformat(),
+            "frozen": is_frozen(),
+            "sys_executable": sys.executable,
+            "python_version": sys.version,
+            "tk_patchlevel": str(root.tk.call("info", "patchlevel")),
+            "tk_version": tk.TkVersion,
+            "tcl_version": tk.TclVersion,
+            "windowing_system": str(root.tk.call("tk", "windowingsystem")),
+            "screen": {
+                "width": root.winfo_screenwidth(),
+                "height": root.winfo_screenheight(),
+                "pixels_per_inch": _safe_float(root.winfo_fpixels("1i")),
+            },
+            "scaling": scaling_snapshot or {},
+            "font_families": {
+                "sans_requested": _SANS,
+                "serif_requested": _SERIF,
+                "mono_requested": _MONO,
+                "sans_available": _SANS in families,
+                "serif_available": _SERIF in families,
+                "mono_available": _MONO in families,
+            },
+            "fonts": {
+                "body": _font_snapshot(root, FONTS["body"]),
+                "hero_title": _font_snapshot(root, FONTS["hero_title"]),
+                "hero_title_italic": _font_snapshot(root, FONTS["hero_title_italic"]),
+                "label_upper_bold": _font_snapshot(root, FONTS["label_upper_bold"]),
+            },
+        }
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump(report, handle, indent=2)
+        return path
+    except (OSError, tk.TclError):
+        return None
 
 
 def apply_theme(root: tk.Tk):

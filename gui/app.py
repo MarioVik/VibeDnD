@@ -3,7 +3,14 @@
 import tkinter as tk
 from tkinter import ttk, filedialog
 
-from gui.theme import apply_theme, COLORS, FONTS, SPACING
+from gui.theme import (
+    apply_theme,
+    COLORS,
+    FONTS,
+    SPACING,
+    normalize_tk_runtime,
+    write_ui_diagnostics,
+)
 from gui.data_loader import GameData
 from gui.sidebar import WizardSidebar
 from gui.widgets import AlertDialog, ConfirmDialog, HPBar
@@ -128,11 +135,18 @@ class CharacterCreatorApp:
 
     def __init__(self):
         self.root = tk.Tk()
+        self.ui_runtime_info = normalize_tk_runtime(self.root)
         self.root.title("VibeDnD \u2014 D&D 2024 Character Creator")
         self.root.geometry("1600x1050")
         self.root.minsize(1100, 750)
 
         apply_theme(self.root)
+        self.ui_diagnostics_path = write_ui_diagnostics(
+            self.root,
+            self.ui_runtime_info,
+        )
+        if self.ui_diagnostics_path:
+            print(f"UI diagnostics written to {self.ui_diagnostics_path}")
         self.data = GameData()
 
         # Container for all screens
