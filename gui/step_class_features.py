@@ -49,6 +49,7 @@ class ClassFeaturesStep(WizardStep):
         self._rendered_split_active = False
         self._invocation_vars: dict[str, dict] = {}
         self._invocation_selector: ModernSectionedListbox | None = None
+        self._invocation_count_label: tk.Label | None = None
         self._invocation_checkbuttons: dict[str, ttk.Checkbutton] = {}
         self._invocation_detail_text: tk.Text | None = None
 
@@ -164,7 +165,7 @@ class ClassFeaturesStep(WizardStep):
         invocation = str(self._choice_value("warlock_invocation", "") or "").strip()
         return get_warlock_invocation_followup_kind(invocation)
 
-    def _set_choice(self, key: str, value):
+    def _update_choice_value(self, key: str, value):
         if not isinstance(self.character.level1_class_choices, dict):
             self.character.level1_class_choices = {}
         if value in (None, "", [], {}):
@@ -172,7 +173,61 @@ class ClassFeaturesStep(WizardStep):
         else:
             self.character.level1_class_choices[key] = value
         scrub_level1_class_choices(self.character, self.data)
+
+    def _set_choice(self, key: str, value):
+        self._update_choice_value(key, value)
         self._rebuild()
+        self.notify_change()
+
+    def _clear_invocation_detail(self):
+        if self._invocation_detail_text is None:
+            return
+        self._invocation_detail_text.configure(state=tk.NORMAL)
+        self._invocation_detail_text.delete("1.0", tk.END)
+        self._invocation_detail_text.configure(state=tk.DISABLED)
+
+    def _sync_invocation_ui(self):
+        current_invocation = str(self._choice_value("warlock_invocation", "") or "").strip()
+        if self._invocation_count_label is not None:
+            selected_count = 1 if current_invocation else 0
+            self._invocation_count_label.configure(
+                text=f"{selected_count} / 1 invocation selected"
+            )
+
+        if self._invocation_selector is not None:
+            self._updating_invocations = True
+            try:
+                selected_names = [current_invocation] if current_invocation else []
+                self._invocation_selector.set_selected_items(selected_names)
+                if current_invocation:
+                    self._invocation_selector.select_item(current_invocation)
+            finally:
+                self._updating_invocations = False
+
+        selected_option = self._invocation_vars.get(current_invocation, {}).get("invocation")
+        if selected_option is not None:
+            self._show_invocation_detail(selected_option)
+        else:
+            self._clear_invocation_detail()
+
+    def _set_warlock_invocation_choice(self, invocation_name: str):
+        prev_followup_kind = self._warlock_followup_kind()
+        prev_substep_count = self.get_substep_count()
+
+        self._update_choice_value("warlock_invocation", invocation_name)
+
+        next_followup_kind = self._warlock_followup_kind()
+        next_substep_count = self.get_substep_count()
+        needs_rebuild = (
+            prev_followup_kind != next_followup_kind
+            or prev_substep_count != next_substep_count
+        )
+
+        if needs_rebuild:
+            self._rebuild()
+        else:
+            self._sync_invocation_ui()
+
         self.notify_change()
 
     def _set_slotted_choice(self, key: str, index: int, total: int, value: str):
@@ -844,13 +899,14 @@ class ClassFeaturesStep(WizardStep):
         left.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING["xs"]))
 
         selected_count = 1 if current_invocation else 0
-        tk.Label(
+        self._invocation_count_label = tk.Label(
             left,
             text=f"{selected_count} / 1 invocation selected",
             font=FONTS["label_upper_bold"],
             fg=COLORS["fg_dim"],
             bg=COLORS["bg"],
-        ).pack(anchor="w", padx=4, pady=(0, 1))
+        )
+        self._invocation_count_label.pack(anchor="w", padx=4, pady=(0, 1))
 
         list_outer = tk.Frame(left, bg=COLORS["bg"])
         list_outer.pack(fill=tk.BOTH, expand=True, pady=(2, 0))
@@ -989,12 +1045,12 @@ class ClassFeaturesStep(WizardStep):
                 else []
             )
 
-            if len(selected) > 1 and self._invocation_selector is not None:
-                self._invocation_selector.deselect_item(name)
-                selected = self._invocation_selector.get_selected_items()
+            if len(selected) > 1 and name in selected:
+                chosen = name
+            else:
+                chosen = selected[0] if selected else ""
 
-            chosen = selected[0] if selected else ""
-            self._set_choice("warlock_invocation", chosen)
+            self._set_warlock_invocation_choice(chosen)
         finally:
             self._updating_invocations = False
 

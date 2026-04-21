@@ -348,24 +348,40 @@ class LuChoicesStep(LevelUpStep):
         # Placeholder for sub-class logic if needed, but LuChoicesStep doesn't use it much
         pass
 
+    def _clear_removed_choice_state(
+        self,
+        previous_choices: list[str],
+        current_choices: list[str],
+    ):
+        current_set = set(current_choices)
+        for choice_name in previous_choices:
+            if choice_name not in current_set:
+                self.ctx.choice_sub_selections.pop(choice_name, None)
+
     def _on_choice_toggle_manual(self, name: str, max_count: int):
         if self._updating_choices:
             return
         self._updating_choices = True
         try:
-            curr = list(self.ctx.selected_new_choices)
+            previous = list(self.ctx.selected_new_choices)
+            curr = list(previous)
             if name in curr:
                 curr.remove(name)
             else:
                 if len(curr) < max_count:
                     curr.append(name)
+                elif max_count == 1 and curr:
+                    curr = [name]
                 else:
                     self._choice_list.deselect_item(name)
                     return
-            
+
             self.ctx.selected_new_choices = curr
+            self._clear_removed_choice_state(previous, curr)
+            if self._choice_list is not None:
+                self._choice_list.set_selected_items(curr)
             self._update_count(max_count)
-            
+
             opt = self._choice_options_by_name.get(name)
             if opt and opt.get("sub_choice") and name in self.ctx.selected_new_choices:
                 self._show_sub_choice_ui(name, opt["sub_choice"])
