@@ -1,6 +1,7 @@
 """Central character model for D&D 2024 character creation."""
 
 from dataclasses import dataclass, field
+from typing import Any
 from models.ability_scores import AbilityScores
 from models.class_level import ClassLevel
 from models.enums import Ability, Skill, SKILL_BY_NAME
