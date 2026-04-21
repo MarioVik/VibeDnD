@@ -48,6 +48,7 @@ class ClassFeaturesStep(WizardStep):
         self._current_substep = 0
         self._rendered_split_active = False
         self._invocation_vars: dict[str, dict] = {}
+        self._invocation_selector: ModernSectionedListbox | None = None
         self._invocation_checkbuttons: dict[str, ttk.Checkbutton] = {}
         self._invocation_detail_text: tk.Text | None = None
 
@@ -825,6 +826,7 @@ class ClassFeaturesStep(WizardStep):
 
         invocation_options = get_available_warlock_invocations()
         current_invocation = str(self._choice_value("warlock_invocation", "") or "")
+        selected_option = None
 
         SectionHeader(self._content, text="Eldritch Invocation").pack(
             fill=tk.X, padx=SPACING["lg"], pady=(SPACING["sm"], SPACING["sm"])
@@ -865,8 +867,7 @@ class ClassFeaturesStep(WizardStep):
             name = option["name"]
             if name == current_invocation:
                 selected_option = option
-            var = tk.BooleanVar(value=(name == current_invocation))
-            self._invocation_vars[name] = {"var": var, "invocation": option}
+            self._invocation_vars[name] = {"invocation": option}
 
         sections = [("Eldritch Invocations", [o["name"] for o in sorted(invocation_options, key=lambda i: i["name"])])]
         self._invocation_selector.set_sectioned_items(sections, [current_invocation] if current_invocation else [])
@@ -982,13 +983,15 @@ class ClassFeaturesStep(WizardStep):
         self._updating_invocations = True
         try:
             name = invocation["name"]
-            selected = [n for n, data in self._invocation_vars.items() if data["var"].get()]
+            selected = (
+                self._invocation_selector.get_selected_items()
+                if self._invocation_selector is not None
+                else []
+            )
 
-            if len(selected) > 1:
-                self._invocation_vars[name]["var"].set(False)
-                selected = [
-                    n for n, data in self._invocation_vars.items() if data["var"].get()
-                ]
+            if len(selected) > 1 and self._invocation_selector is not None:
+                self._invocation_selector.deselect_item(name)
+                selected = self._invocation_selector.get_selected_items()
 
             chosen = selected[0] if selected else ""
             self._set_choice("warlock_invocation", chosen)
@@ -1011,7 +1014,11 @@ class ClassFeaturesStep(WizardStep):
         self._invocation_detail_text.configure(state=tk.DISABLED)
 
     def _update_invocation_states(self):
-        selected = [n for n, data in self._invocation_vars.items() if data["var"].get()]
+        selected = (
+            self._invocation_selector.get_selected_items()
+            if self._invocation_selector is not None
+            else []
+        )
         at_max = len(selected) >= 1
 
         for name, cb in self._invocation_checkbuttons.items():

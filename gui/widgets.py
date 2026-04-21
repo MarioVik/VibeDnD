@@ -1397,6 +1397,13 @@ class ModernSectionedListbox(tk.Frame):
         for name, var in self._vars.items():
             var.set(name in names)
 
+    def get_selected_items(self) -> list[str]:
+        """Return the checked item names for multiselect lists."""
+        if not self.multiselect:
+            selected = self.get_selection()
+            return [selected] if selected else []
+        return [name for name, var in self._vars.items() if var.get()]
+
     def get_selection(self) -> str | None:
         """Get the currently active/selected item."""
         return self._active_name.get()
