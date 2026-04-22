@@ -1448,12 +1448,26 @@ class ScrollableFrame(ttk.Frame):
         register_mousewheel_target(self.inner, self.canvas)
 
     def _on_inner_configure(self, _event=None):
+        self._stretch_inner_to_viewport()
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         self._update_scrollbar_visibility()
 
     def _on_canvas_configure(self, event):
         self.canvas.itemconfig(self.canvas_window, width=event.width)
+        self._stretch_inner_to_viewport()
         self._update_scrollbar_visibility()
+
+    def _stretch_inner_to_viewport(self):
+        """Ensure the inner frame fills at least the visible canvas height
+        so that children packed with expand=True can fill the viewport."""
+        canvas_h = self.canvas.winfo_height()
+        if canvas_h <= 1:
+            return
+        req_h = self.inner.winfo_reqheight()
+        if req_h < canvas_h:
+            self.canvas.itemconfig(self.canvas_window, height=canvas_h)
+        else:
+            self.canvas.itemconfig(self.canvas_window, height=0)
 
     def _update_scrollbar_visibility(self):
         if not self._auto_hide_scrollbar:

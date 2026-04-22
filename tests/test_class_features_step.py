@@ -117,3 +117,59 @@ def test_set_warlock_invocation_choice_rebuilds_when_followup_changes(monkeypatc
     assert rebuilds == ["rebuild"]
     assert syncs == []
     assert changes == ["change"]
+
+
+def test_set_warlock_binding_choice_updates_state_without_rebuild(monkeypatch):
+    monkeypatch.setattr(
+        step_class_features_module,
+        "scrub_level1_class_choices",
+        lambda character, data: None,
+    )
+    step = ClassFeaturesStep.__new__(ClassFeaturesStep)
+    step.character = SimpleNamespace(
+        level1_class_choices={"warlock_invocation": "Agonizing Blast"},
+    )
+    step.data = object()
+
+    style_updates: list[str] = []
+    changes: list[str] = []
+
+    step._update_warlock_binding_tile_styles = lambda: style_updates.append("style")
+    step.notify_change = lambda: changes.append("change")
+
+    step._set_warlock_binding_choice("Eldritch Blast")
+
+    assert (
+        step.character.level1_class_choices["warlock_invocation_cantrip"]
+        == "Eldritch Blast"
+    )
+    assert style_updates == ["style"]
+    assert changes == ["change"]
+
+
+def test_warlock_followups_do_not_create_internal_substeps():
+    step = ClassFeaturesStep.__new__(ClassFeaturesStep)
+    step.character = SimpleNamespace(
+        level1_class_choices={"warlock_invocation": "Agonizing Blast"},
+        character_class={"slug": "warlock"},
+    )
+
+    assert step.get_substep_count() == 1
+    assert step.has_substeps() is False
+
+
+def test_build_current_content_renders_tome_followup_on_same_step():
+    step = ClassFeaturesStep.__new__(ClassFeaturesStep)
+    step.character = SimpleNamespace(
+        level1_class_choices={"warlock_invocation": "Pact of the Tome"},
+        character_class={"slug": "warlock"},
+    )
+    step._current_substep = 0
+
+    calls: list[str] = []
+    step._build_warlock_invocation_selector = lambda: calls.append("selector")
+    step._build_warlock_followup_section = lambda: calls.append("followup")
+
+    step._build_current_content()
+
+    assert calls == ["selector", "followup"]

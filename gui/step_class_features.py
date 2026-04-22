@@ -50,6 +50,8 @@ class ClassFeaturesStep(WizardStep):
         self._invocation_vars: dict[str, dict] = {}
         self._invocation_selector: ModernSectionedListbox | None = None
         self._invocation_count_label: tk.Label | None = None
+        self._invocation_detail_followup: tk.Frame | None = None
+        self._warlock_binding_tiles: dict[str, dict] = {}
         self._invocation_checkbuttons: dict[str, ttk.Checkbutton] = {}
         self._invocation_detail_text: tk.Text | None = None
 
@@ -103,8 +105,6 @@ class ClassFeaturesStep(WizardStep):
     def get_substep_count(self) -> int:
         slug = self._class_slug()
         if slug == "fighter":
-            return 2
-        if slug == "warlock" and self._warlock_followup_kind() is not None:
             return 2
         return 1
 
@@ -185,6 +185,55 @@ class ClassFeaturesStep(WizardStep):
         self._invocation_detail_text.configure(state=tk.NORMAL)
         self._invocation_detail_text.delete("1.0", tk.END)
         self._invocation_detail_text.configure(state=tk.DISABLED)
+        self._clear_invocation_followup()
+
+    def _clear_invocation_followup(self):
+        self._warlock_binding_tiles = {}
+        if self._invocation_detail_followup is None:
+            return
+        for widget in self._invocation_detail_followup.winfo_children():
+            widget.destroy()
+
+    def _populate_invocation_followup(self, invocation: dict):
+        self._clear_invocation_followup()
+        if self._invocation_detail_followup is None:
+            return
+
+        name = str(invocation.get("name", "") or "").strip()
+        current_invocation = str(self._choice_value("warlock_invocation", "") or "").strip()
+        if not name or name != current_invocation:
+            return
+
+        if get_warlock_invocation_followup_kind(name) != "binding":
+            return
+
+        tk.Label(
+            self._invocation_detail_followup,
+            text="Choose cantrip:",
+            font=FONTS["body_bold"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+        ).pack(fill=tk.X, pady=(SPACING["sm"], SPACING["xs"]))
+
+        options = get_warlock_invocation_binding_options(self.character, self.data)
+        if not options:
+            WrappingLabel(
+                self._invocation_detail_followup,
+                text=(
+                    "No eligible damage-dealing Warlock cantrips are currently selected. "
+                    "Go back to the Spells step and choose one first."
+                ),
+                background=COLORS["bg_surface"],
+                foreground=COLORS["fg_dim"],
+            ).pack(fill=tk.X, anchor="w")
+            return
+
+        tiles = tk.Frame(self._invocation_detail_followup, bg=COLORS["bg_surface"])
+        tiles.pack(fill=tk.X)
+        for cantrip_name in options:
+            self._create_warlock_binding_tile(tiles, cantrip_name)
+        self._update_warlock_binding_tile_styles()
 
     def _sync_invocation_ui(self):
         current_invocation = str(self._choice_value("warlock_invocation", "") or "").strip()
@@ -210,17 +259,136 @@ class ClassFeaturesStep(WizardStep):
         else:
             self._clear_invocation_detail()
 
+    def _find_spell_data(self, spell_name: str) -> dict | None:
+        if not self.data or not spell_name:
+            return None
+
+        spell_index = getattr(self.data, "_spell_name_index", None)
+        if spell_index is None:
+            spell_index = {
+                str(spell.get("name", "") or ""): spell
+                for spell in getattr(self.data, "spells", [])
+                if str(spell.get("name", "") or "").strip()
+            }
+            setattr(self.data, "_spell_name_index", spell_index)
+        return spell_index.get(spell_name)
+
+    def _set_warlock_binding_choice(self, cantrip_name: str):
+        self._update_choice_value("warlock_invocation_cantrip", cantrip_name.strip())
+        self._update_warlock_binding_tile_styles()
+        self.notify_change()
+
+    def _update_warlock_binding_tile_styles(self):
+        current = str(self._choice_value("warlock_invocation_cantrip", "") or "").strip()
+        for name, widgets in self._warlock_binding_tiles.items():
+            is_sel = current == name
+            border_c = COLORS["accent"] if is_sel else COLORS["border_medium"]
+            bg_c = COLORS["bg_high"] if is_sel else COLORS["bg_surface"]
+            fg_title = COLORS["accent_text"] if is_sel else COLORS["fg"]
+
+            widgets["border"].configure(bg=border_c)
+            widgets["tile"].configure(bg=bg_c)
+            widgets["title"].configure(bg=bg_c, fg=fg_title)
+            if widgets.get("meta"):
+                widgets["meta"].configure(bg=bg_c)
+            if widgets.get("desc"):
+                widgets["desc"].configure(background=bg_c)
+
+    def _create_warlock_binding_tile(self, parent, cantrip_name: str):
+        spell = self._find_spell_data(cantrip_name) or {}
+        bg_hex = COLORS["bg_surface"]
+
+        tile_border = tk.Frame(parent, bg=COLORS["border_medium"], cursor="hand2")
+        tile_border.pack(fill=tk.X, padx=SPACING["xs"], pady=SPACING["xs"])
+
+        tile = tk.Frame(tile_border, bg=bg_hex, cursor="hand2")
+        tile.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
+
+        title_lbl = tk.Label(
+            tile,
+            text=cantrip_name,
+            font=FONTS["body_bold"],
+            fg=COLORS["fg"],
+            bg=bg_hex,
+            cursor="hand2",
+            anchor="w",
+        )
+        title_lbl.pack(fill=tk.X, padx=SPACING["sm"], pady=(SPACING["sm"], 0))
+
+        meta_parts = []
+        school = str(spell.get("school", "") or "").strip()
+        if school:
+            meta_parts.append(school)
+        casting_time = str(spell.get("casting_time", "") or "").strip()
+        if casting_time:
+            meta_parts.append(casting_time)
+        range_text = str(spell.get("range", "") or "").strip()
+        if range_text:
+            meta_parts.append(range_text)
+
+        meta_lbl = None
+        if meta_parts:
+            meta_lbl = tk.Label(
+                tile,
+                text=" \u2022 ".join(meta_parts),
+                font=FONTS["label_upper"],
+                fg=COLORS["gold"],
+                bg=bg_hex,
+                cursor="hand2",
+                anchor="w",
+            )
+            meta_lbl.pack(fill=tk.X, padx=SPACING["sm"], pady=0)
+
+        desc = str(spell.get("description", "") or "").strip() or cantrip_name
+        desc_lbl = FormattedDescription(
+            tile,
+            text=desc,
+            font=FONTS["body_small"],
+            foreground=COLORS["fg_dim"],
+            background=bg_hex,
+            cursor="hand2",
+        )
+        desc_lbl.pack(fill=tk.X, padx=SPACING["sm"], pady=(SPACING["xs"], SPACING["sm"]))
+
+        self._warlock_binding_tiles[cantrip_name] = {
+            "border": tile_border,
+            "tile": tile,
+            "title": title_lbl,
+            "meta": meta_lbl,
+            "desc": desc_lbl,
+        }
+
+        def on_click(_e):
+            self._set_warlock_binding_choice(cantrip_name)
+
+        def on_enter(_e):
+            if str(self._choice_value("warlock_invocation_cantrip", "") or "").strip() != cantrip_name:
+                tile_border.configure(bg=COLORS["accent"])
+                tile.configure(bg=COLORS["bg_high"])
+                title_lbl.configure(bg=COLORS["bg_high"])
+                if meta_lbl:
+                    meta_lbl.configure(bg=COLORS["bg_high"])
+                desc_lbl.configure(background=COLORS["bg_high"])
+
+        def on_leave(_e):
+            if str(self._choice_value("warlock_invocation_cantrip", "") or "").strip() != cantrip_name:
+                self._update_warlock_binding_tile_styles()
+
+        for widget in [tile_border, tile, title_lbl, meta_lbl, desc_lbl]:
+            if widget:
+                widget.bind("<Button-1>", on_click)
+                widget.bind("<Enter>", on_enter)
+                widget.bind("<Leave>", on_leave)
+
     def _set_warlock_invocation_choice(self, invocation_name: str):
         prev_followup_kind = self._warlock_followup_kind()
-        prev_substep_count = self.get_substep_count()
 
         self._update_choice_value("warlock_invocation", invocation_name)
 
         next_followup_kind = self._warlock_followup_kind()
-        next_substep_count = self.get_substep_count()
         needs_rebuild = (
-            prev_followup_kind != next_followup_kind
-            or prev_substep_count != next_substep_count
+            prev_followup_kind in {"tome", "feat"}
+            or next_followup_kind in {"tome", "feat"}
         )
 
         if needs_rebuild:
@@ -888,10 +1056,11 @@ class ClassFeaturesStep(WizardStep):
         )
 
         container = tk.Frame(self._content, bg=COLORS["bg"])
-        container.pack(fill=tk.X, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
+        container.pack(fill=tk.BOTH, expand=True, padx=SPACING["lg"], pady=(0, SPACING["sm"]))
 
         top_row = tk.Frame(container, bg=COLORS["bg"])
-        top_row.pack(fill=tk.X)
+        top_row.pack(fill=tk.BOTH, expand=True)
+        top_row.rowconfigure(0, weight=1)
         top_row.columnconfigure(0, weight=1)
         top_row.columnconfigure(1, weight=1)
 
@@ -937,6 +1106,9 @@ class ClassFeaturesStep(WizardStep):
 
         detail_card = CardFrame(right, pad=SPACING["lg"])
         detail_card.pack(fill=tk.BOTH, expand=True)
+        detail_card.inner.rowconfigure(0, weight=1)
+        detail_card.inner.rowconfigure(1, weight=1)
+        detail_card.inner.columnconfigure(0, weight=1)
 
         self._invocation_detail_text = tk.Text(
             detail_card.inner,
@@ -948,8 +1120,15 @@ class ClassFeaturesStep(WizardStep):
             highlightthickness=0,
             relief=tk.FLAT,
             state=tk.DISABLED,
+            height=10,
         )
-        self._invocation_detail_text.pack(fill=tk.BOTH, expand=True)
+        self._invocation_detail_text.grid(row=0, column=0, sticky="nsew")
+
+        self._invocation_detail_followup = tk.Frame(
+            detail_card.inner,
+            bg=COLORS["bg_surface"],
+        )
+        self._invocation_detail_followup.grid(row=1, column=0, sticky="nsew", pady=(SPACING["sm"], 0))
 
         if selected_option is not None:
             self._show_invocation_detail(selected_option)
@@ -972,24 +1151,22 @@ class ClassFeaturesStep(WizardStep):
             ).pack(fill=tk.X, anchor="w")
             return
 
-        row = tk.Frame(card.inner, bg=COLORS["bg_surface"])
-        row.pack(fill=tk.X)
-        self._binding_var.set(str(self._choice_value("warlock_invocation_cantrip", "") or ""))
-        combo = ttk.Combobox(
-            row,
-            textvariable=self._binding_var,
-            values=options,
-            state="readonly",
-            width=42,
-        )
-        combo.pack(fill=tk.X, expand=True)
-        combo.bind(
-            "<<ComboboxSelected>>",
-            lambda _event: self._set_choice(
-                "warlock_invocation_cantrip",
-                self._binding_var.get().strip(),
-            ),
-        )
+        tk.Label(
+            card.inner,
+            text="Select cantrip:",
+            font=FONTS["body_bold"],
+            fg=COLORS["fg"],
+            bg=COLORS["bg_surface"],
+            anchor="w",
+        ).pack(fill=tk.X, pady=(0, SPACING["xs"]))
+
+        tiles = tk.Frame(card.inner, bg=COLORS["bg_surface"])
+        tiles.pack(fill=tk.X)
+
+        for cantrip_name in options:
+            self._create_warlock_binding_tile(tiles, cantrip_name)
+
+        self._update_warlock_binding_tile_styles()
 
     def _build_warlock_followup_section(self):
         invocation = str(self._choice_value("warlock_invocation", "") or "").strip()
@@ -1068,6 +1245,7 @@ class ClassFeaturesStep(WizardStep):
 
         self._invocation_detail_text.insert("1.0", "\n".join(lines))
         self._invocation_detail_text.configure(state=tk.DISABLED)
+        self._populate_invocation_followup(invocation)
 
     def _update_invocation_states(self):
         selected = (
@@ -1099,9 +1277,8 @@ class ClassFeaturesStep(WizardStep):
             return
 
         if slug == "warlock":
-            if self._current_substep == 0 or not self.has_substeps():
-                self._build_warlock_invocation_selector()
-            else:
+            self._build_warlock_invocation_selector()
+            if self._warlock_followup_kind() in {"tome", "feat"}:
                 self._build_warlock_followup_section()
             return
 
