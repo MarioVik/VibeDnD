@@ -1417,11 +1417,13 @@ class ScrollableFrame(ttk.Frame):
         parent,
         inner_padding: int = 16,
         auto_hide_scrollbar: bool = False,
+        stretch_to_viewport: bool = False,
         **kwargs,
     ):
         super().__init__(parent, **kwargs)
         self._inner_pad = inner_padding
         self._auto_hide_scrollbar = auto_hide_scrollbar
+        self._stretch_to_viewport = stretch_to_viewport
         self._scrollbar_visible = True
 
         self.canvas = tk.Canvas(
@@ -1460,6 +1462,8 @@ class ScrollableFrame(ttk.Frame):
     def _stretch_inner_to_viewport(self):
         """Ensure the inner frame fills at least the visible canvas height
         so that children packed with expand=True can fill the viewport."""
+        if not self._stretch_to_viewport:
+            return
         canvas_h = self.canvas.winfo_height()
         if canvas_h <= 1:
             return

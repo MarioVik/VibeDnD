@@ -92,7 +92,7 @@ class ClassFeaturesStep(WizardStep):
             bg=COLORS["bg_hero"],
         ).pack(anchor="w", padx=SPACING["card_pad"], pady=(SPACING["xs"], SPACING["xl"]))
 
-        scroll = ScrollableFrame(self.frame)
+        scroll = ScrollableFrame(self.frame, stretch_to_viewport=True)
         scroll.grid(row=1, column=0, sticky="nsew")
         self._content = scroll.inner
 
