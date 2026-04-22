@@ -614,6 +614,17 @@ def validate_choices_step(
                 f'"{name}" requires both an armor and a damage type selection.',
             )
 
+    # Warlock binding invocations require a cantrip selection
+    from models.level1_class_rules import WARLOCK_CLASS_FEATURE_FOLLOWUP_INVOCATIONS
+    for name in ctx.selected_new_choices:
+        if WARLOCK_CLASS_FEATURE_FOLLOWUP_INVOCATIONS.get(name) == "binding":
+            if not ctx.choice_sub_selections.get(name, ""):
+                return (
+                    False,
+                    "Missing Cantrip",
+                    f'"{name}" requires you to choose a cantrip to bind it to.',
+                )
+
     if inp:
         opt = options_by_name.get(inp)
         if opt and "sub_choice" in opt:

@@ -82,6 +82,8 @@ class SpellSwapPanel:
         self._cantrip_rbs: list[tuple[ttk.Radiobutton, dict]] = []
         self._spell_rbs: list[tuple[ttk.Radiobutton, dict]] = []
         self._allow_cantrips = allow_cantrips
+        self._no_swap_label = no_swap_label
+        self._all_spell_objects: dict[str, dict] = {}
 
         # ── Two-column split ──
         cols = ttk.Frame(parent)
@@ -98,6 +100,7 @@ class SpellSwapPanel:
             left_lf,
             on_hover=self._show_detail,
             on_select=self._on_forget_select_modern,
+            radioselect=True,
         )
         self.left_list.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
 
@@ -109,6 +112,7 @@ class SpellSwapPanel:
             right_lf,
             on_hover=self._show_detail,
             on_select=self._on_learn_select_modern,
+            radioselect=True,
         )
         self.right_list.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
 
@@ -133,9 +137,6 @@ class SpellSwapPanel:
         
         self.right_list.set_sectioned_items(self._learn_sections)
 
-        self._all_spell_objects = {s["name"]: s for s in all_spells}
-        self._no_swap_label = no_swap_label
-
         # --- Shared Detail Panel ---
         all_spells = (
             forget_spells
@@ -143,6 +144,7 @@ class SpellSwapPanel:
             + (forget_cantrips or [])
             + (learn_cantrips or [])
         )
+        self._all_spell_objects = {s["name"]: s for s in all_spells}
         detail_h = _max_detail_height(all_spells)
         detail_lf = ttk.LabelFrame(parent, text="Spell Details")
         detail_lf.pack(fill=tk.X, pady=(4, 0))

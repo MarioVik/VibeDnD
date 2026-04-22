@@ -26,6 +26,10 @@ from models.level_up_logic import (
     get_sub_choice_options,
     validate_choices_step,
 )
+from models.level1_class_rules import (
+    WARLOCK_CLASS_FEATURE_FOLLOWUP_INVOCATIONS,
+    get_warlock_invocation_binding_options,
+)
 
 
 class LuChoicesStep(LevelUpStep):
@@ -385,6 +389,13 @@ class LuChoicesStep(LevelUpStep):
             opt = self._choice_options_by_name.get(name)
             if opt and opt.get("sub_choice") and name in self.ctx.selected_new_choices:
                 self._show_sub_choice_ui(name, opt["sub_choice"])
+            elif (
+                name in self.ctx.selected_new_choices
+                and WARLOCK_CLASS_FEATURE_FOLLOWUP_INVOCATIONS.get(name) == "binding"
+            ):
+                self._show_sub_choice_ui(
+                    name, {"type": "cantrip_binding"}
+                )
             else:
                 self._hide_sub_choice_ui()
 
@@ -460,6 +471,14 @@ class LuChoicesStep(LevelUpStep):
         is_replace_in = self.ctx.replace_in == name
         if sub_choice and (is_selected or is_replace_in):
             self._show_sub_choice_ui(name, sub_choice)
+        elif (
+            not sub_choice
+            and (is_selected or is_replace_in)
+            and WARLOCK_CLASS_FEATURE_FOLLOWUP_INVOCATIONS.get(name) == "binding"
+        ):
+            self._show_sub_choice_ui(
+                name, {"type": "cantrip_binding"}
+            )
 
     def _hide_sub_choice_ui(self):
         self._sub_split.grid_forget()
@@ -476,12 +495,17 @@ class LuChoicesStep(LevelUpStep):
         sc_type = sub_choice.get("type", "")
         self._sub_choice_type = sc_type
 
-        options = get_sub_choice_options(sub_choice, self.data)
+        if sc_type == "cantrip_binding":
+            options = self._get_binding_cantrip_options()
+        else:
+            options = get_sub_choice_options(sub_choice, self.data)
         if not options:
             return
         self._sub_choice_options = options
 
-        if sc_type == "weapon":
+        if sc_type == "cantrip_binding":
+            label_text = "Choose cantrip:"
+        elif sc_type == "weapon":
             label_text = "Select weapon:"
         elif sc_type in ("armor", "armor_and_damage_type"):
             label_text = "Select armor:"
@@ -554,10 +578,27 @@ class LuChoicesStep(LevelUpStep):
         )
         title_lbl.pack(fill=tk.X, padx=SPACING["sm"], pady=(SPACING["sm"], 0))
 
-        # Metadata (Level, Attunement) if it's a magic item
+        # Metadata and description
         meta_lbl = None
         desc = ""
-        if self.data:
+        if self.data and self._sub_choice_type == "cantrip_binding":
+            spell = self._lookup_spell(name)
+            if spell:
+                meta_parts = [spell.get("school", ""), spell.get("casting_time", ""), spell.get("range", "")]
+                meta_parts = [p for p in meta_parts if p]
+                if meta_parts:
+                    meta_lbl = tk.Label(
+                        tile,
+                        text=" \u2022 ".join(meta_parts),
+                        font=FONTS["label_upper"],
+                        fg=COLORS["gold"],
+                        bg=bg_hex,
+                        cursor="hand2",
+                        anchor="w",
+                    )
+                    meta_lbl.pack(fill=tk.X, padx=SPACING["sm"], pady=0)
+                desc = spell.get("description", "")
+        elif self.data:
             item = self.data.items_by_name.get(name)
             if item:
                 meta_parts = []
@@ -650,7 +691,8 @@ class LuChoicesStep(LevelUpStep):
         if not name:
             return
         opt = self._choice_options_by_name.get(name)
-        if not opt or "sub_choice" not in opt:
+        is_binding = WARLOCK_CLASS_FEATURE_FOLLOWUP_INVOCATIONS.get(name) == "binding"
+        if not opt or ("sub_choice" not in opt and not is_binding):
             return
         val = self._sub_choice_selected
         if self._sub_choice_type == "armor_and_damage_type":
@@ -666,6 +708,39 @@ class LuChoicesStep(LevelUpStep):
         else:
             self.ctx.choice_sub_selections.pop(name, None)
         self.notify_change()
+
+    def _get_binding_cantrip_options(self) -> list[str]:
+        """Return eligible damage cantrips for warlock invocation binding."""
+        base = list(get_warlock_invocation_binding_options(self.character, self.data))
+        # Also include any new cantrips selected during this level-up
+        new_cantrips = getattr(self.ctx, "selected_new_cantrips", []) or []
+        base_set = set(base)
+        for name in new_cantrips:
+            if name not in base_set:
+                spell = self._lookup_spell(name)
+                if spell and self._is_damage_cantrip(spell):
+                    base.append(name)
+                    base_set.add(name)
+        return sorted(base_set)
+
+    @staticmethod
+    def _is_damage_cantrip(spell: dict) -> bool:
+        if spell.get("level") != 0:
+            return False
+        text = " ".join([
+            str(spell.get("description", "") or ""),
+            str(spell.get("cantrip_upgrade", "") or ""),
+            str(spell.get("higher_levels", "") or ""),
+        ]).lower()
+        if "damage" in text:
+            return True
+        return "takes " in text and ("fire" in text or "cold" in text or "force" in text)
+
+    def _lookup_spell(self, name: str) -> dict | None:
+        for spell in getattr(self.data, "spells", []):
+            if str(spell.get("name", "")).strip().casefold() == name.strip().casefold():
+                return spell
+        return None
 
     def is_valid(self) -> bool:
         ok, _, _ = validate_choices_step(self.ctx, self.character, self.data)

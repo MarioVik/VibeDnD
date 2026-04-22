@@ -75,8 +75,6 @@ class LuSpellsStep(LevelUpStep):
             w.destroy()
         self.cantrip_vars.clear()
         self.spell_vars.clear()
-        self.cantrip_checkbuttons.clear()
-        self.spell_checkbuttons.clear()
 
         new_cantrips, new_prepared, max_spell_level = spell_deltas(
             self.ctx.class_slug, self.ctx.new_class_level, self.data
@@ -146,13 +144,15 @@ class LuSpellsStep(LevelUpStep):
                 break
 
         sections = []
+        all_cantrips = []
+        available = []
         # Cantrips
         if new_cantrips > 0:
             all_cantrips = self.data.cantrips_for_class(class_name)
             known = set(self.character.selected_cantrips) | set(self.ctx.selected_new_cantrips)
-            available = [s for s in all_cantrips if s["name"] not in known]
-            cantrip_names = [s["name"] for s in sorted(available, key=lambda s: s["name"])]
-            for s in available:
+            available_cantrips = [s for s in all_cantrips if s["name"] not in known]
+            cantrip_names = [s["name"] for s in sorted(available_cantrips, key=lambda s: s["name"])]
+            for s in available_cantrips:
                 self.cantrip_vars[s["name"]] = {"var": tk.BooleanVar(value=s["name"] in self.ctx.selected_new_cantrips), "spell": s}
             sections.append(("Cantrips", cantrip_names))
 

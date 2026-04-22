@@ -1169,14 +1169,17 @@ class ModernSectionedListbox(tk.Frame):
         on_hover=None,
         on_select=None,
         multiselect: bool = False,
+        radioselect: bool = False,
         **kwargs,
     ):
         super().__init__(parent, bg=COLORS["bg"], **kwargs)
         self.on_hover = on_hover
         self.on_select = on_select
         self.multiselect = multiselect
+        self.radioselect = radioselect
 
         self._active_name = tk.StringVar(value="")
+        self._radio_var = tk.StringVar(value="")
         self._row_widgets: dict[str, dict[str, tk.Widget]] = {}
         self._vars: dict[str, tk.BooleanVar] = {}
         self._fixed_names: set[str] = set()
@@ -1297,6 +1300,20 @@ class ModernSectionedListbox(tk.Frame):
             cb.bind("<Enter>", lambda _e, n=name: self._handle_hover(n))
             var.trace_add("write", lambda *_, n=name: self._handle_select(n))
             content_widget = cb
+        elif self.radioselect and not is_fixed:
+            rb = ttk.Radiobutton(
+                row_frame,
+                text=display_name,
+                variable=self._radio_var,
+                value=name,
+                state="disabled" if is_disabled else "normal",
+                command=lambda n=name: self._handle_select(n),
+            )
+            rb.pack(side=tk.LEFT, anchor="w", pady=4)
+            rb.bind("<Enter>", lambda _e, n=name: self._handle_hover(n))
+            if is_checked:
+                self._radio_var.set(name)
+            content_widget = rb
         else:
             lbl = tk.Label(
                 row_frame,
@@ -1317,7 +1334,7 @@ class ModernSectionedListbox(tk.Frame):
             row_frame.bind("<Enter>", lambda _e, n=name: self._handle_hover(n))
             row_frame.bind("<Button-1>", lambda _e, n=name: self._toggle_or_select(n))
             
-            if not self.multiselect or is_fixed:
+            if (not self.multiselect and not self.radioselect) or is_fixed:
                 content_widget.bind("<Enter>", lambda _e, n=name: self._handle_hover(n))
                 content_widget.bind("<Button-1>", lambda _e, n=name: self._toggle_or_select(n))
 
@@ -1330,6 +1347,9 @@ class ModernSectionedListbox(tk.Frame):
         if self.multiselect and name in self._vars and name not in self._disabled_names:
             var = self._vars[name]
             var.set(not var.get())
+        elif self.radioselect and name not in self._disabled_names:
+            self._radio_var.set(name)
+            self._handle_select(name)
         else:
             self._handle_select(name)
 
@@ -1360,8 +1380,9 @@ class ModernSectionedListbox(tk.Frame):
         w["row"].configure(bg=bg, highlightbackground=border)
         w["rail"].configure(bg=rail_bg)
         
-        # If it's a label, update its background too
-        if not self.multiselect:
+        # If it's a plain tk.Label, update its background too
+        # (ttk widgets like Checkbutton/Radiobutton don't support -bg)
+        if not self.multiselect and not self.radioselect:
             w["content"].configure(bg=bg)
 
     def _filter(self):
