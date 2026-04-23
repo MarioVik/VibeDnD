@@ -253,6 +253,55 @@ def _parse_clean_expanded_spells(desc: str) -> dict[str, list[str]] | None:
     return {str(k): v for k, v in result.items()}
 
 
+def _rebuild_spells_description(
+    intro_text: str,
+    expanded: dict[str, list[str]],
+) -> str:
+    """Build a clean, readable description from structured expanded spell data.
+
+    Replaces garbled HTML-scraped bullet tables with a proper list format.
+    """
+    lines = []
+    if intro_text:
+        lines.append(intro_text)
+        lines.append("")
+
+    for level_str in sorted(expanded, key=int):
+        spell_names = expanded[level_str]
+        lines.append(f"Level {level_str}: {', '.join(spell_names)}")
+
+    return "\n".join(lines)
+
+
+def _clean_feature_descriptions(
+    features_by_level: dict[int, list[dict]],
+    expanded: dict[str, list[str]],
+) -> None:
+    """Replace spell-list feature descriptions with clean formatted ones."""
+    for _level, feats in features_by_level.items():
+        for feat in feats:
+            desc = feat.get("description", "")
+            lower = desc.lower()
+            if ("always have the listed spells prepared" not in lower
+                    and "always have certain spells ready" not in lower):
+                continue
+
+            # Extract the intro sentence (up to and including the
+            # "always prepared" clause).
+            intro = ""
+            for marker in ("always have the listed spells prepared.",
+                           "always have certain spells ready;",
+                           "always have certain spells ready."):
+                idx = lower.find(marker)
+                if idx != -1:
+                    intro = desc[: idx + len(marker)].strip()
+                    break
+
+            feat["description"] = _rebuild_spells_description(
+                intro, expanded,
+            )
+
+
 # Sources that are considered official (non-UA) even if in the ua section.
 # When a subclass from one of these sources duplicates a PHB entry,
 # the richer version from this source replaces the PHB name-only entry.
@@ -380,6 +429,8 @@ def _parse_class_subclass_pages(class_subclass_data: list[dict]) -> list[dict]:
         expanded = _extract_expanded_spells(features_by_level, subclass_slug)
         if expanded:
             entry_data["expanded_spells"] = expanded
+            _clean_feature_descriptions(features_by_level, expanded)
+            entry_data["features"] = {str(k): v for k, v in features_by_level.items()}
         subclasses.append(entry_data)
 
     return subclasses
@@ -516,6 +567,8 @@ def parse_subclasses(
         expanded = _extract_expanded_spells(features_by_level, subclass_slug)
         if expanded:
             entry_data["expanded_spells"] = expanded
+            _clean_feature_descriptions(features_by_level, expanded)
+            entry_data["features"] = {str(k): v for k, v in features_by_level.items()}
 
         key = _canonical_key(class_slug, display_name)
         existing_prio = seen_priority.get(key, 0)

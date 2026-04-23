@@ -19,7 +19,7 @@
         },
         {
           "name": "Alchemist Spells.",
-          "description": "When you reach an Artificer level specified in the Alchemist Spells table, you thereafter always have the listed spells prepared. Alchemist Spells Artificer Level Spells 3 Healing Word ,\n\nRay of Sickness\n\n• 9 — Flaming Sphere: Gaseous Form, ,: ,, Melf's Acid Arrow: Mass Healing Word\n• 13 — Flaming Sphere: Death Ward, ,: ,, Melf's Acid Arrow: Vitriolic Sphere\n• 17 — Flaming Sphere: Cloudkill, ,: ,, Melf's Acid Arrow: Raise Dead"
+          "description": "When you reach an Artificer level specified in the Alchemist Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Healing Word, Ray of Sickness\nLevel 5: Flaming Sphere, Melf's Acid Arrow\nLevel 9: Gaseous Form, Mass Healing Word\nLevel 13: Death Ward, Vitriolic Sphere\nLevel 17: Cloudkill, Raise Dead"
         },
         {
           "name": "Experimental Elixir",
@@ -88,7 +88,7 @@
         },
         {
           "name": "Armorer Spells",
-          "description": "When you reach an Artificer level specified in the Armorer Spells table, you thereafter always have the listed spells prepared. Armorer Spells Artificer Level Spells 3 Magic Missile , Thunderwave 5 Mirror Image , Shatter 9 Hypnotic Pattern , Lightning Bolt 13 Fire Shield , Greater Invisibility 17 Passwall , Wall of Force"
+          "description": "When you reach an Artificer level specified in the Armorer Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Magic Missile, Thunderwave\nLevel 5: Mirror Image, Shatter\nLevel 9: Hypnotic Pattern, Lightning Bolt\nLevel 13: Fire Shield, Greater Invisibility\nLevel 17: Passwall, Wall of Force"
         },
         {
           "name": "Arcane Armor",
@@ -161,7 +161,7 @@
         },
         {
           "name": "Artillerist Spells",
-          "description": "When you reach an Artificer level specified in the Artillerist Spells table, you thereafter always have the listed spells prepared. Artillerist Spells Artificer Level Spells 3 Shield , Thunderwave 5 Scorching Ray , Shatter 9 Fireball , Wind Wall 13 Ice Storm , Wall of Fire 17 Cone of Cold , Wall of Force"
+          "description": "When you reach an Artificer level specified in the Artillerist Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Shield, Thunderwave\nLevel 5: Scorching Ray, Shatter\nLevel 9: Fireball, Wind Wall\nLevel 13: Ice Storm, Wall of Fire\nLevel 17: Cone of Cold, Wall of Force"
         },
         {
           "name": "Eldritch Cannon",
@@ -230,7 +230,7 @@
         },
         {
           "name": "Battle Smith spells",
-          "description": "When you reach an Artificer level specified in the Battle Smith Spells table, you thereafter always have the listed spells prepared. Battle Smith Spells Artificer Level Spells 3 Heroism , Shield 5 Shining Smite , Warding Bond 9 Aura of Vitality , Conjure Barrage 13 Aura of Purity , Fire Shield 17 Banishing Smite , Mass Cure Wounds"
+          "description": "When you reach an Artificer level specified in the Battle Smith Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Heroism, Shield\nLevel 5: Shining Smite, Warding Bond\nLevel 9: Aura of Vitality, Conjure Barrage\nLevel 13: Aura of Purity, Fire Shield\nLevel 17: Banishing Smite, Mass Cure Wounds"
         },
         {
           "name": "Battle Ready",
@@ -303,7 +303,7 @@
         },
         {
           "name": "Cartographer Spells",
-          "description": "When you reach an Artificer level specified in the Cartographer Spells table, you thereafter always have the listed spells prepared.\n\nCartographer Spells\n\n• Faerie Fire — Spells: ,, 3: Guiding Bolt\n• , — Spells: Healing Word, 3: 5\n• Locate Object — Spells: ,, 3: Mind Spike\n• 9 — Spells: Call Lightning, 3: ,\n• Clairvoyance — Spells: 13, 3: Banishment\n• , — Spells: Locate Creature, 3: 17\n• Scrying — Spells: ,, 3: Teleportation Circle"
+          "description": "When you reach an Artificer level specified in the Cartographer Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Faerie Fire, Guiding Bolt\nLevel 5: Healing Word, Locate Object, Mind Spike\nLevel 9: Call Lightning, Clairvoyance\nLevel 13: Banishment, Locate Creature\nLevel 17: Scrying, Teleportation Circle"
         },
         {
           "name": "Adventurer's Atlas",
@@ -720,7 +720,7 @@
         },
         {
           "name": "Knowledge Domain Spells",
-          "description": "When you reach a Cleric level specified in the Knowledge Domain Spells table, you thereafter always have the listed spells prepared.\n\nKnowledge Domain Spells\n\n• Command — Prepared Spells: ,, 3: Comprehend Languages*\n• , — Prepared Spells: Detect Magic*, 3: ,\n• Detect Thoughts* — Prepared Spells: ,, 3: Identify*\n• , — Prepared Spells: Mind Spike*, 3: 5\n• Dispel Magic — Prepared Spells: ,, 3: Nondetection\n• , — Prepared Spells: Tongues*, 3: 7\n• Arcane Eye* — Prepared Spells: ,, 3: Banishment\n• , — Prepared Spells: Confusion, 3: 9\n• Legend Lore* — Prepared Spells: ,, 3: Scrying*\n• , — Prepared Spells: Synaptic Static, 3: *Spell of the Divination School"
+          "description": "When you reach a Cleric level specified in the Knowledge Domain Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Command, Comprehend Languages, Detect Magic, Detect Thoughts, Identify, Mind Spike\nLevel 5: Dispel Magic, Nondetection, Tongues\nLevel 7: Arcane Eye, Banishment, Confusion\nLevel 9: Legend Lore, Scrying, Synaptic Static"
         },
         {
           "name": "Mind Magic",
@@ -785,7 +785,7 @@
         },
         {
           "name": "Life Domain Spells",
-          "description": "Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the Life Domain Spells table, you thereafter always have the listed spells prepared. Life Domain Spells Cleric Level Prepared Spells 3 Aid , Bless , Cure Wounds , Lesser Restoration 5 Mass Healing Word , Revivify 7 Aura of Life , Death Ward 9 Greater Restoration , Mass Cure Wounds"
+          "description": "Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the Life Domain Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Aid, Bless, Cure Wounds, Lesser Restoration\nLevel 5: Mass Healing Word, Revivify\nLevel 7: Aura of Life, Death Ward\nLevel 9: Greater Restoration, Mass Cure Wounds"
         },
         {
           "name": "Preserve Life",
@@ -841,7 +841,7 @@
       "3": [
         {
           "name": "Light Domain Spells",
-          "description": "Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the Light Domain Spells table, you thereafter always have the listed spells prepared.\n\nLight Domain Spells\n\n• Burning Hands — Prepared Spells: ,, 3: Faerie Fire\n• , — Prepared Spells: Scorching Ray, 3: ,\n\nSee Invisibility 5 Daylight , Fireball 7 Arcane Eye , Wall of Fire 9 Flame Strike , Scrying"
+          "description": "Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the Light Domain Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Burning Hands, Faerie Fire, Scorching Ray, See Invisibility\nLevel 5: Daylight, Fireball\nLevel 7: Arcane Eye, Wall of Fire\nLevel 9: Flame Strike, Scrying"
         },
         {
           "name": "Radiance of the Dawn",
@@ -905,7 +905,7 @@
         },
         {
           "name": "Trickery Domain Spells",
-          "description": "Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the Trickery Domain Spells table, you thereafter always have the listed spells prepared. Trickery Domain Spells Cleric Level Prepared Spells 3 Charm Person , Disguise Self , Invisibility , Pass without Trace 5 Hypnotic Pattern , Nondetection 7 Confusion , Dimension Door 9 Dominate Person , Modify Memory"
+          "description": "Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the Trickery Domain Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Charm Person, Disguise Self, Invisibility, Pass without Trace\nLevel 5: Hypnotic Pattern, Nondetection\nLevel 7: Confusion, Dimension Door\nLevel 9: Dominate Person, Modify Memory"
         },
         {
           "name": "Invoke Duplicity",
@@ -965,7 +965,7 @@
         },
         {
           "name": "War Domain Spells",
-          "description": "Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the War Domain Spells table, you thereafter always have the listed spells prepared. War Domain Spells Cleric Level Prepared Spells 3 Guiding Bolt , Magic Weapon , Shield of Faith ,\n\nSpiritual Weapon\n\n• Spirit Guardians — Crusader's Mantle: 7, ,: Fire Shield\n• , — Crusader's Mantle: Freedom of Movement, ,: 9\n• Hold Monster — Crusader's Mantle: ,, ,: Steel Wind Strike"
+          "description": "Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the War Domain Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Guiding Bolt, Magic Weapon, Shield of Faith, Spiritual Weapon\nLevel 5: Crusader's Mantle, Spirit Guardians\nLevel 7: Fire Shield, Freedom of Movement\nLevel 9: Hold Monster, Steel Wind Strike"
         },
         {
           "name": "War Priest",
@@ -1069,7 +1069,7 @@
         },
         {
           "name": "Circle of the Moon Spells",
-          "description": "When you reach a Druid level specified in the Circle of the Moon Spells table, you thereafter always have the listed spells prepared. In addition, you can cast the spells from this feature while you’re in a Wild Shape form.\n\n• 3 — Druid Level: Cure Wounds, Prepared Spells: ,\n• Moonbeam — Druid Level: ,, Prepared Spells: Starry Wisp\n• 5 — Druid Level: Conjure Animals, Prepared Spells: 7\n• Fount of Moonlight — Druid Level: 9, Prepared Spells: Mass Cure Wounds"
+          "description": "When you reach a Druid level specified in the Circle of the Moon Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Cure Wounds, Moonbeam, Starry Wisp\nLevel 5: Conjure Animals\nLevel 7: Fount of Moonlight\nLevel 9: Mass Cure Wounds"
         }
       ],
       "6": [
@@ -1124,7 +1124,7 @@
       "3": [
         {
           "name": "Circle of the Sea Spells",
-          "description": "When you reach a Druid level specified in the Circle of the Sea Spells table, you thereafter always have the listed spells prepared. Circle of the Sea Spells Druid Level Prepared Spells 3 Fog Cloud , Gust of Wind , Ray of Frost , Thunderwave 5 Lightning Bolt , Water Breathing 7 Control Water , Ice Storm 9 Conjure Elemental , Hold Monster"
+          "description": "When you reach a Druid level specified in the Circle of the Sea Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Fog Cloud, Gust of Wind, Ray of Frost, Thunderwave\nLevel 5: Lightning Bolt, Water Breathing\nLevel 7: Control Water, Ice Storm\nLevel 9: Conjure Elemental, Hold Monster"
         },
         {
           "name": "Wrath of the Sea",
@@ -1644,7 +1644,7 @@
       "3": [
         {
           "name": "Oath of Devotion Spells",
-          "description": "The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oath of Devotion Spells table, you thereafter always have the listed spells prepared. Oath of Devotion Spells Paladin Level Spells 3 Protection from Evil and Good , Shield of Faith 5 Aid , Zone of Truth 9 Beacon of Hope , Dispel Magic 13 Freedom of Movement , Guardian of Faith 17 Commune , Flame Strike"
+          "description": "The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oath of Devotion Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Protection from Evil and Good, Shield of Faith\nLevel 5: Aid, Zone of Truth\nLevel 9: Beacon of Hope, Dispel Magic\nLevel 13: Freedom of Movement, Guardian of Faith\nLevel 17: Commune, Flame Strike"
         },
         {
           "name": "Sacred Weapon",
@@ -1713,7 +1713,7 @@
         },
         {
           "name": "Oath of Glory Spells.",
-          "description": "The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oath of Glory Spells table, you thereafter always have the listed spells prepared. Oath of Glory Spells Paladin Level Spells 3 Guiding Bolt , Heroism 5 Enhance Ability , Magic Weapon 9 Haste , Protection from Energy 13 Compulsion , Freedom of Movement 17 Legend Lore , Yolande's Regal Presence"
+          "description": "The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oath of Glory Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Guiding Bolt, Heroism\nLevel 5: Enhance Ability, Magic Weapon\nLevel 9: Haste, Protection from Energy\nLevel 13: Compulsion, Freedom of Movement\nLevel 17: Legend Lore, Yolande's Regal Presence"
         },
         {
           "name": "Peerless Athlete",
@@ -1782,7 +1782,7 @@
         },
         {
           "name": "Oath of the Ancients Spells",
-          "description": "The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oath of the Ancients Spells table, you thereafter always have the listed spells prepared. Oath of the Ancients Spells Paladin Level Spells 3 Ensnaring Strike , Speak with Animals 5 Misty Step ,\n\nMoonbeam\n\n• Protection from Energy — Plant Growth: 13, ,: Ice Storm\n• , — Plant Growth: Stoneskin, ,: 17\n• Commune with Nature — Plant Growth: ,, ,: Tree Stride"
+          "description": "The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oath of the Ancients Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Ensnaring Strike, Speak with Animals\nLevel 5: Misty Step, Moonbeam\nLevel 9: Protection from Energy, Plant Growth\nLevel 13: Ice Storm, Stoneskin\nLevel 17: Commune with Nature, Tree Stride"
         }
       ],
       "7": [
@@ -1847,7 +1847,7 @@
         },
         {
           "name": "Genie Spells",
-          "description": "When you reach a Paladin level specified in the Genie Spells table, you thereafter always have the listed spells prepared\n\nGenie Spells\n\n• Chromatic Orb — Spells: ,, 3: Elementalism\n• , — Spells: Thunderous Smite, 3: 5\n• Mirror Image — Spells: ,, 3: Phantasmal Force\n• 9 — Spells: Fly, 3: ,\n• Gaseous Form — Spells: 13, 3: Conjure Minor Elementals\n• , — Spells: Summon Elemental, 3: 17\n• Banishing Smite — Spells: ,, 3: Contact Other Plane"
+          "description": "Level 3: Chromatic Orb, Elementalism, Thunderous Smite\nLevel 5: Mirror Image, Phantasmal Force\nLevel 9: Fly, Gaseous Form\nLevel 13: Conjure Minor Elementals, Summon Elemental\nLevel 17: Banishing Smite, Contact Other Plane"
         },
         {
           "name": "Genie's Splendor",
@@ -1913,7 +1913,7 @@
       "3": [
         {
           "name": "Oath of Vengeance Spells",
-          "description": "The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oath of Vengeance Spells table, you thereafter always have the listed spells prepared. Oath of Vengeance Spells Paladin Level Spells 3 Bane , Hunter's Mark 5 Hold Person , Misty Step 9 Haste , Protection from Energy 13 Banishment , Dimension Door 17 Hold Monster , Scrying"
+          "description": "The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oath of Vengeance Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Bane, Hunter's Mark\nLevel 5: Hold Person, Misty Step\nLevel 9: Haste, Protection from Energy\nLevel 13: Banishment, Dimension Door\nLevel 17: Hold Monster, Scrying"
         },
         {
           "name": "Vow of Enmity",
@@ -2021,7 +2021,7 @@
         },
         {
           "name": "Fey Wanderer Spells",
-          "description": "When you reach a Ranger level specified in the Fey Wanderer spells table, you thereafter always have the listed spells prepared.\n\nFey Wanderer Spells\n\n• Charm Person — Spell: 5, 3: Misty Step\n• 9 — Spell: Summon Fey, 3: 13\n• Dimension Door — Spell: 17, 3: Mislead\n\nYou also possess a fey blessing. Choose it from the Feywild Gifts table or determine it randomly. Feywild Gifts 1d6 Gift 1 Illusory butterflies flutter around you while you take a Short or Long Rest. 2 Flowers bloom from your hair each dawn. 3 You faintly smell of cinnamon, lavender, nutmeg, or another comforting herb or spice. 4 Your shadow dances while no one is looking directly at it. 5 Horns or antlers sprout from your head. 6 Your skin and hair change color each dawn."
+          "description": "When you reach a Ranger level specified in the Fey Wanderer spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Charm Person\nLevel 5: Misty Step\nLevel 9: Summon Fey\nLevel 13: Dimension Door\nLevel 17: Mislead"
         },
         {
           "name": "Otherworldly Glamour.",
@@ -2085,7 +2085,7 @@
         },
         {
           "name": "Gloom Stalker Spells",
-          "description": "When you reach a Ranger level specified in the Gloom Stalker spells table, you thereafter always have the listed spells prepared.\n\nGloom Stalker Spells\n\n• Disguise Self — Spells: 5, 3: Rope Trick\n• 9 — Spells: Fear, 3: 13\n• Greater Invisibility — Spells: 17, 3: Seeming"
+          "description": "When you reach a Ranger level specified in the Gloom Stalker spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Disguise Self\nLevel 5: Rope Trick\nLevel 9: Fear\nLevel 13: Greater Invisibility\nLevel 17: Seeming"
         },
         {
           "name": "Umbral Sight",
@@ -2196,7 +2196,7 @@
         },
         {
           "name": "Winter Walker Spells",
-          "description": "When you reach a Ranger level specified in the Winter Walker Spells table, you thereafter always have the listed spells prepared.\n\nWinter Walker Spells\n\n• Ice Knife — Spells: 5, 3: Hold Person\n• 9 — Spells: Remove Curse, 3: 13\n• Ice Storm — Spells: 17, 3: Cone of Cold"
+          "description": "When you reach a Ranger level specified in the Winter Walker Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Ice Knife\nLevel 5: Hold Person\nLevel 9: Remove Curse\nLevel 13: Ice Storm\nLevel 17: Cone of Cold"
         }
       ],
       "7": [
@@ -2467,7 +2467,7 @@
       "3": [
         {
           "name": "Psionic Spells",
-          "description": "When you reach a Sorcerer level specified in the Psionic Spells table, you thereafter always have the listed spells prepared.\n\nPsionic Spells\n\n• Arms of Hadar — Spells: ,, 3: Calm Emotions\n• , — Spells: Detect Thoughts, 3: ,\n• Dissonant Whispers — Spells: ,, 3: Mind Sliver\n• 5 — Spells: Hunger of Hadar, 3: ,\n• Sending — Spells: 7, 3: Evard's Black Tentacles\n• , — Spells: Summon Aberration, 3: 9\n• Rary's Telepathic Bond — Spells: ,, 3: Telekinesis"
+          "description": "When you reach a Sorcerer level specified in the Psionic Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Arms of Hadar, Calm Emotions, Detect Thoughts, Dissonant Whispers, Mind Sliver\nLevel 5: Hunger of Hadar, Sending\nLevel 7: Evard's Black Tentacles, Summon Aberration\nLevel 9: Rary's Telepathic Bond, Telekinesis"
         },
         {
           "name": "Telepathic Speech",
@@ -2535,7 +2535,7 @@
       "3": [
         {
           "name": "Clockwork Spells",
-          "description": "When you reach a Sorcerer level specified in the Clockwork Spells table, you thereafter always have the listed spells prepared. Clockwork Spells Sorcerer Level Spells 3 Aid , Alarm , Lesser Restoration , Protection from Evil and Good 5 Dispel Magic , Protection from Energy 7 Freedom of Movement , Summon Construct 9 Greater Restoration , Wall of Force In addition, consult the Manifestations of Order table and choose or randomly determine a way your connection to order manifests while you are casting any of your Sorcerer spells. Manifestations of Order 1d6 Manifestation 1 Spectral cogwheels hover behind you. 2 The hands of a clock spin in your eyes. 3 Your skin glows with a brassy sheen. 4 Floating equations and geometric objects overlay your body. 5 Your Spellcasting Focus temporarily takes the form of a Tiny clockwork mechanism. 6 The ticking of gears or ringing of a clock can be heard by you and those affected by your magic."
+          "description": "When you reach a Sorcerer level specified in the Clockwork Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Aid, Alarm, Lesser Restoration, Protection from Evil and Good\nLevel 5: Dispel Magic, Protection from Energy\nLevel 7: Freedom of Movement, Summon Construct\nLevel 9: Greater Restoration, Wall of Force"
         },
         {
           "name": "Restore Balance",
@@ -2602,7 +2602,7 @@
         },
         {
           "name": "Draconic Spells",
-          "description": "When you reach a Sorcerer level specified in the Draconic Spells table, you thereafter always have the listed spells prepared. Draconic Spells Sorcerer Level Spells 3 Alter Self , Chromatic Orb , Command , Dragon's Breath 5 Fear , Fly 7 Arcane Eye , Charm Monster 9 Legend Lore , Summon Dragon"
+          "description": "When you reach a Sorcerer level specified in the Draconic Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Alter Self, Chromatic Orb, Command, Dragon's Breath\nLevel 5: Fear, Fly\nLevel 7: Arcane Eye, Charm Monster\nLevel 9: Legend Lore, Summon Dragon"
         }
       ],
       "6": [
@@ -2665,7 +2665,7 @@
         },
         {
           "name": "Spellfire Spells",
-          "description": "When you reach a Sorcerer level specified in the Spellfire Spells table, you thereafter always have the listed spells prepared. Spellfire Spells Sorcerer Level Spells 3 Cure Wounds , Guiding Bolt , Lesser Restoration , Scorching Ray 5 Aura of Vitality , Dispel Magic 7 Fire Shield , Wall of Fire 9 Greater Restoration , Flame Strike"
+          "description": "When you reach a Sorcerer level specified in the Spellfire Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Cure Wounds, Guiding Bolt, Lesser Restoration, Scorching Ray\nLevel 5: Aura of Vitality, Dispel Magic\nLevel 7: Fire Shield, Wall of Fire\nLevel 9: Greater Restoration, Flame Strike"
         }
       ],
       "6": [
@@ -2767,7 +2767,7 @@
       "3": [
         {
           "name": "Archfey Spells",
-          "description": "The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Archfey Spells table, you thereafter always have the listed spells prepared.\n\nArchfey Spells\n\n• Calm Emotions — Spells: ,, 3: Faerie Fire\n• , — Spells: Misty Step, 3: ,\n• Phantasmal Force — Spells: ,, 3: Sleep\n• 5 — Spells: Blink, 3: ,\n• Plant Growth — Spells: 7, 3: Dominate Beast\n• , — Spells: Greater Invisibility, 3: 9\n• Dominate Person — Spells: ,, 3: Seeming"
+          "description": "The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Archfey Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep\nLevel 5: Blink, Plant Growth\nLevel 7: Dominate Beast, Greater Invisibility\nLevel 9: Dominate Person, Seeming"
         },
         {
           "name": "Steps of the Fey",
@@ -2831,7 +2831,7 @@
       "3": [
         {
           "name": "Celestial Spells",
-          "description": "The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Celestial Spells table, you thereafter always have the listed spells prepared.\n\n• 3 — Warlock Level: Aid, Spells: ,\n• Cure Wounds — Warlock Level: ,, Spells: Guiding Bolt\n• , — Warlock Level: Lesser Restoration, Spells: ,\n• Light — Warlock Level: ,, Spells: Sacred Flame\n• 5 — Warlock Level: Daylight, Spells: ,\n• Revivify — Warlock Level: 7, Spells: Guardian of Faith\n• , — Warlock Level: Wall of Fire, Spells: 9\n• Greater Restoration — Warlock Level: ,, Spells: Summon Celestial"
+          "description": "The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Celestial Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Aid, Cure Wounds, Guiding Bolt, Lesser Restoration, Light, Sacred Flame\nLevel 5: Daylight, Revivify\nLevel 7: Guardian of Faith, Wall of Fire\nLevel 9: Greater Restoration, Summon Celestial"
         },
         {
           "name": "Healing Light",
@@ -2900,7 +2900,7 @@
         },
         {
           "name": "Fiend Spells",
-          "description": "The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Fiend Spells table, you thereafter always have the listed spells prepared. Fiend Spells Warlock Level Spells 3 Burning Hands , Command , Scorching Ray , Suggestion 5 Fireball , Stinking Cloud 7 Fire Shield , Wall of Fire 9 Geas , Insect Plague"
+          "description": "The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Fiend Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Burning Hands, Command, Scorching Ray, Suggestion\nLevel 5: Fireball, Stinking Cloud\nLevel 7: Fire Shield, Wall of Fire\nLevel 9: Geas, Insect Plague"
         }
       ],
       "6": [
@@ -2963,7 +2963,7 @@
         },
         {
           "name": "Great Old One Spells",
-          "description": "The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Great Old One Spells table, you thereafter always have the listed spells prepared. Great Old One Spells Warlock Level Spells 3 Detect Thoughts , Dissonant Whispers , Phantasmal Force , Tasha's Hideous Laughter 5 Clairvoyance , Hunger of Hadar 7 Confusion , Summon Aberration 9 Modify Memory , Telekinesis"
+          "description": "The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Great Old One Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Detect Thoughts, Dissonant Whispers, Phantasmal Force, Tasha's Hideous Laughter\nLevel 5: Clairvoyance, Hunger of Hadar\nLevel 7: Confusion, Summon Aberration\nLevel 9: Modify Memory, Telekinesis"
         },
         {
           "name": "Psychic Spells",
@@ -3238,7 +3238,7 @@
       "3": [
         {
           "name": "Reanimator Spells",
-          "description": "When you reach an Artificer level specified in the Reanimator Spells table, you thereafter always have the listed spells prepared.\n\nReanimator Spells\n\n• False Life — Spells: ,, 3: Spare the Dying\n• , — Spells: Witch Bolt, 3: 5\n• Blindness/Deafness — Spells: ,, 3: Enhance Ability\n• 9 — Spells: Animate Dead, 3: ,\n• Lightning Bolt — Spells: 13, 3: Blight\n• , — Spells: Death Ward, 3: 17\n• Antilife Shell — Spells: ,, 3: Raise Dead"
+          "description": "When you reach an Artificer level specified in the Reanimator Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: False Life, Spare the Dying, Witch Bolt\nLevel 5: Blindness/Deafness, Enhance Ability\nLevel 9: Animate Dead, Lightning Bolt\nLevel 13: Blight, Death Ward\nLevel 17: Antilife Shell, Raise Dead"
         },
         {
           "name": "Jolt to Life",
@@ -3420,7 +3420,7 @@
       "3": [
         {
           "name": "Arcana Domain Spells",
-          "description": "Your connection to this divine domain means you always have certain spells ready. When you reach a Cleric level specified in the Arcana Domain Spells table, you thereafter always have the listed spells prepared. Arcana Domain Spells Cleric Level Prepared Spells 3 Detect Magic , Magic Missile , Magic Weapon , Nystul’s Magic Aura 5 Counterspell , Dispel Magic 7 Arcane Eye , Leomund’s Secret Chest 9 Bigby’s Hand , Teleportation Circle"
+          "description": "Your connection to this divine domain means you always have certain spells ready. When you reach a Cleric level specified in the Arcana Domain Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Detect Magic, Magic Missile, Magic Weapon, Nystul’s Magic Aura\nLevel 5: Counterspell, Dispel Magic\nLevel 7: Arcane Eye, Leomund’s Secret Chest\nLevel 9: Bigby’s Hand, Teleportation Circle"
         },
         {
           "name": "Arcane Initiate",
@@ -3478,7 +3478,7 @@
         },
         {
           "name": "Grave Domain Spells",
-          "description": "Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the Grave Domain Spells table, you thereafter always have the listed spells prepared.\n\nGrave Domain Spells\n\n• Bane — Spells: ,, 3: Chill Touch\n• , — Spells: Detect Evil and Good, 3: ,\n• Gentle Repose — Spells: ,, 3: Ray of Enfeeblement\n• 5 — Spells: Revivify, 3: ,\n• Vampiric Touch — Spells: 7, 3: Blight\n• , — Spells: Dispel Evil and Good, 3: 9\n• Hold Monster — Spells: ,, 3: Raise Dead"
+          "description": "Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the Grave Domain Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Bane, Chill Touch, Detect Evil and Good, Gentle Repose, Ray of Enfeeblement\nLevel 5: Revivify, Vampiric Touch\nLevel 7: Blight, Dispel Evil and Good\nLevel 9: Hold Monster, Raise Dead"
         },
         {
           "name": "Path to the Grave",
@@ -3539,7 +3539,7 @@
         },
         {
           "name": "Pestilence Domain Spells",
-          "description": "Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the Pestilence Domain Spells table, you thereafter always have the listed spells prepared. Pestilence Domain Spells Cleric Level Spells 3 Detect Poison and Disease , Protection from Poison , Ray of Enfeeblement , Ray of Sickness 5 Stinking Cloud , Vampiric Touch 7 Blight , Giant Insect 9 Contagion , Insect Plague"
+          "description": "Your connection to this divine domain ensures you always have certain spells ready. When you reach a Cleric level specified in the Pestilence Domain Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Detect Poison and Disease, Protection from Poison, Ray of Enfeeblement, Ray of Sickness\nLevel 5: Stinking Cloud, Vampiric Touch\nLevel 7: Blight, Giant Insect\nLevel 9: Contagion, Insect Plague"
         },
         {
           "name": "Plague Blessing",
@@ -3596,7 +3596,7 @@
       "3": [
         {
           "name": "Circle of the Titan Spells",
-          "description": "When you reach a Druid level specified in the Circle of the Titan Spells table, you thereafter always have the listed spells prepared. In addition, you can cast the spells from this feature while you’re in your Titan Form.\n\n• 3 — Druid Level: Cure Wounds, Prepared Spells: ,\n• Longstrider — Druid Level: ,, Prepared Spells: Thaumaturgy\n• 5 — Druid Level: Fear, Prepared Spells: 7\n• Stoneskin — Druid Level: 9, Prepared Spells: Destructive Wave"
+          "description": "When you reach a Druid level specified in the Circle of the Titan Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Cure Wounds, Longstrider, Thaumaturgy\nLevel 5: Fear\nLevel 7: Stoneskin\nLevel 9: Destructive Wave"
         },
         {
           "name": "Titan Form",
@@ -3655,7 +3655,7 @@
       "3": [
         {
           "name": "Circle of Preservation Spells",
-          "description": "When you reach a Druid level specified in the Circle of Preservation Spells table, you thereafter always have the listed spells prepared. Circle of Preservation Spells Druid Level Spells 3 Bless , Lesser Restoration , Protection from Poison ,\n\nSanctuary\n\n• 7 — Beacon of Hope: Aura of Life, ,: ,, Plant Growth: Death Ward\n• 9 — Beacon of Hope: Greater Restoration, ,: ,, Plant Growth: Hallow"
+          "description": "When you reach a Druid level specified in the Circle of Preservation Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Bless, Lesser Restoration, Protection from Poison, Sanctuary\nLevel 5: Beacon of Hope, Plant Growth\nLevel 7: Aura of Life, Death Ward\nLevel 9: Greater Restoration, Hallow"
         },
         {
           "name": "Preserved Land",
@@ -4083,7 +4083,7 @@
         },
         {
           "name": "Oathbreaker Spells",
-          "description": "The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oathbreaker Spells table, you thereafter always have the listed spells prepared. Oathbreaker Spells Paladin Level Spells 3 Hellish Rebuke ,\n\nWitch Bolt\n\n• 9 — Crown of Madness: Fear, ,: ,, Darkness: Summon Undead\n• 13 — Crown of Madness: Blight, ,: ,, Darkness: Phantasmal Killer\n• 17 — Crown of Madness: Contagion, ,: ,, Darkness: Steel Wind Strike"
+          "description": "The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oathbreaker Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Hellish Rebuke, Witch Bolt\nLevel 5: Crown of Madness, Darkness\nLevel 9: Fear, Summon Undead\nLevel 13: Blight, Phantasmal Killer\nLevel 17: Contagion, Steel Wind Strike"
         }
       ],
       "7": [
@@ -4148,7 +4148,7 @@
         },
         {
           "name": "Oath of the Spellguard Spells",
-          "description": "The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oath of the Spellguard Spells table, you thereafter always have the listed spells prepared. Oath of the Spellguard Spells Paladin Level Spells 3 Detect Magic , Shield 5 See Invisibility , Silence 9 Counterspell , Dispel Magic 13 Freedom of Movement , Otiluke's Resilient Sphere 17 Circle of Power , Hallow"
+          "description": "The magic of your oath ensures you always have certain spells ready; when you reach a Paladin level specified in the Oath of the Spellguard Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Detect Magic, Shield\nLevel 5: See Invisibility, Silence\nLevel 9: Counterspell, Dispel Magic\nLevel 13: Freedom of Movement, Otiluke's Resilient Sphere\nLevel 17: Circle of Power, Hallow"
         },
         {
           "name": "Spellguard Strike",
@@ -4307,7 +4307,7 @@
         },
         {
           "name": "Ancestral Spells",
-          "description": "When you reach the Sorcerer level specified in the Ancestral Spells table, you thereafter always have the listed spells prepared.\n\n• 3 — Sorcerer Level: Command, Spells: ,\n• Guidance — Sorcerer Level: ,, Spells: Locate Object\n• , — Sorcerer Level: Protection from Evil and Good, Spells: ,\n• Resistance — Sorcerer Level: ,, Spells: Spiritual Weapon\n• 5 — Sorcerer Level: Magic Circle, Spells: ,\n• Spirit Guardians — Sorcerer Level: 7, Spells: Divination\n• , — Sorcerer Level: Locate Creature, Spells: 9\n• Legend Lore — Sorcerer Level: ,, Spells: Yolande’s Regal Presence"
+          "description": "When you reach the Sorcerer level specified in the Ancestral Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Command, Guidance, Locate Object, Protection from Evil and Good, Resistance, Spiritual Weapon\nLevel 5: Magic Circle, Spirit Guardians\nLevel 7: Divination, Locate Creature\nLevel 9: Legend Lore, Yolande's Regal Presence"
         },
         {
           "name": "Visage of the Ancestor",
@@ -4380,7 +4380,7 @@
         },
         {
           "name": "Defiler Spells",
-          "description": "Whenever you reach a Sorcerer level specified in the Defiler Spells table, you thereafter always have the listed spells prepared. Defiler Spells Sorcerer Level Spells 3 Blindness/Deafness , Inflict Wounds , Ray of Enfeeblement , Ray of Sickness 5 Bestow Curse , Vampiric Touch 7 Blight , Hallucinatory Terrain 9 Antilife Shell , Contagion"
+          "description": "Whenever you reach a Sorcerer level specified in the Defiler Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Blindness/Deafness, Inflict Wounds, Ray of Enfeeblement, Ray of Sickness\nLevel 5: Bestow Curse, Vampiric Touch\nLevel 7: Blight, Hallucinatory Terrain\nLevel 9: Antilife Shell, Contagion"
         }
       ],
       "6": [
@@ -4443,7 +4443,7 @@
         },
         {
           "name": "Demonic Spells",
-          "description": "When you reach a Sorcerer level specified in the Demonic Spells table, you thereafter always have the listed spells prepared. Demonic Spells Sorcerer Level Spells 3 Detect Magic , Entangle , Misty Step , Spider Climb 5 Dispel Magic , Gaseous Form 7 Confusion , Hallucinatory Terrain 9 Contact Other Plane , Hallow"
+          "description": "When you reach a Sorcerer level specified in the Demonic Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Detect Magic, Entangle, Misty Step, Spider Climb\nLevel 5: Dispel Magic, Gaseous Form\nLevel 7: Confusion, Hallucinatory Terrain\nLevel 9: Contact Other Plane, Hallow"
         }
       ],
       "6": [
@@ -4506,7 +4506,7 @@
         },
         {
           "name": "Shadow Spells",
-          "description": "When you reach a Sorcerer level specified in the Shadow Spells table, you thereafter always have the listed spells prepared. Shadow Spells Sorcerer Level Spells 3 Bane , Darkness , Inflict Wounds , Pass Without Trace 5 Hunger of Hadar , Summon Undead 7 Greater Invisibility , Phantasmal Killer 9 Contagion , Creation"
+          "description": "When you reach a Sorcerer level specified in the Shadow Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Bane, Darkness, Inflict Wounds, Pass Without Trace\nLevel 5: Hunger of Hadar, Summon Undead\nLevel 7: Greater Invisibility, Phantasmal Killer\nLevel 9: Contagion, Creation"
         }
       ],
       "6": [
@@ -4565,7 +4565,7 @@
       "3": [
         {
           "name": "Hexblade Spells",
-          "description": "The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Hexblade Spells table, you thereafter always have the listed spells prepared. Hexblade Spells Warlock Level Spells 3 Arcane Vigor , Hex , Shield , Wrathful Smite 5 Bestow Curse , Conjure Barrage 7 Freedom of Movement , Staggering Smite 9 Animate Objects , Steel Wind Strike"
+          "description": "The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Hexblade Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Arcane Vigor, Hex, Shield, Wrathful Smite\nLevel 5: Bestow Curse, Conjure Barrage\nLevel 7: Freedom of Movement, Staggering Smite\nLevel 9: Animate Objects, Steel Wind Strike"
         },
         {
           "name": "Hexblade's Curse",
@@ -4632,7 +4632,7 @@
       "3": [
         {
           "name": "Sorcerer-King Spells",
-          "description": "The magic of your patron ensures you always have certain spells ready; whenever you reach a Warlock level specified in the Sorcerer-King Spells table, you thereafter always have the listed spells prepared.\n\nPsionic Casting.\n\nWhen you cast a spell from the Sorcerer-King Spells table, you can do so without Verbal or Material components, except Material components that are consumed by the spell or that have a cost specified in the spell.\n\nSorcerer-King Spells\n\n• Command — Spells: ,, 3: Compelled Duel\n• , — Spells: Hold Person, 3: ,\n• Mind Spike — Spells: ,, 3: Wrathful Smite\n• 5 — Spells: Fear, 3: ,\n• Sending — Spells: 7, 3: Compulsion\n• , — Spells: Staggering Smite, 3: 9\n• Dominate Person — Spells: ,, 3: Synaptic Static"
+          "description": "The magic of your patron ensures you always have certain spells ready; whenever you reach a Warlock level specified in the Sorcerer-King Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Command, Compelled Duel, Hold Person, Mind Spike, Wrathful Smite\nLevel 5: Fear, Sending\nLevel 7: Compulsion, Staggering Smite\nLevel 9: Dominate Person, Synaptic Static"
         },
         {
           "name": "Tyrants Herald",
@@ -4700,7 +4700,7 @@
         },
         {
           "name": "Undead Spells",
-          "description": "The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Undead Spells table, you thereafter always have the listed spells prepared. Undead Spells Warlock Level Spells 3 Blindness/Deafness , False Life , Phantasmal Force , Ray of Sickness 5 Speak with Dead , Vampiric Touch 7 Death Ward , Phantasmal Killer 9 Antilife Shell , Cloudkill"
+          "description": "The magic of your patron ensures you always have certain spells ready; when you reach a Warlock level specified in the Undead Spells table, you thereafter always have the listed spells prepared.\n\nLevel 3: Blindness/Deafness, False Life, Phantasmal Force, Ray of Sickness\nLevel 5: Speak with Dead, Vampiric Touch\nLevel 7: Death Ward, Phantasmal Killer\nLevel 9: Antilife Shell, Cloudkill"
         }
       ],
       "6": [
