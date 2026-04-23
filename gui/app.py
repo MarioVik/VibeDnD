@@ -48,6 +48,7 @@ from gui.lu_step_asi import LuAsiStep
 from gui.lu_step_proficiencies import LuProficienciesStep
 from gui.lu_step_languages import LuLanguagesStep
 from gui.lu_step_choices import LuChoicesStep
+from gui.lu_step_feature_picks import LuFeaturePicksStep
 from gui.lu_step_spells import LuSpellsStep
 from gui.lu_step_swap import LuSwapStep
 from models.level_up_logic import (
@@ -65,6 +66,7 @@ from models.level_up_logic import (
     validate_choices_step,
     validate_spell_step,
     validate_swap_step,
+    validate_feature_picks,
 )
 
 # Wizard step definitions: (key, label, icon, StepClass)
@@ -111,6 +113,7 @@ _LU_STEPS = [
     ("lu_proficiencies", "Proficiencies", "", LuProficienciesStep),
     ("lu_languages", "Languages", "", LuLanguagesStep),
     ("lu_choices", "Class Choices", "", LuChoicesStep),
+    ("lu_feature_picks", "Feature Picks", "", LuFeaturePicksStep),
     ("lu_spells", "Spells", "", LuSpellsStep),
     ("lu_swap", "Spell Swap", "", LuSwapStep),
 ]
@@ -1572,6 +1575,7 @@ class CharacterCreatorApp:
             "lu_proficiencies": lambda: validate_proficiency_step(ctx, char, data),
             "lu_languages": lambda: validate_language_step(ctx),
             "lu_choices": lambda: validate_choices_step(ctx, char, data),
+            "lu_feature_picks": lambda: validate_feature_picks(ctx, char, data),
             "lu_spells": lambda: validate_spell_step(ctx, data),
             "lu_swap": lambda: validate_swap_step(ctx),
         }

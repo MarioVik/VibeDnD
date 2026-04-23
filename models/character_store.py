@@ -101,6 +101,7 @@ def character_to_save_dict(character: Character) -> dict:
                 "new_choices": list(cl.new_choices),
                 "replaced_choice": cl.replaced_choice,
                 "choice_sub_selections": dict(cl.choice_sub_selections),
+                "feature_picks": dict(cl.feature_picks),
                 "new_proficiencies": list(cl.new_proficiencies),
                 "new_expertise": list(cl.new_expertise),
             }
@@ -241,6 +242,7 @@ def save_dict_to_character(data: dict, game_data) -> Character:
                 new_choices=cl.get("new_choices", []),
                 replaced_choice=cl.get("replaced_choice"),
                 choice_sub_selections=cl.get("choice_sub_selections", {}),
+                feature_picks=cl.get("feature_picks", {}),
                 new_proficiencies=cl.get("new_proficiencies", []),
                 new_expertise=cl.get("new_expertise", []),
             )

@@ -479,6 +479,136 @@ def _spellbook_cantrip_names(character, spells_by_name: dict[str, dict], game_da
     return sorted(unique)
 
 
+def _get_active_invocations(character) -> list[tuple[str, str]]:
+    """Return (invocation_name, bound_cantrip) pairs for active warlock invocations."""
+    pairs: list[tuple[str, str]] = []
+
+    # Level 1 class choices
+    choices = getattr(character, "level1_class_choices", {}) or {}
+    inv = str(choices.get("warlock_invocation", "")).strip()
+    cantrip = str(choices.get("warlock_invocation_cantrip", "")).strip()
+    if inv and cantrip:
+        pairs.append((inv, cantrip))
+
+    # Level-up invocations (from class_levels)
+    replaced: set[str] = set()
+    for cl in getattr(character, "class_levels", []):
+        if cl.replaced_choice:
+            replaced.add(cl.replaced_choice)
+
+    for cl in getattr(character, "class_levels", []):
+        for choice_name in cl.new_choices:
+            if choice_name in replaced:
+                continue
+            sub = cl.choice_sub_selections.get(choice_name, "")
+            if sub:
+                pairs.append((choice_name, sub))
+
+    return pairs
+
+
+def _get_feature_pick(character, feature_name: str) -> str | None:
+    """Look up a permanent feature pick across all class levels."""
+    for cl in getattr(character, "class_levels", []):
+        val = cl.feature_picks.get(feature_name)
+        if val:
+            return val
+    return None
+
+
+def _get_cantrip_damage_bonus(
+    character, cantrip_name: str, spell: dict, game_data=None
+) -> int:
+    """Compute total bonus damage modifier for a cantrip from class features."""
+    bonus = 0
+
+    class_slug = ""
+    if character.character_class:
+        class_slug = character.character_class.get("slug", "")
+
+    # 1. Agonizing Blast — +CHA to bound cantrip
+    for inv_name, bound_cantrip in _get_active_invocations(character):
+        if inv_name == "Agonizing Blast" and bound_cantrip == cantrip_name:
+            bonus += get_effective_modifier(character, "Charisma")
+            break
+
+    # 2. Empowered Evocation — Evoker wizard level 10+, +INT to Evocation spells
+    if class_slug == "wizard":
+        sub_slug = None
+        for cl in getattr(character, "class_levels", []):
+            if cl.class_slug == "wizard" and cl.subclass_slug:
+                sub_slug = cl.subclass_slug
+        wiz_level = sum(
+            1 for cl in getattr(character, "class_levels", [])
+            if cl.class_slug == "wizard"
+        )
+        if sub_slug == "evoker" and wiz_level >= 10:
+            if spell.get("school", "").lower() == "evocation":
+                bonus += get_effective_modifier(character, "Intelligence")
+
+    # 3. Potent Spellcasting (Cleric Blessed Strikes level 7+)
+    if class_slug == "cleric":
+        cleric_level = sum(
+            1 for cl in getattr(character, "class_levels", [])
+            if cl.class_slug == "cleric"
+        )
+        if cleric_level >= 7:
+            pick = _get_feature_pick(character, "Blessed Strikes")
+            if pick == "Potent Spellcasting":
+                cleric_spells = spell.get("classes", [])
+                if "Cleric" in cleric_spells:
+                    bonus += get_effective_modifier(character, "Wisdom")
+
+    # 4. Potent Spellcasting (Druid Elemental Fury level 7+)
+    if class_slug == "druid":
+        druid_level = sum(
+            1 for cl in getattr(character, "class_levels", [])
+            if cl.class_slug == "druid"
+        )
+        if druid_level >= 7:
+            pick = _get_feature_pick(character, "Elemental Fury")
+            if pick == "Potent Spellcasting":
+                druid_spells = spell.get("classes", [])
+                if "Druid" in druid_spells:
+                    bonus += get_effective_modifier(character, "Wisdom")
+
+    # 5. Elemental Affinity (Draconic Sorcery level 6+)
+    if class_slug == "sorcerer":
+        sub_slug = None
+        for cl in getattr(character, "class_levels", []):
+            if cl.class_slug == "sorcerer" and cl.subclass_slug:
+                sub_slug = cl.subclass_slug
+        sorc_level = sum(
+            1 for cl in getattr(character, "class_levels", [])
+            if cl.class_slug == "sorcerer"
+        )
+        if sub_slug == "draconic-sorcery" and sorc_level >= 6:
+            chosen_type = _get_feature_pick(character, "Elemental Affinity")
+            if chosen_type:
+                parsed = _parse_base_damage(spell)
+                if parsed:
+                    _, dmg_type = parsed
+                    if dmg_type.lower() == chosen_type.lower():
+                        bonus += get_effective_modifier(character, "Charisma")
+
+    # 6. Radiant Soul (Celestial Patron warlock level 6+)
+    warlock_sub_slug = None
+    warlock_level = 0
+    for cl in getattr(character, "class_levels", []):
+        if cl.class_slug == "warlock":
+            warlock_level += 1
+            if cl.subclass_slug:
+                warlock_sub_slug = cl.subclass_slug
+    if warlock_sub_slug == "celestial-patron" and warlock_level >= 6:
+        parsed = _parse_base_damage(spell)
+        if parsed:
+            _, dmg_type = parsed
+            if dmg_type.lower() in ("radiant", "fire"):
+                bonus += get_effective_modifier(character, "Charisma")
+
+    return bonus
+
+
 def _cantrip_actions(character, spells_by_name: dict[str, dict], game_data=None) -> list[dict]:
     rows: list[dict] = []
 
@@ -500,11 +630,26 @@ def _cantrip_actions(character, spells_by_name: dict[str, dict], game_data=None)
         spell = spells_by_name.get(cantrip_name)
         if not spell or not _is_attack_cantrip(spell):
             continue
+
+        base_damage = _scaled_cantrip_damage(spell, character.level)
+        dmg_bonus = _get_cantrip_damage_bonus(
+            character, cantrip_name, spell, game_data
+        )
+
+        if dmg_bonus and base_damage != "--":
+            # Insert bonus before the damage type text
+            # e.g. "1d10 force" → "1d10+4 force", "1d10 force x4 beams" → "1d10+4 force x4 beams"
+            parts = base_damage.split(" ", 1)
+            if len(parts) == 2:
+                base_damage = f"{parts[0]}{_modifier_str(dmg_bonus)} {parts[1]}"
+            else:
+                base_damage = f"{base_damage}{_modifier_str(dmg_bonus)}"
+
         rows.append(
             {
                 "name": cantrip_name,
                 "attack": attack_bonus,
-                "damage": _scaled_cantrip_damage(spell, character.level),
+                "damage": base_damage,
                 "notes": spell.get("range", "Spell"),
                 "kind": "cantrip",
             }

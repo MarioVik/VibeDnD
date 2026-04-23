@@ -62,6 +62,31 @@ DAMAGE_TYPES = [
 _AMMO_NAMES = {"Arrows", "Bolts", "Bullets, Firearm", "Bullets, Sling", "Needles"}
 _SWORD_NAMES = {"Greatsword", "Longsword", "Rapier", "Scimitar", "Shortsword"}
 
+# ── Feature picks: class/subclass features that present a permanent choice ──
+
+# Key: (class_slug, class_level) → feature config
+FEATURE_PICKS: dict[tuple[str, int], dict] = {
+    ("cleric", 7): {
+        "feature": "Blessed Strikes",
+        "label": "Choose a Blessed Strikes option:",
+        "options": ["Potent Spellcasting", "Divine Strike"],
+    },
+    ("druid", 7): {
+        "feature": "Elemental Fury",
+        "label": "Choose an Elemental Fury option:",
+        "options": ["Potent Spellcasting", "Primal Strike"],
+    },
+}
+
+# Key: (subclass_slug, class_level) → feature config
+SUBCLASS_FEATURE_PICKS: dict[tuple[str, int], dict] = {
+    ("draconic-sorcery", 6): {
+        "feature": "Elemental Affinity",
+        "label": "Choose a damage type for Elemental Affinity:",
+        "options": ["Acid", "Cold", "Fire", "Lightning", "Poison"],
+    },
+}
+
 
 # ── Context dataclass ─────────────────────────────────────────────────
 
@@ -116,6 +141,9 @@ class LevelUpContext:
 
     # Deft Explorer language picks
     language_selections: list[str] = field(default_factory=list)
+
+    # Feature picks (permanent choices like Blessed Strikes, Elemental Affinity)
+    feature_picks: dict[str, str] = field(default_factory=dict)
 
 
 # ── Data helpers ──────────────────────────────────────────────────────
@@ -224,6 +252,47 @@ def get_choices_config(
 
 def has_class_choices(ctx: LevelUpContext, character: Character, game_data) -> bool:
     return get_choices_config(ctx, character, game_data) is not None
+
+
+def get_feature_picks_for_level(
+    ctx: LevelUpContext, character: Character, game_data
+) -> list[dict]:
+    """Return feature pick configs applicable to this level-up."""
+    picks: list[dict] = []
+
+    class_key = (ctx.class_slug, ctx.new_class_level)
+    if class_key in FEATURE_PICKS:
+        picks.append(FEATURE_PICKS[class_key])
+
+    sub_slug = get_current_subclass(ctx, character, game_data)
+    if sub_slug:
+        sub_key = (sub_slug, ctx.new_class_level)
+        if sub_key in SUBCLASS_FEATURE_PICKS:
+            picks.append(SUBCLASS_FEATURE_PICKS[sub_key])
+
+    return picks
+
+
+def has_feature_picks(
+    ctx: LevelUpContext, character: Character, game_data
+) -> bool:
+    return len(get_feature_picks_for_level(ctx, character, game_data)) > 0
+
+
+def validate_feature_picks(
+    ctx: LevelUpContext, character: Character, game_data
+) -> tuple[bool, str, str]:
+    """Validate that all required feature picks have been made."""
+    picks = get_feature_picks_for_level(ctx, character, game_data)
+    for pick_cfg in picks:
+        feature = pick_cfg["feature"]
+        if feature not in ctx.feature_picks:
+            return (
+                False,
+                "Missing Choice",
+                f"Please choose an option for {feature}.",
+            )
+    return True, "", ""
 
 
 def get_known_choices(character: Character, key: str) -> list[str]:
@@ -744,6 +813,10 @@ def build_class_level(
     if ctx.choice_sub_selections:
         cl.choice_sub_selections = dict(ctx.choice_sub_selections)
 
+    # Feature picks (Blessed Strikes, Elemental Affinity, etc.)
+    if ctx.feature_picks:
+        cl.feature_picks = dict(ctx.feature_picks)
+
     # Proficiency/expertise
     if ctx.prof_picks:
         cl.new_proficiencies = list(ctx.prof_picks)
@@ -856,6 +929,10 @@ def get_visible_step_keys(
     # Class choices
     if has_class_choices(ctx, character, game_data):
         keys.append("lu_choices")
+
+    # Feature picks (Blessed Strikes, Elemental Affinity, etc.)
+    if has_feature_picks(ctx, character, game_data):
+        keys.append("lu_feature_picks")
 
     # Spells
     if has_new_spell_options(ctx.class_slug, ctx.new_class_level, game_data):
