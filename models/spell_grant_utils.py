@@ -1050,9 +1050,80 @@ def _build_class_sources(character, game_data) -> list[dict]:
     return sources
 
 
+def _build_subclass_spell_sources(character, game_data) -> list[dict]:
+    """Build grant sources for subclass expanded/patron spell lists.
+
+    Each subclass that has an ``expanded_spells`` field in the data grants
+    its spells as always-prepared entries at the appropriate class levels.
+    """
+    class_levels = getattr(character, "class_levels", None) or []
+    if not class_levels:
+        return []
+
+    sources: list[dict] = []
+
+    # Collect class slugs and their levels/subclasses
+    class_info: dict[str, tuple[int, str | None]] = {}
+    for cl in class_levels:
+        slug = cl.class_slug
+        if slug not in class_info:
+            class_info[slug] = (0, None)
+        count, sub = class_info[slug]
+        class_info[slug] = (count + 1, sub or cl.subclass_slug)
+
+    for class_slug, (class_lvl, subclass_slug) in class_info.items():
+        if not subclass_slug:
+            continue
+
+        subclass_data = game_data.get_subclass(class_slug, subclass_slug)
+        if not subclass_data:
+            continue
+
+        expanded = subclass_data.get("expanded_spells")
+        if not expanded:
+            continue
+
+        sc_name = subclass_data.get("name", subclass_slug)
+        source_id = f"subclass:{class_slug}:{subclass_slug}:expanded_spells"
+        source = _base_source(source_id, f"{sc_name} Spells")
+
+        # Determine spellcasting ability from the class
+        cls_data = getattr(character, "character_class", None) or {}
+        if cls_data.get("slug") == class_slug:
+            source["ability_value"] = str(cls_data.get("spellcasting_ability", "") or "")
+
+        for level_str, spell_names in expanded.items():
+            level_num = int(level_str)
+            if class_lvl >= level_num:
+                for spell_name in spell_names:
+                    source["granted_entries"].append(
+                        _spell_entry(
+                            source_id,
+                            f"{sc_name} Spells",
+                            spell_name,
+                            "cantrip" if _is_cantrip_name(spell_name, game_data) else "spell",
+                        )
+                    )
+
+        if source["granted_entries"]:
+            sources.append(source)
+
+    return sources
+
+
+def _is_cantrip_name(spell_name: str, game_data) -> bool:
+    """Check if a spell is a cantrip by looking it up in game data."""
+    spells = getattr(game_data, "spells", []) or []
+    for spell in spells:
+        if spell.get("name") == spell_name and spell.get("level") == 0:
+            return True
+    return False
+
+
 def _build_active_sources_raw(character, game_data) -> list[dict]:
     sources: list[dict] = []
     sources.extend(_build_class_sources(character, game_data))
+    sources.extend(_build_subclass_spell_sources(character, game_data))
     sources.extend(_build_species_sources(character, game_data))
     for feat_source in _active_feat_sources(character, game_data):
         source = _build_feat_source(feat_source, character, game_data)
