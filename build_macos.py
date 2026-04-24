@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 import platform
+import plistlib
 import shutil
 import subprocess
 import sys
@@ -252,6 +253,22 @@ def build_app(icon_path: Path | None) -> Path:
     return app_path
 
 
+def patch_plist(app_path: Path) -> None:
+    """Enable Retina resolution in the app bundle.
+
+    Without NSHighResolutionCapable, macOS reports a fake 72 DPI to the
+    app on Retina screens, making all text and UI elements appear smaller
+    than in development.
+    """
+    plist_path = app_path / "Contents" / "Info.plist"
+    with open(plist_path, "rb") as f:
+        plist = plistlib.load(f)
+    plist["NSHighResolutionCapable"] = True
+    with open(plist_path, "wb") as f:
+        plistlib.dump(plist, f)
+    print(f"Patched {plist_path}: NSHighResolutionCapable = True")
+
+
 def sign_app(app_path: Path) -> None:
     """Ad-hoc sign the app bundle.
 
@@ -328,6 +345,7 @@ def main() -> None:
     check_prereqs()
     icon_path = maybe_make_icns()
     app_path = build_app(icon_path)
+    patch_plist(app_path)
     sign_app(app_path)
     dmg_path = create_dmg(app_path)
     print()
