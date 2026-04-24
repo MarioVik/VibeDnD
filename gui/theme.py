@@ -197,11 +197,51 @@ def _parse_scale_override(raw_value: str | None) -> float | None:
     return round(value, 4)
 
 
+def _macos_backing_scale_factor() -> float:
+    """Return the main display's backing scale factor via CoreGraphics.
+
+    Returns 2.0 on Retina displays, 1.0 otherwise (or on error).
+    """
+    if sys.platform != "darwin":
+        return 1.0
+    try:
+        import ctypes
+        import ctypes.util
+
+        cg_path = ctypes.util.find_library("CoreGraphics")
+        if not cg_path:
+            cg_path = "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics"
+        cg = ctypes.CDLL(cg_path)
+
+        cg.CGMainDisplayID.argtypes = []
+        cg.CGMainDisplayID.restype = ctypes.c_uint32
+        cg.CGDisplayCopyDisplayMode.argtypes = [ctypes.c_uint32]
+        cg.CGDisplayCopyDisplayMode.restype = ctypes.c_void_p
+        cg.CGDisplayModeGetPixelWidth.argtypes = [ctypes.c_void_p]
+        cg.CGDisplayModeGetPixelWidth.restype = ctypes.c_size_t
+        cg.CGDisplayModeGetWidth.argtypes = [ctypes.c_void_p]
+        cg.CGDisplayModeGetWidth.restype = ctypes.c_size_t
+        cg.CGDisplayModeRelease.argtypes = [ctypes.c_void_p]
+        cg.CGDisplayModeRelease.restype = None
+
+        display_id = cg.CGMainDisplayID()
+        mode = cg.CGDisplayCopyDisplayMode(display_id)
+        if not mode:
+            return 1.0
+        pixel_w = cg.CGDisplayModeGetPixelWidth(mode)
+        logical_w = cg.CGDisplayModeGetWidth(mode)
+        cg.CGDisplayModeRelease(mode)
+        return pixel_w / logical_w if logical_w > 0 else 1.0
+    except Exception:
+        return 1.0
+
+
 def _choose_tk_scaling(
     current_scaling: float | None,
     screen_dpi: float | None,
     platform_name: str,
     override: str | None = None,
+    tk_version: float | None = None,
 ) -> float | None:
     manual_override = _parse_scale_override(override)
     if manual_override is not None:
@@ -210,7 +250,19 @@ def _choose_tk_scaling(
         return current_scaling
     if screen_dpi is None or screen_dpi <= 0:
         return current_scaling
-    return round(screen_dpi / 72.0, 4)
+    effective_dpi = screen_dpi
+    # Tk 8.x on macOS always reports 72 DPI, even on Retina displays.
+    # Tk 9.0+ correctly reports ~96 DPI.  Detect Retina via CoreGraphics
+    # and apply the same 4/3 correction that Tk 9 uses internally.
+    if (
+        tk_version is not None
+        and tk_version < 9.0
+        and abs(screen_dpi - 72) < 5
+    ):
+        backing = _macos_backing_scale_factor()
+        if backing > 1.0:
+            effective_dpi = screen_dpi * 4.0 / 3.0
+    return round(effective_dpi / 72.0, 4)
 
 
 def normalize_tk_runtime(root: tk.Tk) -> dict[str, object]:
@@ -224,7 +276,11 @@ def normalize_tk_runtime(root: tk.Tk) -> dict[str, object]:
     current_scaling = _safe_float(root.tk.call("tk", "scaling"))
     screen_dpi = _safe_float(root.winfo_fpixels("1i"))
     override = os.environ.get("VIBEDND_UI_SCALE")
-    target_scaling = _choose_tk_scaling(current_scaling, screen_dpi, sys.platform, override)
+    tk_version = _safe_float(root.tk.call("info", "patchlevel").split(".")[0]
+                             + "." + root.tk.call("info", "patchlevel").split(".")[1])
+    target_scaling = _choose_tk_scaling(
+        current_scaling, screen_dpi, sys.platform, override, tk_version
+    )
 
     applied = False
     if (
