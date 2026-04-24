@@ -39,9 +39,10 @@ from models.spell_grant_utils import (
     get_selectable_class_spell_options,
 )
 from models.rest_actions import get_available_rest_actions, RestAction
+from paths import data_dir
 
 # Load class choices data
-_CHOICES_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "class_choices.json")
+_CHOICES_PATH = os.path.join(data_dir(), "class_choices.json")
 try:
     with open(_CHOICES_PATH, encoding="utf-8") as _f:
         _CLASS_CHOICES: dict = json.load(_f)

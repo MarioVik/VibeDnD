@@ -37,6 +37,7 @@ DATA_FILES = [
     "data/class_progressions.json",
     "data/subclasses.json",
     "data/items.json",
+    "data/class_choices.json",
 ]
 
 # Modules only needed for scraping / parsing, not at runtime

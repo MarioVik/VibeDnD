@@ -34,6 +34,7 @@ DATA_FILES = [
     "data/class_progressions.json",
     "data/subclasses.json",
     "data/items.json",
+    "data/class_choices.json",
 ]
 
 EXCLUDES = [
