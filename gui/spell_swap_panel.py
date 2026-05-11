@@ -359,6 +359,9 @@ class SpellSwapPanel:
             return []
         if val.startswith("S:"):
             return [s for s in self._learn_sections if s[0] != "Cantrips"]
+        # When allow_cantrips=False, forget_var has no prefix - return only spell sections
+        if not self._allow_cantrips:
+            return [s for s in self._learn_sections if s[0] != "Cantrips"]
         return list(self._learn_sections)
 
     def _refresh_right_list_state(self) -> None:

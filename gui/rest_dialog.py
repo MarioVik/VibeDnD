@@ -206,19 +206,60 @@ class RestDialog(tk.Toplevel):
 
     def _get_all_class_spells(self) -> list[dict]:
         """Get all spells available to the character's classes up to their max slot level."""
-        cls = self.character.character_class or {}
-        class_name = cls.get("name", "")
-        if not class_name:
-            return []
+        all_spells = []
+        
+        # Helper to find class by slug
+        def get_class_by_slug(slug: str) -> dict | None:
+            for cls in self.data.classes:
+                if cls.get("slug") == slug:
+                    return cls
+            return None
+        
+        # Check if character has multiclass levels
+        if self.character.class_levels:
+            # For multiclass characters, get spells from all classes
+            for cl in self.character.class_levels:
+                class_data = get_class_by_slug(cl.class_slug)
+                if class_data:
+                    class_name = class_data.get("name", "")
+                    if class_name:
+                        # Get max spell level for this class
+                        slots = self.character.current_spell_slots(self.data)
+                        # Extract numeric level from keys like '1st', '2nd', etc.
+                        max_lvl = max((int(''.join(filter(str.isdigit, k))) for k in slots.keys() if k and any(c.isdigit() for c in k)), default=0)
+                        
+                        if max_lvl == 0:
+                            _, pact_lvl = self.character.current_pact_magic(self.data)
+                            max_lvl = pact_lvl or 0
+                        
+                        class_spells = self.data.spells_for_class(class_name, max_level=max_lvl)
+                        all_spells.extend(class_spells)
+        else:
+            # For single-class characters, use the original logic
+            cls = self.character.character_class or {}
+            class_name = cls.get("name", "")
+            if not class_name:
+                return []
+                
+            slots = self.character.current_spell_slots(self.data)
+            # Extract numeric level from keys like '1st', '2nd', etc.
+            max_lvl = max((int(''.join(filter(str.isdigit, k))) for k in slots.keys() if k and any(c.isdigit() for c in k)), default=0)
             
-        slots = self.character.current_spell_slots(self.data)
-        max_lvl = max((int(k) for k in slots.keys() if k.isdigit()), default=0)
+            if max_lvl == 0:
+                _, pact_lvl = self.character.current_pact_magic(self.data)
+                max_lvl = pact_lvl or 0
+            
+            all_spells = self.data.spells_for_class(class_name, max_level=max_lvl)
         
-        if max_lvl == 0:
-            _, pact_lvl = self.character.current_pact_magic(self.data)
-            max_lvl = pact_lvl or 0
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_spells = []
+        for spell in all_spells:
+            if spell["name"] not in seen:
+                seen.add(spell["name"])
+                unique_spells.append(spell)
         
-        return self.data.spells_for_class(class_name, max_level=max_lvl)
+        return unique_spells
 
     def _build_long_rest_ui(self, title: str):
         self.columnconfigure(0, weight=1)
@@ -547,6 +588,18 @@ class RestDialog(tk.Toplevel):
                     "Select one on the right, or clear the forget selection on the left.",
                 )
                 return False
+        if self._current_step_id() == "spells" and self._multi_spell_panel:
+            forget_count = len(self._multi_spell_panel.forget_names)
+            learn_count = len(self._multi_spell_panel.learn_names)
+            if forget_count != learn_count:
+                AlertDialog(
+                    self,
+                    "Unequal Spell Selection",
+                    f"You must select the same number of spells to prepare as you unprepare. "
+                    f"Currently unpreparing {forget_count} spell{'s' if forget_count != 1 else ''} "
+                    f"and preparing {learn_count} spell{'s' if learn_count != 1 else ''}.",
+                )
+                return False
         return True
 
     def _on_confirm(self):
@@ -566,6 +619,18 @@ class RestDialog(tk.Toplevel):
                 "Select one on the right, or clear the forget selection on the left.",
             )
             return
+        if self._multi_spell_panel:
+            forget_count = len(self._multi_spell_panel.forget_names)
+            learn_count = len(self._multi_spell_panel.learn_names)
+            if forget_count != learn_count:
+                AlertDialog(
+                    self,
+                    "Unequal Spell Selection",
+                    f"You must select the same number of spells to prepare as you unprepare. "
+                    f"Currently unpreparing {forget_count} spell{'s' if forget_count != 1 else ''} "
+                    f"and preparing {learn_count} spell{'s' if learn_count != 1 else ''}.",
+                )
+                return
         if not self._validate_current_step():
             return
         changed = self.character_changed
