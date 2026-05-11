@@ -282,8 +282,9 @@ class SpellSwapPanel:
             learn_sorted = sorted(learn_spells, key=lambda s: (s["level"], s["name"]))
             for lvl, group in groupby(learn_sorted, key=lambda s: s["level"]):
                 self._learn_sections.append((LEVEL_NAMES.get(lvl, f"Level {lvl}"), [s["name"] for s in group]))
-        
-        self.right_list.set_sectioned_items(self._learn_sections)
+
+        # Learn list is empty until the user picks something to forget on the left.
+        self._refresh_right_list_state()
 
         # --- Shared Detail Panel ---
         all_spells = (
@@ -307,6 +308,11 @@ class SpellSwapPanel:
             state=tk.DISABLED,
         )
         self._detail_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+
+    def has_incomplete_swap(self) -> bool:
+        """True when a spell/cantrip to forget is chosen but no replacement is selected."""
+        fv, lv = self.forget_var.get(), self.learn_var.get()
+        return bool(fv) and not bool(lv)
 
     def _clear_detail(self) -> None:
         self._detail_text.configure(state=tk.NORMAL)
@@ -335,24 +341,40 @@ class SpellSwapPanel:
         self._refresh_mode_tiles()
 
     def _on_learn_select_modern(self, name: str):
+        if not self.forget_var.get():
+            self.learn_var.set("")
+            self.right_list.set_selected_items([])
+            self._refresh_mode_tiles()
+            return
         self.swap_mode_var.set("pick")
         self.learn_var.set(name)
         self._refresh_mode_tiles()
 
-    def _refresh_right_list_state(self):
+    def _right_sections_for_forget_value(self, val: str) -> list[tuple[str, list[str]]]:
+        if not val:
+            return []
+        if val.startswith("C:"):
+            if self._learn_sections and self._learn_sections[0][0] == "Cantrips":
+                return [self._learn_sections[0]]
+            return []
+        if val.startswith("S:"):
+            return [s for s in self._learn_sections if s[0] != "Cantrips"]
+        return list(self._learn_sections)
+
+    def _refresh_right_list_state(self) -> None:
         val = self.forget_var.get()
         if not val:
             self.learn_var.set("")
             self.right_list.set_sectioned_items([])
-        elif val.startswith("C:"):
-            # Only cantrips
-            cantrip_only = [self._learn_sections[0]] if self._learn_sections and self._learn_sections[0][0] == "Cantrips" else []
-            self.right_list.set_sectioned_items(cantrip_only)
-        elif val.startswith("S:"):
-            spells_only = [s for s in self._learn_sections if s[0] != "Cantrips"]
-            self.right_list.set_sectioned_items(spells_only)
+            return
+        sections = self._right_sections_for_forget_value(val)
+        allowed = {n for _sec, items in sections for n in items}
+        cur = self.learn_var.get()
+        if cur not in allowed:
+            self.learn_var.set("")
+            self.right_list.set_sectioned_items(sections, selected_names=[])
         else:
-            self.right_list.set_sectioned_items(self._learn_sections)
+            self.right_list.set_sectioned_items(sections, selected_names=[cur])
 
     # ── Detail panel ──
 

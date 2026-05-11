@@ -123,14 +123,22 @@ class LuSwapStep(LevelUpStep):
                 self.ctx.swap_out_spell = None
                 self.ctx.swap_in_cantrip = lv or None
                 self.ctx.swap_in_spell = None
-            else:
+            elif fv.startswith("S:"):
                 self.ctx.swap_out_spell = fv[2:]
                 self.ctx.swap_out_cantrip = None
                 self.ctx.swap_in_spell = lv or None
                 self.ctx.swap_in_cantrip = None
+            else:
+                # Prepared single-swap (no C:/S: prefix on forget_var)
+                self.ctx.swap_out_spell = fv
+                self.ctx.swap_out_cantrip = None
+                self.ctx.swap_in_spell = lv or None
+                self.ctx.swap_in_cantrip = None
+            self.notify_change()
 
         self._swap_panel.forget_var.trace_add("write", _sync_swap_vars)
         self._swap_panel.learn_var.trace_add("write", _sync_swap_vars)
+        _sync_swap_vars()
 
     def is_valid(self) -> bool:
         ok, _, _ = validate_swap_step(self.ctx)

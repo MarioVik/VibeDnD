@@ -529,10 +529,45 @@ class RestDialog(tk.Toplevel):
                     if var and not var.get():
                         AlertDialog(self, "Required Selection", f"Please select a skill for {action.name}.")
                         return False
+        if self._current_step_id() == "cantrips" and self._cantrip_panel:
+            if self._cantrip_panel.has_incomplete_swap():
+                AlertDialog(
+                    self,
+                    "Incomplete Swap",
+                    "You chose a cantrip to replace but did not pick a new cantrip. "
+                    "Select one on the right, or clear the forget selection on the left.",
+                )
+                return False
+        if self._current_step_id() == "spells" and self._spell_panel:
+            if self._spell_panel.has_incomplete_swap():
+                AlertDialog(
+                    self,
+                    "Incomplete Swap",
+                    "You chose a spell to replace but did not pick a new spell. "
+                    "Select one on the right, or clear the forget selection on the left.",
+                )
+                return False
         return True
 
     def _on_confirm(self):
-        if not self._validate_current_step(): return
+        if self._cantrip_panel and self._cantrip_panel.has_incomplete_swap():
+            AlertDialog(
+                self,
+                "Incomplete Swap",
+                "You chose a cantrip to replace but did not pick a new cantrip. "
+                "Select one on the right, or clear the forget selection on the left.",
+            )
+            return
+        if self._spell_panel and self._spell_panel.has_incomplete_swap():
+            AlertDialog(
+                self,
+                "Incomplete Swap",
+                "You chose a spell to replace but did not pick a new spell. "
+                "Select one on the right, or clear the forget selection on the left.",
+            )
+            return
+        if not self._validate_current_step():
+            return
         changed = self.character_changed
         
         if self.rest_type == "long":
