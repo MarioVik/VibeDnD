@@ -1304,7 +1304,6 @@ class ModernSectionedListbox(tk.Frame):
                 cursor="hand2" if not is_disabled and not is_fixed else "",
             )
             check_widget.pack(side=tk.LEFT, anchor="n", padx=(4, 6), pady=5 if is_sub else 7)
-            self._draw_check_indicator(name)
 
         if self._selectable:
             lbl = tk.Label(
@@ -1337,6 +1336,8 @@ class ModernSectionedListbox(tk.Frame):
             "content": content_widget,
             "check": check_widget,
         }
+        if check_widget is not None:
+            self._draw_check_indicator(name)
 
         # Hover is intentionally visual-only. Details change on click.
         if not is_disabled:

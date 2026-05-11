@@ -7,7 +7,12 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from gui.data_loader import GameData
 from models.character import Character
 from models.class_level import ClassLevel
+from models.level1_class_rules import (
+    WARLOCK_CLASS_FEATURE_FOLLOWUP_INVOCATIONS,
+    get_warlock_invocation_binding_options,
+)
 from models.level_up_logic import (
+    DAMAGE_TYPES,
     LevelUpContext,
     build_class_level,
     apply_level_up,
@@ -18,6 +23,7 @@ from models.level_up_logic import (
     has_class_choices,
     get_choices_config,
     get_available_options,
+    get_sub_choice_options,
     has_swap_step,
     can_swap,
     has_language_step,
@@ -118,10 +124,31 @@ def _fill_required_spells(ctx, gd):
 
 def _fill_required_choices(ctx, char, gd):
     config = get_choices_config(ctx, char, gd)
-    if config:
-        required = config.get("gains_by_level", {}).get(str(ctx.new_class_level), 0)
-        options = get_available_options(config, ctx, char)
-        ctx.selected_new_choices = {o["name"] for o in options[:required]}
+    if not config:
+        return
+    required = config.get("gains_by_level", {}).get(str(ctx.new_class_level), 0)
+    options = get_available_options(config, ctx, char)
+    selected = options[:required]
+    ctx.selected_new_choices = {o["name"] for o in selected}
+    for opt in selected:
+        name = opt["name"]
+        sub_choice = opt.get("sub_choice")
+        if sub_choice:
+            sub_options = get_sub_choice_options(sub_choice, gd)
+            assert sub_options, f"No sub-choice options for {name}"
+            if sub_choice.get("type") == "armor_and_damage_type":
+                ctx.choice_sub_selections[name] = f"{sub_options[0]}|{DAMAGE_TYPES[0]}"
+            else:
+                ctx.choice_sub_selections[name] = sub_options[0]
+        elif WARLOCK_CLASS_FEATURE_FOLLOWUP_INVOCATIONS.get(name) == "binding":
+            bind_opts = get_warlock_invocation_binding_options(char, gd)
+            if not bind_opts:
+                cantrips = list(char.selected_cantrips or [])
+                if "Eldritch Blast" not in cantrips:
+                    char.selected_cantrips = cantrips + ["Eldritch Blast"]
+                bind_opts = get_warlock_invocation_binding_options(char, gd)
+            if bind_opts:
+                ctx.choice_sub_selections[name] = bind_opts[0]
 
 
 # ── GIVEN ───────────────────────────────────────────────────────────────────
