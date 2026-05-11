@@ -1,6 +1,6 @@
 # AGENTS.md — VibeDnD AI Assistant Guide
 
-VibeDnD is a D&D 2024 Character Creator desktop application built with Python and Tkinter. This document provides everything Codex needs to work effectively in this repository.
+VibeDnD is a D&D 2024 Character Creator desktop application built with Python and Tkinter. This is the canonical AI assistant guide for this repository.
 
 ---
 
@@ -82,9 +82,47 @@ python main.py
 | `gui/sheet_builder.py` | Renders character sheet display |
 | `gui/rest_dialog.py` | Short/long rest mechanics and spell slot recovery |
 | `gui/theme.py` | `COLORS` and `FONTS` constants (dark parchment TTK theme) |
-| `gui/widgets.py` | `ScrollableFrame`, `WrappingLabel`, `AlertDialog`, `configure_modal_dialog()` |
+| `gui/widgets.py` | `ScrollableFrame`, `ModernSectionedListbox`, `WrappingLabel`, `AlertDialog`, `configure_modal_dialog()` |
 | `gui/source_config.py` | UI for toggling game content sources |
 | `gui/equipment_utils.py` | Equipment stat formatting helpers |
+
+### Shared List/Detail Pattern: `ModernSectionedListbox`
+
+`ModernSectionedListbox` lives in `gui/widgets.py`. It is the shared searchable, sectioned, hover-driven list widget used by the list side of several list/detail screens. It is backed by `ScrollableFrame`, not by `tk.Listbox`.
+
+Important distinction: the list widget is shared, but the full split view is not a shared component. Each caller builds its own left/right layout, detail panel, titles, buttons, and validation behavior around `ModernSectionedListbox`. When changing list row/search/selection behavior, update `gui/widgets.py`. When changing the surrounding detail-pane layout or content, audit every usage below and update each caller that owns that layout.
+
+Public API:
+- `set_sectioned_items(sections, selected_names=None, sub_items=None, fixed_names=None, disabled_names=None)` populates grouped rows. `sections` is a list of `(section_name, item_names)` tuples.
+- `select_item(name)` sets the active row and checks it when the widget is in multiselect mode.
+- `deselect_item(name)` unchecks an item in multiselect mode.
+- `set_selected_items(names)` bulk-updates multiselect state.
+- `get_selected_items()` returns checked items in multiselect mode, or the active item as a one-item list for single-select mode.
+- `get_selection()` returns the active row name.
+
+Modes and behavior:
+- Default mode is single-select display rows.
+- `multiselect=True` renders checkbuttons and lets callers enforce selection limits.
+- `radioselect=True` renders radiobuttons for one-of-many choices.
+- `fixed_names` marks rows that are shown as already selected/fixed and not toggled like normal choices.
+- `disabled_names` renders rows inactive and prevents hover/click bindings.
+- `sub_items` lets callers render indented child rows under parent rows; it is used for nested spell/inventory display.
+- Hover sets the active row and calls `on_hover(name)` when supplied.
+- Click/toggle sets or changes selection and calls `on_select(name)` when supplied.
+- The widget does not own domain state, validation, detail text, or save/load behavior. Callers must synchronize selected names with character state and update their own detail panels.
+
+Audited current usages: 14 constructor calls grouped by screen.
+- `gui/step_spells.py`: character creation spell picker (`_spell_selector`) and spell-grant follow-up picker (`_followup_list`), both with spell detail panels.
+- `gui/lu_step_spells.py`: level-up new spell picker (`_spells_list`) with spell detail panel.
+- `gui/spell_swap_panel.py`: spell/cantrip swap panels; both swap widgets use left and right `ModernSectionedListbox` instances plus a shared spell details panel.
+- `gui/character_viewer.py`: spellbook list/details (`spells_list`) and inventory list/details (`inv_list`).
+- `gui/add_inventory_dialog.py`: add-item browser (`item_list`) with item details and variant controls.
+- `gui/step_feat.py`: species origin feat picker (`origin_feat_list`) with feat details.
+- `gui/lu_step_asi.py`: level-up feat picker (`_feat_list`) with feat details.
+- `gui/lu_step_choices.py`: level-up class feature choice picker (`_choice_list`) with details and optional sub-choice UI.
+- `gui/step_class_features.py`: warlock eldritch invocation picker (`_invocation_selector`) with invocation details.
+
+Known outlier: `gui/step_class_features.py` still contains stale `_invocation_feat_list` references, but the currently rendered warlock “Lessons Of The First Ones” origin feat picker is card-based and does not instantiate `ModernSectionedListbox`.
 
 ### Models
 
@@ -187,13 +225,13 @@ This app uses **2024 rules**: **backgrounds** grant ability score increases and 
 
 - **Never include** “Ability Score Increase” (or any **race/species ASI** text) in **legacy raw scrapes** (`dnd2014_data.json`, etc.). Omit those paragraphs when preparing data. Including them risks parsed traits or future code that **stacks** ASIs with backgrounds and makes characters **unbalanced**.
 - **Never include** “Languages” traits in species data. Under 2024 rules, language proficiencies come from **backgrounds**, not species. The species parser automatically strips any “Languages” traits.
-- Full policy: see **§0 in `AI_README.md`** and **§8 in `CLAUDE.md`**.
 
 ### 9. Investigative Audit Requirement — Never Assume Consistency
 
 When asked to "unify," "migrate," or "update all instances" of a pattern, you **must** perform a deep, structural audit:
 
 - **Don't just keyword search:** Standard widgets (like `tk.Listbox`) might be replaced by custom logic (like `tk.Canvas` + manual `tk.Frame` rows). Search for the **structural pattern** (e.g., `_make_scrollable_list` or `row.pack()`) as well as keywords.
+- For shared GUI patterns such as `ModernSectionedListbox`, inventory both the shared widget instantiations and the caller-owned split/detail layouts around them.
 - **Mandatory Inventory Phase:** Before modifying any files, use research tools to find every occurrence. List them in an artifact and present it to the user.
 - **The "Zero-State" Check:** Before finishing, run a global search for the legacy pattern. If any results remain, you are not finished.
 - **Challenge the prompt:** If a major screen (like Spellcasting or Artificer Infusions) appears to be an outlier, investigate its code directly to see if it uses a hidden manual implementation.
