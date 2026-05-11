@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import tkinter as tk
+from collections.abc import Callable
 from itertools import groupby
 from tkinter import ttk
 
 from gui.theme import COLORS, FONTS, SPACING
-from gui.widgets import ModernSectionedListbox
+from gui.widgets import CardFrame, ModernSectionedListbox, WrappingLabel
 
 LEVEL_NAMES = {
     0: "Cantrips",
@@ -55,6 +56,118 @@ def _max_detail_height(
     return min(max_lines, upper)
 
 
+def _build_swap_mode_tiles(
+    parent: tk.Widget,
+    *,
+    mode_var: tk.StringVar,
+    specs: list[tuple[str, str, str | None, Callable[[], None] | None]],
+) -> Callable[[], None]:
+    """Card-style selectable tiles in one horizontal row (class feature tile visuals).
+
+    Each spec is ``(value, title, subtitle_or_none, after_select_callback_or_none)``.
+    ``mode_var`` values ``""``, ``"skip"``, and ``"pick"`` update border/title colors.
+    Returns a no-arg function to refresh styling (e.g. after programmatic ``mode_var`` changes).
+    """
+    tile_map: dict[str, dict] = {}
+    row = tk.Frame(parent, bg=COLORS["bg_surface"])
+    row.pack(fill=tk.BOTH, expand=True)
+    n_specs = len(specs)
+    for col in range(n_specs):
+        row.columnconfigure(col, weight=1, uniform="swap_mode_tiles")
+
+    def refresh_styles() -> None:
+        curr = mode_var.get()
+        for v, widgets in tile_map.items():
+            is_sel = curr == v
+            border_c = COLORS["accent"] if is_sel else COLORS["border_medium"]
+            bg_c = COLORS.get("tile_hover", COLORS["bg_highest"]) if is_sel else COLORS["bg_surface"]
+            fg_title = COLORS["accent_text"] if is_sel else COLORS["fg"]
+            widgets["border"].configure(bg=border_c)
+            widgets["tile"].configure(bg=bg_c)
+            widgets["title"].configure(bg=bg_c, fg=fg_title)
+            desc_lbl = widgets.get("desc")
+            if desc_lbl is not None:
+                desc_lbl.configure(background=bg_c)
+
+    for col, (value, title, desc, after) in enumerate(specs):
+        gap_l = SPACING["xs"] if col > 0 else 0
+        gap_r = SPACING["xs"] if col < n_specs - 1 else 0
+        tile_border = tk.Frame(row, bg=COLORS["border_medium"], cursor="hand2")
+        tile_border.grid(
+            row=0,
+            column=col,
+            sticky="nsew",
+            padx=(gap_l, gap_r),
+            pady=0,
+        )
+
+        bg_hex = COLORS["bg_surface"]
+        tile = tk.Frame(tile_border, bg=bg_hex, cursor="hand2")
+        tile.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
+
+        title_lbl = tk.Label(
+            tile,
+            text=title,
+            font=FONTS["body_bold"],
+            fg=COLORS["fg"],
+            bg=bg_hex,
+            cursor="hand2",
+            anchor="w",
+        )
+        title_lbl.pack(fill=tk.X, padx=SPACING["md"], pady=(SPACING["md"], 0))
+
+        desc_lbl = None
+        if desc:
+            desc_lbl = WrappingLabel(
+                tile,
+                text=desc,
+                font=FONTS["body_small"],
+                foreground=COLORS["fg_dim"],
+                background=bg_hex,
+                cursor="hand2",
+            )
+            desc_lbl.pack(fill=tk.X, padx=SPACING["md"], pady=(SPACING["xs"], SPACING["md"]))
+
+        tile_map[value] = {
+            "border": tile_border,
+            "tile": tile,
+            "title": title_lbl,
+            "desc": desc_lbl,
+        }
+
+        def on_click(_e, v: str = value, fn: Callable[[], None] | None = after) -> None:
+            mode_var.set(v)
+            if fn:
+                fn()
+            refresh_styles()
+
+        def on_enter(_e, v: str = value) -> None:
+            if mode_var.get() == v:
+                return
+            widgets = tile_map[v]
+            widgets["border"].configure(bg=COLORS["accent"])
+            hi = COLORS["bg_high"]
+            widgets["tile"].configure(bg=hi)
+            widgets["title"].configure(bg=hi)
+            dl = widgets.get("desc")
+            if dl is not None:
+                dl.configure(background=hi)
+
+        def on_leave(_e, v: str = value) -> None:
+            if mode_var.get() == v:
+                return
+            refresh_styles()
+
+        for w in (tile_border, tile, title_lbl, desc_lbl):
+            if w:
+                w.bind("<Button-1>", on_click)
+                w.bind("<Enter>", on_enter)
+                w.bind("<Leave>", on_leave)
+
+    refresh_styles()
+    return refresh_styles
+
+
 class SpellSwapPanel:
     """Builds a two-column spell swap UI with level headers, scrollable lists,
     and a shared spell-detail panel.
@@ -79,11 +192,9 @@ class SpellSwapPanel:
     ):
         self.forget_var = tk.StringVar(value="")
         self.learn_var = tk.StringVar(value="")
-        self._cantrip_rbs: list[tuple[ttk.Radiobutton, dict]] = []
-        self._spell_rbs: list[tuple[ttk.Radiobutton, dict]] = []
         self._allow_cantrips = allow_cantrips
-        self._no_swap_label = no_swap_label
         self._all_spell_objects: dict[str, dict] = {}
+        self.swap_mode_var = tk.StringVar(value="")
 
         # ── Two-column split ──
         cols = ttk.Frame(parent)
@@ -92,10 +203,41 @@ class SpellSwapPanel:
         cols.columnconfigure(1, weight=1)
         cols.rowconfigure(0, weight=1)
 
-        # --- LEFT: Forget ---
-        left_lf = ttk.LabelFrame(cols, text=left_label)
-        left_lf.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
-        
+        # --- LEFT: mode card + Forget list ---
+        left_col = tk.Frame(cols, bg=COLORS["bg"])
+        left_col.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+        left_col.rowconfigure(1, weight=1)
+        left_col.columnconfigure(0, weight=1)
+
+        mode_card = CardFrame(left_col, pad=SPACING["md"])
+        mode_card.grid(row=0, column=0, sticky="ew", pady=(0, SPACING["sm"]))
+        pick_label = (
+            "Replace a cantrip or spell"
+            if allow_cantrips
+            else "Replace a spell"
+        )
+        self._refresh_mode_tiles = _build_swap_mode_tiles(
+            mode_card.inner,
+            mode_var=self.swap_mode_var,
+            specs=[
+                (
+                    "skip",
+                    no_swap_label,
+                    "Keep your known spells and cantrips as they are.",
+                    self._on_mode_skip,
+                ),
+                (
+                    "pick",
+                    pick_label,
+                    "Choose what to forget below, then pick a replacement on the right.",
+                    None,
+                ),
+            ],
+        )
+
+        left_lf = ttk.LabelFrame(left_col, text=left_label)
+        left_lf.grid(row=1, column=0, sticky="nsew")
+
         self.left_list = ModernSectionedListbox(
             left_lf,
             on_inspect=self._show_detail,
@@ -125,7 +267,7 @@ class SpellSwapPanel:
             for lvl, group in groupby(forget_sorted, key=lambda s: s["level"]):
                 forget_sections.append((LEVEL_NAMES.get(lvl, f"Level {lvl}"), [s["name"] for s in group]))
         
-        self.left_list.set_sectioned_items(forget_sections + [("Action", [no_swap_label])])
+        self.left_list.set_sectioned_items(forget_sections)
         
         self._learn_sections = []
         if allow_cantrips and learn_cantrips:
@@ -160,23 +302,36 @@ class SpellSwapPanel:
         )
         self._detail_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
+    def _clear_detail(self) -> None:
+        self._detail_text.configure(state=tk.NORMAL)
+        self._detail_text.delete("1.0", tk.END)
+        self._detail_text.configure(state=tk.DISABLED)
+
+    def _on_mode_skip(self) -> None:
+        self.forget_var.set("")
+        self.learn_var.set("")
+        self.left_list.set_selected_items([])
+        self._refresh_right_list_state()
+        self._clear_detail()
+
     # ── Modern Selection Handlers ──
 
     def _on_forget_select_modern(self, name: str):
-        if name == self._no_swap_label:
-            self.forget_var.set("")
+        self.swap_mode_var.set("pick")
+        spell = self._all_spell_objects.get(name)
+        if self._allow_cantrips and spell:
+            prefix = "C:" if spell["level"] == 0 else "S:"
+            self.forget_var.set(f"{prefix}{name}")
         else:
-            spell = self._all_spell_objects.get(name)
-            if self._allow_cantrips and spell:
-                prefix = "C:" if spell["level"] == 0 else "S:"
-                self.forget_var.set(f"{prefix}{name}")
-            else:
-                self.forget_var.set(name)
-        
+            self.forget_var.set(name)
+
         self._refresh_right_list_state()
+        self._refresh_mode_tiles()
 
     def _on_learn_select_modern(self, name: str):
+        self.swap_mode_var.set("pick")
         self.learn_var.set(name)
+        self._refresh_mode_tiles()
 
     def _refresh_right_list_state(self):
         val = self.forget_var.get()
@@ -197,8 +352,6 @@ class SpellSwapPanel:
 
     def _show_detail(self, name_or_spell: str | dict):
         if isinstance(name_or_spell, str):
-            if name_or_spell == self._no_swap_label:
-                return
             spell = self._all_spell_objects.get(name_or_spell)
         else:
             spell = name_or_spell
@@ -230,9 +383,32 @@ class MultiSpellSwapPanel:
         left_label: str = "Unprepare",
         right_label: str = "Prepare instead",
     ):
+        self.swap_mode_var = tk.StringVar(value="")
+
+        mode_card = CardFrame(parent, pad=SPACING["md"])
+        mode_card.pack(fill=tk.X, pady=(4, SPACING["sm"]))
+        self._refresh_mode_tiles = _build_swap_mode_tiles(
+            mode_card.inner,
+            mode_var=self.swap_mode_var,
+            specs=[
+                (
+                    "skip",
+                    "Leave prepared spells unchanged",
+                    "Do not change your prepared list during this rest.",
+                    self._on_multi_mode_skip,
+                ),
+                (
+                    "pick",
+                    "Adjust preparations below",
+                    "Check spells to unprepare on the left and replacements on the right.",
+                    None,
+                ),
+            ],
+        )
+
         # ── Two-column split ──
         cols = ttk.Frame(parent)
-        cols.pack(fill=tk.BOTH, expand=True, pady=4)
+        cols.pack(fill=tk.BOTH, expand=True, pady=(0, 4))
         cols.columnconfigure(0, weight=1)
         cols.columnconfigure(1, weight=1)
         cols.rowconfigure(0, weight=1)
@@ -303,6 +479,11 @@ class MultiSpellSwapPanel:
 
         self._on_change()
 
+    def _on_multi_mode_skip(self) -> None:
+        self.left_list.set_selected_items([])
+        self.right_list.set_selected_items([])
+        self._on_change()
+
     # ── Public properties ──
 
     @property
@@ -330,6 +511,9 @@ class MultiSpellSwapPanel:
         n_forget = len(self.forget_names)
         n_learn = len(self.learn_names)
 
+        if n_forget > 0 or n_learn > 0:
+            self.swap_mode_var.set("pick")
+
         # Update counter
         if n_forget == 0 and n_learn == 0:
             self._counter.configure(
@@ -353,3 +537,5 @@ class MultiSpellSwapPanel:
                     text=f"Unpreparing {n_forget}, preparing {n_learn} — deselect {-diff} on the right or select more on the left.",
                     foreground=COLORS["accent"],
                 )
+
+        self._refresh_mode_tiles()
