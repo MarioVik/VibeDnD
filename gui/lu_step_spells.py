@@ -131,7 +131,7 @@ class LuSpellsStep(LevelUpStep):
         self._spells_list = ModernSectionedListbox(
             left,
             multiselect=True,
-            on_hover=self._show_spell_detail,
+            on_inspect=self._show_spell_detail,
             on_select=self._on_spell_select_modern,
         )
         self._spells_list.pack(fill=tk.BOTH, expand=True, pady=(SPACING["xs"], 0))

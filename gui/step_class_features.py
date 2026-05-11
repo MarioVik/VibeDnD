@@ -1083,7 +1083,7 @@ class ClassFeaturesStep(WizardStep):
         self._invocation_selector = ModernSectionedListbox(
             list_outer,
             multiselect=True,
-            on_hover=lambda name: self._show_invocation_detail(self._invocation_vars[name]["invocation"]),
+            on_inspect=lambda name: self._show_invocation_detail(self._invocation_vars[name]["invocation"]),
             on_select=lambda name: self._on_invocation_toggle(self._invocation_vars[name]["invocation"])
         )
         self._invocation_selector.pack(fill=tk.BOTH, expand=True)

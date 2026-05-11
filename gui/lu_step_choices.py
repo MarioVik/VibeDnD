@@ -146,7 +146,7 @@ class LuChoicesStep(LevelUpStep):
         self._choice_list = ModernSectionedListbox(
             left,
             multiselect=True,
-            on_hover=self._show_choice_detail,
+            on_inspect=self._show_choice_detail,
             on_select=lambda name: self._on_choice_toggle_manual(name, new_count),
         )
         self._choice_list.pack(fill=tk.BOTH, expand=True, pady=(SPACING["xs"], 0))

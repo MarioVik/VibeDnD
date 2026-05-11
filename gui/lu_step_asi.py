@@ -88,7 +88,8 @@ class LuAsiStep(LevelUpStep):
 
         self._feat_list = ModernSectionedListbox(
             list_frame,
-            on_hover=self._show_feat_detail,
+            radioselect=True,
+            on_inspect=self._show_feat_detail,
             on_select=self._on_feat_select,
         )
         self._feat_list.grid(row=0, column=0, rowspan=2, sticky="nsew")

@@ -1153,27 +1153,27 @@ class HoverTooltip:
 
 
 class ModernSectionedListbox(tk.Frame):
-    """A premium, hover-driven listbox that replaces SectionedListbox.
+    """A premium, sectioned listbox that replaces SectionedListbox.
 
     Features:
     - High-performance ScrollableFrame backend.
-    - Hover-based detail updates (instant preview).
-    - "Active row" highlighting with accent rail indicators.
-    - Supports both single-selection (click) and multi-selection (checkboxes).
+    - Click-based detail inspection.
+    - "Inspected row" highlighting with accent rail indicators.
+    - Custom themed selection boxes for selectable rows.
     - Stylized section headers (serif-italic with rule lines).
     """
 
     def __init__(
         self,
         parent,
-        on_hover=None,
+        on_inspect=None,
         on_select=None,
         multiselect: bool = False,
         radioselect: bool = False,
         **kwargs,
     ):
         super().__init__(parent, bg=COLORS["bg"], **kwargs)
-        self.on_hover = on_hover
+        self.on_inspect = on_inspect
         self.on_select = on_select
         self.multiselect = multiselect
         self.radioselect = radioselect
@@ -1184,6 +1184,7 @@ class ModernSectionedListbox(tk.Frame):
         self._vars: dict[str, tk.BooleanVar] = {}
         self._fixed_names: set[str] = set()
         self._disabled_names: set[str] = set()
+        self._selectable = self.multiselect or self.radioselect
 
         # Search area
         search_frame = tk.Frame(self, bg=COLORS["bg"])
@@ -1287,33 +1288,36 @@ class ModernSectionedListbox(tk.Frame):
         display_name = f"└─ {name}" if is_sub else name
         fg = COLORS["fg_disabled"] if is_disabled else (COLORS["fg_dim"] if is_sub else COLORS["fg"])
 
-        if self.multiselect and not is_fixed:
-            var = tk.BooleanVar(value=is_checked)
+        check_widget = None
+        if self._selectable:
+            var = tk.BooleanVar(value=is_checked or is_fixed)
             self._vars[name] = var
-            cb = ttk.Checkbutton(
-                row_frame,
-                text=display_name,
-                variable=var,
-                state="disabled" if is_disabled else "normal",
-            )
-            cb.pack(side=tk.LEFT, anchor="w", pady=4)
-            cb.bind("<Enter>", lambda _e, n=name: self._handle_hover(n))
-            var.trace_add("write", lambda *_, n=name: self._handle_select(n))
-            content_widget = cb
-        elif self.radioselect and not is_fixed:
-            rb = ttk.Radiobutton(
-                row_frame,
-                text=display_name,
-                variable=self._radio_var,
-                value=name,
-                state="disabled" if is_disabled else "normal",
-                command=lambda n=name: self._handle_select(n),
-            )
-            rb.pack(side=tk.LEFT, anchor="w", pady=4)
-            rb.bind("<Enter>", lambda _e, n=name: self._handle_hover(n))
-            if is_checked:
+            if self.radioselect and var.get():
                 self._radio_var.set(name)
-            content_widget = rb
+            check_widget = tk.Canvas(
+                row_frame,
+                width=18,
+                height=18,
+                bg=COLORS["bg"],
+                highlightthickness=0,
+                borderwidth=0,
+                cursor="hand2" if not is_disabled and not is_fixed else "",
+            )
+            check_widget.pack(side=tk.LEFT, anchor="n", padx=(4, 6), pady=5 if is_sub else 7)
+            self._draw_check_indicator(name)
+
+        if self._selectable:
+            lbl = tk.Label(
+                row_frame,
+                text=display_name,
+                font=FONTS["body_small"] if is_sub else FONTS["body"],
+                fg=fg,
+                bg=COLORS["bg"],
+                anchor="w",
+                justify=tk.LEFT,
+            )
+            lbl.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=4 if is_sub else 6, padx=(0, 0))
+            content_widget = lbl
         else:
             lbl = tk.Label(
                 row_frame,
@@ -1327,36 +1331,57 @@ class ModernSectionedListbox(tk.Frame):
             lbl.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=4 if is_sub else 6, padx=(4, 0))
             content_widget = lbl
 
-        self._row_widgets[name] = {"row": row_frame, "rail": rail, "content": content_widget}
+        self._row_widgets[name] = {
+            "row": row_frame,
+            "rail": rail,
+            "content": content_widget,
+            "check": check_widget,
+        }
 
-        # Bindings for hover and click (on the row and the content)
+        # Hover is intentionally visual-only. Details change on click.
         if not is_disabled:
-            row_frame.bind("<Enter>", lambda _e, n=name: self._handle_hover(n))
-            row_frame.bind("<Button-1>", lambda _e, n=name: self._toggle_or_select(n))
-            
-            if (not self.multiselect and not self.radioselect) or is_fixed:
-                content_widget.bind("<Enter>", lambda _e, n=name: self._handle_hover(n))
-                content_widget.bind("<Button-1>", lambda _e, n=name: self._toggle_or_select(n))
-
-    def _handle_hover(self, name: str):
-        self._set_active(name)
-        if self.on_hover:
-            self.on_hover(name)
+            row_frame.bind("<Button-1>", lambda _e, n=name: self._handle_inspect(n))
+            content_widget.bind("<Button-1>", lambda _e, n=name: self._handle_inspect(n))
+            if check_widget is not None and not is_fixed:
+                check_widget.bind("<Button-1>", lambda _e, n=name: self._toggle_or_select(n))
 
     def _toggle_or_select(self, name: str):
-        if self.multiselect and name in self._vars and name not in self._disabled_names:
+        if name in self._disabled_names or name in self._fixed_names:
+            return
+
+        if self.multiselect and name in self._vars:
             var = self._vars[name]
-            var.set(not var.get())
-        elif self.radioselect and name not in self._disabled_names:
+            desired = not var.get()
+            var.set(desired)
+            self._draw_check_indicator(name)
+            self._handle_select(name)
+            if desired and var.get():
+                self._handle_inspect(name)
+        elif self.radioselect and name in self._vars:
+            previous = self._radio_var.get()
+            if previous and previous in self._vars and previous != name:
+                self._vars[previous].set(False)
+                self._draw_check_indicator(previous)
             self._radio_var.set(name)
+            self._vars[name].set(True)
+            self._draw_check_indicator(name)
             self._handle_select(name)
+            if self._radio_var.get() == name and self._vars[name].get():
+                self._handle_inspect(name)
         else:
-            self._handle_select(name)
+            self._handle_inspect(name)
+
+    def _handle_inspect(self, name: str):
+        self._set_active(name)
+        callback = self.on_inspect or (self.on_select if not self._selectable else None)
+        if callback:
+            callback(name)
 
     def _handle_select(self, name: str):
-        self._set_active(name)
         if self.on_select:
             self.on_select(name)
+        if name in self._vars:
+            self._draw_check_indicator(name)
 
     def _set_active(self, name: str):
         prev = self._active_name.get()
@@ -1379,16 +1404,43 @@ class ModernSectionedListbox(tk.Frame):
         
         w["row"].configure(bg=bg, highlightbackground=border)
         w["rail"].configure(bg=rail_bg)
+        if w.get("check") is not None:
+            w["check"].configure(bg=bg)
+            self._draw_check_indicator(name)
         
-        # If it's a plain tk.Label, update its background too
-        # (ttk widgets like Checkbutton/Radiobutton don't support -bg)
-        if not self.multiselect and not self.radioselect:
+        if isinstance(w["content"], tk.Label):
             w["content"].configure(bg=bg)
+
+    def _draw_check_indicator(self, name: str):
+        widgets = self._row_widgets.get(name)
+        if not widgets:
+            return
+        canvas = widgets.get("check")
+        if canvas is None:
+            return
+
+        checked = bool(self._vars.get(name) and self._vars[name].get())
+        active = self._active_name.get() == name
+        disabled = name in self._disabled_names
+        fixed = name in self._fixed_names
+        bg = COLORS["bg_container"] if active else COLORS["bg"]
+        border = COLORS["fg_disabled"] if disabled else (COLORS["accent_text"] if checked else COLORS["outline_dim"])
+        fill = COLORS["control_disabled"] if disabled else (COLORS["accent"] if checked else COLORS["bg_highest"])
+        mark = COLORS["fg_disabled"] if disabled else COLORS["accent_text"]
+
+        canvas.configure(bg=bg)
+        canvas.delete("all")
+        canvas.create_rectangle(2, 2, 16, 16, outline=border, fill=fill, width=1)
+        if checked:
+            canvas.create_line(5, 9, 8, 12, 13, 6, fill=mark, width=2)
+        if fixed:
+            canvas.create_line(5, 5, 13, 13, fill=mark, width=1)
+            canvas.create_line(13, 5, 5, 13, fill=mark, width=1)
 
     def _filter(self):
         # When filtering, we keep the previous selection if possible
         selected = []
-        if self.multiselect:
+        if self._selectable:
             selected = [n for n, v in self._vars.items() if v.get()]
         else:
             selected = [self._active_name.get()]
@@ -1402,28 +1454,40 @@ class ModernSectionedListbox(tk.Frame):
             # Ensure it's visible
             # ScrollableFrame doesn't have a direct 'see' for widgets inside it
             # but we could implement one. For now just set active.
-            if self.multiselect and name in self._vars:
+            if self._selectable and name in self._vars:
                 if name not in self._disabled_names:
                     self._vars[name].set(True)
+                    if self.radioselect:
+                        self._radio_var.set(name)
+                    self._draw_check_indicator(name)
 
     def deselect_item(self, name: str):
-        """Programmatically deselect an item (only for multiselect)."""
-        if self.multiselect and name in self._vars:
+        """Programmatically deselect an item in selectable lists."""
+        if self._selectable and name in self._vars and name not in self._fixed_names:
             self._vars[name].set(False)
+            if self.radioselect and self._radio_var.get() == name:
+                self._radio_var.set("")
+            self._draw_check_indicator(name)
 
     def set_selected_items(self, names: list[str]):
-        """Bulk update selection state without triggering callbacks for every item."""
-        # Note: traces will still fire. To avoid re-entry loops, 
-        # callers should use the _updating_choices flag pattern.
+        """Bulk update selection state without triggering callbacks."""
+        selected = set(names)
         for name, var in self._vars.items():
-            var.set(name in names)
+            var.set(name in selected or name in self._fixed_names)
+            self._draw_check_indicator(name)
+        if self.radioselect:
+            self._radio_var.set(next((name for name in names if name in self._vars), ""))
 
     def get_selected_items(self) -> list[str]:
-        """Return the checked item names for multiselect lists."""
-        if not self.multiselect:
+        """Return the checked item names for selectable lists."""
+        if not self._selectable:
             selected = self.get_selection()
             return [selected] if selected else []
         return [name for name, var in self._vars.items() if var.get()]
+
+    def get_selected_names(self) -> list[str]:
+        """Backward-compatible alias for get_selected_items()."""
+        return self.get_selected_items()
 
     def get_selection(self) -> str | None:
         """Get the currently active/selected item."""

@@ -98,7 +98,7 @@ class SpellSwapPanel:
         
         self.left_list = ModernSectionedListbox(
             left_lf,
-            on_hover=self._show_detail,
+            on_inspect=self._show_detail,
             on_select=self._on_forget_select_modern,
             radioselect=True,
         )
@@ -110,7 +110,7 @@ class SpellSwapPanel:
         
         self.right_list = ModernSectionedListbox(
             right_lf,
-            on_hover=self._show_detail,
+            on_inspect=self._show_detail,
             on_select=self._on_learn_select_modern,
             radioselect=True,
         )
@@ -243,7 +243,8 @@ class MultiSpellSwapPanel:
         
         self.left_list = ModernSectionedListbox(
             left_lf,
-            on_hover=self._show_detail,
+            multiselect=True,
+            on_inspect=self._show_detail,
             on_select=self._on_change,
         )
         self.left_list.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
@@ -254,7 +255,8 @@ class MultiSpellSwapPanel:
         
         self.right_list = ModernSectionedListbox(
             right_lf,
-            on_hover=self._show_detail,
+            multiselect=True,
+            on_inspect=self._show_detail,
             on_select=self._on_change,
         )
         self.right_list.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)

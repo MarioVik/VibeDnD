@@ -219,8 +219,7 @@ class AddInventoryDialog(tk.Toplevel):
 
         self.item_list = ModernSectionedListbox(
             left,
-            on_hover=self._on_item_hover,
-            on_select=self._on_select_item,
+            on_inspect=self._on_select_item,
         )
         self.item_list.grid(row=0, column=0, sticky="nsew")
 
@@ -466,12 +465,6 @@ class AddInventoryDialog(tk.Toplevel):
                 )
             self.log_text.insert("1.0", "\n".join(lines))
         self.log_text.configure(state=tk.DISABLED)
-
-    def _on_item_hover(self, name: str):
-        item = self.items_by_name.get(name)
-        if not item:
-            return
-        self._render_item_details(item)
 
     def _on_select_item(self, name: str):
         item = self.items_by_name.get(name)

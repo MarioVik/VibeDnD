@@ -603,7 +603,7 @@ class SpellsStep(WizardStep):
             self._update_info_label()
 
         # Wire up callbacks now that the closures are defined
-        self._followup_list.on_hover = _show_detail
+        self._followup_list.on_inspect = _show_detail
         self._followup_list.on_select = lambda n: _on_toggle_manual(n)
 
         # Show first spell's details
@@ -677,7 +677,7 @@ class SpellsStep(WizardStep):
         self._spell_selector = ModernSectionedListbox(
             list_outer,
             multiselect=True,
-            on_hover=self._show_detail_modern,
+            on_inspect=self._show_detail_modern,
             on_select=self._on_spell_toggle_modern,
         )
         self._spell_selector.pack(fill=tk.BOTH, expand=True)

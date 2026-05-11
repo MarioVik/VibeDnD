@@ -88,27 +88,30 @@ python main.py
 
 ### Shared List/Detail Pattern: `ModernSectionedListbox`
 
-`ModernSectionedListbox` lives in `gui/widgets.py`. It is the shared searchable, sectioned, hover-driven list widget used by the list side of several list/detail screens. It is backed by `ScrollableFrame`, not by `tk.Listbox`.
+`ModernSectionedListbox` lives in `gui/widgets.py`. It is the shared searchable, sectioned, click-inspected list widget used by the list side of several list/detail screens. It is backed by `ScrollableFrame`, not by `tk.Listbox`.
 
 Important distinction: the list widget is shared, but the full split view is not a shared component. Each caller builds its own left/right layout, detail panel, titles, buttons, and validation behavior around `ModernSectionedListbox`. When changing list row/search/selection behavior, update `gui/widgets.py`. When changing the surrounding detail-pane layout or content, audit every usage below and update each caller that owns that layout.
 
 Public API:
 - `set_sectioned_items(sections, selected_names=None, sub_items=None, fixed_names=None, disabled_names=None)` populates grouped rows. `sections` is a list of `(section_name, item_names)` tuples.
-- `select_item(name)` sets the active row and checks it when the widget is in multiselect mode.
-- `deselect_item(name)` unchecks an item in multiselect mode.
-- `set_selected_items(names)` bulk-updates multiselect state.
-- `get_selected_items()` returns checked items in multiselect mode, or the active item as a one-item list for single-select mode.
-- `get_selection()` returns the active row name.
+- `on_inspect(name)` is the detail callback for row-body clicks. Use it to update the right-side details panel.
+- `on_select(name)` is the selection callback for custom checkbox clicks. Use it to mutate character/list state.
+- `select_item(name)` sets the inspected row and checks it when the widget is selectable.
+- `deselect_item(name)` unchecks an item in selectable modes.
+- `set_selected_items(names)` bulk-updates selectable state without firing callbacks.
+- `get_selected_items()` returns checked items in selectable modes, or the inspected item as a one-item list for inspect-only mode.
+- `get_selected_names()` is a backward-compatible alias for `get_selected_items()`.
+- `get_selection()` returns the inspected row name.
 
 Modes and behavior:
-- Default mode is single-select display rows.
-- `multiselect=True` renders checkbuttons and lets callers enforce selection limits.
-- `radioselect=True` renders radiobuttons for one-of-many choices.
+- Default mode is inspect-only: rows have no checkbox, and clicking row text/body calls `on_inspect`.
+- `multiselect=True` renders custom themed checkboxes and lets callers enforce selection limits.
+- `radioselect=True` renders the same custom themed checkbox but enforces one checked item.
 - `fixed_names` marks rows that are shown as already selected/fixed and not toggled like normal choices.
-- `disabled_names` renders rows inactive and prevents hover/click bindings.
+- `disabled_names` renders rows inactive and prevents click bindings.
 - `sub_items` lets callers render indented child rows under parent rows; it is used for nested spell/inventory display.
-- Hover sets the active row and calls `on_hover(name)` when supplied.
-- Click/toggle sets or changes selection and calls `on_select(name)` when supplied.
+- Hover must not update the inspected row or details panel.
+- In selectable lists, row-body clicks inspect only; custom checkbox clicks select/toggle and then inspect the item only when the selection remains accepted after caller validation.
 - The widget does not own domain state, validation, detail text, or save/load behavior. Callers must synchronize selected names with character state and update their own detail panels.
 
 Audited current usages: 14 constructor calls grouped by screen.

@@ -112,7 +112,8 @@ class FeatStep(WizardStep):
 
         self.origin_feat_list = ModernSectionedListbox(
             self.sp_list_frame,
-            on_hover=self._show_species_feat_detail,
+            radioselect=True,
+            on_inspect=self._show_species_feat_detail,
             on_select=self._on_species_feat_select,
         )
         self.origin_feat_list.grid(row=1, column=0, rowspan=2, sticky="nsew")

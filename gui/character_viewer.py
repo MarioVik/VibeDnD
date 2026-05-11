@@ -1912,8 +1912,7 @@ class CharacterViewer(ttk.Frame):
 
         self.spells_list = ModernSectionedListbox(
             left,
-            on_hover=self._on_spell_hover,
-            on_select=self._on_spell_select,
+            on_inspect=self._on_spell_select,
         )
         self.spells_list.pack(fill=tk.BOTH, expand=True, padx=4, pady=(0, 8))
 
@@ -3180,8 +3179,7 @@ class CharacterViewer(ttk.Frame):
 
         self.inv_list = ModernSectionedListbox(
             left,
-            on_hover=self._on_inv_list_hover,
-            on_select=self._on_inv_list_select,
+            on_inspect=self._on_inv_list_select,
         )
         self.inv_list.pack(fill=tk.BOTH, expand=True, padx=4, pady=(0, 4))
 
@@ -3404,12 +3402,6 @@ class CharacterViewer(ttk.Frame):
             self.inv_list.select_item(display)
             self._on_inventory_select_entry(entry)
             return
-
-    def _on_spell_hover(self, item_name: str):
-        self._on_spell_select(item_name)
-
-    def _on_inv_list_hover(self, item_name: str):
-        self._on_inv_list_select(item_name)
 
     def _on_inv_list_select(self, item_name: str):
         """Handle selection in the inventory SectionedListbox."""
