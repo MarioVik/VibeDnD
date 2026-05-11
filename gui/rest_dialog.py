@@ -377,8 +377,10 @@ class RestDialog(tk.Toplevel):
     # -- Components -----------------------------------------------------
 
     def _build_cantrip_section(self, parent):
-        SectionHeader(parent, text="Cantrip Swap").pack(fill=tk.X, padx=SPACING["lg"])
-        
+        body = ttk.Frame(parent)
+        body.pack(fill=tk.BOTH, expand=True)
+        SectionHeader(body, text="Cantrip Swap").pack(fill=tk.X, padx=SPACING["lg"])
+
         # Current cantrips
         forget_names = getattr(self.character, "selected_cantrips", []) or []
         forget_dicts = [d for n in forget_names if (d := self._get_spell_dict(n))]
@@ -388,7 +390,7 @@ class RestDialog(tk.Toplevel):
         learn_dicts = [d for n in learn_names if (d := self._get_spell_dict(n))]
 
         self._cantrip_panel = SpellSwapPanel(
-            parent,
+            body,
             forget_spells=[],
             learn_spells=[],
             forget_cantrips=forget_dicts,
@@ -397,8 +399,10 @@ class RestDialog(tk.Toplevel):
         )
 
     def _build_spell_section(self, parent):
-        SectionHeader(parent, text="Prepared Spells").pack(fill=tk.X, padx=SPACING["lg"])
-        
+        body = ttk.Frame(parent)
+        body.pack(fill=tk.BOTH, expand=True)
+        SectionHeader(body, text="Prepared Spells").pack(fill=tk.X, padx=SPACING["lg"])
+
         forget_names = getattr(self.character, "selected_spells", []) or []
         forget_dicts = [d for n in forget_names if (d := self._get_spell_dict(n))]
         
@@ -407,13 +411,13 @@ class RestDialog(tk.Toplevel):
 
         if self._spell_swap_mode == "all":
             self._multi_spell_panel = MultiSpellSwapPanel(
-                parent,
+                body,
                 forget_spells=forget_dicts,
                 learn_spells=learn_dicts
             )
         else:
             self._spell_panel = SpellSwapPanel(
-                parent,
+                body,
                 forget_spells=forget_dicts,
                 learn_spells=learn_dicts,
                 allow_cantrips=False

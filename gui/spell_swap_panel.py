@@ -196,21 +196,23 @@ class SpellSwapPanel:
         self._all_spell_objects: dict[str, dict] = {}
         self.swap_mode_var = tk.StringVar(value="")
 
-        # ── Two-column split ──
-        cols = ttk.Frame(parent)
-        cols.pack(fill=tk.BOTH, expand=True, pady=4)
+        # Fill the parent step so the split view can use full window height.
+        self._root = ttk.Frame(parent)
+        self._root.pack(fill=tk.BOTH, expand=True)
+        self._root.columnconfigure(0, weight=1)
+        self._root.rowconfigure(0, weight=1)
+        self._root.rowconfigure(1, weight=0)
+
+        # ── Split: full-width mode row, then matched-height Forget | Learn ──
+        cols = ttk.Frame(self._root)
+        cols.grid(row=0, column=0, sticky="nsew", pady=4)
         cols.columnconfigure(0, weight=1)
         cols.columnconfigure(1, weight=1)
-        cols.rowconfigure(0, weight=1)
+        cols.rowconfigure(0, weight=0)
+        cols.rowconfigure(1, weight=1)
 
-        # --- LEFT: mode card + Forget list ---
-        left_col = tk.Frame(cols, bg=COLORS["bg"])
-        left_col.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
-        left_col.rowconfigure(1, weight=1)
-        left_col.columnconfigure(0, weight=1)
-
-        mode_card = CardFrame(left_col, pad=SPACING["md"])
-        mode_card.grid(row=0, column=0, sticky="ew", pady=(0, SPACING["sm"]))
+        mode_card = CardFrame(cols, pad=SPACING["md"])
+        mode_card.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, SPACING["sm"]))
         pick_label = (
             "Replace a cantrip or spell"
             if allow_cantrips
@@ -229,14 +231,16 @@ class SpellSwapPanel:
                 (
                     "pick",
                     pick_label,
-                    "Choose what to forget below, then pick a replacement on the right.",
+                    "Choose what to forget on the left, then pick a replacement on the right.",
                     None,
                 ),
             ],
         )
 
-        left_lf = ttk.LabelFrame(left_col, text=left_label)
-        left_lf.grid(row=1, column=0, sticky="nsew")
+        left_lf = ttk.LabelFrame(cols, text=left_label)
+        left_lf.grid(row=1, column=0, sticky="nsew", padx=(0, 4))
+        left_lf.rowconfigure(0, weight=1)
+        left_lf.columnconfigure(0, weight=1)
 
         self.left_list = ModernSectionedListbox(
             left_lf,
@@ -244,11 +248,13 @@ class SpellSwapPanel:
             on_select=self._on_forget_select_modern,
             radioselect=True,
         )
-        self.left_list.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        self.left_list.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
 
         # --- RIGHT: Learn ---
         right_lf = ttk.LabelFrame(cols, text=right_label)
-        right_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
+        right_lf.grid(row=1, column=1, sticky="nsew", padx=(4, 0))
+        right_lf.rowconfigure(0, weight=1)
+        right_lf.columnconfigure(0, weight=1)
         
         self.right_list = ModernSectionedListbox(
             right_lf,
@@ -256,7 +262,7 @@ class SpellSwapPanel:
             on_select=self._on_learn_select_modern,
             radioselect=True,
         )
-        self.right_list.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        self.right_list.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
 
         # ── Data Preparation ──
         forget_sections = []
@@ -288,8 +294,8 @@ class SpellSwapPanel:
         )
         self._all_spell_objects = {s["name"]: s for s in all_spells}
         detail_h = _max_detail_height(all_spells)
-        detail_lf = ttk.LabelFrame(parent, text="Spell Details")
-        detail_lf.pack(fill=tk.X, pady=(4, 0))
+        detail_lf = ttk.LabelFrame(self._root, text="Spell Details")
+        detail_lf.grid(row=1, column=0, sticky="ew", pady=(4, 0))
         self._detail_text = tk.Text(
             detail_lf,
             wrap=tk.WORD,
@@ -385,8 +391,22 @@ class MultiSpellSwapPanel:
     ):
         self.swap_mode_var = tk.StringVar(value="")
 
-        mode_card = CardFrame(parent, pad=SPACING["md"])
-        mode_card.pack(fill=tk.X, pady=(4, SPACING["sm"]))
+        self._root = ttk.Frame(parent)
+        self._root.pack(fill=tk.BOTH, expand=True)
+        self._root.columnconfigure(0, weight=1)
+        self._root.rowconfigure(0, weight=1)
+        self._root.rowconfigure(1, weight=0)
+        self._root.rowconfigure(2, weight=0)
+
+        cols = ttk.Frame(self._root)
+        cols.grid(row=0, column=0, sticky="nsew", pady=(4, 4))
+        cols.columnconfigure(0, weight=1)
+        cols.columnconfigure(1, weight=1)
+        cols.rowconfigure(0, weight=0)
+        cols.rowconfigure(1, weight=1)
+
+        mode_card = CardFrame(cols, pad=SPACING["md"])
+        mode_card.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, SPACING["sm"]))
         self._refresh_mode_tiles = _build_swap_mode_tiles(
             mode_card.inner,
             mode_var=self.swap_mode_var,
@@ -406,44 +426,41 @@ class MultiSpellSwapPanel:
             ],
         )
 
-        # ── Two-column split ──
-        cols = ttk.Frame(parent)
-        cols.pack(fill=tk.BOTH, expand=True, pady=(0, 4))
-        cols.columnconfigure(0, weight=1)
-        cols.columnconfigure(1, weight=1)
-        cols.rowconfigure(0, weight=1)
-
         # --- LEFT: Forget ---
         left_lf = ttk.LabelFrame(cols, text=left_label)
-        left_lf.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
-        
+        left_lf.grid(row=1, column=0, sticky="nsew", padx=(0, 4))
+        left_lf.rowconfigure(0, weight=1)
+        left_lf.columnconfigure(0, weight=1)
+
         self.left_list = ModernSectionedListbox(
             left_lf,
             multiselect=True,
             on_inspect=self._show_detail,
             on_select=self._on_change,
         )
-        self.left_list.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        self.left_list.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
 
         # --- RIGHT: Learn ---
         right_lf = ttk.LabelFrame(cols, text=right_label)
-        right_lf.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
-        
+        right_lf.grid(row=1, column=1, sticky="nsew", padx=(4, 0))
+        right_lf.rowconfigure(0, weight=1)
+        right_lf.columnconfigure(0, weight=1)
+
         self.right_list = ModernSectionedListbox(
             right_lf,
             multiselect=True,
             on_inspect=self._show_detail,
             on_select=self._on_change,
         )
-        self.right_list.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        self.right_list.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
 
         # ── Counter label ──
         self._counter = ttk.Label(
-            parent,
+            self._root,
             text="",
             foreground=COLORS["fg_dim"],
         )
-        self._counter.pack(anchor="w", padx=4, pady=(0, 2))
+        self._counter.grid(row=1, column=0, sticky="w", padx=4, pady=(0, 2))
 
         forget_sections = []
         if forget_spells:
@@ -463,8 +480,8 @@ class MultiSpellSwapPanel:
 
         # --- Shared Detail Panel ---
         detail_h = _max_detail_height(forget_spells, learn_spells)
-        detail_lf = ttk.LabelFrame(parent, text="Spell Details")
-        detail_lf.pack(fill=tk.X, pady=(4, 0))
+        detail_lf = ttk.LabelFrame(self._root, text="Spell Details")
+        detail_lf.grid(row=2, column=0, sticky="ew", pady=(4, 0))
         self._detail_text = tk.Text(
             detail_lf,
             wrap=tk.WORD,

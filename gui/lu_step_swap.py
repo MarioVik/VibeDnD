@@ -58,6 +58,8 @@ class LuSwapStep(LevelUpStep):
 
         self._content = tk.Frame(self.frame, bg=COLORS["bg"])
         self._content.grid(row=1, column=0, sticky="nsew")
+        self._content.columnconfigure(0, weight=1)
+        self._content.rowconfigure(0, weight=1)
         self._swap_panel = None
 
     def on_enter(self):
