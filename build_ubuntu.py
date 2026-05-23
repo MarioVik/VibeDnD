@@ -125,6 +125,11 @@ def build_app() -> Path:
         if img_path.is_dir():
             add_data += ["--add-data", f"{img_path}{sep}{img_subdir}"]
 
+    # Bundle fonts directory
+    fonts_path = ROOT / "fonts"
+    if fonts_path.is_dir():
+        add_data += ["--add-data", f"{fonts_path}{sep}fonts"]
+
     exclude_flags: list[str] = []
     for mod in EXCLUDES:
         exclude_flags += ["--exclude-module", mod]

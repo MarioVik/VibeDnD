@@ -153,6 +153,11 @@ def build(onefile: bool = False):
         if os.path.isdir(img_path):
             add_data += ["--add-data", f"{img_path}{sep}{img_subdir}"]
 
+    # Bundle fonts directory
+    fonts_path = os.path.join(ROOT, "fonts")
+    if os.path.isdir(fonts_path):
+        add_data += ["--add-data", f"{fonts_path}{sep}fonts"]
+
     exclude_flags = []
     for mod in EXCLUDES:
         exclude_flags += ["--exclude-module", mod]
