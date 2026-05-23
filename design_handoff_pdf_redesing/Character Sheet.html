@@ -1,0 +1,1813 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Character Sheet · Enixif Gomblewomble</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter+Tight:wght@400;500;600;700&family=IM+Fell+English+SC&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+/* ── Design tokens ── */
+:root {
+  /* Paper & ink — printer-friendly white */
+  --paper: #ffffff;
+  --paper-2: #ffffff;
+  --paper-3: #ffffff;
+  --ink: oklch(0.21 0.008 50);
+  --ink-2: oklch(0.36 0.008 50);
+  --ink-3: oklch(0.54 0.008 50);
+  --rule: oklch(0.78 0.012 50);
+  --rule-2: oklch(0.86 0.012 50);
+
+  /* Accent — Rogue oxblood by default */
+  --accent: oklch(0.40 0.11 25);
+  --accent-ink: oklch(0.32 0.11 25);
+  --accent-2: oklch(0.62 0.08 25);
+  --accent-soft: oklch(0.94 0.022 25);
+
+  /* Action-type chips */
+  --c-action: oklch(0.50 0.13 30);
+  --c-bonus:  oklch(0.50 0.10 240);
+  --c-react:  oklch(0.50 0.12 300);
+  --c-passive: oklch(0.55 0.005 50);
+  --c-rest:   oklch(0.58 0.11 75);
+
+  /* Type */
+  --display: "Cinzel", "Trajan Pro", serif;
+  --serif: "EB Garamond", "Hoefler Text", Georgia, serif;
+  --ui: "Inter Tight", -apple-system, system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: oklch(0.32 0.01 60); }
+body {
+  font-family: var(--serif);
+  color: var(--ink);
+  font-size: 10pt;
+  line-height: 1.35;
+  padding: 28px 0 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+/* ── Page shell ── */
+.sheet {
+  width: 210mm;
+  height: 297mm;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 11mm 11mm 9mm;
+  position: relative;
+  box-shadow: 0 12px 40px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.2);
+  overflow: hidden;
+}
+.sheet.no-grain { /* no-op kept for tweak compatibility */ }
+
+@page { size: A4; margin: 0; }
+@media print {
+  body { background: white; padding: 0; gap: 0; }
+  .sheet { box-shadow: none; page-break-after: always; }
+  .sheet:last-child { page-break-after: auto; }
+  .tweaks-host { display: none !important; }
+}
+
+/* ── Utility ── */
+.row { display: flex; }
+.col { display: flex; flex-direction: column; }
+.muted { color: var(--ink-3); }
+.faint { color: var(--rule); }
+.ui { font-family: var(--ui); }
+.tabular { font-variant-numeric: tabular-nums; }
+.smallcaps { font-variant: small-caps; letter-spacing: .04em; }
+
+/* Pen-and-paper write line — empty fields for hand-writing */
+.write-line {
+  display: inline-block;
+  border-bottom: 0.5px solid var(--ink-3);
+  height: 1.1em;
+  vertical-align: baseline;
+}
+.write-box {
+  border: 0.5px solid var(--rule);
+  background: var(--paper);
+  border-radius: 2px;
+}
+
+/* ── Page 1 header ── */
+.hdr {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 8mm;
+  padding-bottom: 4mm;
+  border-bottom: 0.6px solid var(--ink);
+}
+.hdr h1 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 26pt;
+  line-height: .95;
+  margin: 0 0 1mm;
+  color: var(--ink);
+  letter-spacing: .01em;
+}
+.hdr .meta {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 11pt;
+  color: var(--ink-2);
+}
+.hdr .meta .sep { color: var(--accent); padding: 0 .4em; font-style: normal; }
+.hdr-right {
+  display: flex;
+  gap: 4mm;
+  align-items: stretch;
+}
+.prof-stat {
+  border: 0.8px solid var(--accent);
+  color: var(--accent-ink);
+  padding: 3mm 5mm;
+  text-align: center;
+  border-radius: 1mm;
+  min-width: 22mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.prof-stat .v {
+  font-family: var(--display);
+  font-size: 18pt;
+  line-height: 1;
+  font-weight: 600;
+  color: var(--accent-ink);
+}
+.prof-stat .l {
+  font-family: var(--ui);
+  font-size: 6.5pt;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  margin-top: 1.5mm;
+  opacity: 1;
+  color: var(--ink-3);
+}
+.inspiration {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5mm;
+  font-family: var(--ui);
+  font-size: 6.5pt;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--ink-2);
+  min-width: 22mm;
+  border: 0.5px solid var(--rule);
+  border-radius: 1mm;
+  padding: 2mm;
+}
+.inspiration .star {
+  width: 9mm; height: 9mm;
+  border: 0.6px solid var(--accent);
+  background: var(--paper);
+  transform: rotate(45deg);
+  position: relative;
+}
+.inspiration .star::after {
+  content: "";
+  position: absolute; inset: 1.4mm;
+  border: 0.4px solid var(--accent);
+  opacity: .35;
+}
+
+/* ── Combat stats row ── */
+.combat {
+  display: grid;
+  grid-template-columns: 32mm 1fr 28mm 38mm;
+  gap: 3mm;
+  margin-top: 4mm;
+}
+.cstat {
+  background: var(--paper-2);
+  border: 0.6px solid var(--rule);
+  border-radius: 1.5mm;
+  padding: 2mm 3mm 2.5mm;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.cstat .label {
+  font-family: var(--ui);
+  font-size: 6.5pt;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--ink-3);
+}
+.cstat .value-row { display: flex; align-items: baseline; gap: 2mm; }
+.cstat .v-big {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 28pt;
+  line-height: 1;
+  color: var(--ink);
+}
+.cstat .v-mid {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 16pt;
+  line-height: 1;
+}
+.cstat .sub {
+  font-family: var(--ui);
+  font-size: 7pt;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+
+/* HP block - the hero */
+.hp {
+  background: var(--paper);
+  border: 0.8px solid var(--ink);
+  border-radius: 1.5mm;
+  padding: 2mm 3mm 2.5mm;
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  gap: 0 4mm;
+  align-items: end;
+}
+.hp .label-row {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--ui);
+  font-size: 6.5pt;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--ink-3);
+  margin-bottom: 1mm;
+}
+.hp .max {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 26pt;
+  line-height: .95;
+  color: var(--ink);
+  padding-right: 3mm;
+  border-right: 0.5px solid var(--rule);
+}
+.hp .field {
+  display: flex;
+  flex-direction: column;
+  gap: 1mm;
+}
+.hp .field .ftext {
+  font-family: var(--ui);
+  font-size: 6pt;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+.hp .field .fline {
+  height: 9mm;
+  border-bottom: 0.6px solid var(--ink-2);
+}
+
+/* Death saves */
+.ds-block { display: flex; flex-direction: column; gap: 1mm; }
+.ds-row {
+  display: flex;
+  align-items: center;
+  gap: 2mm;
+  font-family: var(--ui);
+  font-size: 7pt;
+  color: var(--ink-2);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+.ds-row .dots { display: flex; gap: 1mm; }
+.ds-row .dot {
+  width: 2.6mm; height: 2.6mm;
+  border-radius: 50%;
+  border: 0.6px solid var(--ink-2);
+  background: var(--paper);
+}
+.ds-row.fail .dot { border-color: var(--c-action); }
+
+/* Hit dice */
+.hd-info {
+  display: flex; flex-direction: column; gap: .8mm;
+  margin-top: .5mm;
+}
+.hd-used {
+  font-family: var(--ui);
+  font-size: 6.5pt;
+  color: var(--ink-3);
+  display: flex; gap: 1.5mm; align-items: center;
+}
+.hd-used .box {
+  width: 4mm; height: 4mm; border: 0.5px solid var(--rule);
+  background: var(--paper); border-radius: 0.5mm;
+}
+
+/* ── Conditions strip ── */
+.cond-strip {
+  display: flex;
+  gap: 0;
+  margin-top: 3.5mm;
+  padding: 1.8mm 2mm;
+  border: 0.6px solid var(--rule);
+  border-radius: 1.5mm;
+  background: var(--paper-2);
+  align-items: center;
+}
+.cond-strip .label {
+  font-family: var(--ui);
+  font-size: 6.5pt;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--ink-3);
+  padding-right: 2.5mm;
+  border-right: 0.5px solid var(--rule);
+  margin-right: 2mm;
+}
+.cond-strip .conds {
+  display: flex; flex-wrap: wrap; gap: 1mm 2.5mm;
+  flex: 1;
+}
+.cond {
+  display: inline-flex; align-items: center; gap: 1mm;
+  font-family: var(--ui); font-size: 7pt;
+  color: var(--ink-2);
+}
+.cond .box {
+  width: 2.3mm; height: 2.3mm; border: 0.6px solid var(--ink-2); background: var(--paper); border-radius: 0.5mm;
+}
+.exh {
+  display: inline-flex; align-items: center; gap: 1.5mm;
+  border-left: 0.5px solid var(--rule);
+  padding-left: 2.5mm;
+  margin-left: 1mm;
+  font-family: var(--ui); font-size: 6.5pt;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: var(--ink-3);
+}
+.exh .ticks { display: flex; gap: .8mm; }
+.exh .tick {
+  width: 2.4mm; height: 2.4mm; border-radius: 50%;
+  border: 0.6px solid var(--ink-3);
+  background: var(--paper);
+}
+
+/* ── Main body ── */
+.body {
+  display: grid;
+  grid-template-columns: 60mm 1fr;
+  gap: 3mm;
+  margin-top: 3.5mm;
+}
+
+/* Ability blocks */
+.abilities { display: flex; flex-direction: column; gap: 1.4mm; }
+.ab {
+  border: 0.6px solid var(--rule);
+  border-radius: 1.5mm;
+  background: var(--paper);
+  padding: 1.5mm 2.5mm 1.6mm;
+  position: relative;
+}
+.ab .ab-head {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: baseline;
+  gap: 2.5mm;
+  border-bottom: 0.4px solid var(--rule-2);
+  padding-bottom: 0.6mm;
+  margin-bottom: 0.6mm;
+}
+.ab .ab-name {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 9pt;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+.ab .ab-mod {
+  font-family: var(--display);
+  font-size: 17pt;
+  font-weight: 600;
+  line-height: .9;
+  color: var(--ink);
+}
+.ab .ab-score {
+  font-family: var(--ui);
+  font-weight: 500;
+  font-size: 7.5pt;
+  letter-spacing: .12em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+.ab .ab-score::before { content: "score "; opacity: .7; }
+.ab .row-skill {
+  display: grid;
+  grid-template-columns: 3.5mm 6mm 1fr;
+  gap: 1mm;
+  align-items: center;
+  font-size: 8pt;
+  font-family: var(--serif);
+  padding: 0.05mm 0;
+  line-height: 1.3;
+}
+.ab .row-skill .pip {
+  width: 2.4mm; height: 2.4mm;
+  border-radius: 50%;
+  border: 0.5px solid var(--rule);
+  background: var(--paper);
+  justify-self: center;
+}
+.ab .row-skill.prof .pip {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.ab .row-skill.expert .pip {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 .4mm var(--paper), inset 0 0 0 .8mm var(--accent);
+}
+.ab .row-skill .mod {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+}
+.ab .row-skill .name {
+  color: var(--ink-2);
+}
+.ab .row-skill.expert .name { color: var(--ink); font-weight: 500; }
+.ab .row-skill.save .name { font-variant: small-caps; letter-spacing: .04em; color: var(--ink); font-weight: 600; }
+.ab .row-skill.save { border-bottom: 0.4px dotted var(--rule); padding-bottom: 0.5mm; margin-bottom: .3mm; }
+.ab .row-skill .name .tag {
+  font-family: var(--ui);
+  font-size: 5.8pt;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--accent);
+  margin-left: 1.5mm;
+  font-weight: 600;
+}
+
+/* ── Right column ── */
+.right { display: flex; flex-direction: column; gap: 3mm; }
+
+.panel {
+  border: 0.6px solid var(--rule);
+  border-radius: 1.5mm;
+  background: var(--paper);
+  overflow: hidden;
+}
+.panel > .ptitle {
+  font-family: var(--ui);
+  font-size: 7pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  color: var(--accent-ink);
+  background: transparent;
+  padding: 1.5mm 3mm 1.2mm;
+  display: flex; align-items: center; gap: 2mm;
+  border-bottom: 0.6px solid var(--accent);
+}
+.panel > .ptitle .ornament {
+  width: 1.6mm; height: 1.6mm; background: var(--accent); transform: rotate(45deg);
+}
+.panel .pbody { padding: 2mm 3mm 2.5mm; }
+
+/* Senses strip */
+.senses {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+.senses .sense {
+  padding: 2mm 3mm;
+  border-right: 0.5px solid var(--rule);
+  display: flex; flex-direction: column;
+}
+.senses .sense:last-child { border-right: 0; }
+.senses .sense .label {
+  font-family: var(--ui);
+  font-size: 6pt;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--ink-3);
+}
+.senses .sense .value {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 13pt;
+  color: var(--ink);
+  line-height: 1.1;
+  margin-top: .5mm;
+}
+.senses .sense .unit {
+  font-family: var(--ui);
+  font-size: 7pt;
+  font-weight: 400;
+  color: var(--ink-3);
+  letter-spacing: .04em;
+}
+.dvision {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.4mm 3mm;
+  background: var(--paper-2);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 9pt;
+  color: var(--ink-2);
+  border-top: 0.5px solid var(--rule);
+}
+.dvision strong { font-style: normal; font-family: var(--ui); font-size: 6.5pt; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+
+/* Weapons table */
+.weap-table { width: 100%; border-collapse: collapse; font-family: var(--serif); }
+.weap-table thead th {
+  font-family: var(--ui);
+  font-size: 6.5pt;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--ink-3);
+  text-align: left;
+  font-weight: 600;
+  padding: 1mm 1.5mm;
+  border-bottom: 0.5px solid var(--rule);
+}
+.weap-table tbody td {
+  font-size: 9.5pt;
+  padding: 1.4mm 1.5mm;
+  border-bottom: 0.4px dotted var(--rule-2);
+}
+.weap-table tbody tr:last-child td { border-bottom: 0; }
+.weap-table .atk { font-variant-numeric: tabular-nums; font-weight: 600; }
+.weap-table .name { font-weight: 500; font-variant: small-caps; letter-spacing: .03em; font-size: 10pt; }
+.weap-table .empty td {
+  height: 5mm;
+  color: transparent;
+}
+.weap-table .empty td:not(:last-child) { border-right: 0; }
+.weap-table .empty td::before {
+  content: ""; display: block;
+  border-bottom: 0.4px solid var(--rule-2);
+  margin-top: 3mm;
+}
+
+/* Proficiencies */
+.profs {
+  display: grid;
+  grid-template-columns: 16mm 1fr;
+  gap: 1.5mm 3mm;
+  font-size: 9pt;
+}
+.profs .k {
+  font-family: var(--ui);
+  font-size: 6.5pt;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--ink-3);
+  padding-top: 0.8mm;
+}
+.profs .v { font-family: var(--serif); }
+
+/* Languages */
+.languages {
+  display: flex; flex-wrap: wrap; gap: 1.5mm 2mm;
+}
+.lang-chip {
+  font-family: var(--serif);
+  font-size: 9pt;
+  padding: 0.6mm 2.2mm 0.8mm;
+  border: 0.5px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper-2);
+  font-variant: small-caps;
+  letter-spacing: .03em;
+  color: var(--ink-2);
+}
+.lang-chip.native {
+  background: transparent;
+  color: var(--accent-ink);
+  border: 0.8px solid var(--accent);
+  font-weight: 600;
+}
+
+/* Equipment 2-col */
+.equipment {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6mm 4mm;
+  font-family: var(--serif);
+  font-size: 9.2pt;
+}
+.equip-item {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5mm;
+  padding: 0.4mm 0;
+}
+.equip-item .dot {
+  width: 1.4mm; height: 1.4mm;
+  background: var(--accent);
+  flex-shrink: 0;
+  transform: translateY(-0.2mm);
+}
+.equip-item.blank {
+  border-bottom: 0.4px solid var(--rule-2);
+  height: 4.2mm;
+}
+.equip-item .qty {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+/* Coins row */
+.coins {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-top: 0.5px solid var(--rule);
+  margin-top: 2mm;
+  padding-top: 2mm;
+}
+.coin {
+  display: flex; flex-direction: column; align-items: center;
+  font-family: var(--display);
+  font-size: 11pt;
+  font-weight: 600;
+  color: var(--ink);
+}
+.coin .l {
+  font-family: var(--ui);
+  font-size: 6.5pt;
+  letter-spacing: .14em;
+  color: var(--ink-3);
+  margin-top: .5mm;
+  text-transform: uppercase;
+}
+.coin.zero { color: var(--rule); }
+.coin.zero .l { color: var(--rule-2); }
+
+/* Footer */
+.page-foot {
+  position: absolute;
+  bottom: 4mm; left: 11mm; right: 11mm;
+  display: flex; justify-content: space-between;
+  font-family: var(--ui);
+  font-size: 7pt;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  border-top: 0.4px solid var(--rule);
+  padding-top: 1.5mm;
+}
+.page-foot .name { font-variant: small-caps; letter-spacing: .1em; }
+.page-foot .num { font-family: var(--display); font-size: 9pt; color: var(--ink-2); }
+
+/* ── Page 2: features ── */
+.p2-title-bar {
+  border-bottom: 0.6px solid var(--ink);
+  padding-bottom: 3mm;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 6mm;
+}
+.p2-title-bar h2 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 19pt;
+  margin: 0;
+  letter-spacing: .04em;
+  color: var(--ink);
+}
+.p2-title-bar .sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 10.5pt;
+  color: var(--ink-2);
+  margin-top: .8mm;
+}
+
+.legend {
+  display: flex; gap: 2.5mm;
+  align-items: center;
+  font-family: var(--ui);
+  font-size: 6.5pt;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+
+.feat-list { display: flex; flex-direction: column; gap: 3.2mm; margin-top: 3mm; }
+.feat {
+  border-left: 1px solid var(--accent);
+  padding: 0.4mm 0 0.4mm 4mm;
+  position: relative;
+}
+.feat .head {
+  display: flex; align-items: baseline; gap: 1.5mm 2.5mm;
+  margin-bottom: 0.8mm;
+  flex-wrap: wrap;
+}
+.feat .head h3 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 11.5pt;
+  margin: 0;
+  color: var(--ink);
+  letter-spacing: .02em;
+}
+.feat .head .source {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 8.5pt;
+  color: var(--ink-3);
+  flex-basis: 100%;
+  margin-top: -0.3mm;
+}
+.feat p {
+  margin: 0 0 0.8mm;
+  font-size: 9.5pt;
+  line-height: 1.42;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.feat p + p { margin-top: 1.2mm; }
+.feat ul { margin: 0.8mm 0 0; padding-left: 4mm; font-size: 9.5pt; line-height: 1.42; }
+.feat ul li + li { margin-top: 0.5mm; }
+
+.chip {
+  display: inline-flex; align-items: center;
+  font-family: var(--ui);
+  font-size: 5.8pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  padding: 0.4mm 1.6mm 0.5mm;
+  border-radius: 1mm;
+  line-height: 1.3;
+}
+.chip.action   { background: transparent; color: var(--c-action);  border: 0.6px solid var(--c-action); }
+.chip.bonus    { background: transparent; color: var(--c-bonus);   border: 0.6px solid var(--c-bonus); }
+.chip.reaction { background: transparent; color: var(--c-react);   border: 0.6px solid var(--c-react); }
+.chip.passive  { border: 0.6px solid var(--c-passive); color: var(--c-passive); background: transparent; }
+.chip.rest     { background: transparent; color: var(--c-rest);    border: 0.6px solid var(--c-rest); }
+.chip.subclass { border: 0.5px solid var(--accent); color: var(--accent-ink); background: transparent; }
+
+.section-rule {
+  display: flex; align-items: center; gap: 4mm;
+  margin: 5.5mm 0 0.5mm;
+}
+.section-rule .line { flex: 1; height: 0; border-top: 0.5px solid var(--rule); }
+.section-rule h3 {
+  font-family: var(--display);
+  font-size: 11pt; font-weight: 600;
+  margin: 0;
+  letter-spacing: .12em;
+  color: var(--accent-ink);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.section-rule .gem {
+  width: 2.4mm; height: 2.4mm;
+  background: var(--accent);
+  transform: rotate(45deg);
+}
+
+/* ── Page 3: persona ── */
+.persona-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3mm;
+  margin-top: 4mm;
+}
+.persona-card {
+  border: 0.6px solid var(--rule);
+  border-radius: 1.5mm;
+  padding: 2.5mm 3mm 3mm;
+  background: var(--paper);
+  min-height: 44mm;
+  display: flex; flex-direction: column;
+}
+.persona-card .pclabel {
+  font-family: var(--ui);
+  font-size: 6.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  color: var(--accent-ink);
+  margin-bottom: 1.5mm;
+}
+.persona-card .lines {
+  flex: 1;
+  background-image: repeating-linear-gradient(
+    transparent 0,
+    transparent 5.5mm,
+    var(--rule-2) 5.5mm,
+    var(--rule-2) calc(5.5mm + 0.3px)
+  );
+  background-position: 0 2mm;
+}
+
+.backstory-card {
+  margin-top: 3mm;
+  border: 0.6px solid var(--rule);
+  border-radius: 1.5mm;
+  padding: 2.5mm 3mm 3mm;
+  background: var(--paper);
+}
+.backstory-card .pclabel {
+  font-family: var(--ui);
+  font-size: 6.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  color: var(--accent-ink);
+  margin-bottom: 1.5mm;
+}
+.backstory-card .text {
+  font-family: var(--serif);
+  font-size: 10pt;
+  line-height: 1.55;
+  text-wrap: pretty;
+  color: var(--ink);
+}
+.backstory-card .text p { margin: 0 0 2mm; }
+.backstory-card .lines {
+  margin-top: 2mm;
+  height: 44mm;
+  background-image: repeating-linear-gradient(
+    transparent 0,
+    transparent 5.5mm,
+    var(--rule-2) 5.5mm,
+    var(--rule-2) calc(5.5mm + 0.3px)
+  );
+}
+.backstory-card.big { padding: 4mm 5mm 5mm; }
+.backstory-card.big .text { font-size: 11pt; line-height: 1.6; }
+.backstory-card .lines.tall { height: 75mm; }
+.portrait.big { min-height: 95mm; }
+
+.spells-innate {
+  margin-top: 4mm;
+  border: 0.6px solid var(--rule);
+  border-radius: 1.5mm;
+  overflow: hidden;
+}
+.spells-innate .header {
+  background: transparent;
+  color: var(--accent-ink);
+  padding: 1.5mm 3mm 1.2mm;
+  font-family: var(--ui);
+  font-size: 7pt;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-weight: 700;
+  display: flex; gap: 2mm; align-items: center;
+  border-bottom: 0.6px solid var(--accent);
+}
+.spells-innate .header .ornament { width: 1.6mm; height: 1.6mm; background: var(--accent); transform: rotate(45deg); }
+.spell-card { padding: 3mm 4mm 3.5mm; border-bottom: 0.4px dotted var(--rule-2); }
+.spell-card:last-child { border-bottom: 0; }
+.spell-card .top { display: flex; gap: 2.5mm; align-items: baseline; flex-wrap: wrap; margin-bottom: 1mm; }
+.spell-card .name { font-family: var(--display); font-weight: 600; font-size: 11pt; color: var(--ink); letter-spacing: .02em; }
+.spell-card .lvl { font-family: var(--serif); font-style: italic; font-size: 9pt; color: var(--ink-2); }
+.spell-card .meta {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0 4mm;
+  font-family: var(--ui);
+  font-size: 7pt;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink-3);
+  margin: 1.2mm 0;
+}
+.spell-card .meta b { font-family: var(--serif); color: var(--ink); text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 9pt; display: block; margin-top: 0.4mm; }
+.spell-card .desc { font-family: var(--serif); font-size: 10pt; line-height: 1.55; color: var(--ink); text-wrap: pretty; }
+.spell-card .usage {
+  display: inline-flex; align-items: center; gap: 1.2mm;
+  font-family: var(--ui); font-size: 6.5pt;
+  text-transform: uppercase; letter-spacing: .14em;
+  color: var(--ink-3);
+  margin-left: auto;
+}
+.spell-card .usage .slot {
+  width: 2.3mm; height: 2.3mm; border-radius: 50%;
+  border: 0.6px solid var(--accent);
+  background: var(--paper);
+}
+
+/* Portrait */
+.portrait-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3mm;
+  margin-top: 3mm;
+}
+.portrait {
+  border: 0.6px solid var(--rule);
+  border-radius: 1.5mm;
+  background: transparent;
+  padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 60mm;
+  position: relative;
+}
+.portrait .ph {
+  font-family: var(--ui); font-size: 7pt;
+  text-transform: uppercase; letter-spacing: .18em;
+  color: var(--ink-3); padding: 3mm 5mm;
+  border: 0.4px dashed var(--ink-3);
+  background: var(--paper);
+}
+
+/* Tweaks host placement so it doesn't cover sheet */
+.tweaks-host { position: fixed; top: 16px; right: 16px; z-index: 50; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════ PAGE 1 ════════════════════════ -->
+<section class="sheet" data-screen-label="01 Combat & Stats">
+
+  <header class="hdr">
+    <div>
+      <h1>Enixif Gomblewomble</h1>
+      <div class="meta">
+        Deep&nbsp;Gnome
+        <span class="sep">·</span> Rogue&nbsp;5
+        <span class="sep">·</span> Thief
+        <span class="sep">·</span> Criminal
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="inspiration">
+        <div class="star"></div>
+        <div>Heroic Inspiration</div>
+      </div>
+      <div class="prof-stat">
+        <div class="v">+3</div>
+        <div class="l">Proficiency</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Combat stats row -->
+  <div class="combat">
+
+    <div class="cstat" title="Armor Class">
+      <div class="label">Armor Class</div>
+      <div class="value-row" style="margin-top:1mm">
+        <div class="v-big">12</div>
+      </div>
+      <div class="sub" style="margin-top:1mm">Leather Armor</div>
+    </div>
+
+    <div class="hp">
+      <div class="label-row">
+        <span>Hit Points</span>
+        <span>1d8 · Average +Con per Level</span>
+      </div>
+      <div class="max">33</div>
+      <div class="field">
+        <div class="fline"></div>
+        <div class="ftext">Current</div>
+      </div>
+      <div class="field">
+        <div class="fline"></div>
+        <div class="ftext">Temporary</div>
+      </div>
+    </div>
+
+    <div class="cstat" title="Hit Dice">
+      <div class="label">Hit Dice</div>
+      <div class="value-row" style="margin-top:1mm">
+        <div class="v-mid">5</div>
+        <div class="sub" style="margin-bottom:.3mm">d8</div>
+      </div>
+      <div class="hd-info">
+        <div class="hd-used">
+          <span>Used</span>
+          <span class="box"></span>
+          <span class="box"></span>
+          <span class="box"></span>
+          <span class="box"></span>
+          <span class="box"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cstat" title="Death Saves">
+      <div class="label">Death Saves</div>
+      <div class="ds-block" style="margin-top:1.6mm">
+        <div class="ds-row">
+          <span style="min-width:10mm">Success</span>
+          <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        </div>
+        <div class="ds-row fail">
+          <span style="min-width:10mm">Failure</span>
+          <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Conditions strip -->
+  <div class="cond-strip">
+    <div class="label">Conditions</div>
+    <div class="conds">
+      <span class="cond"><span class="box"></span>Blinded</span>
+      <span class="cond"><span class="box"></span>Charmed</span>
+      <span class="cond"><span class="box"></span>Deafened</span>
+      <span class="cond"><span class="box"></span>Frightened</span>
+      <span class="cond"><span class="box"></span>Grappled</span>
+      <span class="cond"><span class="box"></span>Incapacitated</span>
+      <span class="cond"><span class="box"></span>Invisible</span>
+      <span class="cond"><span class="box"></span>Paralyzed</span>
+      <span class="cond"><span class="box"></span>Petrified</span>
+      <span class="cond"><span class="box"></span>Poisoned</span>
+      <span class="cond"><span class="box"></span>Prone</span>
+      <span class="cond"><span class="box"></span>Restrained</span>
+      <span class="cond"><span class="box"></span>Stunned</span>
+      <span class="cond"><span class="box"></span>Unconscious</span>
+    </div>
+    <div class="exh">
+      <span>Exhaustion</span>
+      <div class="ticks">
+        <span class="tick"></span>
+        <span class="tick"></span>
+        <span class="tick"></span>
+        <span class="tick"></span>
+        <span class="tick"></span>
+        <span class="tick"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body: abilities + right column -->
+  <div class="body">
+
+    <!-- ── Abilities ── -->
+    <div class="abilities">
+
+      <!-- Strength -->
+      <div class="ab">
+        <div class="ab-head">
+          <div class="ab-name">Strength</div>
+          <div class="ab-mod">+0</div>
+          <div class="ab-score">11</div>
+        </div>
+        <div>
+          <div class="row-skill save">
+            <span class="pip"></span>
+            <span class="mod">+0</span>
+            <span class="name">Saving Throw</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+3</span>
+            <span class="name">Athletics</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dexterity -->
+      <div class="ab">
+        <div class="ab-head">
+          <div class="ab-name">Dexterity</div>
+          <div class="ab-mod">+2</div>
+          <div class="ab-score">14</div>
+        </div>
+        <div>
+          <div class="row-skill save prof">
+            <span class="pip"></span>
+            <span class="mod">+5</span>
+            <span class="name">Saving Throw</span>
+          </div>
+          <div class="row-skill prof">
+            <span class="pip"></span>
+            <span class="mod">+5</span>
+            <span class="name">Acrobatics</span>
+          </div>
+          <div class="row-skill expert">
+            <span class="pip"></span>
+            <span class="mod">+8</span>
+            <span class="name">Sleight of Hand <span class="tag">Exp</span></span>
+          </div>
+          <div class="row-skill expert">
+            <span class="pip"></span>
+            <span class="mod">+8</span>
+            <span class="name">Stealth <span class="tag">Exp</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Constitution -->
+      <div class="ab">
+        <div class="ab-head">
+          <div class="ab-name">Constitution</div>
+          <div class="ab-mod">+1</div>
+          <div class="ab-score">13</div>
+        </div>
+        <div>
+          <div class="row-skill save">
+            <span class="pip"></span>
+            <span class="mod">+1</span>
+            <span class="name">Saving Throw</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intelligence -->
+      <div class="ab">
+        <div class="ab-head">
+          <div class="ab-name">Intelligence</div>
+          <div class="ab-mod">+2</div>
+          <div class="ab-score">14</div>
+        </div>
+        <div>
+          <div class="row-skill save prof">
+            <span class="pip"></span>
+            <span class="mod">+5</span>
+            <span class="name">Saving Throw</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+2</span>
+            <span class="name">Arcana</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+2</span>
+            <span class="name">History</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+2</span>
+            <span class="name">Investigation</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+2</span>
+            <span class="name">Nature</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+2</span>
+            <span class="name">Religion</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wisdom -->
+      <div class="ab">
+        <div class="ab-head">
+          <div class="ab-name">Wisdom</div>
+          <div class="ab-mod">+2</div>
+          <div class="ab-score">14</div>
+        </div>
+        <div>
+          <div class="row-skill save">
+            <span class="pip"></span>
+            <span class="mod">+2</span>
+            <span class="name">Saving Throw</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+2</span>
+            <span class="name">Animal Handling</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+2</span>
+            <span class="name">Insight</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+2</span>
+            <span class="name">Medicine</span>
+          </div>
+          <div class="row-skill prof">
+            <span class="pip"></span>
+            <span class="mod">+5</span>
+            <span class="name">Perception</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+2</span>
+            <span class="name">Survival</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charisma -->
+      <div class="ab">
+        <div class="ab-head">
+          <div class="ab-name">Charisma</div>
+          <div class="ab-mod">+1</div>
+          <div class="ab-score">12</div>
+        </div>
+        <div>
+          <div class="row-skill save">
+            <span class="pip"></span>
+            <span class="mod">+1</span>
+            <span class="name">Saving Throw</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+1</span>
+            <span class="name">Deception</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+1</span>
+            <span class="name">Intimidation</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+1</span>
+            <span class="name">Performance</span>
+          </div>
+          <div class="row-skill">
+            <span class="pip"></span>
+            <span class="mod">+1</span>
+            <span class="name">Persuasion</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /abilities -->
+
+    <!-- ── Right column ── -->
+    <div class="right">
+
+      <!-- Senses -->
+      <div class="panel">
+        <div class="senses">
+          <div class="sense">
+            <div class="label">Initiative</div>
+            <div class="value">+2</div>
+          </div>
+          <div class="sense">
+            <div class="label">Speed</div>
+            <div class="value">30<span class="unit"> ft</span></div>
+          </div>
+          <div class="sense">
+            <div class="label">Size</div>
+            <div class="value" style="font-size:11pt">Small</div>
+          </div>
+          <div class="sense">
+            <div class="label">Passive Perception</div>
+            <div class="value">15</div>
+          </div>
+        </div>
+        <div class="dvision">
+          <span><strong>Senses</strong></span>
+          <span style="text-align:right">Darkvision <span class="ui tabular" style="font-style:normal;color:var(--ink)">120 ft</span> · Svirfneblin Camouflage</span>
+        </div>
+      </div>
+
+      <!-- Weapons -->
+      <div class="panel">
+        <div class="ptitle"><span class="ornament"></span>Weapons &amp; Attacks</div>
+        <div class="pbody" style="padding-top:0.5mm">
+          <table class="weap-table">
+            <thead>
+              <tr>
+                <th style="width:32mm">Name</th>
+                <th style="width:12mm">Atk</th>
+                <th style="width:26mm">Damage</th>
+                <th>Properties</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="name">Shortsword</td>
+                <td class="atk">+5</td>
+                <td>1d6+2 <span class="muted">piercing</span></td>
+                <td><span class="muted">Light, Finesse · </span>Vex</td>
+              </tr>
+              <tr>
+                <td class="name">Daggers <span class="muted">(×2)</span></td>
+                <td class="atk">+5</td>
+                <td>1d4+2 <span class="muted">piercing</span></td>
+                <td><span class="muted">Finesse, Light, Thrown 20/60 · </span>Nick</td>
+              </tr>
+              <tr>
+                <td class="name">Shortbow</td>
+                <td class="atk">+5</td>
+                <td>1d6+2 <span class="muted">piercing</span></td>
+                <td><span class="muted">Ammunition 80/320, Two-Handed</span></td>
+              </tr>
+              <tr class="empty">
+                <td></td><td></td><td></td><td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Proficiencies -->
+      <div class="panel">
+        <div class="ptitle"><span class="ornament"></span>Training &amp; Proficiencies</div>
+        <div class="pbody">
+          <div class="profs">
+            <div class="k">Armor</div>
+            <div class="v">Light</div>
+            <div class="k">Weapons</div>
+            <div class="v">Simple weapons, Martial weapons with the Finesse or Light property</div>
+            <div class="k">Tools</div>
+            <div class="v">Thieves' Tools</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Languages -->
+      <div class="panel">
+        <div class="ptitle"><span class="ornament"></span>Languages</div>
+        <div class="pbody">
+          <div class="languages">
+            <span class="lang-chip native">Common</span>
+            <span class="lang-chip native">Thieves' Cant</span>
+            <span class="lang-chip">Gnomish</span>
+            <span class="lang-chip">Dwarvish</span>
+            <span class="lang-chip">Common Sign Language</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Equipment -->
+      <div class="panel">
+        <div class="ptitle"><span class="ornament"></span>Equipment</div>
+        <div class="pbody">
+          <div class="equipment">
+            <div class="equip-item"><span class="dot"></span>Leather Armor</div>
+            <div class="equip-item"><span class="dot"></span>Crowbar</div>
+            <div class="equip-item"><span class="dot"></span><span class="qty">2</span> Daggers</div>
+            <div class="equip-item"><span class="dot"></span><span class="qty">2</span> Pouches</div>
+            <div class="equip-item"><span class="dot"></span>Shortsword</div>
+            <div class="equip-item"><span class="dot"></span>Traveler's Clothes</div>
+            <div class="equip-item"><span class="dot"></span>Shortbow &amp; Quiver</div>
+            <div class="equip-item"><span class="dot"></span>Burglar's Pack</div>
+            <div class="equip-item"><span class="dot"></span><span class="qty">20</span> Arrows</div>
+            <div class="equip-item"><span class="dot"></span>Thieves' Tools</div>
+            <div class="equip-item blank"></div>
+            <div class="equip-item blank"></div>
+            <div class="equip-item blank"></div>
+            <div class="equip-item blank"></div>
+          </div>
+          <div class="coins">
+            <div class="coin zero">0<div class="l">CP</div></div>
+            <div class="coin zero">0<div class="l">SP</div></div>
+            <div class="coin zero">0<div class="l">EP</div></div>
+            <div class="coin">157<div class="l">GP</div></div>
+            <div class="coin zero">0<div class="l">PP</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /right -->
+  </div><!-- /body -->
+
+  <div class="page-foot">
+    <span class="name">Enixif Gomblewomble · Deep Gnome Rogue 5</span>
+    <span class="num">I &nbsp;/&nbsp; IV</span>
+  </div>
+</section>
+
+<!-- ════════════════════════ PAGE 2 ════════════════════════ -->
+<section class="sheet" data-screen-label="02 Features & Traits">
+
+  <header class="p2-title-bar">
+    <div>
+      <h2>Features &amp; Heritage</h2>
+      <div class="sub">Class features, subclass, and species traits.</div>
+    </div>
+    <div class="legend">
+      <span class="chip action">Action</span>
+      <span class="chip bonus">Bonus</span>
+      <span class="chip reaction">Reaction</span>
+      <span class="chip passive">Passive</span>
+      <span class="chip rest">1/Rest</span>
+    </div>
+  </header>
+
+  <div class="section-rule">
+    <span class="gem"></span>
+    <h3>Class — Rogue</h3>
+    <span class="line"></span>
+  </div>
+
+  <div class="feat-list">
+
+    <div class="feat">
+      <div class="head">
+        <h3>Expertise</h3>
+        <span class="chip passive">Passive</span>
+        <span class="source">Rogue 1 · Selected: Sleight of Hand, Stealth</span>
+      </div>
+      <p>Your proficiency bonus is doubled for any ability check you make that uses either of these skills. At Rogue 6, you gain Expertise in two more skill proficiencies of your choice.</p>
+    </div>
+
+    <div class="feat">
+      <div class="head">
+        <h3>Sneak Attack</h3>
+        <span class="chip passive">Passive</span>
+        <span class="source">Rogue 1 · <strong style="font-style:normal">+3d6</strong> at level 5</span>
+      </div>
+      <p>Once per turn, deal an extra <strong>3d6</strong> damage to one creature you hit with an attack roll that uses a Finesse or Ranged weapon, if you have Advantage on the roll — or if an ally is within 5 ft of the target and you don't have Disadvantage. The extra damage is the weapon's type.</p>
+    </div>
+
+    <div class="feat">
+      <div class="head">
+        <h3>Thieves' Cant</h3>
+        <span class="chip passive">Passive</span>
+        <span class="source">Rogue 1</span>
+      </div>
+      <p>You know Thieves' Cant — a mix of jargon, slang, and signs that lets you hide messages in seemingly normal conversation, marked alleys, or graffiti.</p>
+    </div>
+
+    <div class="feat">
+      <div class="head">
+        <h3>Weapon Mastery</h3>
+        <span class="chip passive">Passive</span>
+        <span class="source">Rogue 1 · Selected: Sickle, Light Hammer</span>
+      </div>
+      <p>You can use the mastery properties of two kinds of weapons you're proficient with. After a Long Rest you may change the chosen weapons.</p>
+    </div>
+
+    <div class="feat">
+      <div class="head">
+        <h3>Cunning Action</h3>
+        <span class="chip bonus">Bonus</span>
+        <span class="source">Rogue 2</span>
+      </div>
+      <p>As a Bonus Action take <strong>Dash</strong>, <strong>Disengage</strong>, or <strong>Hide</strong>.</p>
+    </div>
+
+    <div class="feat">
+      <div class="head">
+        <h3>Steady Aim</h3>
+        <span class="chip bonus">Bonus</span>
+        <span class="source">Rogue 3</span>
+      </div>
+      <p>Give yourself Advantage on your next attack roll on the current turn. You can use this only if you haven't moved during this turn; after using it your Speed is 0 until the end of the turn.</p>
+    </div>
+
+    <div class="feat">
+      <div class="head">
+        <h3>Cunning Strike</h3>
+        <span class="chip passive">Rider</span>
+        <span class="source">Rogue 5 · DC <strong style="font-style:normal">13</strong></span>
+      </div>
+      <p>When you deal Sneak Attack damage, you may forgo Sneak Attack dice to add one of these effects (the die is removed before rolling):</p>
+      <ul>
+        <li><strong>Poison</strong> <span class="muted">(1d6)</span> — Target makes a Con save or is Poisoned for 1 minute, repeating the save at end of its turns. <em>Requires Poisoner's Kit.</em></li>
+        <li><strong>Trip</strong> <span class="muted">(1d6)</span> — Large or smaller target makes a Dex save or is Prone.</li>
+        <li><strong>Withdraw</strong> <span class="muted">(1d6)</span> — Immediately move up to half your speed without provoking Opportunity Attacks.</li>
+      </ul>
+    </div>
+
+    <div class="feat">
+      <div class="head">
+        <h3>Uncanny Dodge</h3>
+        <span class="chip reaction">Reaction</span>
+        <span class="source">Rogue 5</span>
+      </div>
+      <p>When an attacker you can see hits you with an attack roll, take a Reaction to halve the attack's damage against you (round down).</p>
+    </div>
+
+    <div class="feat">
+      <div class="head">
+        <h3>Subclass · Thief</h3>
+        <span class="chip subclass">Subclass</span>
+        <span class="source">Rogue 3</span>
+      </div>
+      <p><strong>Fast Hands.</strong> Use your Cunning Action to make a Dex (Sleight of Hand) check, use Thieves' Tools to disarm a trap or open a lock, or take the Use an Object action.</p>
+      <p><strong>Second-Story Work.</strong> Climbing no longer costs extra movement. When you make a running jump, you cover an extra distance equal to your Dex modifier in feet.</p>
+    </div>
+
+  </div>
+
+  <div class="page-foot">
+    <span class="name">Enixif Gomblewomble · Features &amp; Heritage</span>
+    <span class="num">II &nbsp;/&nbsp; IV</span>
+  </div>
+</section>
+
+<!-- ════════════════════════ PAGE 3 ════════════════════════ -->
+<section class="sheet" data-screen-label="03 Heritage, Feats &amp; Magic">
+
+  <header class="p2-title-bar">
+    <div>
+      <h2>Heritage, Feats &amp; Magic</h2>
+      <div class="sub">Species traits, feats, and the spells Enixif carries in his blood.</div>
+    </div>
+    <div class="legend">
+      <span class="chip action">Action</span>
+      <span class="chip bonus">Bonus</span>
+      <span class="chip reaction">Reaction</span>
+      <span class="chip passive">Passive</span>
+      <span class="chip rest">1/Rest</span>
+    </div>
+  </header>
+
+  <div class="section-rule">
+    <span class="gem"></span>
+    <h3>Species — Deep Gnome</h3>
+    <span class="line"></span>
+  </div>
+
+  <div class="feat-list">
+    <div class="feat">
+      <div class="head">
+        <h3>Darkvision</h3>
+        <span class="chip passive">Passive</span>
+        <span class="source"><strong style="font-style:normal">120 ft</strong></span>
+      </div>
+      <p>You see in dim light within 120 ft as if it were bright light, and in darkness as if it were dim light. You discern only shades of gray in darkness.</p>
+    </div>
+
+    <div class="feat">
+      <div class="head">
+        <h3>Gnomish Magic Resistance</h3>
+        <span class="chip passive">Passive</span>
+      </div>
+      <p>Advantage on Intelligence, Wisdom, and Charisma saving throws against spells.</p>
+    </div>
+
+    <div class="feat">
+      <div class="head">
+        <h3>Svirfneblin Camouflage</h3>
+        <span class="chip passive">Passive</span>
+        <span class="source">Uses · <strong style="font-style:normal">○○○</strong> /3 per Long Rest</span>
+      </div>
+      <p>When you make a Dexterity (Stealth) check, you can make it with Advantage. Uses equal to your proficiency bonus, regained on a Long Rest.</p>
+    </div>
+
+    <div class="feat">
+      <div class="head">
+        <h3>Gift of the Svirfneblin</h3>
+        <span class="chip passive">Innate</span>
+        <span class="source">Spells listed on page III</span>
+      </div>
+      <p>From level 3 you can cast <em>Disguise Self</em> with this trait; from level 5, <em>Nondetection</em> without its material component. Once cast with this trait, the spell can't be cast that way again until a Long Rest. Intelligence is your spellcasting ability for these.</p>
+    </div>
+  </div>
+
+
+  <div class="section-rule">
+    <span class="gem"></span>
+    <h3>Feats</h3>
+    <span class="line"></span>
+  </div>
+
+  <div class="feat-list">
+    <div class="feat">
+      <div class="head">
+        <h3>Alert</h3>
+        <span class="chip passive">Passive</span>
+        <span class="chip reaction" style="background:transparent;color:var(--c-react);border:0.5px solid var(--c-react)">Init</span>
+        <span class="source">from Background</span>
+      </div>
+      <p><strong>Initiative Proficiency.</strong> When you roll Initiative, add your Proficiency Bonus.</p>
+      <p><strong>Initiative Swap.</strong> Immediately after rolling Initiative, swap your Initiative with a willing ally's, unless either of you has the Incapacitated condition.</p>
+    </div>
+  </div>
+
+  <div class="section-rule">
+    <span class="gem"></span>
+    <h3>Innate Spells — Gift of the Svirfneblin</h3>
+    <span class="line"></span>
+  </div>
+
+  <div class="spells-innate" style="margin-top:2.2mm">
+    <div class="spell-card">
+      <div class="top">
+        <span class="name">Disguise Self</span>
+        <span class="lvl">1st-level · Illusion</span>
+        <span class="usage">
+          <span>Uses</span>
+          <span class="slot"></span>
+          <span class="muted" style="font-family:var(--serif);font-style:italic;text-transform:none;letter-spacing:0">per Long Rest</span>
+        </span>
+      </div>
+      <div class="meta">
+        <div>Casting<b>Action</b></div>
+        <div>Range<b>Self</b></div>
+        <div>Duration<b>1 hour</b></div>
+        <div>Components<b>V, S</b></div>
+      </div>
+      <div class="desc">You make yourself — including clothing, armor, weapons, and belongings — look different until the spell ends. You can appear 1 ft shorter/taller and heavier/lighter; the form must keep the same basic arrangement of limbs. Illusions fail to hold up to physical inspection. A creature can identify the disguise by taking the Study action and succeeding on an Intelligence (Investigation) check vs. your spell save DC.</div>
+    </div>
+
+    <div class="spell-card">
+      <div class="top">
+        <span class="name">Nondetection</span>
+        <span class="lvl">3rd-level · Abjuration</span>
+        <span class="usage">
+          <span>Uses</span>
+          <span class="slot"></span>
+          <span class="muted" style="font-family:var(--serif);font-style:italic;text-transform:none;letter-spacing:0">per Long Rest</span>
+        </span>
+      </div>
+      <div class="meta">
+        <div>Casting<b>Action</b></div>
+        <div>Range<b>Touch</b></div>
+        <div>Duration<b>8 hours</b></div>
+        <div>Components<b>V, S</b> <em style="font-size:7pt;color:var(--ink-3)">(no M)</em></div>
+      </div>
+      <div class="desc">For the duration, you hide a target you touch from Divination magic. The target can be a willing creature, or a place or object no larger than 10 ft in any dimension. It cannot be targeted by Divination spells or perceived through magical scrying sensors.</div>
+    </div>
+  </div>
+
+  <div class="page-foot">
+    <span class="name">Enixif Gomblewomble · Heritage &amp; Magic</span>
+    <span class="num">III &nbsp;/&nbsp; IV</span>
+  </div>
+</section>
+
+<!-- ════════════════════════ PAGE 4 ════════════════════════ -->
+<section class="sheet" data-screen-label="04 Persona &amp; Story">
+
+  <header class="p2-title-bar">
+    <div>
+      <h2>Persona &amp; Story</h2>
+      <div class="sub">Who Enixif is when the dice aren't rolling.</div>
+    </div>
+  </header>
+
+  <div class="persona-grid">
+    <div class="persona-card">
+      <div class="pclabel">Personality Trait</div>
+      <div class="lines"></div>
+    </div>
+    <div class="persona-card">
+      <div class="pclabel">Ideal</div>
+      <div class="lines"></div>
+    </div>
+    <div class="persona-card">
+      <div class="pclabel">Bond</div>
+      <div class="lines"></div>
+    </div>
+    <div class="persona-card">
+      <div class="pclabel">Flaw</div>
+      <div class="lines"></div>
+    </div>
+  </div>
+
+
+  <div class="backstory-card">
+    <div class="pclabel">Backstory</div>
+    <div class="text">
+      <p>I come from a long lineage of jewelers. Fiddling with tiny stones and gems never was my forté, and when I came of age my father gave me an ultimatum: learn the craft or leave our caverns. I chose the latter. The wilderness was tough, but being the under-performing middle child of a rather large gnome family taught me to be resourceful.</p>
+      <p>Stealing came naturally to me. I ran with thieving guilds for years, robbing unsuspecting travelers on the trail as well as breaking into the most luxurious mansions. But for the past year I've been alone. I left the guild as I grew tired of stealing — I wanted something more. I want the great name <em>Gomblewomble</em> to be remembered for something else than trinkets and unlawfulness.</p>
+    </div>
+    <div class="lines"></div>
+  </div>
+
+  <div class="portrait-row">
+    <div class="portrait">
+      <div class="ph">Portrait or Symbol</div>
+    </div>
+  </div>
+
+  <div class="page-foot">
+    <span class="name">Enixif Gomblewomble · Persona &amp; Story</span>
+    <span class="num">IV &nbsp;/&nbsp; IV</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════ Tweaks panel ═══════════════════════ -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+
+<div class="tweaks-host" id="tweaks-root"></div>
+
+<script type="text/babel">
+const { useEffect } = React;
+
+const DEFAULTS = /*EDITMODE-BEGIN*/{
+  "palette": [
+    "#7a2a32",
+    "#3a2218",
+    "#f4ecdc"
+  ],
+  "font": "cinzel",
+  "actionChips": true,
+  "profDots": true,
+  "twoColEquipment": true
+}/*EDITMODE-END*/;
+
+const PALETTES = {
+  rogue:   ['#7a2a32','#3a2218','#f4ecdc'],
+  fighter: ['#3a4a5e','#1f2630','#f0eee6'],
+  wizard:  ['#3d3470','#1c1830','#ece8f2'],
+  cleric:  ['#8a6822','#3a2c10','#f6efdc'],
+  druid:   ['#4a5d2a','#1f2810','#ecefdc'],
+};
+
+const FONTS = {
+  cinzel: { display: '"Cinzel", serif', serif: '"EB Garamond", Georgia, serif' },
+  fell:   { display: '"IM Fell English SC", serif', serif: '"EB Garamond", Georgia, serif' },
+  lora:   { display: '"Lora", serif', serif: '"Lora", Georgia, serif' },
+  georgia:{ display: 'Georgia, serif', serif: 'Georgia, serif' },
+};
+
+function hexToOklch(hex, fallback) {
+  return hex || fallback;
+}
+
+function App() {
+  const [t, setTweak] = useTweaks(DEFAULTS);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const [a, ad, soft] = t.palette;
+    root.style.setProperty('--accent', a);
+    root.style.setProperty('--accent-ink', ad);
+    root.style.setProperty('--accent-soft', soft);
+
+    const f = FONTS[t.font] || FONTS.cinzel;
+    root.style.setProperty('--display', f.display);
+    root.style.setProperty('--serif', f.serif);
+
+    // Toggle visibility classes on body
+    document.body.classList.toggle('hide-chips', !t.actionChips);
+    document.body.classList.toggle('hide-pips', !t.profDots);
+    document.body.classList.toggle('one-col-eq', !t.twoColEquipment);
+  }, [t]);
+
+  return (
+    <TweaksPanel title="Tweaks">
+      <TweakSection title="Class palette">
+        <TweakColor
+          label="Accent"
+          value={t.palette}
+          onChange={v => setTweak('palette', v)}
+          options={[
+            PALETTES.rogue,
+            PALETTES.fighter,
+            PALETTES.wizard,
+            PALETTES.cleric,
+            PALETTES.druid,
+          ]}
+        />
+      </TweakSection>
+
+      <TweakSection title="Typography">
+        <TweakSelect
+          label="Type pairing"
+          value={t.font}
+          onChange={v => setTweak('font', v)}
+          options={[
+            { value: 'cinzel', label: 'Cinzel + EB Garamond (default)' },
+            { value: 'fell',   label: 'IM Fell SC + EB Garamond' },
+            { value: 'lora',   label: 'Lora (single family)' },
+            { value: 'georgia',label: 'Georgia (current FPDF)' },
+          ]}
+        />
+      </TweakSection>
+
+      <TweakSection title="Show / hide">
+        <TweakToggle label="Action-type chips on features" value={t.actionChips} onChange={v => setTweak('actionChips', v)} />
+        <TweakToggle label="Proficiency / expertise dots" value={t.profDots} onChange={v => setTweak('profDots', v)} />
+        <TweakToggle label="Equipment in two columns" value={t.twoColEquipment} onChange={v => setTweak('twoColEquipment', v)} />
+      </TweakSection>
+    </TweaksPanel>
+  );
+}
+
+// Hide-state CSS, injected once
+const css = `
+body.hide-chips .chip { display:none; }
+body.hide-pips .ab .row-skill .pip { background: transparent !important; border-color: var(--rule) !important; box-shadow: none !important; }
+body.hide-pips .ab .row-skill .name .tag { display:none; }
+body.one-col-eq .equipment { grid-template-columns: 1fr; }
+`;
+const styleEl = document.createElement('style');
+styleEl.textContent = css;
+document.head.appendChild(styleEl);
+
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
+</script>
+
+</body>
+</html>

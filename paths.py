@@ -70,6 +70,11 @@ def images_dir() -> str:
     return os.path.join(_bundle_dir(), "images")
 
 
+def fonts_dir() -> str:
+    """Path to the ``fonts/`` folder with bundled TTF files."""
+    return os.path.join(_bundle_dir(), "fonts")
+
+
 def characters_dir() -> str:
     """Path to the ``characters/`` directory for saved characters."""
     if is_frozen():
