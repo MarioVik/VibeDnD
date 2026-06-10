@@ -1,0 +1,83 @@
+{
+  "format_version": 2,
+  "name": "Test",
+  "species_name": "Orc",
+  "species_sub_choice": "",
+  "size_choice": "Medium",
+  "class_name": "Druid",
+  "background_name": "Sage",
+  "selected_skills": [
+    "Perception",
+    "Medicine"
+  ],
+  "score_method": "standard_array",
+  "ability_scores": {
+    "Strength": 15,
+    "Dexterity": 14,
+    "Constitution": 13,
+    "Intelligence": 12,
+    "Wisdom": 10,
+    "Charisma": 8
+  },
+  "ability_bonuses": {
+    "Constitution": 2,
+    "Intelligence": 1
+  },
+  "ability_bonus_mode": "2/1",
+  "ability_bonus_assignments": {},
+  "feat_name": "Magic Initiate",
+  "species_origin_feat_name": null,
+  "feat_sub_choices": {},
+  "selected_cantrips": [
+    "Elementalism",
+    "Poison Spray"
+  ],
+  "selected_spells": [
+    "Fog Cloud",
+    "Goodberry",
+    "Healing Word",
+    "Jump"
+  ],
+  "biography_backstory": "",
+  "biography_personality": "",
+  "biography_description": "",
+  "biography_image_data": "",
+  "biography_image_format": "",
+  "equipment_choice_class": "A",
+  "equipment_choice_background": "A",
+  "standard_action_options": {},
+  "attack_order": [],
+  "equipped_weapons": null,
+  "equipped_armor": null,
+  "custom_inventory": [],
+  "removed_items": {},
+  "wealth_adjust_cp": 0,
+  "inventory_transactions": [],
+  "current_hit_points": null,
+  "temp_hit_points": 0,
+  "spent_hit_dice": {},
+  "chosen_languages": [
+    "Elvish",
+    "Orc"
+  ],
+  "class_levels": [
+    {
+      "class_slug": "druid",
+      "class_level": 1,
+      "subclass_slug": null,
+      "feat_choice": null,
+      "new_cantrips": [],
+      "new_spells": [],
+      "swapped_out_cantrip": null,
+      "swapped_in_cantrip": null,
+      "swapped_out_spell": null,
+      "swapped_in_spell": null,
+      "hp_roll": null,
+      "hit_die": 8,
+      "new_choices": [],
+      "replaced_choice": null,
+      "new_proficiencies": [],
+      "new_expertise": []
+    }
+  ]
+}

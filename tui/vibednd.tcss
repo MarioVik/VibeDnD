@@ -1,0 +1,215 @@
+/* VibeDnD TUI — "arcane ledger" theme
+ *
+ * Palette
+ *   #1a1410 umber        background
+ *   #241c15 raised umber panels
+ *   #3a2f24 ash          borders, empty bar segments
+ *   #e8dcc0 parchment    primary text
+ *   #a89878 faded ink    secondary text
+ *   #d4762c ember        accent (headings, selection)
+ *   #9d7cd8 arcane       reserved for magic only
+ *   #d4af37 gold         currency
+ *   #c0392b blood        damage / low HP
+ */
+
+Screen {
+    background: #1a1410;
+    color: #e8dcc0;
+}
+
+Header {
+    background: #241c15;
+    color: #d4762c;
+}
+
+Footer {
+    background: #241c15;
+}
+
+.pane-title {
+    color: #d4762c;
+    text-style: bold;
+    padding: 1 1 0 1;
+}
+
+/* ------------------------------------------------------------- home --- */
+
+#home-split {
+    height: 1fr;
+}
+
+#roster-pane {
+    width: 2fr;
+    border: round #3a2f24;
+    margin: 1;
+}
+
+#preview-pane {
+    width: 1fr;
+    border: round #3a2f24;
+    margin: 1 1 1 0;
+    padding: 0 1;
+}
+
+#roster {
+    background: #1a1410;
+    border: none;
+    padding: 0 1;
+}
+
+#roster > .option-list--option-highlighted {
+    background: #3a2f24;
+    color: #d4762c;
+}
+
+#preview-body {
+    height: 1fr;
+    padding: 1 0;
+}
+
+#preview-hp {
+    padding: 0 0 1 0;
+}
+
+#status-line {
+    color: #6f6354;
+    padding: 0 1;
+}
+
+/* ------------------------------------------------------------ sheet --- */
+
+#sheet-banner {
+    height: auto;
+    background: #241c15;
+    border-bottom: heavy #3a2f24;
+    padding: 0 2;
+}
+
+#sheet-name {
+    color: #d4762c;
+    text-style: bold;
+}
+
+#sheet-subtitle {
+    color: #a89878;
+}
+
+#sheet-vitals {
+    height: auto;
+    padding: 1 0 0 0;
+}
+
+#sheet-hp {
+    width: auto;
+    margin-right: 4;
+}
+
+#sheet-abilities {
+    padding: 1 2;
+    background: #1a1410;
+}
+
+#sheet-tabs {
+    height: 1fr;
+}
+
+TabbedContent #--content-tab-pane {
+    padding: 1 2;
+}
+
+Tabs .tab--label {
+    color: #a89878;
+}
+
+Tab.-active {
+    color: #d4762c;
+    text-style: bold;
+}
+
+.tab-scroll {
+    height: 1fr;
+    padding: 1 2;
+}
+
+.detail-scroll {
+    height: 8;
+    border-top: solid #3a2f24;
+    padding: 1 2;
+}
+
+DataTable {
+    background: #1a1410;
+    height: 1fr;
+}
+
+DataTable > .datatable--header {
+    background: #241c15;
+    color: #d4762c;
+    text-style: bold;
+}
+
+DataTable > .datatable--cursor {
+    background: #3a2f24;
+    color: #e8dcc0;
+}
+
+DataTable > .datatable--odd-row {
+    background: #1e1712;
+}
+
+#slot-pips {
+    padding: 0 1 1 1;
+}
+
+/* ------------------------------------------------------------- dice --- */
+
+DiceRoller {
+    align: center middle;
+    background: rgba(10, 8, 6, 0.6);
+}
+
+#dice-box {
+    width: 52;
+    height: auto;
+    background: #241c15;
+    border: heavy #d4762c;
+    padding: 1 2;
+}
+
+#dice-title {
+    color: #d4762c;
+    text-style: bold;
+    text-align: center;
+    width: 100%;
+}
+
+#dice-face {
+    height: 5;
+    content-align: center middle;
+    text-align: center;
+    text-style: bold;
+}
+
+#dice-buttons {
+    height: auto;
+    align-horizontal: center;
+}
+
+.die-btn {
+    min-width: 6;
+    margin: 0 1 0 0;
+    background: #1a1410;
+    color: #a89878;
+    border: none;
+}
+
+.die-btn:hover {
+    background: #3a2f24;
+    color: #d4762c;
+}
+
+#dice-hint {
+    color: #6f6354;
+    text-align: center;
+    width: 100%;
+}
