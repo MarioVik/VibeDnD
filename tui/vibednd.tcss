@@ -161,6 +161,55 @@ DataTable > .datatable--odd-row {
     padding: 0 1 1 1;
 }
 
+/* ------------------------------------------------------------ money --- */
+
+MoneyModal {
+    align: center middle;
+    background: rgba(10, 8, 6, 0.6);
+}
+
+#money-box {
+    width: 56;
+    height: auto;
+    background: #241c15;
+    border: heavy #d4af37;
+    padding: 1 2;
+}
+
+#money-title {
+    color: #d4af37;
+    text-style: bold;
+    text-align: center;
+    width: 100%;
+}
+
+#money-pouch {
+    text-align: center;
+    padding: 1 0;
+}
+
+#money-input {
+    background: #1a1410;
+    color: #e8dcc0;
+    border: tall #3a2f24;
+}
+
+#money-input:focus {
+    border: tall #d4af37;
+}
+
+#money-result {
+    height: 3;
+    padding: 1 0 0 0;
+    text-align: center;
+}
+
+#money-hint {
+    color: #6f6354;
+    text-align: center;
+    width: 100%;
+}
+
 /* ------------------------------------------------------------- dice --- */
 
 DiceRoller {

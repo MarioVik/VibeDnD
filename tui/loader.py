@@ -12,8 +12,8 @@ from __future__ import annotations
 
 import os
 
-from .adapter import (CharacterView, FeatureView, ItemView, SpellView,
-                      from_model)
+from .adapter import (AttackView, CharacterView, FeatureView, ItemView,
+                      SpellView, from_model)
 
 _GAME_DATA = None
 
@@ -135,4 +135,19 @@ def demo_character() -> CharacterView:
                         "condition."),
         ],
         is_caster=True,
+        initiative=3,
+        size="Medium",
+        senses=["Darkvision 60 ft"],
+        hit_dice={"ranger": (2, 3, 10)},
+        attacks=[
+            AttackView("Longbow", "+5", "1d8+3 piercing", "150/600",
+                       "Ammunition, Two-Handed"),
+            AttackView("Shortsword", "+5", "1d6+3 piercing", "",
+                       "Finesse, Light · Vex"),
+        ],
+        armor_training=["Light", "Medium armor", "Shields"],
+        weapon_training=["Simple weapons", "Martial weapons"],
+        tool_training=["Cartographer's Tools"],
+        languages=["Common", "Elvish", "Goblin"],
+        coins=(35, 0, 0),
     )

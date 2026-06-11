@@ -58,6 +58,24 @@ def test_inventory_and_wealth(view):
     assert view.wealth != "—"
 
 
+def test_page_one_extras(view):
+    assert view.initiative == 2                      # dex 14
+    assert view.size == "Medium"
+    assert view.passive_perception == 10 + view.skill_mod("Perception")
+    assert view.senses == ["Darkvision 120 ft"]      # Orc
+    assert view.hit_dice == {"druid": (1, 1, 8)}
+    assert view.temp_hp == 0
+    assert view.attacks, "druid has weapons"
+    sickle = next(a for a in view.attacks if a.name == "Sickle")
+    assert sickle.attack.startswith(("+", "-"))
+    assert "slashing" in sickle.damage
+    assert view.armor_training and view.weapon_training
+    assert view.languages[0] == "Common"
+    assert "Druidic" in view.languages
+    gp, sp, cp = view.coins
+    assert (gp, sp, cp) == (17, 0, 0)
+
+
 def test_features(view):
     by_name = {f.name: f for f in view.features}
     assert "Druidic" in by_name
@@ -127,6 +145,30 @@ def test_roundtrip_save_stays_gui_compatible(view, game_data):
     assert c.current_hit_points == 9
     assert c.character_class and c.character_class["name"] == "Druid"
     assert len(c.class_levels) == 1
+
+
+def test_adjust_wealth_persists(view, game_data):
+    ok, _ = adapter.adjust_wealth(view, +250)        # +2gp 5sp on 17gp
+    assert ok
+    assert view.coins == (19, 5, 0)
+    reloaded = adapter.from_model(_reload(view, game_data), game_data,
+                                  source_path=view.source_path)
+    assert reloaded.coins == (19, 5, 0)
+
+    ok, _ = adapter.adjust_wealth(view, -1950)
+    assert ok and view.coins == (0, 0, 0)
+
+    ok, message = adapter.adjust_wealth(view, -1)    # would go negative
+    assert not ok and "Not enough" in message
+    assert view.coins == (0, 0, 0)
+
+
+def test_adjust_wealth_demo_in_memory():
+    from tui.loader import demo_character
+    v = demo_character()
+    ok, _ = adapter.adjust_wealth(v, -500)           # 35gp - 5gp
+    assert ok and v.coins == (30, 0, 0)
+    assert v.wealth == "30 GP"
 
 
 def test_demo_character_needs_no_model():

@@ -26,12 +26,25 @@ python -m tui --demo
 
 | Key | Where | Action |
 |---|---|---|
-| `r` | anywhere | dice roller (then `1-9` = count, `r` = reroll, click `d4`–`d100`) |
-| `enter` | roster | open character sheet |
+| `j` / `k` | everywhere | move down / up (roster rows, table cursor, scroll panes) |
+| `g` / `G` | everywhere | jump to top / bottom |
+| `ctrl+d` / `ctrl+u` | everywhere | page down / up |
+| `r` | anywhere | dice roller (`j`/`k` count, `h`/`l` die size, `1-9` count, `r` reroll) |
+| `enter` / `l` | roster | open character sheet |
 | `1`–`5` | sheet | jump tabs (Overview / Skills / Spells / Inventory / Features) |
+| `[` / `]` | sheet | previous / next tab |
 | `h` / `H` | sheet | -1 / +1 HP (saved to the character file) |
 | `s` / `S` | sheet | spend / restore a spell slot (uses the highlighted spell's level; saved) |
+| `m` | sheet | coin pouch & money calculator |
 | `esc` | sheet | back to roster |
+
+The money modal doubles as a D&D calculator: `+2gp 5sp` / `-1gp` adjust
+the pouch on enter (persisted, leading sign covers the whole amount),
+while a plain expression like `(3gp + 12sp) / 4` just shows the result
+in every denomination (pp/gp/ep/sp/cp).
+
+Focus follows the active tab, so motion keys always act on the visible
+pane — no mouse needed.
 
 ## Architecture
 

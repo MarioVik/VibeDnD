@@ -91,6 +91,15 @@ class FeatureView:
 
 
 @dataclass
+class AttackView:
+    name: str = ""
+    attack: str = ""          # e.g. "+5"
+    damage: str = ""          # e.g. "1d6+2 piercing"
+    range: str = ""
+    notes: str = ""           # weapon properties / mastery
+
+
+@dataclass
 class CharacterView:
     """Flat, render-ready snapshot of a character."""
 
@@ -117,8 +126,26 @@ class CharacterView:
     wealth: Any = "—"
     features: list[FeatureView] = field(default_factory=list)
     is_caster: bool = False
+    # page-1 extras
+    initiative: int | None = None
+    size: str = "—"
+    senses: list[str] = field(default_factory=list)
+    hit_dice: dict[str, tuple[int, int, int]] = field(default_factory=dict)
+    # ^ class slug -> (remaining, total, die size)
+    temp_hp: int = 0
+    attacks: list[AttackView] = field(default_factory=list)
+    armor_training: list[str] = field(default_factory=list)
+    weapon_training: list[str] = field(default_factory=list)
+    tool_training: list[str] = field(default_factory=list)
+    languages: list[str] = field(default_factory=list)
+    coins: tuple[int, int, int] | None = None      # (gp, sp, cp)
     source_path: str | None = None  # save file, for write-backs
     raw: Any = None                 # underlying models.Character, if any
+
+    @property
+    def passive_perception(self) -> int | None:
+        perception = self.skill_mod("Perception")
+        return None if perception is None else 10 + perception
 
     @property
     def hp_fraction(self) -> float:
@@ -363,6 +390,67 @@ def _wealth_text(c: Any) -> str:
     return format_coins(current_wealth_cp(c), compact=True)
 
 
+def _coins(c: Any) -> tuple[int, int, int]:
+    from models.inventory_service import cp_to_coins, current_wealth_cp
+    return cp_to_coins(current_wealth_cp(c))
+
+
+def _attacks(c: Any, gd: Any) -> list[AttackView]:
+    from models.standard_actions import build_standard_actions
+    spells_by_name = {s.get("name", ""): s for s in gd.spells}
+    rows = build_standard_actions(
+        c, spells_by_name, game_data=gd,
+        weapon_options=c.standard_action_options or {})
+    return [AttackView(
+        name=str(r.get("name", "") or ""),
+        attack=str(r.get("attack", "") or ""),
+        damage=str(r.get("damage", "") or ""),
+        range="" if r.get("range") in (None, "-") else str(r.get("range")),
+        notes=str(r.get("notes", "") or ""),
+    ) for r in rows]
+
+
+_SENSE_KEYWORDS = ("Darkvision", "Blindsight", "Tremorsense", "Truesight",
+                   "Superior Darkvision", "Keen Senses", "Camouflage")
+
+
+def _senses(c: Any) -> list[str]:
+    """Mirror the PDF export's species-trait sense extraction."""
+    import re
+    traits = ((c.species or {}).get("features")
+              or (c.species or {}).get("traits") or [])
+    senses = []
+    for trait in traits:
+        name = str(trait.get("name", "") or "")
+        if not any(kw in name for kw in _SENSE_KEYWORDS):
+            continue
+        match = re.search(r"(\d+)\s*feet", str(trait.get("description", "")))
+        if match and "Darkvision" in name:
+            senses.append(f"Darkvision {match.group(1)} ft")
+        elif match and ("Blindsight" in name or "Tremorsense" in name):
+            senses.append(f"{name} {match.group(1)} ft")
+        else:
+            senses.append(name)
+    return senses
+
+
+def _tools(c: Any) -> list[str]:
+    """Background + class tool proficiencies, as on the PDF sheet."""
+    tools = []
+    background_tool = (c.background or {}).get("tool_proficiency")
+    if background_tool:
+        tools.append(str(background_tool))
+    for tool in (c.character_class or {}).get("tool_proficiencies", []) or []:
+        if tool not in tools:
+            tools.append(str(tool))
+    return tools
+
+
+def _languages(c: Any) -> list[str]:
+    from models.language_utils import all_languages
+    return all_languages(c)
+
+
 def from_model(character: Any, game_data: Any,
                source_path: str | None = None) -> CharacterView:
     """Build a CharacterView from a loaded `models.Character`."""
@@ -417,6 +505,19 @@ def from_model(character: Any, game_data: Any,
     view.is_caster = section("is_caster",
                              lambda: bool(c.is_caster) or bool(view.spells),
                              bool(view.spells))
+    view.initiative = section("initiative", lambda: int(c.initiative), None)
+    view.size = section("size", lambda: str(c.size_choice or "—"), "—")
+    view.senses = section("senses", lambda: _senses(c), [])
+    view.hit_dice = section("hit_dice", lambda: dict(c.hit_dice_pool), {})
+    view.temp_hp = section("temp_hp", lambda: int(c.temp_hit_points or 0), 0)
+    view.attacks = section("attacks", lambda: _attacks(c, game_data), [])
+    view.armor_training = section(
+        "armor_training", lambda: list(c.effective_armor_proficiencies), [])
+    view.weapon_training = section(
+        "weapon_training", lambda: list(c.effective_weapon_proficiencies), [])
+    view.tool_training = section("tool_training", lambda: _tools(c), [])
+    view.languages = section("languages", lambda: _languages(c), [])
+    view.coins = section("coins", lambda: _coins(c), None)
     return view
 
 
@@ -479,3 +580,32 @@ def restore_slot(view: CharacterView, key: str) -> bool:
     if view.raw is not None:
         _model_spend(view.raw, key, -1)
     return persist(view)
+
+
+def adjust_wealth(view: CharacterView, delta_cp: int) -> tuple[bool, str]:
+    """Add/subtract coins (in cp) via wealth_adjust_cp, GUI-style.
+
+    Refuses reductions below zero, like the Tkinter wealth editor.
+    Returns (ok, message for the user).
+    """
+    from .money import fmt_cp
+
+    delta_cp = int(delta_cp)
+    gp, sp, cp = view.coins or (0, 0, 0)
+    current = gp * 100 + sp * 10 + cp
+    if current + delta_cp < 0:
+        return False, "Not enough wealth for that reduction"
+
+    c = view.raw
+    if c is not None:
+        c.wealth_adjust_cp = int(c.wealth_adjust_cp or 0) + delta_cp
+        if not persist(view):
+            c.wealth_adjust_cp -= delta_cp
+            return False, "Could not save the wealth change"
+        view.wealth = _wealth_text(c)
+        view.coins = _coins(c)
+    else:                                   # demo: in-memory only
+        total = current + delta_cp
+        view.coins = (total // 100, total % 100 // 10, total % 10)
+        view.wealth = fmt_cp(total)
+    return True, f"Pouch: {fmt_cp(current + delta_cp)}"

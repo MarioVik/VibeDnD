@@ -6,16 +6,69 @@ import random
 
 from rich.text import Text
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical
+from textual.binding import Binding
+from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import Button, Label, Static
+from textual.widgets import Button, DataTable, Input, Label, OptionList, Static
 
-from .adapter import ABILITIES, CharacterView, fmt_mod, mod
+from .adapter import ABILITIES, CharacterView, adjust_wealth, fmt_mod, mod
+from .money import (fmt_cp, fmt_equivalents, is_transaction, money_to_cp,
+                    transaction_cp)
 
 BAR_FULL = "█"
 BAR_EMPTY = "░"
 PIP_FULL = "◆"
 PIP_EMPTY = "◇"
+
+
+# ------------------------------------------------------------ vim motions --
+# Hidden (show=False) so the footer stays readable; documented in README.
+
+class VimScroll(VerticalScroll):
+    """VerticalScroll with j/k, g/G and ctrl+d/ctrl+u motions."""
+
+    BINDINGS = [
+        Binding("j", "scroll_down", "Down", show=False),
+        Binding("k", "scroll_up", "Up", show=False),
+        Binding("g", "scroll_home", "Top", show=False),
+        Binding("G", "scroll_end", "Bottom", show=False),
+        Binding("ctrl+d", "page_down", "Page down", show=False),
+        Binding("ctrl+u", "page_up", "Page up", show=False),
+    ]
+
+
+class VimOptionList(OptionList):
+    """OptionList with j/k, g/G and ctrl+d/ctrl+u motions."""
+
+    BINDINGS = [
+        Binding("j", "cursor_down", "Down", show=False),
+        Binding("k", "cursor_up", "Up", show=False),
+        Binding("g", "first", "Top", show=False),
+        Binding("G", "last", "Bottom", show=False),
+        Binding("ctrl+d", "page_down", "Page down", show=False),
+        Binding("ctrl+u", "page_up", "Page up", show=False),
+    ]
+
+
+class VimDataTable(DataTable):
+    """DataTable with j/k, g/G and ctrl+d/ctrl+u motions."""
+
+    BINDINGS = [
+        Binding("j", "cursor_down", "Down", show=False),
+        Binding("k", "cursor_up", "Up", show=False),
+        Binding("g", "cursor_top", "Top", show=False),
+        Binding("G", "cursor_bottom", "Bottom", show=False),
+        Binding("ctrl+d", "page_down", "Page down", show=False),
+        Binding("ctrl+u", "page_up", "Page up", show=False),
+    ]
+
+    def action_cursor_top(self) -> None:
+        if self.row_count:
+            self.move_cursor(row=0)
+
+    def action_cursor_bottom(self) -> None:
+        if self.row_count:
+            self.move_cursor(row=self.row_count - 1)
 
 
 class HPBar(Static):
@@ -85,6 +138,93 @@ class AbilityRow(Static):
         return text
 
 
+# ------------------------------------------------------------- coin pouch --
+
+class MoneyModal(ModalScreen[bool]):
+    """Coin pouch editor + D&D money calculator.
+
+    `+2gp 5sp` / `-1gp` adjust the pouch on enter (persisted). A plain
+    expression like `3gp + 12sp / 4` is calculator-only and shows the
+    result in every denomination.
+    """
+
+    BINDINGS = [("escape", "dismiss(False)", "Close")]
+
+    def __init__(self, view: CharacterView):
+        super().__init__()
+        self.view = view
+        self._applied = False
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="money-box"):
+            yield Label("COIN POUCH", id="money-title")
+            yield Static(self._pouch_text(), id="money-pouch")
+            yield Input(placeholder="+2gp 5sp · -1gp · 3gp+12sp/4 …",
+                        id="money-input")
+            yield Static("", id="money-result")
+            yield Label("+/- adjusts the pouch on enter · plain expression "
+                        "just calculates · esc close", id="money-hint")
+
+    def _pouch_text(self) -> Text:
+        gp, sp, cp = self.view.coins or (0, 0, 0)
+        text = Text()
+        for amount, denom in ((gp, "GP"), (sp, "SP"), (cp, "CP")):
+            text.append(f"  {amount}", style="bold #d4af37")
+            text.append(f" {denom}", style="#a89878")
+        return text
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        result = self.query_one("#money-result", Static)
+        expr = event.value
+        if not expr.strip():
+            result.update("")
+            return
+        try:
+            cp = (transaction_cp(expr) if is_transaction(expr)
+                  else money_to_cp(expr))
+        except ValueError as exc:
+            result.update(Text(f"… {exc}", style="#6f6354"))
+            return
+        text = Text()
+        if is_transaction(expr):
+            text.append("Δ ", style="#a89878")
+            text.append(fmt_cp(cp), style="bold #d4af37")
+            if cp != int(cp):
+                text.append("\nfractional copper — round before applying",
+                            style="#c0392b")
+            else:
+                gp, sp, cp_now = self.view.coins or (0, 0, 0)
+                after = gp * 100 + sp * 10 + cp_now + int(cp)
+                if after < 0:
+                    text.append("\nnot enough in the pouch", style="#c0392b")
+                else:
+                    text.append(f"\nafter: {fmt_cp(after)}  ", style="#e8dcc0")
+                    text.append("(enter to apply)", style="#a89878")
+        else:
+            text.append("= ", style="#a89878")
+            text.append(fmt_cp(cp), style="bold #d4af37")
+            text.append(f"\n{fmt_equivalents(cp)}", style="#a89878")
+        result.update(text)
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        expr = event.value
+        if not expr.strip() or not is_transaction(expr):
+            return                          # calculator mode: keep the result
+        try:
+            cp = transaction_cp(expr)
+        except ValueError:
+            return
+        if cp != int(cp):
+            return
+        ok, message = adjust_wealth(self.view, int(cp))
+        if ok:
+            self.notify(message)
+            self.dismiss(True)
+        else:
+            self.query_one("#money-result", Static).update(
+                Text(message, style="#c0392b"))
+
+
 # ------------------------------------------------------------ dice roller --
 
 DICE = (4, 6, 8, 10, 12, 20, 100)
@@ -96,7 +236,14 @@ class DiceRoller(ModalScreen[None]):
     Open with `r` anywhere. Numbers spin briefly, then settle.
     """
 
-    BINDINGS = [("escape", "dismiss", "Close"), ("r", "reroll", "Reroll")]
+    BINDINGS = [
+        ("escape", "dismiss", "Close"),
+        ("r", "reroll", "Reroll"),
+        Binding("h", "die(-1)", "Smaller die", show=False),
+        Binding("l", "die(1)", "Bigger die", show=False),
+        Binding("j", "count(-1)", "Fewer dice", show=False),
+        Binding("k", "count(1)", "More dice", show=False),
+    ]
 
     def __init__(self, sides: int = 20, count: int = 1, modifier: int = 0):
         super().__init__()
@@ -111,7 +258,8 @@ class DiceRoller(ModalScreen[None]):
             with Horizontal(id="dice-buttons"):
                 for d in DICE:
                     yield Button(f"d{d}", id=f"die-{d}", classes="die-btn")
-            yield Label("r reroll · 1-9 count · esc close", id="dice-hint")
+            yield Label("r reroll · j/k or 1-9 count · h/l die · esc close",
+                        id="dice-hint")
 
     def _title(self) -> str:
         m = f" {fmt_mod(self.modifier)}" if self.modifier else ""
@@ -151,6 +299,15 @@ class DiceRoller(ModalScreen[None]):
         face.update(text)
 
     def action_reroll(self) -> None:
+        self._spin()
+
+    def action_die(self, step: int) -> None:
+        index = DICE.index(self.sides) if self.sides in DICE else 0
+        self.sides = DICE[max(0, min(len(DICE) - 1, index + step))]
+        self._spin()
+
+    def action_count(self, step: int) -> None:
+        self.count = max(1, min(9, self.count + step))
         self._spin()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:

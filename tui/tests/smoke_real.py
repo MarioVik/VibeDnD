@@ -20,6 +20,15 @@ async def main() -> None:
         assert count > 0, "no real characters loaded"
         print(f"roster: {count} characters")
 
+        if count > 1:                   # vim roster motion
+            await pilot.press("j")
+            await pilot.pause()
+            assert home.query_one("#roster").highlighted == 1
+            await pilot.press("g")
+            await pilot.pause()
+            assert home.query_one("#roster").highlighted == 0
+            print("roster j/g motions ok")
+
         for i in range(count):
             home.query_one("#roster").highlighted = i
             await pilot.pause()

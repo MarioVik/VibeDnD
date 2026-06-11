@@ -4,18 +4,20 @@ from __future__ import annotations
 
 from rich.text import Text
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Label, OptionList, Static
 from textual.widgets.option_list import Option
 
 from ..adapter import CharacterView
-from ..widgets import HPBar
+from ..widgets import HPBar, VimOptionList
 
 
 class HomeScreen(Screen):
     BINDINGS = [
         ("enter", "open_character", "Open"),
+        Binding("l", "open_character", "Open", show=False),
         ("q", "app.quit", "Quit"),
     ]
 
@@ -29,7 +31,7 @@ class HomeScreen(Screen):
         with Horizontal(id="home-split"):
             with Vertical(id="roster-pane"):
                 yield Label("⚔  CHARACTER ARCHIVE", classes="pane-title")
-                yield OptionList(
+                yield VimOptionList(
                     *[Option(self._row(c), id=str(i))
                       for i, c in enumerate(self.characters)],
                     id="roster",

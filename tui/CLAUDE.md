@@ -56,10 +56,18 @@ still pass if you touch anything outside `tui/`.
 4. **Degrade, don't crash.** Unknown/missing data renders as "—" or an
    empty state with guidance. Every `from_model` section is individually
    guarded; a character file that fails to load is skipped, never fatal.
-5. **Keyboard-first.** Every mouse interaction needs a key binding shown
-   in the Footer. Current map: `r` dice (global), `enter` open,
+5. **Keyboard-first.** Every mouse interaction needs a key binding; vim
+   motions everywhere. Footer map: `r` dice (global), `enter` open,
    `esc` back, `1-5` tabs, `h`/`H` HP -/+, `s`/`S` spend/restore spell
-   slot (uses the highlighted spell's level when possible).
+   slot (uses the highlighted spell's level when possible), `m` coin
+   pouch/calculator (`tui/money.py` parser; pouch writes go through
+   `adapter.adjust_wealth`, which mirrors the GUI's `wealth_adjust_cp`
+   semantics incl. the no-negative-pouch rule). Hidden
+   (show=False) vim layer: `j`/`k`/`g`/`G`/`ctrl+d`/`ctrl+u` motions via
+   the `Vim*` widget subclasses in `widgets.py`, `[`/`]` tab cycling,
+   `l` open on the roster, `h`/`l`+`j`/`k` die/count in the DiceRoller.
+   `SheetScreen._focus_active_pane()` keeps focus on the visible tab's
+   primary widget — preserve that when adding panes, or keys go nowhere.
 
 ## Confirmed integration points (2026-06-10)
 
@@ -95,6 +103,12 @@ still pass if you touch anything outside `tui/`.
   `Character.effective_current_hp`, write the explicit int back.
 
 ## Backlog (from HANDOVER.md)
+
+- Heroic inspiration on the Overview tab — **blocked on backend**: the
+  model has no field for it (the PDF's diamond is a blank pen-and-paper
+  checkbox). MarioVik will be asked to add it upstream; once
+  `Character` grows e.g. `heroic_inspiration` + save/load support,
+  surface it as a toggle here.
 
 - Skill-check rolls: `enter` on a Skills row → DiceRoller pre-loaded
   with that modifier.
